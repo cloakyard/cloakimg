@@ -1,0 +1,222 @@
+// DropZone.tsx — Shared file-picker dropzone. Drag-and-drop, paste,
+// click-to-browse, and an interactive cursor "glow" — all the niceties
+// that the StartModal upload tab pioneered, now reusable in any place
+// that needs to pull image files in (StartModal, BatchView, etc.).
+//
+// Always returns an array via `onFiles` even in single-pick mode, so
+// consumers don't have to special-case multi vs single.
+
+import {
+  type CSSProperties,
+  type DragEvent as ReactDragEvent,
+  type ClipboardEvent as ReactClipboardEvent,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
+import { I } from "./icons";
+
+interface DropZoneProps {
+  /** Receives picked / dropped / pasted files. Always an array (length 1
+   *  in single-pick mode). */
+  onFiles: (files: File[]) => void;
+  /** Allow multiple files (drag-drop + file picker). Default false. */
+  multiple?: boolean;
+  /** Tighter padding on mobile widths. */
+  isPhone?: boolean;
+  /** Headline shown when no file is highlighted. */
+  title?: string;
+  /** Sub-headline below the title. */
+  subtitle?: string;
+  /** Accept attribute for the file input. Default covers the formats
+   *  the editor decodes natively (createImageBitmap) plus HEIC/HEIF
+   *  via libheif-js. */
+  accept?: string;
+  /** Show the "Paste from clipboard" button. Default true. */
+  showPasteButton?: boolean;
+  /** Single-pick mode: shows a "selected" state when set. Ignored when
+   *  `multiple` is true. */
+  selectedFile?: File | null;
+}
+
+const DEFAULT_ACCEPT = "image/*,.heic,.heif";
+
+export function DropZone({
+  onFiles,
+  multiple = false,
+  isPhone = false,
+  title = "Drop an image here",
+  subtitle = "or click to browse — JPG, PNG, WebP, AVIF, HEIC, HEIF",
+  accept = DEFAULT_ACCEPT,
+  showPasteButton = true,
+  selectedFile = null,
+}: DropZoneProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const zoneRef = useRef<HTMLDivElement>(null);
+  const [hover, setHover] = useState(false);
+  const [glowStyle, setGlowStyle] = useState<CSSProperties>({ opacity: 0 });
+
+  const onPick = useCallback(() => inputRef.current?.click(), []);
+
+  const setGlowAt = useCallback((clientX: number, clientY: number) => {
+    const zone = zoneRef.current;
+    if (!zone) return;
+    const rect = zone.getBoundingClientRect();
+    setGlowStyle({
+      opacity: 1,
+      background: `radial-gradient(300px circle at ${clientX - rect.left}px ${clientY - rect.top}px, rgba(245,97,58,0.18), transparent 70%)`,
+    });
+  }, []);
+
+  const clearGlow = useCallback(() => setGlowStyle({ opacity: 0 }), []);
+
+  const onDrop = useCallback(
+    (e: ReactDragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      // Stop bubbling — prevents an outer drop handler (e.g. BatchView's
+      // section-level catcher) from also firing and double-adding files.
+      e.stopPropagation();
+      setHover(false);
+      const all = Array.from(e.dataTransfer.files ?? []);
+      const images = all.filter(
+        (f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name),
+      );
+      if (!images.length) return;
+      onFiles(multiple ? images : images.slice(0, 1));
+    },
+    [onFiles, multiple],
+  );
+
+  const onPaste = useCallback(
+    async (e: ReactClipboardEvent<HTMLDivElement>) => {
+      const items = Array.from(e.clipboardData.items).filter((i) => i.type.startsWith("image/"));
+      const files = items.map((i) => i.getAsFile()).filter((f): f is File => f !== null);
+      if (!files.length) return;
+      onFiles(multiple ? files : files.slice(0, 1));
+    },
+    [onFiles, multiple],
+  );
+
+  const onClipboardPasteButton = useCallback(async () => {
+    try {
+      const items = await navigator.clipboard.read();
+      const collected: File[] = [];
+      for (const item of items) {
+        const type = item.types.find((t) => t.startsWith("image/"));
+        if (type) {
+          const blob = await item.getType(type);
+          collected.push(new File([blob], "clipboard.png", { type }));
+          if (!multiple) break;
+        }
+      }
+      if (collected.length) onFiles(collected);
+    } catch {
+      // Permission denied / unsupported — silently no-op.
+    }
+  }, [onFiles, multiple]);
+
+  const showSelected = !multiple && selectedFile;
+
+  return (
+    // Wrapper is a non-interactive `<section>` — it accepts dragged
+    // files but is not itself a clickable region (clicking it does
+    // nothing). The Browse / Paste buttons inside are the canonical
+    // keyboard- and screen-reader-accessible affordances; "click
+    // anywhere on the dashed area" was a bonus the lint rules
+    // (correctly) flag as ambiguous a11y.
+    <section
+      ref={zoneRef}
+      aria-label={multiple ? "Drop or pick images" : "Drop or pick an image"}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setHover(true);
+      }}
+      onDragLeave={() => setHover(false)}
+      onDrop={onDrop}
+      onPaste={onPaste}
+      onMouseMove={(e) => setGlowAt(e.clientX, e.clientY)}
+      onMouseLeave={clearGlow}
+      onTouchStart={(e) => {
+        const t = e.touches[0];
+        if (t) setGlowAt(t.clientX, t.clientY);
+      }}
+      onTouchMove={(e) => {
+        const t = e.touches[0];
+        if (t) setGlowAt(t.clientX, t.clientY);
+      }}
+      onTouchEnd={clearGlow}
+      onTouchCancel={clearGlow}
+      style={{ touchAction: "manipulation" }}
+      className={`group relative overflow-hidden rounded-2xl border-2 border-dashed bg-surface/70 text-center transition-[border-color,background-color,transform] duration-200 dark:bg-dark-surface/70 ${
+        hover
+          ? "scale-[1.005] border-coral-500 bg-coral-50/60 dark:bg-coral-900/30"
+          : "border-border dark:border-dark-border"
+      } ${isPhone ? "px-5 py-7" : "px-7 py-10"}`}
+    >
+      {/* Cursor / touch spotlight glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-2xl transition-opacity duration-300"
+        style={glowStyle}
+      />
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          if (files.length) onFiles(multiple ? files : files.slice(0, 1));
+          e.target.value = "";
+        }}
+      />
+      <div
+        className={`relative z-10 mb-3.5 inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-[background-color,transform,color] duration-200 motion-safe:group-hover:-translate-y-0.5 ${
+          hover
+            ? "bg-coral-100 text-coral-600 dark:bg-coral-900/50"
+            : "bg-page-bg text-text-muted group-hover:bg-coral-50 group-hover:text-coral-500 dark:bg-dark-page-bg dark:text-dark-text-muted dark:group-hover:bg-coral-900/30"
+        }`}
+      >
+        <I.Upload size={24} />
+      </div>
+      <div
+        className={`relative z-10 mb-1 text-base font-semibold transition-colors duration-200 ${
+          hover ? "text-coral-700 dark:text-coral-300" : "text-text dark:text-dark-text"
+        }`}
+      >
+        {showSelected ? selectedFile.name : title}
+      </div>
+      <div className="relative z-10 mb-3.5 text-[13px] text-text-muted dark:text-dark-text-muted">
+        {showSelected
+          ? `${(selectedFile.size / 1024).toFixed(0)} KB · ${selectedFile.type || "image"}`
+          : subtitle}
+      </div>
+      <div className="relative z-10 flex flex-wrap justify-center gap-2">
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPick();
+          }}
+        >
+          <I.Folder size={13} /> Browse files
+        </button>
+        {showPasteButton && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              void onClipboardPasteButton();
+            }}
+          >
+            <I.Layers size={13} /> Paste from clipboard
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}

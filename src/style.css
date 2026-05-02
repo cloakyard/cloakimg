@@ -1,0 +1,74 @@
+/* style.css — App-level glue on top of the tokens. The unified editor
+   takes over the full viewport, so we strip the default vite starter
+   layout and add a couple of small animations. */
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes ci-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Translucent glass aesthetic for editor chrome panels. Replaces the
+   prior film-grain stipple — panels now layer over a quiet,
+   toned-down sunset (`<Sunset subtle />` mounted in UnifiedEditor)
+   so a hint of warmth bleeds through the chrome.
+
+   Alpha is tuned per-scheme: light needs 0.78 (the multiply-blended
+   coral haze fades fast against cream, so we leave more headroom),
+   dark holds at 0.84 (screen blend already lifts the coral cleanly,
+   and panels need more body to keep contrast on the near-black
+   page). saturate(180%) amplifies whatever color is behind, so the
+   warm cast reads even where the sunset is faint. */
+.editor-paper {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+}
+@media (prefers-color-scheme: dark) {
+  .editor-paper {
+    background: rgba(28, 24, 20, 0.76);
+  }
+}
+
+/* Mobile bottom sheet — animate the slot's *height* so the drawer's
+   space above the toolbar genuinely extends/collapses. Translate-based
+   transitions made it look like the toolbar itself was sliding (the
+   drawer rendered over it during the travel). With max-height the
+   toolbar never moves; only the canvas-above and drawer share the
+   reclaimed space. */
+@keyframes ci-sheet-up {
+  from {
+    max-height: 0;
+  }
+  to {
+    max-height: 45vh;
+  }
+}
+@keyframes ci-sheet-down {
+  from {
+    max-height: 45vh;
+  }
+  to {
+    max-height: 0;
+  }
+}
+/* X-centering is handled by Tailwind's `-translate-x-1/2` (which uses
+   the `translate` property in v4); animate `transform` only so the
+   two don't compose into a doubled offset. */
+@keyframes ci-fab-in {
+  from {
+    transform: translateY(16px) scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}

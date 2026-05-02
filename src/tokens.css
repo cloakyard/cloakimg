@@ -1,0 +1,793 @@
+/* CloakIMG — Tokens
+   Sister product to CloakPDF. Shares the slate spine and the calm-quiet
+   philosophy, but extends the brand with a primary accent — a warm
+   coral ("Sunset Coral").
+
+   This file is the Tailwind v4 entry point: `@import "tailwindcss"`
+   pulls in core utilities, `@theme { ... }` defines design tokens that
+   Tailwind reads as utilities (e.g. `--color-coral-500` exposes
+   `bg-coral-500`, `text-coral-500`), and `@custom-variant dark`
+   wires the `dark:` modifier to the OS-level color preference. */
+
+@import "tailwindcss";
+
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+@theme {
+  /* ── Coral — primary accent ─────────────────────────────── */
+  --color-coral-50: #fff5f1;
+  --color-coral-100: #ffe4d8;
+  --color-coral-200: #ffc8b0;
+  --color-coral-300: #ffa483;
+  --color-coral-400: #ff7d54;
+  --color-coral-500: #f5613a;
+  --color-coral-600: #e54a22;
+  --color-coral-700: #b8371a;
+  --color-coral-800: #8a2914;
+  --color-coral-900: #5c1c0e;
+
+  /* ── Surfaces & text — light ─────────────────────────────── */
+  --color-surface: #ffffff;
+  --color-surface-glass: rgba(255, 255, 255, 0.78);
+  --color-surface-card: rgba(255, 255, 255, 0.65);
+  --color-page-bg: #faf7f4;
+  --color-border: #e7e1da;
+  --color-border-soft: rgba(231, 225, 218, 0.7);
+  --color-text: #1e1a16;
+  --color-text-muted: #6b6258;
+  --color-canvas-bg: #2a2620;
+  --color-checker-a: #efece7;
+  --color-checker-b: #e2dcd2;
+
+  /* ── Surfaces & text — dark (paired) ─────────────────────── */
+  --color-dark-surface: #1c1814;
+  --color-dark-surface-glass: rgba(28, 24, 20, 0.78);
+  --color-dark-surface-card: rgba(28, 24, 20, 0.62);
+  --color-dark-page-bg: #0e0c0a;
+  --color-dark-border: #2e2823;
+  --color-dark-border-soft: rgba(255, 255, 255, 0.08);
+  --color-dark-text: #f5efe8;
+  --color-dark-text-muted: #a39788;
+  --color-dark-canvas-bg: #0a0908;
+  --color-dark-checker-a: #1a1714;
+  --color-dark-checker-b: #221d18;
+
+  /* ── Status ──────────────────────────────────────────────── */
+  --color-danger: #dc2626;
+  --color-warning: #d97706;
+  --color-success: #059669;
+
+  /* ── Sunset palette (landing background) ─────────────────── */
+  --color-sunset-coral: #f5613a;
+  --color-sunset-amber: #ffb37a;
+  --color-sunset-peach: #ffd9b8;
+  --color-sunset-rose: #ff9a8b;
+  --color-sunset-gold: #ffc966;
+
+  /* ── Type ────────────────────────────────────────────────── */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 28px;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --shadow-card-rest: 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --shadow-card-hover: 0 4px 14px -2px rgba(30, 18, 10, 0.1), 0 2px 4px -2px rgba(30, 18, 10, 0.06);
+  --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-cta: 0 1px 2px rgba(245, 97, 58, 0.3);
+  --shadow-float: 0 12px 32px -8px rgba(30, 18, 10, 0.18), 0 2px 6px rgba(30, 18, 10, 0.06);
+}
+
+/* ── Legacy CSS-var bridge ──────────────────────────────────
+   While the migration is in flight, components written with
+   `var(--text)`, `var(--coral-500)`, etc. keep working. Once every
+   component reads from Tailwind utilities (Phase FX-3) this whole
+   block goes away and the @theme block above becomes the single
+   source of truth. */
+:root {
+  --coral-50: #fff5f1;
+  --coral-100: #ffe4d8;
+  --coral-200: #ffc8b0;
+  --coral-300: #ffa483;
+  --coral-400: #ff7d54;
+  --coral-500: #f5613a;
+  --coral-600: #e54a22;
+  --coral-700: #b8371a;
+  --coral-800: #8a2914;
+  --coral-900: #5c1c0e;
+
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+
+  --surface: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.78);
+  --surface-card: rgba(255, 255, 255, 0.65);
+  --page-bg: #faf7f4;
+  --border: #e7e1da;
+  --border-soft: rgba(231, 225, 218, 0.7);
+  --text: #1e1a16;
+  --text-muted: #6b6258;
+
+  --danger: #dc2626;
+  --warning: #d97706;
+  --success: #059669;
+
+  --sunset-coral: #f5613a;
+  --sunset-amber: #ffb37a;
+  --sunset-peach: #ffd9b8;
+  --sunset-rose: #ff9a8b;
+  --sunset-gold: #ffc966;
+
+  --focus-ring: rgba(245, 97, 58, 0.22);
+
+  --canvas-bg: #2a2620;
+  --checker-a: #efece7;
+  --checker-b: #e2dcd2;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 20px;
+  --r-3xl: 28px;
+  --r-pill: 9999px;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --shadow-card-rest: 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --shadow-card-hover: 0 4px 14px -2px rgba(30, 18, 10, 0.1), 0 2px 4px -2px rgba(30, 18, 10, 0.06);
+  --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-cta: 0 1px 2px rgba(245, 97, 58, 0.3);
+  --shadow-float: 0 12px 32px -8px rgba(30, 18, 10, 0.18), 0 2px 6px rgba(30, 18, 10, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #1c1814;
+    --surface-glass: rgba(28, 24, 20, 0.78);
+    --surface-card: rgba(28, 24, 20, 0.62);
+    --page-bg: #0e0c0a;
+    --border: #2e2823;
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --text: #f5efe8;
+    --text-muted: #a39788;
+    --canvas-bg: #0a0908;
+    --checker-a: #1a1714;
+    --checker-b: #221d18;
+  }
+}
+
+/* ── Base reset / page chrome ─────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+/* Page backdrop — solid --page-bg on html/body/#app together. Solid
+   (not gradient) keeps the page reading as uniform cream — Sunset's
+   overlay supplies the warm visual interest. Applied to all three so
+   any area iOS Safari samples below the React tree (URL bar
+   backdrop-blur zone, safe-area reveals during URL bar
+   collapse/expand) gets the same cream as the visible page. The
+   matching <meta name="theme-color"> in index.html drives iOS to
+   tint the URL bar to this same cream, so the URL bar reads as a
+   continuation of the page rather than a tinted band. */
+html,
+body,
+#app {
+  height: 100%;
+  background: var(--page-bg);
+}
+body {
+  font-family: var(--font-sans);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  /* Tint native form widgets (range thumb, checkbox, radio) with the
+     CloakIMG coral instead of the OS-default blue. */
+  accent-color: var(--coral-500);
+}
+::selection {
+  background: rgba(245, 97, 58, 0.28);
+  color: inherit;
+}
+::-moz-selection {
+  background: rgba(245, 97, 58, 0.28);
+  color: inherit;
+}
+
+/* ── Sunset — animated landing backdrop ──────────────────── */
+.sunset-stage {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+/* Mobile bottom boundary — fixes the "tinted stripe above iOS Safari
+   URL bar" issue. Mirrors CloakResume's AuroraBackground pattern
+   (src/components/AuroraBackground.tsx in the cloakresume repo).
+
+   THE PROBLEM: On phones, iOS Safari's floating URL bar samples the
+   page colour directly behind it via backdrop-blur. If Sunset's
+   coral/peach blobs paint into that sample zone, iOS lightens them
+   and the result reads as a visibly tinted stripe right above the
+   bar — full sunset warmth above, washed-out sunset below. Easily
+   mistaken for a body-bg / theme-color / viewport-fit issue (it
+   isn't — none of those changes fix it; this mask does).
+
+   THE FIX: Mask the entire sunset-stage to fully transparent across
+   the URL-bar's sample zone so blobs contribute nothing there.
+   Stops:
+     • opaque from top → 100% − 200px − safe-area-inset-bottom
+     • soft fade over the next 128px (reads as natural fall-off)
+     • transparent from 100% − 72px − safe-area-inset-bottom → end
+   The 72px lower bound clears the URL-bar pill plus a small gutter;
+   200px upper bound gives the fade enough room to feel intentional.
+   safe-area-inset-bottom adjusts for the home indicator on
+   notch/dynamic-island devices.
+
+   Phone-only (max-width: 640px) because the URL bar's translucent
+   sampling behaviour is iOS Safari mobile-specific; desktop browsers
+   render bars opaquely so the mask would just clip the sunset for
+   no benefit. */
+@media (max-width: 640px) {
+  .sunset-stage {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 0,
+      black calc(100% - 200px - env(safe-area-inset-bottom, 0px)),
+      transparent calc(100% - 72px - env(safe-area-inset-bottom, 0px))
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      black 0,
+      black calc(100% - 200px - env(safe-area-inset-bottom, 0px)),
+      transparent calc(100% - 72px - env(safe-area-inset-bottom, 0px))
+    );
+  }
+}
+.sunset-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+  mix-blend-mode: multiply;
+  opacity: 0.04;
+}
+.sunset-horizon {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -25%;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    var(--sunset-coral) 0%,
+    var(--sunset-amber) 22%,
+    var(--sunset-peach) 45%,
+    transparent 70%
+  );
+  opacity: 0.22;
+  filter: blur(8px);
+  animation: sunset-breathe 11s ease-in-out infinite;
+}
+.sunset-sun {
+  position: absolute;
+  width: 38vw;
+  height: 38vw;
+  max-width: 520px;
+  max-height: 520px;
+  bottom: -8%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--sunset-gold) 0%,
+    var(--sunset-amber) 35%,
+    var(--sunset-coral) 60%,
+    transparent 78%
+  );
+  filter: blur(28px);
+  opacity: 0.32;
+  animation: sunset-sun-bob 16s ease-in-out infinite;
+}
+.sunset-blob {
+  position: absolute;
+  width: 44vw;
+  height: 44vw;
+  border-radius: 50%;
+  filter: blur(70px);
+  mix-blend-mode: multiply;
+  opacity: 0.14;
+  animation:
+    sunset-drift 48s ease-in-out infinite,
+    sunset-breathe 13s ease-in-out infinite;
+}
+@keyframes sunset-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(14vw, -6vh) scale(1.1);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+@keyframes sunset-breathe {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+@keyframes sunset-sun-bob {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 0.28;
+  }
+  50% {
+    transform: translate(-50%, -3vh);
+    opacity: 0.38;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .sunset-blob {
+    mix-blend-mode: screen;
+    opacity: 0.18;
+  }
+  .sunset-horizon {
+    opacity: 0.32;
+  }
+  .sunset-sun {
+    opacity: 0.42;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sunset-blob,
+  .sunset-sun,
+  .sunset-horizon {
+    animation: none;
+  }
+}
+
+/* Subtle variant — used as a toned-down backdrop in the editor.
+   Parent opacity multiplies down all child opacities proportionally,
+   keeping the same composition but at reduced strength. The noise
+   grain (::after) is suppressed so the editor surface stays clean.
+
+   Light vs. dark handle warmth very differently: in dark mode the
+   blobs use mix-blend-mode: screen on near-black, which lifts coral
+   so well that 0.55 still reads. In light mode the blobs use
+   multiply on cream, which fades fast — combined with translucent
+   panel chrome on top, even ~0.7 strength is barely a whisper. So
+   light runs at full strength; dark tones down to 0.55. */
+.sunset-stage.sunset-subtle {
+  opacity: 1;
+}
+.sunset-stage.sunset-subtle::after {
+  display: none;
+}
+.sunset-stage.sunset-subtle .sunset-blob {
+  animation:
+    sunset-drift 72s ease-in-out infinite,
+    sunset-breathe 20s ease-in-out infinite;
+}
+.sunset-stage.sunset-subtle .sunset-horizon {
+  animation: sunset-breathe 18s ease-in-out infinite;
+}
+.sunset-stage.sunset-subtle .sunset-sun {
+  animation: sunset-sun-bob 24s ease-in-out infinite;
+}
+@media (prefers-color-scheme: dark) {
+  .sunset-stage.sunset-subtle {
+    opacity: 0.78;
+  }
+}
+
+/* ── Type utilities ──────────────────────────────────────────
+   Marketing eyebrows (.t-eyebrow) are coral and prominent. UI
+   section labels (.t-section-label) are muted — they read as
+   field tags inside dense panels, not headings. Keep the two
+   uses separate so panel chrome doesn't compete with the page
+   eyebrow. */
+.t-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--coral-600);
+  font-feature-settings: "tnum";
+}
+@media (prefers-color-scheme: dark) {
+  .t-eyebrow {
+    color: var(--coral-400);
+  }
+}
+.t-eyebrow-slate {
+  color: var(--slate-500);
+}
+.t-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-feature-settings: "tnum";
+}
+.t-hero {
+  font-size: clamp(38px, 6vw, 72px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--text);
+  text-wrap: balance;
+}
+.t-hero em {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--coral-500);
+  letter-spacing: -0.02em;
+}
+.t-display {
+  font-size: clamp(24px, 3.4vw, 36px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.t-headline {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.t-title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+.t-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+.t-subtitle {
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+@media (min-width: 640px) {
+  .t-subtitle {
+    font-size: 16.5px;
+  }
+}
+.t-body {
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.003em;
+  color: var(--text-muted);
+}
+.t-body-sm {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.t-caption {
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+}
+
+/* ── Pill / kbd ─────────────────────────────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pill-coral {
+  background: var(--coral-50);
+  color: var(--coral-700);
+  border: 1px solid var(--coral-100);
+}
+.pill-slate {
+  background: var(--slate-100);
+  color: var(--slate-600);
+  border: 1px solid var(--slate-200);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  font-feature-settings: "tnum";
+}
+
+/* ── Buttons ──────────────────────────────────────────────────
+   Sizing scale (text + padding only — colors come from variant):
+     .btn-xs  11px / 5px 10px   panel-internal compact (filter row)
+     .btn-sm  13px / 8px 16px   modal CTAs, batch buttons
+     .btn     14px / 11px 22px  default (medium)
+     .btn-lg  15px / 14px 26px  hero CTAs, top-of-funnel
+   Square icon variants:
+     .btn-icon     36×36   primary toolbar
+     .btn-icon-sm  32×32   compact (TopBar undo/redo, modal close)
+     .btn-icon-xs  26×26   ultra-compact (zoom controls)
+   Variants compose: e.g. `btn btn-primary btn-lg`, `btn btn-ghost btn-icon-sm`. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--r-xl);
+  padding: 11px 22px;
+  transition: all 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+  color: inherit;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn:disabled:hover {
+  transform: none;
+}
+.btn-xs {
+  font-size: 11px;
+  padding: 5px 10px;
+  gap: 5px;
+}
+.btn-sm {
+  font-size: 13px;
+  padding: 8px 16px;
+  gap: 6px;
+}
+.btn-lg {
+  font-size: 15px;
+  padding: 14px 26px;
+}
+.btn-primary {
+  background: var(--coral-500);
+  color: white;
+  box-shadow: var(--shadow-cta);
+}
+.btn-primary:hover {
+  background: var(--coral-600);
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  border-color: var(--slate-300);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.btn-ghost:hover {
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text);
+}
+@media (prefers-color-scheme: dark) {
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--dark-text, #f5efe8);
+  }
+}
+/* Outline coral variant — for primary-looking actions that should
+   not compete with the brand mark for top-bar attention. Same coral
+   identity, much lighter visual weight than .btn-primary's solid fill. */
+.btn-outline-coral {
+  background: transparent;
+  color: var(--coral-600);
+  border: 1.5px solid var(--coral-500);
+}
+.btn-outline-coral:hover {
+  background: var(--coral-50);
+  border-color: var(--coral-600);
+  transform: translateY(-1px);
+}
+@media (prefers-color-scheme: dark) {
+  .btn-outline-coral {
+    color: var(--coral-300);
+    border-color: var(--coral-400);
+  }
+  .btn-outline-coral:hover {
+    background: rgba(245, 97, 58, 0.12);
+    border-color: var(--coral-300);
+  }
+}
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--r-md);
+}
+.btn-icon-sm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--r-md);
+}
+.btn-icon-xs {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: var(--r-sm);
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2xl);
+  transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--coral-200);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ── Checker ────────────────────────────────────────────────── */
+.checker {
+  background-image:
+    linear-gradient(45deg, var(--checker-b) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--checker-b) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--checker-b) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--checker-b) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  background-color: var(--checker-a);
+}
+
+/* ── Scrollbars ─────────────────────────────────────────────── */
+/* Page-level scrollbar: ask Firefox/Chromium for the thin, branded
+   colour treatment via the standard properties only. Deliberately do
+   NOT set an explicit `::-webkit-scrollbar { width }` on <html> —
+   doing so forces a classic, layout-reserving scrollbar on macOS and
+   creates a visible gutter to the right of the sticky header. By
+   leaving the WebKit width unset, macOS keeps its overlay scrollbar
+   (no gutter) while Windows/Linux still get a slim styled bar from
+   `scrollbar-width: thin`. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+}
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 9999px;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  html {
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
+  .scroll-thin {
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+}
+
+/* Hide horizontal scrollbar on mobile toolbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* ── Logo mark ──────────────────────────────────────────────── */
+.logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--coral-400) 0%, var(--coral-600) 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  position: relative;
+  box-shadow:
+    0 2px 6px rgba(245, 97, 58, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.logo-wordmark {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.logo-wordmark span {
+  color: var(--coral-600);
+}
+
+/* ── Native UI overrides ────────────────────────────────────── */
+button {
+  font-family: inherit;
+}

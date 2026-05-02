@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- SVG favicon -->
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" sizes="any" />
+    <link rel="mask-icon" href="/icons/favicon.svg" color="#f5613a" />
+
+    <!-- Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#f5613a" />
+    <meta name="color-scheme" content="light dark" />
+
+    <!-- iOS / installable PWA -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CloakIMG" />
+
+    <!-- SEO -->
+    <meta
+      name="description"
+      content="CloakIMG — a minimal, browser-based photo editor that respects your photos. Crop, retouch, redact, adjust, filter, frame, export. No uploads, 100% private."
+    />
+    <meta
+      name="keywords"
+      content="offline photo editor, browser image editor, private photo editor, no upload image editor, crop image, redact image, remove background, photo filter, image privacy"
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://img.cloakyard.com/" />
+    <meta
+      property="og:title"
+      content="CloakIMG — A minimal photo editor that respects your photos"
+    />
+    <meta
+      property="og:description"
+      content="Crop, retouch, redact, convert and export — all in one canvas. Files never leave your browser."
+    />
+    <meta property="og:site_name" content="CloakIMG" />
+    <!-- PNG first for crawlers that don't render SVG (Twitter, LinkedIn, Slack…) -->
+    <meta property="og:image" content="https://img.cloakyard.com/icons/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="CloakIMG — A minimal photo editor that respects your photos"
+    />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CloakIMG — A minimal photo editor" />
+    <meta
+      name="twitter:description"
+      content="Crop, retouch, redact, convert and export photos — entirely in your browser. No uploads, 100% private."
+    />
+    <meta name="twitter:image" content="https://img.cloakyard.com/icons/og-image.png" />
+
+    <!-- Fonts (preconnect to font CDNs; bundled @fontsource files load from local) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>CloakIMG — A minimal photo editor that respects your photos</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

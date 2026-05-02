@@ -1,0 +1,797 @@
+// ImageCanvas.tsx — Fabric.js-backed canvas wrapper. Phase F2-A.
+//
+// History
+// -------
+// Pre-Fabric, this component owned a single 2D canvas, manually drew
+// `doc.working` + every layer + every tool overlay, and translated
+// React pointer events into image-space coords for tools.
+//
+// As of Phase F2-A, a Fabric.js `Canvas` owns the actual rendering
+// surface:
+//
+//   • `doc.working` (or the compare/preview source) is set as a Fabric
+//     `backgroundImage`. Fabric handles the bitmap blit.
+//   • The editor's pan + zoom mirror into Fabric's `viewportTransform`,
+//     so a single coordinate model serves both Fabric objects and the
+//     legacy 2D drawing path.
+//   • Layer rendering (`drawLayers`) and per-tool overlays
+//     (`paintOverlay`) live in an `after:render` hook that paints onto
+//     Fabric's lower-canvas 2D context. Output is identical to
+//     pre-Fabric, but the surface is now Fabric-managed.
+//   • React pointer / wheel handlers stay on the wrapper div; Fabric
+//     is configured non-interactive (`selection: false`) so events
+//     bubble through unobstructed. Pinch-zoom keeps working.
+//
+// Phase F2-B will migrate Text / Watermark / WatermarkImage / Draw
+// layer types onto Fabric objects one at a time, removing them from
+// `drawLayers` as each lands. Phase F3 enables Fabric's selection /
+// transform handles when the Move tool is active.
+
+import { Canvas, type FabricObject, FabricImage, Point } from "fabric";
+import { get2DContext } from "./colorSpace";
+import { FABRIC_CANVAS_SELECTION } from "./fabricDefaults";
+import { snapshotPersistentObjects } from "./tools/penPath";
+import {
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useEditor } from "./EditorContext";
+import type { ToolState } from "./toolState";
+
+interface Props {
+  /** Tool-specific overlay painter. Receives the visible canvas's 2D
+   *  context, the image-to-screen transform, and current tool state. */
+  paintOverlay?: (
+    ctx: CanvasRenderingContext2D,
+    transform: Transform,
+    toolState: ToolState,
+  ) => void;
+  /** Tool-specific pointer handlers in image-space coords. */
+  onImagePointerDown?: (p: ImagePoint, e: ReactPointerEvent<HTMLDivElement>) => void;
+  onImagePointerMove?: (p: ImagePoint, e: ReactPointerEvent<HTMLDivElement>) => void;
+  onImagePointerUp?: (p: ImagePoint, e: ReactPointerEvent<HTMLDivElement>) => void;
+  /** Optional cursor override. */
+  cursor?: CSSProperties["cursor"];
+  /** Hide the floating zoom + Space-to-pan hints (e.g. during drag). */
+  hideHints?: boolean;
+  /** Live CSS filter preview applied to the canvas display (Adjust /
+   *  Filter tools). Doesn't touch the underlying buffer. */
+  cssFilter?: string;
+  /** Optional non-destructive preview source. When provided, the canvas
+   *  draws this instead of `doc.working`. */
+  previewCanvas?: HTMLCanvasElement | null;
+  /** Set to true while a tool wants Fabric to handle pointer events
+   *  natively (selection / IText editing / free transform). Flips
+   *  Fabric's `selection` flag on and lets the host div forward
+   *  pointer events to Fabric's upper canvas. Other tools keep this
+   *  off so React's tool-specific pointer handlers run instead. */
+  fabricInteractive?: boolean;
+}
+
+/** Image → screen transform plus image-space dimensions. */
+export interface Transform {
+  /** Image-space origin in screen-space pixels (top-left of image). */
+  ox: number;
+  oy: number;
+  /** Image-space → screen-space scale. */
+  scale: number;
+  /** Visible canvas dimensions. */
+  cw: number;
+  ch: number;
+  /** Image dimensions in image-space pixels. */
+  iw: number;
+  ih: number;
+}
+
+export interface ImagePoint {
+  x: number;
+  y: number;
+  inside: boolean;
+}
+
+export function ImageCanvas({
+  paintOverlay,
+  onImagePointerDown,
+  onImagePointerMove,
+  onImagePointerUp,
+  cursor,
+  hideHints,
+  cssFilter,
+  previewCanvas,
+  fabricInteractive,
+}: Props) {
+  const {
+    doc,
+    view,
+    setView,
+    toolState,
+    layers,
+    compareActive,
+    baseCanvas,
+    setFabricCanvas,
+    captureFabricSnapshot,
+    peekFabricSnapshot,
+    commit,
+  } = useEditor();
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Fabric inserts a wrapper div + two canvases, then disposes the
+  // whole structure on unmount. We mount it inside a host div we own
+  // via React, but never let React touch the canvas itself — that
+  // avoids the well-known "Failed to execute 'removeChild'" crash
+  // when React tries to unmount a node Fabric has already removed.
+  const fabricHostRef = useRef<HTMLDivElement>(null);
+  const fabricRef = useRef<Canvas | null>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [spaceDown, setSpaceDown] = useState(false);
+  const panRef = useRef<{
+    startX: number;
+    startY: number;
+    ox: number;
+    oy: number;
+  } | null>(null);
+  // Track concurrent pointers for pinch-zoom + two-finger pan on touch
+  // devices. The pinch ref captures the starting distance + zoom +
+  // midpoint + pan, so the move handler can drive both gestures from
+  // the same two-pointer session.
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{
+    startDist: number;
+    startZoom: number;
+    startMidX: number;
+    startMidY: number;
+    startPanX: number;
+    startPanY: number;
+  } | null>(null);
+
+  // Resize observer — keep the canvas filling the container.
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const rect = el.getBoundingClientRect();
+      setSize({ w: Math.round(rect.width), h: Math.round(rect.height) });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Force a re-paint when an off-document watermark image finishes loading.
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const onLoad = () => {
+      forceTick((n) => n + 1);
+      fabricRef.current?.requestRenderAll();
+    };
+    window.addEventListener("cloakimg:watermark-image-loaded", onLoad);
+    return () => window.removeEventListener("cloakimg:watermark-image-loaded", onLoad);
+  }, []);
+
+  // Track Space for pan-on-drag.
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !e.repeat) {
+        const t = e.target as HTMLElement | null;
+        const editing =
+          t?.tagName === "INPUT" ||
+          t?.tagName === "TEXTAREA" ||
+          (t as HTMLElement | null)?.isContentEditable;
+        if (editing) return;
+        e.preventDefault();
+        setSpaceDown(true);
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code === "Space") setSpaceDown(false);
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, []);
+
+  // Compute image → screen transform; mirrors into Fabric's viewport.
+  const transform: Transform = useMemo(
+    () => computeTransform(doc?.width ?? 0, doc?.height ?? 0, size, view),
+    [doc?.width, doc?.height, size, view],
+  );
+
+  // Active alignment guides, populated by the `object:moving` handler
+  // and consumed by the `after:render` hook to paint snap lines.
+  const guidesRef = useRef<Array<{ axis: "v" | "h"; pos: number }>>([]);
+
+  // Stable refs for the after:render hook, which is registered once on
+  // the Fabric instance but needs the latest layers + overlay + tool
+  // state on every render pass.
+  const renderStateRef = useRef({
+    layers,
+    paintOverlay,
+    toolState,
+    transform,
+  });
+  renderStateRef.current = { layers, paintOverlay, toolState, transform };
+
+  // Create / dispose the Fabric canvas once per mount. We allocate the
+  // raw <canvas> ourselves and append it to a React-owned host div;
+  // Fabric then wraps it (inserting its own wrapper + upper canvas).
+  // On cleanup we dispose Fabric *first*, which removes the entire
+  // wrapper, before React unmounts the host div — this avoids the
+  // common "Failed to execute removeChild on Node" crash.
+  useEffect(() => {
+    const host = fabricHostRef.current;
+    if (!host) return;
+    const el = document.createElement("canvas");
+    host.appendChild(el);
+    // Pre-bind the canvas to display-p3 (where supported) before Fabric
+    // takes ownership — Fabric's internal getContext("2d") will then
+    // return the already-bound wide-gamut context.
+    get2DContext(el);
+    const fc = new Canvas(el, {
+      width: 1,
+      height: 1,
+      preserveObjectStacking: true,
+      selection: false,
+      enableRetinaScaling: true,
+      backgroundColor: "transparent",
+      ...FABRIC_CANVAS_SELECTION,
+      // Restore v6 click semantics: only left-click fires mouse:* events.
+      // Without this, v7 surfaces right/middle clicks to tool handlers,
+      // which would drop stickers / shapes / text on context-menu clicks.
+      fireMiddleClick: false,
+      fireRightClick: false,
+      stopContextMenu: false,
+      // Fabric still attaches some listeners even with selection: false;
+      // tool pointer events work because we keep React handlers on the
+      // outer wrapper div, which sees events bubbling through Fabric's
+      // canvas children.
+    });
+    fabricRef.current = fc;
+    setFabricCanvas(fc);
+
+    // Restore the Fabric scene from the previous tool's ImageCanvas
+    // (or, on first mount, do nothing — the snapshot ref is null until
+    // an unmount captures one). Without this, every tool switch would
+    // dispose the IText / shapes / placed images / stickers the user
+    // built up under the previous tool.
+    const carry = peekFabricSnapshot();
+    if (carry) {
+      void fc
+        .loadFromJSON(carry)
+        .then(() => fc.requestRenderAll())
+        .catch(() => undefined);
+    }
+
+    // Legacy layer + overlay rendering happens here, on top of whatever
+    // Fabric just drew. We use the lower-canvas 2D context (where
+    // Fabric also draws) so per-tool overlays paint last (on top of
+    // both backgroundImage and Fabric objects). Layer types are now
+    // all Fabric objects (Phases F2-B-1/2/3/4) so we no longer call
+    // a custom drawLayers here.
+    const onAfter = () => {
+      const ctx = fc.lowerCanvasEl.getContext("2d");
+      if (!ctx) return;
+      const { paintOverlay: po, toolState: ts, transform: tx } = renderStateRef.current;
+      ctx.save();
+      po?.(ctx, tx, ts);
+      ctx.restore();
+      // Alignment guides — drawn in screen space across the whole
+      // canvas, so they read as full-canvas affordances (matches the
+      // way Figma / Sketch / Pixelmator render snap-lines).
+      const guides = guidesRef.current;
+      if (guides.length > 0) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(245, 97, 58, 0.95)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        for (const g of guides) {
+          ctx.beginPath();
+          if (g.axis === "v") {
+            const sx = tx.ox + g.pos * tx.scale;
+            ctx.moveTo(sx + 0.5, 0);
+            ctx.lineTo(sx + 0.5, ctx.canvas.height);
+          } else {
+            const sy = tx.oy + g.pos * tx.scale;
+            ctx.moveTo(0, sy + 0.5);
+            ctx.lineTo(ctx.canvas.width, sy + 0.5);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    };
+    fc.on("after:render", onAfter);
+
+    return () => {
+      // Snapshot the user-added objects only (no canvas-level state)
+      // before disposing so the next tool's ImageCanvas can restore
+      // IText / shapes / stickers / placed images / draw paths /
+      // watermark / pen paths on remount. The helper drops the
+      // transient overlays (Crop rect, Pen in-progress, Pen anchor
+      // handles) so they don't ghost-survive the tool swap. We
+      // intentionally exclude the canvas's backgroundImage and
+      // viewportTransform: ImageCanvas owns those via separate
+      // effects, and a serialized bg loses its live `doc.working`
+      // canvas link.
+      try {
+        captureFabricSnapshot(snapshotPersistentObjects(fc));
+      } catch {
+        captureFabricSnapshot(null);
+      }
+      fc.off("after:render", onAfter);
+      fabricRef.current = null;
+      setFabricCanvas(null);
+      void fc.dispose();
+    };
+  }, [captureFabricSnapshot, peekFabricSnapshot, setFabricCanvas]);
+
+  // Match Fabric backing-store size to the container.
+  useEffect(() => {
+    const fc = fabricRef.current;
+    if (!fc || size.w === 0 || size.h === 0) return;
+    fc.setDimensions({ width: size.w, height: size.h });
+    fc.requestRenderAll();
+  }, [size.h, size.w]);
+
+  // Flip Fabric selection on/off as the active tool requests.
+  useEffect(() => {
+    const fc = fabricRef.current;
+    if (!fc) return;
+    fc.selection = !!fabricInteractive;
+    if (!fabricInteractive) {
+      fc.discardActiveObject();
+    }
+    fc.requestRenderAll();
+  }, [fabricInteractive]);
+
+  // Commit any Fabric transform (drag / scale / rotate) to history.
+  // Tool-level commits (TextTool's edits, Crop's bake, etc.) still fire
+  // their own labels — this catches Move-tool transforms and any other
+  // free-form Fabric mutation.
+  useEffect(() => {
+    const fc = fabricRef.current;
+    if (!fc) return;
+    const onMod = () => commit("Edit layer");
+    fc.on("object:modified", onMod);
+    return () => {
+      fc.off("object:modified", onMod);
+    };
+  }, [commit]);
+
+  // Alignment guides — for each moving object, find the nearest
+  // doc-edge / doc-center / sibling-edge / sibling-center within
+  // `SNAP_PX` (image-space) on each axis, snap to it, and remember
+  // it so the after:render hook can paint a snap line. Phase F4.5
+  // upgrade of the F4 center-axis-only snap.
+  useEffect(() => {
+    const fc = fabricRef.current;
+    if (!fc || !doc) return;
+    const SNAP_PX = 6;
+
+    const onMoving = (opt: { target?: FabricObject }) => {
+      const obj = opt.target;
+      if (!obj) return;
+      const cloakKind = (obj as { cloakKind?: string }).cloakKind;
+      if (cloakKind === "cloak:cropOverlay") return;
+
+      const bbox = obj.getBoundingRect();
+      const myEdges = {
+        v: [bbox.left, bbox.left + bbox.width / 2, bbox.left + bbox.width],
+        h: [bbox.top, bbox.top + bbox.height / 2, bbox.top + bbox.height],
+      };
+
+      // Candidate snap targets: doc edges + center, and every other
+      // object's edges + center.
+      const targetsV: number[] = [0, doc.width / 2, doc.width];
+      const targetsH: number[] = [0, doc.height / 2, doc.height];
+      for (const o of fc.getObjects()) {
+        if (o === obj) continue;
+        const k = (o as { cloakKind?: string }).cloakKind;
+        if (k === "cloak:cropOverlay") continue;
+        const r = o.getBoundingRect();
+        targetsV.push(r.left, r.left + r.width / 2, r.left + r.width);
+        targetsH.push(r.top, r.top + r.height / 2, r.top + r.height);
+      }
+
+      let bestV: { delta: number; target: number } | null = null;
+      let bestH: { delta: number; target: number } | null = null;
+      for (const my of myEdges.v) {
+        for (const t of targetsV) {
+          const d = t - my;
+          if (Math.abs(d) < SNAP_PX && (!bestV || Math.abs(d) < Math.abs(bestV.delta))) {
+            bestV = { delta: d, target: t };
+          }
+        }
+      }
+      for (const my of myEdges.h) {
+        for (const t of targetsH) {
+          const d = t - my;
+          if (Math.abs(d) < SNAP_PX && (!bestH || Math.abs(d) < Math.abs(bestH.delta))) {
+            bestH = { delta: d, target: t };
+          }
+        }
+      }
+
+      const center = obj.getCenterPoint();
+      let nx = center.x;
+      let ny = center.y;
+      if (bestV) nx = center.x + bestV.delta;
+      if (bestH) ny = center.y + bestH.delta;
+      if (bestV || bestH) {
+        obj.setPositionByOrigin(new Point(nx, ny), "center", "center");
+      }
+
+      const next: Array<{ axis: "v" | "h"; pos: number }> = [];
+      if (bestV) next.push({ axis: "v", pos: bestV.target });
+      if (bestH) next.push({ axis: "h", pos: bestH.target });
+      guidesRef.current = next;
+    };
+
+    const clear = () => {
+      if (guidesRef.current.length === 0) return;
+      guidesRef.current = [];
+      fc.requestRenderAll();
+    };
+
+    fc.on("object:moving", onMoving);
+    fc.on("mouse:up", clear);
+    fc.on("selection:cleared", clear);
+    return () => {
+      fc.off("object:moving", onMoving);
+      fc.off("mouse:up", clear);
+      fc.off("selection:cleared", clear);
+    };
+  }, [doc]);
+
+  // Mirror view (zoom + pan) into Fabric's viewportTransform.
+  // Fabric will apply this to the backgroundImage and any objects.
+  // Tool overlays in `after:render` run in identity space, so they
+  // continue to use the `transform` directly.
+  useEffect(() => {
+    const fc = fabricRef.current;
+    if (!fc || size.w === 0 || size.h === 0) return;
+    fc.setViewportTransform([transform.scale, 0, 0, transform.scale, transform.ox, transform.oy]);
+    fc.requestRenderAll();
+  }, [size.h, size.w, transform.ox, transform.oy, transform.scale]);
+
+  // Set / refresh the backgroundImage when the source canvas swaps
+  // (open, undo, replaceWithFile, compare toggle, preview canvas).
+  useEffect(() => {
+    const fc = fabricRef.current;
+    if (!fc || !doc) return;
+    const sourceCanvas = compareActive
+      ? (baseCanvas() ?? doc.working)
+      : (previewCanvas ?? doc.working);
+    // Adjust/Filter previews are downsampled (see useAdjustPreview), so
+    // their pixel dimensions are smaller than the doc's image-space.
+    // Stretch the FabricImage so it covers the full doc rect — otherwise
+    // the bg renders tiny in the corner.
+    const scaleX = doc.width / sourceCanvas.width;
+    const scaleY = doc.height / sourceCanvas.height;
+    const bg = new FabricImage(sourceCanvas, {
+      selectable: false,
+      evented: false,
+      left: 0,
+      top: 0,
+      originX: "left",
+      originY: "top",
+      scaleX,
+      scaleY,
+    });
+    fc.backgroundImage = bg;
+    // Bilinear filtering on upscale (preview is ~720px long edge); without
+    // this the upscaled preview looks grainy on hi-DPI screens.
+    const ctx = fc.lowerCanvasEl.getContext("2d");
+    if (ctx) ctx.imageSmoothingQuality = "high";
+    fc.requestRenderAll();
+  }, [doc, compareActive, previewCanvas, baseCanvas]);
+
+  // Re-render when layers / overlay / toolState change so the
+  // after:render hook picks up the new values via renderStateRef.
+  // The deps are intentional triggers, not direct reads.
+  useEffect(() => {
+    void layers;
+    void paintOverlay;
+    void toolState;
+    fabricRef.current?.requestRenderAll();
+  }, [layers, paintOverlay, toolState]);
+
+  // Wheel zoom (ctrl/cmd + scroll, or trackpad pinch). React registers
+  // wheel handlers as passive by default, which makes preventDefault a
+  // no-op — so the browser's page-level Cmd+wheel zoom would fire on
+  // top of ours. Attach a non-passive native listener instead.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      setView((prev) => {
+        const next = Math.min(8, Math.max(0.05, prev.zoom * (1 - e.deltaY * 0.0015)));
+        return { ...prev, zoom: next };
+      });
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [setView]);
+
+  const onPointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (!doc) return;
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointersRef.current.size === 2) {
+        const pts = Array.from(pointersRef.current.values());
+        const a = pts[0];
+        const b = pts[1];
+        if (a && b) {
+          pinchRef.current = {
+            startDist: Math.hypot(a.x - b.x, a.y - b.y),
+            startZoom: view.zoom,
+            startMidX: (a.x + b.x) / 2,
+            startMidY: (a.y + b.y) / 2,
+            startPanX: view.panX,
+            startPanY: view.panY,
+          };
+          panRef.current = null;
+        }
+        return;
+      }
+      const panning = spaceDown || e.button === 1;
+      if (panning) {
+        panRef.current = {
+          startX: e.clientX,
+          startY: e.clientY,
+          ox: view.panX,
+          oy: view.panY,
+        };
+        return;
+      }
+      const pt = toImagePoint(e, transform, doc.width, doc.height);
+      onImagePointerDown?.(pt, e);
+    },
+    [doc, onImagePointerDown, spaceDown, transform, view.panX, view.panY, view.zoom],
+  );
+
+  const onPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (pointersRef.current.has(e.pointerId)) {
+        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+      if (pinchRef.current && pointersRef.current.size === 2) {
+        const pts = Array.from(pointersRef.current.values());
+        const a = pts[0];
+        const b = pts[1];
+        if (a && b) {
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          const ratio = dist / Math.max(1, pinchRef.current.startDist);
+          const midX = (a.x + b.x) / 2;
+          const midY = (a.y + b.y) / 2;
+          const { startZoom, startMidX, startMidY, startPanX, startPanY } = pinchRef.current;
+          // Drive zoom + pan together: pinch ratio scales the zoom,
+          // midpoint translation pans the canvas. Two-finger pan is
+          // the touch equivalent of Space-drag on desktop, useful
+          // when a tool (Shapes / Crop / Redact-rect) consumes
+          // single-finger drags for create / draw.
+          setView((prev) => ({
+            ...prev,
+            zoom: Math.min(8, Math.max(0.05, startZoom * ratio)),
+            panX: startPanX + (midX - startMidX),
+            panY: startPanY + (midY - startMidY),
+          }));
+        }
+        return;
+      }
+      if (panRef.current) {
+        const { startX, startY, ox, oy } = panRef.current;
+        setView((prev) => ({
+          ...prev,
+          panX: ox + (e.clientX - startX),
+          panY: oy + (e.clientY - startY),
+        }));
+        return;
+      }
+      if (!doc) return;
+      const pt = toImagePoint(e, transform, doc.width, doc.height);
+      onImagePointerMove?.(pt, e);
+    },
+    [doc, onImagePointerMove, setView, transform],
+  );
+
+  const onPointerUp = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      pointersRef.current.delete(e.pointerId);
+      if (pinchRef.current && pointersRef.current.size < 2) {
+        pinchRef.current = null;
+        return;
+      }
+      if (panRef.current) {
+        panRef.current = null;
+        return;
+      }
+      if (!doc) return;
+      const pt = toImagePoint(e, transform, doc.width, doc.height);
+      onImagePointerUp?.(pt, e);
+    },
+    [doc, onImagePointerUp, transform],
+  );
+
+  const isMobile = size.w > 0 && size.w < 760;
+  const cursorStyle = cursor ?? (spaceDown ? (panRef.current ? "grabbing" : "grab") : "crosshair");
+
+  return (
+    <div
+      ref={containerRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      style={{
+        flex: 1,
+        position: "relative",
+        background: "var(--canvas-bg)",
+        overflow: "hidden",
+        minHeight: 0,
+        cursor: cursorStyle,
+        touchAction: "none",
+        filter: cssFilter ?? undefined,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+          pointerEvents: "none",
+        }}
+      />
+      {doc && (
+        <div
+          aria-hidden
+          className="checker"
+          style={{
+            position: "absolute",
+            left: transform.ox,
+            top: transform.oy,
+            width: doc.width * transform.scale,
+            height: doc.height * transform.scale,
+            backgroundSize: "32px 32px",
+            backgroundPosition: "0 0, 0 16px, 16px -16px, -16px 0",
+            pointerEvents: "none",
+            boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
+          }}
+        />
+      )}
+      <div
+        ref={fabricHostRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          // When a tool wants Fabric to handle pointer events natively
+          // (Text inline editing, future Move/Select tool), let events
+          // through to the upper canvas. Other tools keep this off so
+          // React's tool-specific handlers above run instead.
+          pointerEvents: fabricInteractive ? "auto" : "none",
+        }}
+      />
+      {!hideHints && size.w > 0 && (
+        <CanvasHints
+          isMobile={isMobile}
+          zoom={view.zoom}
+          fitScale={transform.scale / Math.max(view.zoom, 0.0001)}
+        />
+      )}
+    </div>
+  );
+}
+
+function CanvasHints({
+  isMobile,
+  zoom,
+  fitScale,
+}: {
+  isMobile: boolean;
+  zoom: number;
+  fitScale: number;
+}) {
+  const displayZoom = Math.round(zoom * fitScale * 100);
+  return (
+    <>
+      {isMobile && (
+        <div
+          className="t-mono"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            background: "rgba(0,0,0,0.55)",
+            color: "white",
+            padding: "4px 10px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 600,
+            pointerEvents: "none",
+          }}
+        >
+          {displayZoom}%
+        </div>
+      )}
+      {!isMobile && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 12,
+            left: 12,
+            display: "flex",
+            gap: 6,
+            alignItems: "center",
+            fontSize: 11,
+            color: "rgba(255,255,255,0.5)",
+            pointerEvents: "none",
+          }}
+        >
+          <span
+            className="kbd"
+            style={{
+              background: "rgba(255,255,255,0.10)",
+              borderColor: "rgba(255,255,255,0.15)",
+              color: "rgba(255,255,255,0.7)",
+            }}
+          >
+            Space
+          </span>
+          to pan · Cmd+scroll to zoom
+        </div>
+      )}
+    </>
+  );
+}
+
+function computeTransform(
+  imgW: number,
+  imgH: number,
+  size: { w: number; h: number },
+  view: { zoom: number; panX: number; panY: number },
+): Transform {
+  const margin = 24;
+  if (!imgW || !imgH || !size.w || !size.h) {
+    return {
+      ox: 0,
+      oy: 0,
+      scale: 1,
+      cw: size.w,
+      ch: size.h,
+      iw: imgW,
+      ih: imgH,
+    };
+  }
+  const fit = Math.min((size.w - margin * 2) / imgW, (size.h - margin * 2) / imgH);
+  const scale = fit * view.zoom;
+  const dispW = imgW * scale;
+  const dispH = imgH * scale;
+  const ox = (size.w - dispW) / 2 + view.panX;
+  const oy = (size.h - dispH) / 2 + view.panY;
+  return { ox, oy, scale, cw: size.w, ch: size.h, iw: imgW, ih: imgH };
+}
+
+function toImagePoint(
+  e: ReactPointerEvent<HTMLDivElement>,
+  t: Transform,
+  imgW: number,
+  imgH: number,
+): ImagePoint {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  const sx = e.clientX - rect.left;
+  const sy = e.clientY - rect.top;
+  const x = (sx - t.ox) / t.scale;
+  const y = (sy - t.oy) / t.scale;
+  const inside = x >= 0 && y >= 0 && x <= imgW && y <= imgH;
+  return { x, y, inside };
+}

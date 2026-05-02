@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#f5613a" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Page not found — CloakIMG</title>
+    <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: linear-gradient(135deg, #fff7f1 0%, #ffffff 50%, #ffe7d4 100%);
+        color: #1e293b;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: linear-gradient(135deg, #1c1410 0%, #1c1410 55%, #2a1c14 100%);
+          color: #f1f5f9;
+        }
+      }
+
+      header {
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(245, 97, 58, 0.15);
+        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.6);
+      }
+      @media (prefers-color-scheme: dark) {
+        header {
+          border-bottom-color: rgba(245, 97, 58, 0.25);
+          background: rgba(28, 20, 16, 0.6);
+        }
+      }
+      header img {
+        width: 40px;
+        height: 40px;
+        filter: drop-shadow(0 2px 4px rgba(245, 97, 58, 0.28));
+      }
+      header .brand {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+      }
+      header .brand .accent {
+        color: #f5613a;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        text-align: center;
+      }
+
+      .stamp {
+        font-size: clamp(96px, 18vw, 180px);
+        font-weight: 900;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        color: #f5613a;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        gap: 0.05em;
+      }
+      @media (prefers-color-scheme: dark) {
+        .stamp {
+          color: #ffb37a;
+        }
+      }
+      .stamp .redacted-digit {
+        position: relative;
+        display: inline-block;
+        color: transparent;
+        background: #1e293b;
+        border-radius: 6px;
+        padding: 0 0.08em;
+        transform: rotate(-1.5deg);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+      }
+      @media (prefers-color-scheme: dark) {
+        .stamp .redacted-digit {
+          background: #cbd5e1;
+        }
+      }
+
+      h1 {
+        font-size: clamp(22px, 3.5vw, 28px);
+        font-weight: 700;
+        margin: 0 0 12px;
+        letter-spacing: -0.01em;
+      }
+      .tagline {
+        max-width: 520px;
+        margin: 0 auto 28px;
+        font-size: 15px;
+        line-height: 1.65;
+        color: #475569;
+      }
+      @media (prefers-color-scheme: dark) {
+        .tagline {
+          color: #94a3b8;
+        }
+      }
+
+      .path-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-family: ui-monospace, "SF Mono", "Consolas", monospace;
+        color: #64748b;
+        background: rgba(245, 97, 58, 0.08);
+        border: 1px solid rgba(245, 97, 58, 0.2);
+        padding: 8px 14px;
+        border-radius: 10px;
+        margin-bottom: 32px;
+        max-width: 90vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @media (prefers-color-scheme: dark) {
+        .path-box {
+          background: rgba(245, 97, 58, 0.1);
+          border-color: rgba(245, 97, 58, 0.25);
+          color: #cbd5e1;
+        }
+      }
+      .path-box .label {
+        font-family: -apple-system, sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f5613a;
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 22px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 14px;
+        transition:
+          background 0.15s,
+          transform 0.15s;
+        box-shadow: 0 4px 12px rgba(245, 97, 58, 0.32);
+      }
+      .button:hover {
+        background: #d94a25;
+        transform: translateY(-1px);
+      }
+      .button:active {
+        transform: translateY(0);
+      }
+
+      footer {
+        text-align: center;
+        padding: 20px 24px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      footer a {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        text-underline-offset: 3px;
+      }
+      footer a:hover {
+        color: #f5613a;
+      }
+      @media (prefers-color-scheme: dark) {
+        footer a:hover {
+          color: #ffb37a;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="/icons/favicon.svg" alt="CloakIMG logo" />
+      <span class="brand">Cloak<span class="accent">IMG</span></span>
+    </header>
+
+    <main>
+      <div class="stamp" aria-label="404">4<span class="redacted-digit">0</span>4</div>
+
+      <h1>This page could not be found.</h1>
+      <p class="tagline">
+        We looked everywhere &mdash; no luck. The good news: even if this page existed, we wouldn't
+        know you were looking for it. Your photos stay in your browser, where they belong.
+      </p>
+
+      <div class="path-box">
+        <span class="label">You requested</span>
+        <span id="requested-path">&mdash;</span>
+      </div>
+
+      <a class="button" href="/">&larr; Back to the editor</a>
+    </main>
+
+    <footer>
+      If a link on our site led you here,
+      <a href="https://github.com/sumitsahoo/cloakimg/issues/new">please report it</a>.
+    </footer>
+
+    <script>
+      (() => {
+        try {
+          const el = document.getElementById("requested-path");
+          if (!el) return;
+          let path = window.location.pathname + window.location.search;
+          if (path === "/" || path === "") path = "(unknown)";
+          el.textContent = path;
+        } catch {
+          /* noop */
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,163 @@
+// FilterPanel.tsx — Filter presets + intensity + grain. Live preview
+// happens inside FilterTool; the bake into history runs automatically
+// when the user switches tools or opens Export (registerPendingApply
+// hook), so there's no explicit Apply button — Undo/Redo recover.
+//
+// Each preset thumb is built from the user's actual working canvas
+// (centre-cropped to a square) so the grid previews what each preset
+// will do to *this* image rather than a canned sample.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PropRow, Slider } from "../atoms";
+import { useEditor } from "../EditorContext";
+import { copyInto, createCanvas } from "../doc";
+import { bakeAdjust } from "./adjustments";
+import { FILTER_PRESETS_RECIPES } from "./filterPresets";
+
+const THUMB_PX = 96;
+
+export function FilterPanel() {
+  const { doc, toolState, patchTool, commit, registerPendingApply } = useEditor();
+
+  // Build a small square thumb from doc.working once per panel mount.
+  // The Filter tool is usually opened mid-edit, so this captures the
+  // current state of the image. Re-mounting (toggle tools and back)
+  // refreshes the thumbs.
+  const [sourceThumb, setSourceThumb] = useState<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    if (!doc?.working) {
+      setSourceThumb(null);
+      return;
+    }
+    setSourceThumb(makeSquareThumb(doc.working, THUMB_PX));
+  }, [doc?.working]);
+
+  // Bake every preset against the source thumb. Intensity is fixed at
+  // 1.0 here so the grid showcases each preset's full character; the
+  // intensity slider below scales the bake at apply time.
+  const presetThumbUrls = useMemo(() => {
+    if (!sourceThumb) return null;
+    return FILTER_PRESETS_RECIPES.map((recipe) => {
+      const sliders = recipe.adjust.map((d) => Math.max(0, Math.min(1, 0.5 + d)));
+      let baked = bakeAdjust(sourceThumb, sliders, 0);
+      if (recipe.monochrome) baked = monochrome(baked);
+      return baked.toDataURL("image/jpeg", 0.78);
+    });
+  }, [sourceThumb]);
+
+  const apply = useCallback(() => {
+    if (!doc) return;
+    const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
+    if (!preset) return;
+    const final = preset.adjust.map((delta, i) => {
+      const base = toolState.adjust[i] ?? 0.5;
+      return Math.min(1, Math.max(0, base + delta * toolState.filterIntensity));
+    });
+    let out = bakeAdjust(doc.working, final, toolState.grain);
+    if (preset.monochrome) out = monochrome(out);
+    copyInto(doc.working, out);
+    patchTool("filterPreset", 0);
+    patchTool("filterIntensity", 0.65);
+    patchTool("grain", 0);
+    commit("Filter");
+  }, [commit, doc, patchTool, toolState]);
+
+  const dirty = toolState.filterPreset !== 0 || toolState.grain > 0;
+
+  // Auto-flush the preview into history if the user switches tools
+  // mid-edit instead of clicking Apply.
+  const applyRef = useRef(apply);
+  applyRef.current = apply;
+  useEffect(() => {
+    if (!dirty) {
+      registerPendingApply(null);
+      return;
+    }
+    registerPendingApply(() => applyRef.current());
+    return () => registerPendingApply(null);
+  }, [dirty, registerPendingApply]);
+
+  return (
+    <>
+      <PropRow label="Preset">
+        <div className="grid grid-cols-3 gap-1.5">
+          {FILTER_PRESETS_RECIPES.map((preset, i) => {
+            const active = i === toolState.filterPreset;
+            const thumbUrl = presetThumbUrls?.[i];
+            return (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => patchTool("filterPreset", i)}
+                aria-pressed={active}
+                className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 dark:bg-dark-page-bg ${
+                  active
+                    ? "border-2 border-coral-500"
+                    : "border border-border dark:border-dark-border"
+                }`}
+              >
+                {thumbUrl ? (
+                  <img
+                    src={thumbUrl}
+                    alt={preset.name}
+                    className="block aspect-square w-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="aspect-square w-full"
+                    style={{
+                      background: "linear-gradient(135deg, var(--page-bg) 0%, var(--surface) 100%)",
+                    }}
+                  />
+                )}
+                <div className="px-1 py-0.75 text-center text-[10px] font-semibold">
+                  {preset.name}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </PropRow>
+      <PropRow label="Intensity" value={`${Math.round(toolState.filterIntensity * 100)}%`}>
+        <Slider
+          value={toolState.filterIntensity}
+          accent
+          onChange={(v) => patchTool("filterIntensity", v)}
+        />
+      </PropRow>
+      <PropRow label="Grain" value={`${Math.round(toolState.grain * 100)}%`}>
+        <Slider value={toolState.grain} onChange={(v) => patchTool("grain", v)} />
+      </PropRow>
+    </>
+  );
+}
+
+function monochrome(src: HTMLCanvasElement): HTMLCanvasElement {
+  const ctx = src.getContext("2d");
+  if (!ctx) return src;
+  const img = ctx.getImageData(0, 0, src.width, src.height);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = (d[i] ?? 0) * 0.2126 + (d[i + 1] ?? 0) * 0.7152 + (d[i + 2] ?? 0) * 0.0722;
+    d[i] = lum;
+    d[i + 1] = lum;
+    d[i + 2] = lum;
+  }
+  ctx.putImageData(img, 0, 0);
+  return src;
+}
+
+function makeSquareThumb(src: HTMLCanvasElement, size: number): HTMLCanvasElement {
+  const out = createCanvas(size, size);
+  const ctx = out.getContext("2d");
+  if (!ctx) return out;
+  ctx.imageSmoothingQuality = "high";
+  // Cover-fit centre crop.
+  const ratio = Math.min(src.width, src.height) / size;
+  const cw = size * ratio;
+  const ch = size * ratio;
+  const cx = (src.width - cw) / 2;
+  const cy = (src.height - ch) / 2;
+  ctx.drawImage(src, cx, cy, cw, ch, 0, 0, size, size);
+  return out;
+}
