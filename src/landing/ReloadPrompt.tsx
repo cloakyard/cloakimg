@@ -2,9 +2,9 @@
 // landing page when a new SW version is available, or briefly when the
 // app first becomes installable for offline use.
 //
-// Mirrors the CloakPDF UX: a glassy floating pill at the bottom-center
-// with an "Update" button when needRefresh, and a self-dismissing
-// "ready offline" toast on first install.
+// A translucent floating card at the bottom-center matching the modal
+// aesthetic, with an "Update" button when needRefresh and a
+// self-dismissing "ready offline" toast on first install.
 
 import { useCallback, useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
@@ -55,33 +55,48 @@ export function ReloadPrompt() {
 
   if (!offlineReady && !needRefresh) return null;
 
+  const Icon = needRefresh ? I.Refresh : I.ShieldCheck;
+  const title = needRefresh ? "Update available" : "Ready offline";
+  const body = needRefresh
+    ? "A new version of CloakIMG is ready to install."
+    : "CloakIMG is now installed for offline use.";
+
   return (
     <div
-      className="fixed bottom-6 left-1/2 z-100 -translate-x-1/2"
-      style={{ maxWidth: "calc(100vw - 32px)" }}
+      className="fixed right-4 bottom-4 left-4 z-100 flex justify-center sm:right-6 sm:bottom-6 sm:left-auto sm:justify-end"
+      role="status"
+      aria-live="polite"
     >
       <div
-        className="relative flex items-center gap-3 rounded-2xl border border-border-soft bg-surface-glass py-2.5 pr-3.5 pl-4.5 text-text backdrop-blur-md backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface-glass dark:text-dark-text"
-        style={{ boxShadow: "0 12px 32px -8px rgba(30,18,10,0.25)" }}
+        className="relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-2xl border border-border-soft bg-surface/85 p-4 text-text backdrop-blur-xl backdrop-saturate-150 sm:w-auto sm:min-w-80 dark:border-dark-border dark:bg-dark-surface/85 dark:text-dark-text"
+        style={{ boxShadow: "var(--shadow-modal)" }}
       >
-        <span className="text-[13px] font-medium">
-          {needRefresh ? "A new version is available." : "App ready to work offline."}
-        </span>
-        {needRefresh && (
-          <button
-            type="button"
-            onClick={handleUpdate}
-            className="btn btn-primary"
-            style={{ fontSize: 12.5, padding: "6px 14px", borderRadius: 999 }}
-          >
-            <I.Refresh size={13} /> Update
-          </button>
-        )}
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300">
+          <Icon size={16} />
+        </div>
+        <div className="min-w-0 flex-1 pt-0.5">
+          <p className="text-[13px] font-semibold tracking-[-0.01em] text-text dark:text-dark-text">
+            {title}
+          </p>
+          <p className="mt-0.5 text-[12px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
+            {body}
+          </p>
+          {needRefresh && (
+            <div className="mt-3 flex items-center justify-end gap-2">
+              <button type="button" onClick={close} className="btn btn-ghost btn-sm">
+                Later
+              </button>
+              <button type="button" onClick={handleUpdate} className="btn btn-primary btn-sm">
+                <I.Refresh size={13} /> Update
+              </button>
+            </div>
+          )}
+        </div>
         <button
           type="button"
           onClick={close}
           aria-label="Dismiss"
-          className="inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-muted transition-colors hover:bg-slate-900/6 hover:text-text dark:text-dark-text-muted dark:hover:bg-white/10 dark:hover:text-dark-text"
+          className="-mt-1 -mr-1 inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-muted transition-colors hover:bg-slate-900/6 hover:text-text dark:text-dark-text-muted dark:hover:bg-white/10 dark:hover:text-dark-text"
         >
           <I.X size={14} />
         </button>
