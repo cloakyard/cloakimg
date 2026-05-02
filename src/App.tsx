@@ -6,6 +6,7 @@
 // interact, masking the load behind the StartModal.
 
 import { lazy, Suspense, useCallback, useState } from "react";
+import { Spinner } from "./editor/atoms";
 import { Landing } from "./landing/Landing";
 import { rememberRecent } from "./landing/recents";
 import { ReloadPrompt } from "./landing/ReloadPrompt";
@@ -52,8 +53,8 @@ export function App() {
 
 function EditorLoading() {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-page-bg text-[13px] text-text-muted dark:bg-dark-page-bg dark:text-dark-text-muted">
-      Loading editor…
+    <div className="flex h-full w-full items-center justify-center bg-page-bg dark:bg-dark-page-bg">
+      <Spinner label="Loading editor…" />
     </div>
   );
 }

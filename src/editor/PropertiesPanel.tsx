@@ -34,7 +34,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
         <I.ChevronDown size={14} className="text-text-muted dark:text-dark-text-muted" />
       </div>
 
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-4 pt-3.5 pb-4">
+      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pt-3.5 pb-4">
         <ToolControls />
       </div>
       <LayersList />

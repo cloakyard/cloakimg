@@ -187,15 +187,17 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       dialogClassName={isMobile ? "flex-col" : "flex-row"}
     >
       <div
-        className={`flex items-center justify-center bg-canvas-bg ${
-          isMobile ? "min-h-40 flex-none p-4" : "min-h-80 flex-1 p-6"
+        className={`flex items-center justify-center overflow-hidden bg-canvas-bg ${
+          isMobile ? "h-44 shrink-0 p-3" : "min-h-80 flex-1 p-6"
         }`}
       >
         {previewUrl ? (
           <img
             src={previewUrl}
             alt="Export preview"
-            className="max-h-90 max-w-full rounded-xs"
+            className={`rounded-xs ${
+              isMobile ? "max-h-full max-w-full object-contain" : "max-h-90 max-w-full"
+            }`}
             style={{ boxShadow: "0 8px 24px -6px rgba(0,0,0,0.4)" }}
           />
         ) : (
@@ -203,112 +205,125 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
         )}
       </div>
 
-      <div className={`flex flex-col gap-3.5 ${isMobile ? "w-full p-4.5" : "w-80 p-5.5"}`}>
-        <div>
-          <div className="t-eyebrow mb-1 text-[10px]">Export</div>
-          <div id="export-title" className="t-headline text-lg">
-            Save your image
-          </div>
-        </div>
-
-        <PropRow label="Format">
-          <Segment
-            options={formats}
-            active={settings.format}
-            onChange={(i) => onPatch({ format: i })}
-          />
-        </PropRow>
-        {heicSupported && settings.format === 4 && (
-          <p className="-mt-2 text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
-            HEIC export uses Safari's native encoder. For the same wide-gamut + small-file benefits
-            in Chrome/Firefox, use AVIF.
-          </p>
-        )}
-
-        <PropRow
-          label="Quality"
-          value={
-            settingsToFormat(settings) === "png"
-              ? "lossless"
-              : `${Math.round(settings.quality * 100)}%`
-          }
+      <div className={`flex flex-col ${isMobile ? "min-h-0 w-full flex-1" : "w-80"}`}>
+        <div
+          className={`scroll-thin flex flex-col gap-3.5 ${
+            isMobile ? "min-h-0 flex-1 overflow-y-auto px-4.5 pt-4.5 pb-3" : "px-5.5 pt-5.5 pb-3"
+          }`}
         >
-          <Slider value={settings.quality} accent onChange={(v) => onPatch({ quality: v })} />
-        </PropRow>
-        <PropRow label="Size">
-          <Segment
-            options={["Original", "@2x", "@1x"]}
-            active={settings.sizeBucket}
-            onChange={(i) => onPatch({ sizeBucket: i, width: undefined, height: undefined })}
-          />
-        </PropRow>
-
-        <PropRow label="Resize to">
-          <div className="flex items-center gap-1.5 text-[12.5px]">
-            <DimInput label="W" value={targetW} onChange={(n) => onPatch({ width: n })} />
-            <I.X size={11} className="text-text-muted dark:text-dark-text-muted" />
-            <DimInput label="H" value={targetH} onChange={(n) => onPatch({ height: n })} />
+          <div>
+            <div className="t-eyebrow mb-1 text-[10px]">Export</div>
+            <div id="export-title" className="t-headline text-lg">
+              Save your image
+            </div>
           </div>
-        </PropRow>
 
-        <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[11.5px] dark:bg-dark-page-bg">
-          <span className="text-text-muted dark:text-dark-text-muted">Estimated size</span>
-          <span className="t-mono font-semibold">{formatBytes(estimate)}</span>
-        </div>
-
-        <div className="overflow-hidden rounded-lg border border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg">
-          <button
-            type="button"
-            onClick={() => setMetaOpen((o) => !o)}
-            aria-expanded={metaOpen}
-            className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-semibold text-text dark:text-dark-text ${
-              metaOpen ? "border-b border-border-soft dark:border-dark-border-soft" : ""
-            }`}
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <I.Tag size={12} /> Metadata
-              <span className="text-[10.5px] font-normal text-text-muted dark:text-dark-text-muted">
-                {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
-              </span>
-            </span>
-            <I.ChevronDown
-              size={14}
-              stroke={2.25}
-              className="text-text-muted dark:text-dark-text-muted"
-              style={{
-                transform: metaOpen ? "rotate(180deg)" : "none",
-                transition: "transform 120ms ease",
-              }}
+          <PropRow label="Format">
+            <Segment
+              options={formats}
+              active={settings.format}
+              onChange={(i) => onPatch({ format: i })}
             />
-          </button>
-          {metaOpen && (
-            <div className="flex flex-col gap-2.5 px-2.5 pt-2.5 pb-3">
-              {metaFields.length > 0 && (
-                <div className="t-mono rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[11px] leading-7 dark:border-dark-border-soft dark:bg-dark-surface">
-                  {metaFields.map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-2">
-                      <span className="text-text-muted dark:text-dark-text-muted">{k}</span>
-                      <span className="text-right text-text dark:text-dark-text">{v}</span>
+          </PropRow>
+          {heicSupported && settings.format === 4 && (
+            <p className="-mt-2 text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
+              HEIC export uses Safari's native encoder. For the same wide-gamut + small-file
+              benefits in Chrome/Firefox, use AVIF.
+            </p>
+          )}
+
+          <PropRow
+            label="Quality"
+            value={
+              settingsToFormat(settings) === "png"
+                ? "lossless"
+                : `${Math.round(settings.quality * 100)}%`
+            }
+          >
+            <Slider value={settings.quality} accent onChange={(v) => onPatch({ quality: v })} />
+          </PropRow>
+          <PropRow label="Size">
+            <Segment
+              options={["Original", "@2x", "@1x"]}
+              active={settings.sizeBucket}
+              onChange={(i) => onPatch({ sizeBucket: i, width: undefined, height: undefined })}
+            />
+          </PropRow>
+
+          <PropRow label="Resize to">
+            <div className="flex items-center gap-1.5 text-[12.5px]">
+              <DimInput label="W" value={targetW} onChange={(n) => onPatch({ width: n })} />
+              <I.X size={11} className="text-text-muted dark:text-dark-text-muted" />
+              <DimInput label="H" value={targetH} onChange={(n) => onPatch({ height: n })} />
+            </div>
+          </PropRow>
+
+          <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[11.5px] dark:bg-dark-page-bg">
+            <span className="text-text-muted dark:text-dark-text-muted">Estimated size</span>
+            <span className="t-mono font-semibold">{formatBytes(estimate)}</span>
+          </div>
+
+          <div className="overflow-hidden rounded-lg border border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg">
+            <button
+              type="button"
+              onClick={() => setMetaOpen((o) => !o)}
+              aria-expanded={metaOpen}
+              className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-semibold text-text dark:text-dark-text ${
+                metaOpen ? "border-b border-border-soft dark:border-dark-border-soft" : ""
+              }`}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <I.Tag size={12} /> Metadata
+                <span className="text-[10.5px] font-normal text-text-muted dark:text-dark-text-muted">
+                  {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
+                </span>
+              </span>
+              <I.ChevronDown
+                size={14}
+                stroke={2.25}
+                className="text-text-muted dark:text-dark-text-muted"
+                style={{
+                  transform: metaOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 120ms ease",
+                }}
+              />
+            </button>
+            {metaOpen && (
+              <div className="flex flex-col gap-2.5 px-2.5 pt-2.5 pb-3">
+                {metaFields.length > 0 && (
+                  <div className="t-mono rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[11px] leading-7 dark:border-dark-border-soft dark:bg-dark-surface">
+                    {metaFields.map(([k, v]) => (
+                      <div key={k} className="flex justify-between gap-2">
+                        <span className="text-text-muted dark:text-dark-text-muted">{k}</span>
+                        <span className="text-right text-text dark:text-dark-text">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-col gap-1.5">
+                  {META_TOGGLES.map((row) => (
+                    <div key={row.key} className="flex items-center justify-between text-xs">
+                      <span>{row.label}</span>
+                      <ToggleSwitch
+                        on={toolState.meta[row.key]}
+                        onChange={(next) =>
+                          patchTool("meta", { ...toolState.meta, [row.key]: next })
+                        }
+                      />
                     </div>
                   ))}
                 </div>
-              )}
-              <div className="flex flex-col gap-1.5">
-                {META_TOGGLES.map((row) => (
-                  <div key={row.key} className="flex items-center justify-between text-xs">
-                    <span>{row.label}</span>
-                    <ToggleSwitch
-                      on={toolState.meta[row.key]}
-                      onChange={(next) => patchTool("meta", { ...toolState.meta, [row.key]: next })}
-                    />
-                  </div>
-                ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-
-        <div className="mt-auto flex gap-2">
+        <div
+          className={`flex shrink-0 gap-2 ${
+            isMobile
+              ? "border-t border-border-soft px-4.5 py-3 pb-[max(env(safe-area-inset-bottom),12px)] dark:border-dark-border-soft"
+              : "px-5.5 pb-5.5"
+          }`}
+        >
           <button type="button" className="btn btn-ghost btn-sm flex-1" onClick={onClose}>
             Cancel
           </button>

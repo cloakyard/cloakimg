@@ -146,7 +146,7 @@ export function MobileSheet() {
             {findTool(toolState.activeTool).name}
           </span>
         </div>
-        <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-5">
           <ToolControls />
         </div>
         <LayersList />
