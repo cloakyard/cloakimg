@@ -79,8 +79,11 @@ const TEARDROP_D = "M 50,5 C 80,40 95,65 50,95 C 5,65 20,40 50,5 Z";
 const PIE_D = "M 50,50 L 50,5 A 45,45 0 1 1 5,50 Z";
 // Bookmark: tag with a notched bottom.
 const BOOKMARK_D = "M 20,5 H 80 V 95 L 50,75 L 20,95 Z";
-// Ribbon: a horizontal ribbon with chevron tails on both ends.
-const RIBBON_D = "M 5,20 H 80 L 95,50 L 80,80 H 5 L 20,50 Z";
+// Ribbon: a horizontal banner with symmetric concave V-notches cut
+// into both ends. Matches the icon (which also notches both ends
+// inward) — the previous shape was asymmetric (right-pointed,
+// left-notched) and didn't read as a banner.
+const RIBBON_D = "M 5,20 H 95 L 80,50 L 95,80 H 5 L 20,50 Z";
 // Donut: outer circle minus inner circle (evenodd fill).
 const DONUT_D =
   "M 50,5 A 45,45 0 1 1 50,95 A 45,45 0 1 1 50,5 Z M 50,30 A 20,20 0 1 0 50,70 A 20,20 0 1 0 50,30 Z";
@@ -89,6 +92,13 @@ const CRESCENT_D = "M 75,15 A 45,45 0 1 0 75,85 A 38,38 0 1 1 75,15 Z";
 // Sunburst: 8-spoke sun with center disc.
 const SUNBURST_D =
   "M 50,5 L 56,28 L 75,12 L 67,33 L 92,28 L 72,45 L 95,55 L 72,57 L 88,75 L 67,68 L 70,90 L 56,72 L 50,95 L 44,72 L 30,90 L 33,68 L 12,75 L 28,57 L 5,55 L 28,45 L 8,28 L 33,33 L 25,12 L 44,28 Z";
+
+// Arrow path — a horizontal arrow pointing right, normalised to a
+// 100×100 bbox so it can be rotated + scaled to match the drag. The
+// origin sits at the left-edge / vertical-centre so we anchor on the
+// drag's start point and rotate around it. Body runs from x=0 to
+// x=70; head fans out from y=30 to y=70 ending at x=100.
+const ARROW_D = "M 0,42 L 70,42 L 70,28 L 100,50 L 70,72 L 70,58 L 0,58 Z";
 
 // Polygon-based simple shapes (point arrays in 100×100 bbox).
 const DIAMOND_POINTS = [
@@ -274,14 +284,18 @@ function makeShape(kind: number, s: ShapeStyle, x: number, y: number): FabricObj
       return new Ellipse({ ...common, rx: 1, ry: 1 });
     case KIND.LINE:
       return new Line([x, y, x + 1, y + 1], { ...common, fill: undefined });
-    case KIND.ARROW:
-      // Arrow remains a thicker line for now (head triangle deferred).
-      return new Line([x, y, x + 1, y + 1], {
+    case KIND.ARROW: {
+      // Filled arrow path — uses the panel's fill colour. The drag
+      // handler later sets `angle`, `scaleX`, and `scaleY` to orient +
+      // size it from the drag vector. The picker icon also shows a
+      // proper arrow with a head, so this matches what the user sees.
+      const arrow = new Path(ARROW_D, {
         ...common,
-        fill: undefined,
-        strokeWidth: Math.max(2, s.shapeStrokeWidth * 1.5),
-        strokeLineCap: "round",
+        originX: "left",
+        originY: "center",
       });
+      return arrow;
+    }
     case KIND.TRIANGLE:
       return new Triangle({ ...common, width: 1, height: 1 });
     case KIND.POLYGON:
@@ -375,8 +389,7 @@ function growShape(d: Drag, x: number, y: number, lockAspect: boolean) {
       obj.setCoords();
       return;
     }
-    case KIND.LINE:
-    case KIND.ARROW: {
+    case KIND.LINE: {
       const line = obj as Line;
       let ex = x;
       let ey = y;
@@ -391,6 +404,36 @@ function growShape(d: Drag, x: number, y: number, lockAspect: boolean) {
       }
       line.set({ x2: ex, y2: ey });
       line.setCoords();
+      return;
+    }
+    case KIND.ARROW: {
+      // Anchor at the drag's start point and rotate the normalised
+      // (0,50)-anchored arrow path so its tip lands under the cursor.
+      // scaleY tracks scaleX with a soft cap so very long arrows don't
+      // get visually fat heads. Shift-snaps the angle to 45° steps.
+      let dx = x - d.startX;
+      let dy = y - d.startY;
+      if (lockAspect) {
+        const a = Math.atan2(dy, dx);
+        const snapped = Math.round(a / (Math.PI / 4)) * (Math.PI / 4);
+        const len = Math.hypot(dx, dy);
+        dx = Math.cos(snapped) * len;
+        dy = Math.sin(snapped) * len;
+      }
+      const length = Math.max(8, Math.hypot(dx, dy));
+      const angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+      const sx = length / 100;
+      // Cap the head height for arrows longer than ~3× the head — keeps
+      // drag-stretched arrows looking like arrows rather than darts.
+      const sy = Math.min(sx, Math.max(0.4, sx * 0.35 + 0.4));
+      obj.set({
+        left: d.startX,
+        top: d.startY,
+        angle: angleDeg,
+        scaleX: sx,
+        scaleY: sy,
+      });
+      obj.setCoords();
       return;
     }
     case KIND.POLYGON:

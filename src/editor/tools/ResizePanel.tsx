@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { PropRow, Segment } from "../atoms";
-import { lanczosResample } from "./lanczos";
+import { lanczosResampleAsync } from "./lanczos";
 import { I } from "../../icons";
 
 const LONG_EDGE_PRESETS = [
@@ -21,6 +21,7 @@ const FIT = ["Fit", "Fill", "Stretch"] as const;
 export function ResizePanel() {
   const { doc, toolState, patchTool, commit } = useEditor();
   const [fit, setFit] = useState(0);
+  const [resizing, setResizing] = useState(false);
 
   // Initialize resize fields from the doc's actual size.
   useEffect(() => {
@@ -63,41 +64,46 @@ export function ResizePanel() {
     [doc, setH, setW],
   );
 
-  const apply = useCallback(() => {
-    if (!doc) return;
+  const apply = useCallback(async () => {
+    if (!doc || resizing) return;
     const targetW = toolState.resizeW;
     const targetH = toolState.resizeH;
     const useLanczos =
       toolState.resizeQuality === 1 &&
       Math.max(doc.width, doc.height) >= Math.max(targetW, targetH) * 1.4;
 
-    const fitMode = FIT[fit];
-    let out: HTMLCanvasElement;
-    if (fitMode === "Stretch") {
-      out = useLanczos
-        ? lanczosResample(doc.working, targetW, targetH)
-        : nativeStretch(doc, targetW, targetH);
-    } else {
-      // Fit / Fill: scale doc proportionally, paste centered onto a target-sized canvas.
-      const s =
-        fitMode === "Fit"
-          ? Math.min(targetW / doc.width, targetH / doc.height)
-          : Math.max(targetW / doc.width, targetH / doc.height);
-      const scaledW = Math.max(1, Math.round(doc.width * s));
-      const scaledH = Math.max(1, Math.round(doc.height * s));
-      const scaled = useLanczos
-        ? lanczosResample(doc.working, scaledW, scaledH)
-        : nativeStretch(doc, scaledW, scaledH);
-      out = createCanvas(targetW, targetH);
-      const ctx = out.getContext("2d");
-      if (!ctx) return;
-      ctx.drawImage(scaled, (targetW - scaledW) / 2, (targetH - scaledH) / 2);
+    setResizing(true);
+    try {
+      const fitMode = FIT[fit];
+      let out: HTMLCanvasElement;
+      if (fitMode === "Stretch") {
+        out = useLanczos
+          ? await lanczosResampleAsync(doc.working, targetW, targetH)
+          : nativeStretch(doc, targetW, targetH);
+      } else {
+        // Fit / Fill: scale doc proportionally, paste centered onto a target-sized canvas.
+        const s =
+          fitMode === "Fit"
+            ? Math.min(targetW / doc.width, targetH / doc.height)
+            : Math.max(targetW / doc.width, targetH / doc.height);
+        const scaledW = Math.max(1, Math.round(doc.width * s));
+        const scaledH = Math.max(1, Math.round(doc.height * s));
+        const scaled = useLanczos
+          ? await lanczosResampleAsync(doc.working, scaledW, scaledH)
+          : nativeStretch(doc, scaledW, scaledH);
+        out = createCanvas(targetW, targetH);
+        const ctx = out.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(scaled, (targetW - scaledW) / 2, (targetH - scaledH) / 2);
+      }
+      copyInto(doc.working, out);
+      doc.width = out.width;
+      doc.height = out.height;
+      commit("Resize");
+    } finally {
+      setResizing(false);
     }
-    copyInto(doc.working, out);
-    doc.width = out.width;
-    doc.height = out.height;
-    commit("Resize");
-  }, [commit, doc, fit, toolState.resizeH, toolState.resizeQuality, toolState.resizeW]);
+  }, [commit, doc, fit, resizing, toolState.resizeH, toolState.resizeQuality, toolState.resizeW]);
 
   const targetW = toolState.resizeW;
   const targetH = toolState.resizeH;
@@ -219,10 +225,12 @@ export function ResizePanel() {
       <button
         type="button"
         className="btn btn-primary justify-center"
-        onClick={apply}
+        onClick={() => void apply()}
+        disabled={resizing}
+        aria-busy={resizing}
         style={{ fontSize: 12.5, padding: "9px" }}
       >
-        <I.Check size={12} /> Apply resize
+        <I.Check size={12} /> {resizing ? "Resizing…" : "Apply resize"}
       </button>
     </>
   );

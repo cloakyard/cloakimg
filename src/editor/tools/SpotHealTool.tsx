@@ -22,7 +22,6 @@ export function SpotHealTool() {
       if (!ctx) return;
       const radius = Math.max(4, toolState.brushSize * 100);
       const feather = Math.max(0.5, toolState.feather * 30);
-      const ringMin = radius;
       const ringMax = radius + feather + 4;
       const cx = Math.round(p.x);
       const cy = Math.round(p.y);
@@ -34,17 +33,26 @@ export function SpotHealTool() {
       if (sw < 4 || sh < 4) return;
       const data = ctx.getImageData(sx, sy, sw, sh);
       const px = data.data;
+      // Stay in squared-distance space everywhere we just need to
+      // compare distances — sqrt per pixel was the dominant cost on a
+      // big-brush click over a 24 MP photo.
+      const ringMin2 = radius * radius;
+      const ringMax2 = ringMax * ringMax;
+      const outer = radius + feather;
+      const outer2 = outer * outer;
       let r = 0;
       let g = 0;
       let b = 0;
       let n = 0;
       for (let y = 0; y < sh; y++) {
+        const dy = y + sy - cy;
+        const dy2 = dy * dy;
+        const rowBase = y * sw;
         for (let x = 0; x < sw; x++) {
           const dx = x + sx - cx;
-          const dy = y + sy - cy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < ringMin || dist > ringMax) continue;
-          const i = (y * sw + x) * 4;
+          const d2 = dx * dx + dy2;
+          if (d2 < ringMin2 || d2 > ringMax2) continue;
+          const i = (rowBase + x) * 4;
           r += px[i] ?? 0;
           g += px[i + 1] ?? 0;
           b += px[i + 2] ?? 0;
@@ -56,18 +64,33 @@ export function SpotHealTool() {
       g /= n;
       b /= n;
 
+      // Inside the inner radius we hard-replace; in the feather band we
+      // need a real distance to weight the blend, so sqrt only fires
+      // for the band's pixels (a tiny sliver of the work).
+      const r2 = radius * radius;
       for (let y = 0; y < sh; y++) {
+        const dy = y + sy - cy;
+        const dy2 = dy * dy;
+        const rowBase = y * sw;
         for (let x = 0; x < sw; x++) {
           const dx = x + sx - cx;
-          const dy = y + sy - cy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist > radius + feather) continue;
-          const i = (y * sw + x) * 4;
-          const t = dist <= radius ? 1 : Math.max(0, 1 - (dist - radius) / feather);
-          const cur = [px[i] ?? 0, px[i + 1] ?? 0, px[i + 2] ?? 0];
-          px[i] = cur[0] * (1 - t) + r * t;
-          px[i + 1] = cur[1] * (1 - t) + g * t;
-          px[i + 2] = cur[2] * (1 - t) + b * t;
+          const d2 = dx * dx + dy2;
+          if (d2 > outer2) continue;
+          const i = (rowBase + x) * 4;
+          let t: number;
+          if (d2 <= r2) {
+            t = 1;
+          } else {
+            const dist = Math.sqrt(d2);
+            t = Math.max(0, 1 - (dist - radius) / feather);
+          }
+          const inv = 1 - t;
+          const cr = px[i] ?? 0;
+          const cg = px[i + 1] ?? 0;
+          const cb = px[i + 2] ?? 0;
+          px[i] = cr * inv + r * t;
+          px[i + 1] = cg * inv + g * t;
+          px[i + 2] = cb * inv + b * t;
         }
       }
       ctx.putImageData(data, sx, sy);

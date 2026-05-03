@@ -52,48 +52,41 @@ function findCropRect(
 export function CropTool() {
   const { getFabricCanvas, doc, toolState } = useEditor();
   const aspect = ASPECT_OPTIONS[toolState.cropAspect]?.ratio ?? null;
+  // Cache the crop rect across render frames so paintOverlay doesn't
+  // walk the whole Fabric scene on every after:render tick (this fires
+  // many times per second during a drag).
+  const cropRectRef = useRef<FabricObject | null>(null);
 
   // Dim the area outside the live crop rect so the kept region reads
   // clearly. We draw on the lower canvas via paintOverlay; Fabric's
   // selection handles live on the upper canvas and stay crisp.
-  const paintOverlay = useCallback(
-    (ctx: CanvasRenderingContext2D, t: Transform) => {
-      const fc = getFabricCanvas();
-      if (!fc) return;
-      let rect: FabricObject | null = null;
-      for (const obj of fc.getObjects()) {
-        if ((obj as TaggedFabricObject).cloakKind === CROP_TAG) {
-          rect = obj;
-          break;
-        }
-      }
-      if (!rect) return;
-      const left = rect.left ?? 0;
-      const top = rect.top ?? 0;
-      const w = (rect.width ?? 0) * (rect.scaleX ?? 1);
-      const h = (rect.height ?? 0) * (rect.scaleY ?? 1);
-      const sx = t.ox + left * t.scale;
-      const sy = t.oy + top * t.scale;
-      const sw = w * t.scale;
-      const sh = h * t.scale;
-      const ix = t.ox;
-      const iy = t.oy;
-      const iw = t.iw * t.scale;
-      const ih = t.ih * t.scale;
-      ctx.save();
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-      // Top strip
-      if (sy > iy) ctx.fillRect(ix, iy, iw, sy - iy);
-      // Bottom strip
-      if (sy + sh < iy + ih) ctx.fillRect(ix, sy + sh, iw, iy + ih - (sy + sh));
-      // Left strip
-      if (sx > ix) ctx.fillRect(ix, sy, sx - ix, sh);
-      // Right strip
-      if (sx + sw < ix + iw) ctx.fillRect(sx + sw, sy, ix + iw - (sx + sw), sh);
-      ctx.restore();
-    },
-    [getFabricCanvas],
-  );
+  const paintOverlay = useCallback((ctx: CanvasRenderingContext2D, t: Transform) => {
+    const rect = cropRectRef.current;
+    if (!rect) return;
+    const left = rect.left ?? 0;
+    const top = rect.top ?? 0;
+    const w = (rect.width ?? 0) * (rect.scaleX ?? 1);
+    const h = (rect.height ?? 0) * (rect.scaleY ?? 1);
+    const sx = t.ox + left * t.scale;
+    const sy = t.oy + top * t.scale;
+    const sw = w * t.scale;
+    const sh = h * t.scale;
+    const ix = t.ox;
+    const iy = t.oy;
+    const iw = t.iw * t.scale;
+    const ih = t.ih * t.scale;
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    // Top strip
+    if (sy > iy) ctx.fillRect(ix, iy, iw, sy - iy);
+    // Bottom strip
+    if (sy + sh < iy + ih) ctx.fillRect(ix, sy + sh, iw, iy + ih - (sy + sh));
+    // Left strip
+    if (sx > ix) ctx.fillRect(ix, sy, sx - ix, sh);
+    // Right strip
+    if (sx + sw < ix + iw) ctx.fillRect(sx + sw, sy, ix + iw - (sx + sw), sh);
+    ctx.restore();
+  }, []);
 
   // Mount the crop overlay rect; tear it down on tool switch.
   useEffect(() => {
@@ -143,6 +136,7 @@ export function CropTool() {
     (rect as TaggedFabricObject).cloakKind = CROP_TAG;
     fc.add(rect);
     fc.setActiveObject(rect);
+    cropRectRef.current = rect;
 
     // Constrain move + scale so the rect stays inside the image.
     const onMoving = () => {
@@ -185,6 +179,7 @@ export function CropTool() {
       fc.remove(rect);
       fc.discardActiveObject();
       fc.requestRenderAll();
+      cropRectRef.current = null;
     };
     // The aspect change handler reshapes the rect in place; we don't
     // recreate the rect on aspect change, so this effect runs once
@@ -423,23 +418,34 @@ function CropDimensions() {
       const rect = findCropRect(fc);
       if (!rect) return;
       const r = readCropBox(rect);
-      setBox({
+      const next = {
         x: Math.round(r.x),
         y: Math.round(r.y),
         w: Math.round(r.w),
         h: Math.round(r.h),
-      });
+      };
+      // Bail when the rounded box is unchanged. Without this, Fabric's
+      // object:moving fires on every pointer tick (60 Hz) and pushed a
+      // setState even when the integer-rounded box hadn't changed,
+      // re-rendering the dimension inputs constantly.
+      setBox((prev) =>
+        prev.x === next.x && prev.y === next.y && prev.w === next.w && prev.h === next.h
+          ? prev
+          : next,
+      );
     };
     sync();
+    // Subscribe only to the events that actually change the rect's
+    // box; the previous `after:render` subscription fired on every
+    // Fabric paint (including unrelated tool overlays) and turned this
+    // panel into a per-frame setState pump.
     fc.on("object:moving", sync);
     fc.on("object:scaling", sync);
     fc.on("object:modified", sync);
-    fc.on("after:render", sync);
     return () => {
       fc.off("object:moving", sync);
       fc.off("object:scaling", sync);
       fc.off("object:modified", sync);
-      fc.off("after:render", sync);
     };
   }, [doc, getFabricCanvas]);
 

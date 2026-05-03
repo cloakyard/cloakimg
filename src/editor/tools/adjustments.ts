@@ -195,12 +195,19 @@ function clamp255(v: number): number {
 }
 
 /** Sharpen / blur via a 5-tap cross kernel. Positive amount = unsharp
- *  mask, negative = box blur. Both blend with the source by `|amount|`. */
+ *  mask, negative = box blur. Both blend with the source by `|amount|`.
+ *
+ *  The convolution is split into an interior loop (no bounds checks)
+ *  and four edge loops, so the bulk of the pixels skip the per-pixel
+ *  Math.max/Math.min clamps that the previous single-loop version was
+ *  paying on every tap. On a 720 px preview frame that's the
+ *  difference between visible slider stutter and a smooth drag. */
 function applySharpen(canvas: HTMLCanvasElement, amount: number) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const w = canvas.width;
   const h = canvas.height;
+  if (w < 3 || h < 3) return;
   const src = ctx.getImageData(0, 0, w, h);
   const dst = ctx.createImageData(w, h);
   const sd = src.data;
@@ -208,34 +215,76 @@ function applySharpen(canvas: HTMLCanvasElement, amount: number) {
   const sharpen = amount > 0;
   const a = Math.min(1, Math.abs(amount));
 
-  for (let y = 0; y < h; y++) {
-    const ym = Math.max(0, y - 1);
-    const yp = Math.min(h - 1, y + 1);
-    for (let x = 0; x < w; x++) {
-      const xm = Math.max(0, x - 1);
-      const xp = Math.min(w - 1, x + 1);
-      const ic = (y * w + x) * 4;
-      const it = (ym * w + x) * 4;
-      const ib = (yp * w + x) * 4;
-      const il = (y * w + xm) * 4;
-      const ir = (y * w + xp) * 4;
-      for (let c = 0; c < 3; c++) {
-        const pc = sd[ic + c] ?? 0;
-        const pt = sd[it + c] ?? 0;
-        const pb = sd[ib + c] ?? 0;
-        const pl = sd[il + c] ?? 0;
-        const pr = sd[ir + c] ?? 0;
-        const target = sharpen ? 5 * pc - pt - pb - pl - pr : (pc + pt + pb + pl + pr) / 5;
-        dd[ic + c] = clamp255(pc + (target - pc) * a);
-      }
-      dd[ic + 3] = sd[ic + 3] ?? 255;
+  const tap = (ic: number, it: number, ib: number, il: number, ir: number) => {
+    for (let c = 0; c < 3; c++) {
+      const pc = sd[ic + c] ?? 0;
+      const pt = sd[it + c] ?? 0;
+      const pb = sd[ib + c] ?? 0;
+      const pl = sd[il + c] ?? 0;
+      const pr = sd[ir + c] ?? 0;
+      const target = sharpen ? 5 * pc - pt - pb - pl - pr : (pc + pt + pb + pl + pr) / 5;
+      dd[ic + c] = clamp255(pc + (target - pc) * a);
+    }
+    dd[ic + 3] = sd[ic + 3] ?? 255;
+  };
+
+  // Interior — no bounds checks. This is ~99% of the pixels on any
+  // reasonable image, so eliminating the per-tap clamps here is the
+  // dominant win.
+  const stride = w * 4;
+  for (let y = 1; y < h - 1; y++) {
+    const rowBase = y * w;
+    for (let x = 1; x < w - 1; x++) {
+      const ic = (rowBase + x) * 4;
+      tap(ic, ic - stride, ic + stride, ic - 4, ic + 4);
     }
   }
+
+  // Top + bottom edges (y = 0, y = h-1) and left + right edges
+  // (x = 0, x = w-1) clamp neighbours to the available row / column.
+  for (let x = 0; x < w; x++) {
+    {
+      const y = 0;
+      const ic = (y * w + x) * 4;
+      const it = ic;
+      const ib = ic + stride;
+      const il = (y * w + Math.max(0, x - 1)) * 4;
+      const ir = (y * w + Math.min(w - 1, x + 1)) * 4;
+      tap(ic, it, ib, il, ir);
+    }
+    {
+      const y = h - 1;
+      const ic = (y * w + x) * 4;
+      const it = ic - stride;
+      const ib = ic;
+      const il = (y * w + Math.max(0, x - 1)) * 4;
+      const ir = (y * w + Math.min(w - 1, x + 1)) * 4;
+      tap(ic, it, ib, il, ir);
+    }
+  }
+  for (let y = 1; y < h - 1; y++) {
+    {
+      const x = 0;
+      const ic = (y * w + x) * 4;
+      tap(ic, ic - stride, ic + stride, ic, ic + 4);
+    }
+    {
+      const x = w - 1;
+      const ic = (y * w + x) * 4;
+      tap(ic, ic - stride, ic + stride, ic - 4, ic);
+    }
+  }
+
   ctx.putImageData(dst, 0, 0);
 }
 
 /** Multiplicative radial darken / lighten centred on the canvas. Positive
- *  amount = classic darkened-edges vignette; negative = halo. */
+ *  amount = classic darkened-edges vignette; negative = halo.
+ *
+ *  Falloff is `dist²`, so we never actually need the sqrt — work in
+ *  squared-distance space and divide by `maxDist²` directly. Also
+ *  cache `dy²` once per row so the inner loop is a single multiply +
+ *  add. Saves a `Math.hypot` per pixel (≈24M calls on a 24 MP photo). */
 function applyVignette(canvas: HTMLCanvasElement, amount: number) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -245,16 +294,18 @@ function applyVignette(canvas: HTMLCanvasElement, amount: number) {
   const d = img.data;
   const cx = w / 2;
   const cy = h / 2;
-  const maxDist = Math.hypot(cx, cy);
+  const maxDist2 = cx * cx + cy * cy;
+  if (maxDist2 === 0) return;
 
   for (let y = 0; y < h; y++) {
     const dy = y - cy;
+    const dy2 = dy * dy;
+    const rowBase = y * w;
     for (let x = 0; x < w; x++) {
       const dx = x - cx;
-      const dist = Math.hypot(dx, dy) / maxDist;
-      const falloff = dist * dist;
+      const falloff = (dx * dx + dy2) / maxDist2;
       const factor = 1 - amount * falloff;
-      const i = (y * w + x) * 4;
+      const i = (rowBase + x) * 4;
       d[i] = clamp255((d[i] ?? 0) * factor);
       d[i + 1] = clamp255((d[i + 1] ?? 0) * factor);
       d[i + 2] = clamp255((d[i + 2] ?? 0) * factor);

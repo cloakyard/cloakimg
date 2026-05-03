@@ -25,11 +25,15 @@ interface Opts {
   feather: number; // 0..1
   /** Optional explicit pick — bypasses the perimeter sampling. */
   sample?: Sample | null;
+  /** Skip the 3×3 alpha smoothing pass. The preview hook flips this on
+   *  while the user is mid-drag — the smoothing's only there to soften
+   *  the final cut, and we only need to pay for it on Apply. */
+  skipSmooth?: boolean;
 }
 
 export function removeBackground(
   src: HTMLCanvasElement,
-  { threshold, feather, sample }: Opts,
+  { threshold, feather, sample, skipSmooth = false }: Opts,
 ): HTMLCanvasElement {
   const out = createCanvas(src.width, src.height);
   const ctx = out.getContext("2d");
@@ -52,38 +56,59 @@ export function removeBackground(
   const t = Math.max(0.02, threshold * 0.6);
   const featherDist = Math.max(0.01, feather * 0.4);
   const tFeather = t + featherDist;
+  // Pre-square the bounds + flatten samples into typed arrays so the
+  // hot pixel loop avoids polymorphic property lookups *and* avoids a
+  // sqrt for every pixel that's clearly inside or outside the keyer's
+  // band. Squared-distance pre-checks knock the sqrt count down by
+  // roughly two orders of magnitude on a flat-background photo.
+  const t2 = t * t;
+  const tFeather2 = tFeather * tFeather;
+  const sn = samples.length;
+  const sr = new Float32Array(sn);
+  const sg = new Float32Array(sn);
+  const sb = new Float32Array(sn);
+  for (let k = 0; k < sn; k++) {
+    const s = samples[k];
+    if (!s) continue;
+    sr[k] = s.r;
+    sg[k] = s.g;
+    sb[k] = s.b;
+  }
 
   for (let i = 0; i < d.length; i += 4) {
     const r = d[i] ?? 0;
     const g = d[i + 1] ?? 0;
     const b = d[i + 2] ?? 0;
-    const dist = minDistance(r, g, b, samples);
-    if (dist <= t) {
+    let best2 = Infinity;
+    for (let k = 0; k < sn; k++) {
+      const dr = (r - (sr[k] ?? 0)) / 255;
+      const dg = (g - (sg[k] ?? 0)) / 255;
+      const db = (b - (sb[k] ?? 0)) / 255;
+      const d2 = dr * dr + dg * dg + db * db;
+      if (d2 < best2) best2 = d2;
+      // Early exit: anything closer than the kill threshold will
+      // already get d[i+3]=0; no need to find an even tighter sample.
+      if (best2 <= t2) break;
+    }
+    if (best2 <= t2) {
       d[i + 3] = 0;
-    } else if (dist <= tFeather) {
+    } else if (best2 <= tFeather2) {
+      // Only this thin shell needs a real distance for the falloff
+      // weight — every other pixel skipped sqrt entirely.
+      const dist = Math.sqrt(best2);
       const a = (dist - t) / featherDist;
       d[i + 3] = Math.round((d[i + 3] ?? 255) * a);
     }
   }
 
-  // Smooth the alpha channel: 3×3 box average. Cleans up jagged edges
-  // and gives hair / feathered regions a softer falloff.
-  smoothAlpha(d, out.width, out.height);
+  if (!skipSmooth) {
+    // Smooth the alpha channel: 3×3 box average. Cleans up jagged edges
+    // and gives hair / feathered regions a softer falloff.
+    smoothAlpha(d, out.width, out.height);
+  }
 
   ctx.putImageData(img, 0, 0);
   return out;
-}
-
-function minDistance(r: number, g: number, b: number, samples: Sample[]): number {
-  let best = Infinity;
-  for (const s of samples) {
-    const dr = (r - s.r) / 255;
-    const dg = (g - s.g) / 255;
-    const db = (b - s.b) / 255;
-    const dist = Math.sqrt(dr * dr + dg * dg + db * db);
-    if (dist < best) best = dist;
-  }
-  return best;
 }
 
 /** Sample many points along the image perimeter, skipping any that are

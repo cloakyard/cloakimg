@@ -6,7 +6,7 @@
 // aesthetic, with an "Update" button when needRefresh and a
 // self-dismissing "ready offline" toast on first install.
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { I } from "../icons";
 
@@ -14,6 +14,11 @@ const UPDATE_CHECK_INTERVAL_MS = 10 * 60 * 1000;
 const RELOAD_FALLBACK_MS = 1500;
 
 export function ReloadPrompt() {
+  // Stash the SW update interval so the unmount cleanup can clear it.
+  // `useRegisterSW`'s onRegisteredSW callback fires once outside React's
+  // lifecycle, so we need our own ref to plumb the timer ID back out.
+  const updateIntervalRef = useRef<number | null>(null);
+
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
@@ -21,7 +26,10 @@ export function ReloadPrompt() {
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
       if (!registration) return;
-      setInterval(async () => {
+      if (updateIntervalRef.current !== null) {
+        window.clearInterval(updateIntervalRef.current);
+      }
+      updateIntervalRef.current = window.setInterval(async () => {
         if (registration.installing || !navigator) return;
         if ("connection" in navigator && !navigator.onLine) return;
         try {
@@ -33,6 +41,15 @@ export function ReloadPrompt() {
       }, UPDATE_CHECK_INTERVAL_MS);
     },
   });
+
+  useEffect(() => {
+    return () => {
+      if (updateIntervalRef.current !== null) {
+        window.clearInterval(updateIntervalRef.current);
+        updateIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   // Edge cases on freshly-launched origins can drop workbox-window's
   // controlling event. Fall back to an explicit reload so the Update

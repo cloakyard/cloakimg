@@ -64,7 +64,17 @@ export function useRemoveBgPreview(
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
       const sample = parseHex(sampleHex);
-      const cleared = removeBackground(ds, { threshold, feather, sample });
+      // `skipSmooth` halves the per-frame cost — the 3×3 alpha box
+      // average doesn't materially change what the user sees while
+      // they're moving sliders. Apply re-runs `removeBackground` at
+      // full res with smoothing on, so the final cutout still gets the
+      // anti-aliased edge.
+      const cleared = removeBackground(ds, {
+        threshold,
+        feather,
+        sample,
+        skipSmooth: true,
+      });
       // Upsample to source dimensions so Fabric renders the preview
       // at the same on-canvas size as the real image.
       const out =

@@ -229,6 +229,22 @@ export function EditorProvider({
     autosaveSeenInitial.current = false;
   }, [doc]);
 
+  // Revoke any outstanding batch blob URLs (thumb + result) when the
+  // editor unmounts. Without this, leaving the editor with a populated
+  // batch queue leaks every URL since `batchClear` is the only other
+  // path that revokes them. We read from `batchFilesRef` so the cleanup
+  // effect doesn't have to re-subscribe on every batch mutation.
+  const batchFilesRef = useRef(batchFiles);
+  batchFilesRef.current = batchFiles;
+  useEffect(() => {
+    return () => {
+      for (const f of batchFilesRef.current) {
+        if (f.thumbUrl) URL.revokeObjectURL(f.thumbUrl);
+        if (f.resultBlobUrl) URL.revokeObjectURL(f.resultBlobUrl);
+      }
+    };
+  }, []);
+
   // Build doc from the start choice.
   useEffect(() => {
     let cancelled = false;
@@ -402,16 +418,18 @@ export function EditorProvider({
           const { blob, name } = await runRecipe(target.file, recipe);
           const url = URL.createObjectURL(blob);
           setBatchFiles((prev) =>
-            prev.map((p) =>
-              p.id === id
-                ? {
-                    ...p,
-                    status: "done",
-                    resultBlobUrl: url,
-                    resultName: name,
-                  }
-                : p,
-            ),
+            prev.map((p) => {
+              if (p.id !== id) return p;
+              // Re-running over a row that already produced a result: revoke
+              // the previous blob URL so we don't leak one per re-run.
+              if (p.resultBlobUrl) URL.revokeObjectURL(p.resultBlobUrl);
+              return {
+                ...p,
+                status: "done",
+                resultBlobUrl: url,
+                resultName: name,
+              };
+            }),
           );
         } catch (err: unknown) {
           setBatchFiles((prev) =>

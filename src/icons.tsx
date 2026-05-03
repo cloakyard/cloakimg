@@ -327,7 +327,7 @@ export const I = {
   Teardrop: (p: P) => <Icon {...p} d="M12 2c4 5 7 9 7 13a7 7 0 0 1-14 0c0-4 3-8 7-13Z" />,
   Octagon: (p: P) => <Icon {...p} d="M8 3h8l5 5v8l-5 5H8l-5-5V8Z" />,
   Pentagon: (p: P) => <Icon {...p} d="M12 2 22 9.5 18 21H6L2 9.5Z" />,
-  Trapezoid: (p: P) => <Icon {...p} d="M5 19V8l4-4h6l4 4v11Z" />,
+  Trapezoid: (p: P) => <Icon {...p} d="M3 20h18l-4-14H7Z" />,
   Pie: (p: P) => (
     <Icon {...p}>
       <path d="M12 2v10l8 5A10 10 0 1 1 12 2Z" />
