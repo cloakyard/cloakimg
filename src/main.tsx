@@ -12,6 +12,7 @@ import "@fontsource/instrument-serif/400-italic.css";
 import "./tokens.css";
 import "./style.css";
 import { App } from "./App";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 const root = document.getElementById("app");
 if (!root) {
@@ -20,6 +21,8 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );

@@ -412,6 +412,19 @@ body {
     opacity: 0.78;
   }
 }
+/* Editor on phones — keep the warm static gradient as a backdrop, but
+   stop the keyframe animations. Sunset paints a full-screen layer
+   behind the editor surface; on mobile that means continuous
+   compositor work for blur/blend on a layer the user never directly
+   sees through. The landing page (.sunset-stage without .sunset-subtle)
+   stays animated so the marketing hero still feels alive. */
+@media (max-width: 640px) {
+  .sunset-stage.sunset-subtle .sunset-blob,
+  .sunset-stage.sunset-subtle .sunset-sun,
+  .sunset-stage.sunset-subtle .sunset-horizon {
+    animation: none;
+  }
+}
 
 /* ── Type utilities ──────────────────────────────────────────
    Marketing eyebrows (.t-eyebrow) are coral and prominent. UI

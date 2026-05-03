@@ -71,7 +71,7 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
 
 export function MobileToolbar({ activeTool, onSelect }: RailProps) {
   return (
-    <div className="editor-paper no-scrollbar flex shrink-0 gap-1 overflow-x-auto border-t border-border-soft px-2 py-3 dark:border-dark-border-soft">
+    <div className="editor-paper no-scrollbar flex shrink-0 gap-1 overflow-x-auto border-t border-border-soft px-2 py-2 pb-[max(env(safe-area-inset-bottom),8px)] dark:border-dark-border-soft">
       {ALL_TOOLS.map((tool) => {
         const Ic = tool.icon;
         const active = tool.id === activeTool;
@@ -80,15 +80,16 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
             key={tool.id}
             type="button"
             onClick={() => onSelect(tool.id)}
+            aria-label={tool.name}
             aria-pressed={active}
-            className={`flex min-w-14 shrink-0 cursor-pointer flex-col items-center gap-1 rounded-lg border-none px-1 py-2 ${
+            className={`flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 ${
               active
                 ? "bg-coral-50 text-coral-700 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30 dark:text-coral-300"
                 : "bg-transparent text-text-muted dark:text-dark-text-muted"
             }`}
           >
-            <Ic size={16} />
-            <span className="text-[9.5px] font-semibold">{tool.name}</span>
+            <Ic size={18} />
+            <span className="text-[10px] leading-tight font-semibold">{tool.name}</span>
           </button>
         );
       })}

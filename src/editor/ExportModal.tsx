@@ -41,12 +41,18 @@ export type { ExportSettings };
 const BASE_FORMATS = ["JPG", "PNG", "WebP", "AVIF"] as const;
 
 export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
-  const { doc, layers, toolState, patchTool, getFabricCanvas } = useEditor();
+  const { doc, layers, toolState, patchTool, getFabricCanvas, flushPendingApply } = useEditor();
   const isMobile = layout === "mobile";
   const [busy, setBusy] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [metaOpen, setMetaOpen] = useState(false);
   const [heicSupported, setHeicSupported] = useState(false);
+  // Gate preview generation on a one-shot flush of any pending tool
+  // apply (Adjust/Filter/Crop sliders that haven't been committed yet).
+  // Running flush in a deferred effect — instead of synchronously in
+  // openExport — lets the modal frame paint first, so tapping Export
+  // on mobile feels instant even when the bake is slow.
+  const [prepared, setPrepared] = useState(false);
   const metaFields = useMemo(() => exifToFields(doc?.exif ?? null), [doc?.exif]);
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusReturn(true);
@@ -58,6 +64,18 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // setTimeout(0) — not queueMicrotask — so the browser gets a chance
+  // to paint the modal between mount and the (potentially heavy)
+  // canvas bake. queueMicrotask would run before paint and defeat the
+  // purpose.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      flushPendingApply();
+      setPrepared(true);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [flushPendingApply]);
 
   // Probe Safari-only HEIC encode support once on mount. Other engines
   // silently fall back to PNG, so we keep the option hidden there.
@@ -88,9 +106,10 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   // Preview the working canvas as an <img> so it reflects the current
   // working state including Fabric overlays (text, shapes, stickers,
   // strokes). Mirrors the bake step in `exportDoc` so the preview
-  // matches what the user will actually download.
+  // matches what the user will actually download. Waits on `prepared`
+  // so it sees the post-flush doc.working, not a stale frame.
   useEffect(() => {
-    if (!doc) return;
+    if (!doc || !prepared) return;
     let cancelled = false;
     const off = document.createElement("canvas");
     off.width = doc.width;
@@ -115,7 +134,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc, getFabricCanvas]);
+  }, [doc, prepared, getFabricCanvas]);
 
   const targetW = useMemo(() => {
     if (!doc) return 0;

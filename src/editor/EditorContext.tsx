@@ -464,10 +464,12 @@ export function EditorProvider({
         historyVersion >= 0 && (historyRef.current.canUndo() || historyRef.current.canRedo()),
       exportOpen,
       openExport: () => {
-        // Bake any pending preview (Adjust/Filter/Frame/Crop) before
-        // the export modal reads doc.working — otherwise unapplied
-        // edits would silently be missing from the exported image.
-        flushPendingApply();
+        // Render the modal first so the user sees an immediate response
+        // to the tap. The modal itself runs flushPendingApply() inside a
+        // mount-time effect (deferred via setTimeout) so any unapplied
+        // Adjust/Filter slider bake doesn't block the dialog from
+        // appearing — important on mobile where baking a 12 MP canvas
+        // can take a couple hundred milliseconds.
         setExportOpen(true);
       },
       closeExport: () => setExportOpen(false),
