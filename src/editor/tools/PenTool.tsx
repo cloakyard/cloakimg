@@ -63,7 +63,14 @@ export function PenTool() {
     const renderAnchorHandles = (target: FabricObject) => {
       removeAnchorHandles();
       const anchors = (target as TaggedFabricObject).cloakAnchors ?? [];
-      const radius = 5;
+      // Coarse pointers (touch) need a meaningfully larger anchor so the
+      // user can land a finger on it without zooming in. Stays compact
+      // on desktop where the cursor is precision.
+      const coarse =
+        typeof window !== "undefined" &&
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(pointer: coarse)").matches;
+      const radius = coarse ? 9 : 5;
       for (let i = 0; i < anchors.length; i++) {
         const a = anchors[i];
         if (!a) continue;

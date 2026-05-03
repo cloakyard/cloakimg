@@ -9,9 +9,45 @@
   flex-direction: column;
 }
 
+/* Disable browser-level zoom gestures on phones. The viewport meta in
+   index.html turns off pinch-zoom; `touch-action: manipulation` here
+   suppresses the double-tap-to-zoom that historic Safari versions
+   ignored even with `user-scalable=no`. The editor canvas itself opts
+   back into full gesture control via `touch-action: none` on its
+   container, so pinch-to-zoom inside the canvas keeps working. */
+html,
+body {
+  touch-action: manipulation;
+  /* Belt-and-suspenders: text-size-adjust prevents Safari's automatic
+     font upscaling in landscape, which would otherwise break the
+     pixel-tuned panel chrome. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Stop iOS from showing the rubber-band "page bounce" on the body
+     when a user drags past the canvas edges — the editor occupies the
+     full viewport and never wants to scroll. */
+  overscroll-behavior: none;
+}
+
 @keyframes ci-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Subtle rotation cue used by the OrientationLock overlay — tilts a
+   phone glyph back and forth so the user reads "rotate this device"
+   even before they parse the headline. */
+@keyframes ci-rotate-hint {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(-90deg);
+  }
+  70% {
+    transform: rotate(-90deg);
   }
 }
 

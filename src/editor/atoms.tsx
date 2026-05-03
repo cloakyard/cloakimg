@@ -56,7 +56,11 @@ export function Slider({ value, onChange, accent = false }: SliderProps) {
 
   const applyVisual = useCallback((v: number) => {
     if (fillRef.current) fillRef.current.style.width = `${v * 100}%`;
-    if (thumbRef.current) thumbRef.current.style.left = `calc(${v * 100}% - 7px)`;
+    // Position the thumb's centre on the value mark and let CSS
+    // translate(-50%) handle the half-width offset, so the same
+    // expression works regardless of whether the thumb is the
+    // desktop-size 14 px or the touch-size 22 px chip.
+    if (thumbRef.current) thumbRef.current.style.left = `${v * 100}%`;
   }, []);
 
   // Re-sync the DOM with the prop whenever the upstream value changes
@@ -132,9 +136,13 @@ export function Slider({ value, onChange, accent = false }: SliderProps) {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className={`relative flex h-4.5 items-center touch-none ${onChange ? "cursor-pointer" : "cursor-default"}`}
+      // Coarse pointers (touch) get a much taller hit area — Apple HIG
+      // and Material both ask for ≥44 pt. The visible rail stays the
+      // same; only the wrapper's height grows so the thumb is easier
+      // to grab without changing the panel layout density.
+      className={`relative flex h-4.5 items-center touch-none pointer-coarse:h-9 ${onChange ? "cursor-pointer" : "cursor-default"}`}
     >
-      <div className="relative h-0.75 w-full rounded-sm bg-page-bg dark:bg-dark-page-bg">
+      <div className="relative h-0.75 w-full rounded-sm bg-page-bg pointer-coarse:h-1 dark:bg-dark-page-bg">
         <div
           ref={fillRef}
           className={`absolute top-0 left-0 h-full rounded-sm ${
@@ -145,9 +153,9 @@ export function Slider({ value, onChange, accent = false }: SliderProps) {
       </div>
       <div
         ref={thumbRef}
-        className="pointer-events-none absolute h-3.5 w-3.5 rounded-full border-[1.5px] border-coral-500 bg-white"
+        className="pointer-events-none absolute h-3.5 w-3.5 -translate-x-1/2 rounded-full border-[1.5px] border-coral-500 bg-white pointer-coarse:h-5.5 pointer-coarse:w-5.5 pointer-coarse:border-2"
         style={{
-          left: `calc(${value * 100}% - 7px)`,
+          left: `${value * 100}%`,
           boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
         }}
       />
@@ -165,7 +173,7 @@ interface SegmentProps {
 export function Segment({ options, active, onChange, style }: SegmentProps) {
   return (
     <div
-      className="flex rounded-md border border-border-soft bg-page-bg p-0.5 dark:border-dark-border-soft dark:bg-dark-page-bg"
+      className="flex rounded-md border border-border-soft bg-page-bg p-0.5 pointer-coarse:p-1 dark:border-dark-border-soft dark:bg-dark-page-bg"
       style={style}
     >
       {options.map((o, i) => {
@@ -175,7 +183,9 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             key={o}
             type="button"
             onClick={() => onChange?.(i)}
-            className={`flex-1 cursor-pointer rounded border-none px-2 py-1 text-center font-[inherit] text-[11px] font-semibold ${
+            // Touch devices get larger padding + slightly bigger label
+            // so each segment clears the ~44 pt minimum tap target.
+            className={`flex-1 cursor-pointer rounded border-none px-2 py-1 text-center font-[inherit] text-[11px] font-semibold pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
               isActive
                 ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-dark-surface dark:text-dark-text"
                 : "bg-transparent text-text-muted dark:text-dark-text-muted"
@@ -237,22 +247,32 @@ interface ToggleProps {
 
 export function ToggleSwitch({ on, onChange }: ToggleProps) {
   return (
+    // Touch-friendly hit area: the visible pill stays compact, but a
+    // transparent padding-only wrapper extends the tap target to ~44 pt
+    // on coarse pointers so the switch isn't a fingertip-precision
+    // exercise on phones.
     <button
       type="button"
       onClick={() => onChange?.(!on)}
       aria-pressed={on}
-      className={`relative h-4 w-7 shrink-0 cursor-pointer rounded-full border-none p-0 transition-colors ${
-        on ? "bg-coral-500" : "bg-slate-300 dark:bg-slate-600"
-      }`}
+      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 pointer-coarse:p-2"
     >
       <span
-        className="absolute top-0.5 h-3 w-3 rounded-full bg-white"
-        style={{
-          left: on ? 14 : 2,
-          boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-          transition: "left 160ms cubic-bezier(0.22, 1, 0.36, 1)",
-        }}
-      />
+        className={`relative inline-block h-4 w-7 rounded-full transition-colors pointer-coarse:h-6 pointer-coarse:w-10 ${
+          on ? "bg-coral-500" : "bg-slate-300 dark:bg-slate-600"
+        }`}
+      >
+        <span
+          // The thumb sits inset 2 px from the off-side and slides 12 px
+          // (desktop) / 16 px (touch) to land inset 2 px from the on-side
+          // — width and pad scale together so the same translate values
+          // bottom out at both sizes.
+          className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white transition-transform pointer-coarse:top-1 pointer-coarse:left-1 pointer-coarse:h-4 pointer-coarse:w-4 ${
+            on ? "translate-x-3 pointer-coarse:translate-x-4" : "translate-x-0"
+          }`}
+          style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+        />
+      </span>
     </button>
   );
 }
