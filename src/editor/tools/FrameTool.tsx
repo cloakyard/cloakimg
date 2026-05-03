@@ -6,17 +6,26 @@
 // via registerPendingApply — no explicit Apply button.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PropRow, Slider } from "../atoms";
 import { ColorPicker } from "../ColorPicker";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
-import { PropRow, Slider } from "../atoms";
 import type { ToolState } from "../toolState";
 
 export const FRAME_STYLES = ["Solid", "Polaroid", "Double", "Rounded"] as const;
-const MAX_FRAME_PX = 200;
+// Slider max is 15% of the shorter image side (with a 60 px floor so
+// tiny images still get a usable range). A fixed 200-px ceiling looks
+// like a hairline on a 6 kpx photo, which made the tool feel broken.
+const MAX_FRAME_FRACTION = 0.15;
+const MIN_MAX_FRAME_PX = 60;
 const STYLE_THUMB_PX = 64;
+// Floor for the panel-thumbnail border so each style's character
+// (polaroid bottom, double rings, rounded corners) is always readable
+// regardless of where the slider sits.
+const MIN_THUMB_BORDER_PX = 7;
+const MAX_THUMB_BORDER_PX = 18;
 
 export function FrameTool() {
   const paintOverlay = useCallback((ctx: CanvasRenderingContext2D, t: Transform, ts: ToolState) => {
@@ -36,6 +45,27 @@ export function FrameTool() {
 export function FramePanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
   const w = toolState.frameWidth;
+
+  // Slider range scales with the image's shorter side so the same
+  // slider position produces a visually equivalent frame across a
+  // thumbnail and a 6 kpx photo.
+  const maxFramePx = useMemo(
+    () => (doc ? frameMaxFor(doc.width, doc.height) : MIN_MAX_FRAME_PX),
+    [doc],
+  );
+
+  // Pick a default proportional width the first time the user opens
+  // the tool on a fresh image — opening Frame on a huge photo with
+  // the legacy 24-px default looks like nothing happened.
+  const seededDocRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    if (!doc?.working) return;
+    if (seededDocRef.current === doc.working) return;
+    seededDocRef.current = doc.working;
+    if (toolState.frameWidth <= 0) {
+      patchTool("frameWidth", defaultFrameWidth(doc.width, doc.height));
+    }
+  }, [doc?.working, doc?.width, doc?.height, toolState.frameWidth, patchTool]);
 
   const apply = useCallback(() => {
     if (!doc || w <= 0) return;
@@ -67,7 +97,15 @@ export function FramePanel() {
   // will produce.
   const styleThumbUrls = useMemo(() => {
     if (!sourceThumb) return null;
-    const previewWidth = Math.max(2, Math.round((w / MAX_FRAME_PX) * 14) || 8);
+    // Show the slider's relative width as thumb-space pixels, but
+    // floor it so each style's character (polaroid bottom card,
+    // double rings, rounded inner corners) is always visible — even
+    // when the slider sits near zero.
+    const ratio = maxFramePx > 0 ? w / maxFramePx : 0;
+    const previewWidth = Math.max(
+      MIN_THUMB_BORDER_PX,
+      Math.min(MAX_THUMB_BORDER_PX, Math.round(ratio * MAX_THUMB_BORDER_PX)),
+    );
     return FRAME_STYLES.map((_, idx) => {
       const out = createCanvas(STYLE_THUMB_PX, STYLE_THUMB_PX);
       const ctx = out.getContext("2d");
@@ -76,7 +114,7 @@ export function FramePanel() {
       drawFrame(ctx, idx, 0, 0, STYLE_THUMB_PX, STYLE_THUMB_PX, previewWidth, toolState.frameColor);
       return out.toDataURL("image/png");
     });
-  }, [sourceThumb, w, toolState.frameColor]);
+  }, [sourceThumb, w, maxFramePx, toolState.frameColor]);
 
   // Auto-bake the frame preview if the user navigates away mid-edit.
   const applyRef = useRef(apply);
@@ -127,9 +165,9 @@ export function FramePanel() {
       </PropRow>
       <PropRow label="Width" value={`${w} px`}>
         <Slider
-          value={Math.min(1, w / MAX_FRAME_PX)}
+          value={maxFramePx > 0 ? Math.min(1, w / maxFramePx) : 0}
           accent={w > 0}
-          onChange={(v) => patchTool("frameWidth", Math.round(v * MAX_FRAME_PX))}
+          onChange={(v) => patchTool("frameWidth", Math.round(v * maxFramePx))}
         />
       </PropRow>
       <PropRow label="Color">
@@ -140,6 +178,21 @@ export function FramePanel() {
       </div>
     </>
   );
+}
+
+/** Slider ceiling for the current image. 15 % of the shorter side
+ *  (with a 60-px floor for tiny inputs) keeps a thick frame visible
+ *  without ever swallowing the photo. */
+function frameMaxFor(width: number, height: number): number {
+  const shorter = Math.max(1, Math.min(width, height));
+  return Math.max(MIN_MAX_FRAME_PX, Math.round(shorter * MAX_FRAME_FRACTION));
+}
+
+/** Initial proportional width when the user opens the tool on a new
+ *  image — ~3 % of the shorter side, clamped to a sensible band. */
+function defaultFrameWidth(width: number, height: number): number {
+  const shorter = Math.max(1, Math.min(width, height));
+  return Math.max(8, Math.min(frameMaxFor(width, height), Math.round(shorter * 0.03)));
 }
 
 function hintFor(style: number): string {
