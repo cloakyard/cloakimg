@@ -141,11 +141,31 @@ export function PenTool() {
 
     const rebuild = () => {
       const d = buildD(anchorsRef.current, hoverRef.current);
-      if (pathRef.current) {
-        fc.remove(pathRef.current);
-        pathRef.current = null;
-      }
       if (!d) {
+        if (pathRef.current) {
+          fc.remove(pathRef.current);
+          pathRef.current = null;
+        }
+        fc.requestRenderAll();
+        return;
+      }
+      // Mutate the existing path in place when we have one — fabric's
+      // `_setPath` re-parses the d string and updates the path data +
+      // bbox without the cost of a remove + new Path + add cycle. This
+      // is the per-mousemove hot path; the previous version churned a
+      // fresh Path on every tick.
+      if (pathRef.current) {
+        const p = pathRef.current as Path & {
+          _setPath: (data: string, adjustPosition?: boolean) => void;
+        };
+        p._setPath(d, true);
+        // Style can change mid-sketch from the panel.
+        p.set({
+          fill: toolState.penFill === "transparent" ? "" : toolState.penFill,
+          stroke: toolState.penStroke,
+          strokeWidth: toolState.penStrokeWidth,
+        });
+        p.dirty = true;
         fc.requestRenderAll();
         return;
       }

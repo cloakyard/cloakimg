@@ -7,7 +7,7 @@
 // real-time WYSIWYG of what Apply will produce.
 
 import { useEffect, useRef, useState } from "react";
-import { createCanvas } from "../doc";
+import { createCanvas, releaseCanvas } from "../doc";
 import { removeBackground } from "./removeBg";
 
 const PREVIEW_LONG_EDGE = 720;
@@ -76,18 +76,38 @@ export function useRemoveBgPreview(
         skipSmooth: true,
       });
       // Upsample to source dimensions so Fabric renders the preview
-      // at the same on-canvas size as the real image.
-      const out =
-        cleared.width === source.width && cleared.height === source.height
-          ? cleared
-          : upsample(cleared, source.width, source.height);
-      setPreview(out);
+      // at the same on-canvas size as the real image. If the keyer's
+      // output already matches we can skip the extra blit and reuse
+      // its canvas directly.
+      let out: HTMLCanvasElement;
+      if (cleared.width === source.width && cleared.height === source.height) {
+        out = cleared;
+      } else {
+        out = upsample(cleared, source.width, source.height);
+        // The downsampled cleared canvas was a one-shot scratch — back
+        // to the pool so the next frame reuses it.
+        releaseCanvas(cleared);
+      }
+      setPreview((prev) => {
+        if (prev) releaseCanvas(prev);
+        return out;
+      });
     });
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
   }, [feather, source, threshold, sampleHex, invalidationKey]);
+
+  // Drop the last preview on unmount so the pool reclaims the canvas.
+  useEffect(() => {
+    return () => {
+      setPreview((prev) => {
+        if (prev) releaseCanvas(prev);
+        return null;
+      });
+    };
+  }, []);
 
   return preview;
 }

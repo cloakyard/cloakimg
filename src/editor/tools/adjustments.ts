@@ -6,7 +6,7 @@
 // signed range and let the math do the rest.
 
 import { ADJUST_KEYS, type AdjustKey } from "../toolState";
-import { createCanvas } from "../doc";
+import { acquireCanvas } from "../doc";
 
 export type AdjustValues = Partial<Record<AdjustKey, number>>;
 
@@ -68,9 +68,12 @@ export function cssFilterFor(arr: number[]): string {
   return parts.join(" ") || "none";
 }
 
-/** Run a real per-pixel pass into a fresh canvas. */
+/** Run a real per-pixel pass into a fresh canvas. The output canvas
+ *  comes from the scratch pool — preview hooks call `releaseCanvas`
+ *  on the prior bake when a new one replaces it, so we don't allocate
+ *  per slider tick. */
 export function bakeAdjust(src: HTMLCanvasElement, arr: number[], grain = 0): HTMLCanvasElement {
-  const out = createCanvas(src.width, src.height);
+  const out = acquireCanvas(src.width, src.height);
   const ctx = out.getContext("2d");
   if (!ctx) return out;
   ctx.drawImage(src, 0, 0);

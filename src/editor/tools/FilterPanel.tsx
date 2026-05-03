@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { copyInto, createCanvas } from "../doc";
 import { bakeAdjust } from "./adjustments";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
@@ -17,7 +17,9 @@ import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 const THUMB_PX = 96;
 
 export function FilterPanel() {
-  const { doc, toolState, patchTool, commit, registerPendingApply, layout } = useEditor();
+  const toolState = useToolState();
+  const { patchTool, commit, registerPendingApply } = useEditorActions();
+  const { doc, layout } = useEditorReadOnly();
   const isMobile = layout === "mobile";
 
   // Build a small square thumb from doc.working once per panel mount.

@@ -106,6 +106,54 @@ export function createCanvas(w: number, h: number): HTMLCanvasElement {
   return c;
 }
 
+// ── Scratch-canvas pool ─────────────────────────────────────────────
+// Hot paths (Adjust / Filter / Remove BG previews) allocate a fresh
+// HTMLCanvasElement on every rAF during a slider drag. At a 720 px
+// preview that's ~2 MB of GC pressure per second, plus the cost of
+// creating and binding a colour-managed 2D context each time. The
+// pool keeps a handful of canvases per (w, h) so consecutive frames
+// reuse the same backing store.
+//
+// Release lifecycle: callers (the preview hooks) must release the
+// *previous* canvas before overwriting their state with a new one —
+// otherwise the pool slowly drains and we just allocate forever.
+const POOL_LIMIT_PER_SIZE = 3;
+const pool = new Map<string, HTMLCanvasElement[]>();
+
+function poolKey(w: number, h: number): string {
+  return `${w}x${h}`;
+}
+
+/** Pull a same-sized scratch canvas from the pool, or create one. The
+ *  canvas is cleared before being returned, so callers can treat it as
+ *  fresh. Don't use this for canvases that need to outlive a single
+ *  rAF — only for short-lived scratch like preview bakes. */
+export function acquireCanvas(w: number, h: number): HTMLCanvasElement {
+  const stack = pool.get(poolKey(w, h));
+  const c = stack?.pop();
+  if (c) {
+    const ctx = c.getContext("2d");
+    if (ctx) ctx.clearRect(0, 0, w, h);
+    return c;
+  }
+  return createCanvas(w, h);
+}
+
+/** Return a canvas to the pool. Caller must drop all references
+ *  afterwards — a future `acquireCanvas` may hand the same element to
+ *  someone else. Drops on the floor once the per-size cap is hit so a
+ *  rapid sequence of unique sizes can't unboundedly grow the pool. */
+export function releaseCanvas(c: HTMLCanvasElement | null | undefined) {
+  if (!c) return;
+  const key = poolKey(c.width, c.height);
+  const stack = pool.get(key);
+  if (stack) {
+    if (stack.length < POOL_LIMIT_PER_SIZE) stack.push(c);
+    return;
+  }
+  pool.set(key, [c]);
+}
+
 function fillBackground(c: HTMLCanvasElement, color: string) {
   const ctx = c.getContext("2d");
   if (!ctx) return;

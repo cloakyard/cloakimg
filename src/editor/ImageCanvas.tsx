@@ -462,6 +462,14 @@ export function ImageCanvas({
 
   // Set / refresh the backgroundImage when the source canvas swaps
   // (open, undo, replaceWithFile, compare toggle, preview canvas).
+  //
+  // We reuse a single FabricImage and just swap its element + scale on
+  // each refresh. The previous version constructed a new FabricImage
+  // every time `previewCanvas` changed — and `useAdjustPreview`
+  // produces a fresh canvas every rAF during a slider drag, so the
+  // editor was allocating Fabric objects (and recomputing bbox state)
+  // ~60×/sec. Reusing the bg cuts that to a single setElement call.
+  const bgImageRef = useRef<FabricImage | null>(null);
   useEffect(() => {
     const fc = fabricRef.current;
     if (!fc || !doc) return;
@@ -474,16 +482,26 @@ export function ImageCanvas({
     // the bg renders tiny in the corner.
     const scaleX = doc.width / sourceCanvas.width;
     const scaleY = doc.height / sourceCanvas.height;
-    const bg = new FabricImage(sourceCanvas, {
-      selectable: false,
-      evented: false,
-      left: 0,
-      top: 0,
-      originX: "left",
-      originY: "top",
-      scaleX,
-      scaleY,
-    });
+    let bg = bgImageRef.current;
+    // Treat a Fabric-disposed bg (no canvas reference) as missing so
+    // canvas teardown + remount doesn't leave us pointing at a dead
+    // object across StageHost re-mounts.
+    if (!bg || (bg as { canvas?: unknown }).canvas === null) {
+      bg = new FabricImage(sourceCanvas, {
+        selectable: false,
+        evented: false,
+        left: 0,
+        top: 0,
+        originX: "left",
+        originY: "top",
+        scaleX,
+        scaleY,
+      });
+      bgImageRef.current = bg;
+    } else {
+      bg.setElement(sourceCanvas);
+      bg.set({ scaleX, scaleY, left: 0, top: 0, originX: "left", originY: "top" });
+    }
     fc.backgroundImage = bg;
     // Bilinear filtering on upscale (preview is ~720px long edge); without
     // this the upscaled preview looks grainy on hi-DPI screens.
@@ -491,6 +509,15 @@ export function ImageCanvas({
     if (ctx) ctx.imageSmoothingQuality = "high";
     fc.requestRenderAll();
   }, [doc, compareActive, previewCanvas, baseCanvas]);
+
+  // Drop the cached bg when this ImageCanvas mount is torn down
+  // (StageHost remount on layout changes, doc replace, etc.). The next
+  // mount reconstructs it against the fresh Fabric canvas.
+  useEffect(() => {
+    return () => {
+      bgImageRef.current = null;
+    };
+  }, []);
 
   // Re-render when layers / overlay / toolState change so the
   // after:render hook picks up the new values via renderStateRef.

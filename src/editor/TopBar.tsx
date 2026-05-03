@@ -136,7 +136,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
             aria-label="Undo"
             disabled={!canUndo}
-            onClick={undo}
+            onClick={() => void undo()}
           >
             <I.Undo size={isMobile ? 17 : 15} />
           </button>
@@ -145,7 +145,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
             aria-label="Redo"
             disabled={!canRedo}
-            onClick={redo}
+            onClick={() => void redo()}
           >
             <I.Redo size={isMobile ? 17 : 15} />
           </button>
@@ -251,7 +251,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           cancelLabel="Keep editing"
           icon={I.Refresh}
           onConfirm={() => {
-            resetToOriginal();
+            void resetToOriginal();
             setResetConfirmOpen(false);
           }}
           onCancel={() => setResetConfirmOpen(false)}

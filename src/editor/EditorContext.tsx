@@ -2,6 +2,25 @@
 // tool state, history, zoom, mode, layout. Tools subscribe via
 // `useEditor()` and call `commit()` when they want to bake a change
 // into history.
+//
+// The state is split across three React contexts so consumers can
+// subscribe only to the slice they care about and skip re-renders for
+// unrelated mutations:
+//
+//   • EditorActionsCtx — stable callbacks (patchTool, commit, undo,
+//     getFabricCanvas, …). Identity never changes after the first
+//     render, so listeners that only need to *dispatch* never
+//     re-render.
+//   • ToolStateCtx — `toolState` only. This is the slice that changes
+//     ~60 Hz during a slider drag, so isolating it lets the dozens of
+//     other components on the page sit out those updates.
+//   • EditorStateCtx — everything else (doc, view, layers, mode,
+//     layout, batch, history flags, …). Changes are infrequent.
+//
+// `useEditor()` merges all three for backwards compatibility; existing
+// consumers keep working but pay the full re-render cost. Performance-
+// sensitive call sites should reach for the focused slice hooks
+// (`useEditorActions`, `useToolState`, `useEditorReadOnly`) instead.
 
 import type { Canvas as FabricCanvas } from "fabric";
 import {
@@ -18,8 +37,8 @@ import { saveDraft } from "../landing/draft";
 import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
 import { toast } from "./Toasts";
-import { copyInto, createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
-import { History } from "./history";
+import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
+import { History, restoreCanvas } from "./history";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import { DEFAULT_TOOL_STATE, type ToolState } from "./toolState";
 import type { Layout, Mode } from "./types";
@@ -70,13 +89,15 @@ interface EditorContextValue {
 
   /** Bake the current working canvas into history under a label. */
   commit: (label: string) => void;
-  /** Restore a previous snapshot from history. */
-  undo: () => void;
-  redo: () => void;
+  /** Restore a previous snapshot from history. Async because older
+   *  entries are stored as compressed WebP blobs and need a decode. */
+  undo: () => Promise<void>;
+  redo: () => Promise<void>;
   /** Roll the working canvas + Fabric scene back to the very first
    *  history entry (the original image at open time). Pushes a new
-   *  "Reset" entry so the reset itself is undoable. */
-  resetToOriginal: () => void;
+   *  "Reset" entry so the reset itself is undoable. Async for the
+   *  same reason as undo/redo. */
+  resetToOriginal: () => Promise<void>;
   canUndo: boolean;
   canRedo: boolean;
   canReset: boolean;
@@ -114,6 +135,63 @@ interface EditorContextValue {
   setFabricCanvas: (c: FabricCanvas | null) => void;
 }
 
+// ── Context split ─────────────────────────────────────────────
+// `ActionsValue` collects every callback a consumer might need to
+// dispatch. The identity is stable across renders (deps are stable
+// refs) so subscribers only re-render when this provider re-mounts.
+interface ActionsValue {
+  patchTool: EditorContextValue["patchTool"];
+  setActiveTool: EditorContextValue["setActiveTool"];
+  setView: EditorContextValue["setView"];
+  setMode: EditorContextValue["setMode"];
+  setLayers: EditorContextValue["setLayers"];
+  setCompareActive: EditorContextValue["setCompareActive"];
+  registerPendingApply: EditorContextValue["registerPendingApply"];
+  flushPendingApply: EditorContextValue["flushPendingApply"];
+  captureFabricSnapshot: EditorContextValue["captureFabricSnapshot"];
+  peekFabricSnapshot: EditorContextValue["peekFabricSnapshot"];
+  getFabricCanvas: EditorContextValue["getFabricCanvas"];
+  setFabricCanvas: EditorContextValue["setFabricCanvas"];
+  commit: EditorContextValue["commit"];
+  undo: EditorContextValue["undo"];
+  redo: EditorContextValue["redo"];
+  resetToOriginal: EditorContextValue["resetToOriginal"];
+  openExport: EditorContextValue["openExport"];
+  closeExport: EditorContextValue["closeExport"];
+  exit: EditorContextValue["exit"];
+  batchAddFiles: EditorContextValue["batchAddFiles"];
+  batchClear: EditorContextValue["batchClear"];
+  setRecipe: EditorContextValue["setRecipe"];
+  runBatch: EditorContextValue["runBatch"];
+  baseCanvas: EditorContextValue["baseCanvas"];
+  replaceWithFile: EditorContextValue["replaceWithFile"];
+}
+
+interface ToolStateValue {
+  toolState: ToolState;
+}
+
+interface EditorReadValue {
+  doc: EditorDoc | null;
+  loading: boolean;
+  error: string | null;
+  view: ViewState;
+  layers: Layer[];
+  mode: Mode;
+  layout: Layout;
+  canUndo: boolean;
+  canRedo: boolean;
+  canReset: boolean;
+  exportOpen: boolean;
+  batchFiles: BatchFile[];
+  recipe: RecipeStep[];
+  batchRunning: boolean;
+  compareActive: boolean;
+}
+
+const ActionsCtx = createContext<ActionsValue | null>(null);
+const ToolStateCtx = createContext<ToolStateValue | null>(null);
+const EditorReadCtx = createContext<EditorReadValue | null>(null);
 const Ctx = createContext<EditorContextValue | null>(null);
 
 function detectLayout(width: number): Layout {
@@ -316,39 +394,39 @@ export function EditorProvider({
     [doc, layers],
   );
 
-  const undo = useCallback(() => {
+  const undo = useCallback(async () => {
     if (!doc) return;
     const entry = historyRef.current.undo();
     if (!entry) return;
-    copyInto(doc.working, entry.canvas);
-    setDoc({ ...doc, width: entry.canvas.width, height: entry.canvas.height });
+    await restoreCanvas(doc.working, entry);
+    setDoc({ ...doc, width: entry.width, height: entry.height });
     setLayersState(entry.layers);
     restoreFabricScene(fabricCanvasRef.current, entry.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
 
-  const redo = useCallback(() => {
+  const redo = useCallback(async () => {
     if (!doc) return;
     const entry = historyRef.current.redo();
     if (!entry) return;
-    copyInto(doc.working, entry.canvas);
-    setDoc({ ...doc, width: entry.canvas.width, height: entry.canvas.height });
+    await restoreCanvas(doc.working, entry);
+    setDoc({ ...doc, width: entry.width, height: entry.height });
     setLayersState(entry.layers);
     restoreFabricScene(fabricCanvasRef.current, entry.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
 
-  const resetToOriginal = useCallback(() => {
+  const resetToOriginal = useCallback(async () => {
     if (!doc) return;
     const base = historyRef.current.base();
     if (!base) return;
     // Skip if already on the base entry — nothing to reset.
     if (!historyRef.current.canUndo() && !historyRef.current.canRedo()) return;
-    copyInto(doc.working, base.canvas);
-    setDoc({ ...doc, width: base.canvas.width, height: base.canvas.height });
+    await restoreCanvas(doc.working, base);
+    setDoc({ ...doc, width: base.width, height: base.height });
     setLayersState(base.layers);
     restoreFabricScene(fabricCanvasRef.current, base.fabric);
-    historyRef.current.push("Reset", base.canvas, base.layers, base.fabric);
+    historyRef.current.push("Reset", doc.working, base.layers, base.fabric);
     setHistoryVersion((v) => v + 1);
     toast.info("Reset to original");
   }, [doc]);
@@ -450,29 +528,89 @@ export function EditorProvider({
     }
   }, [batchFiles, recipe]);
 
-  const value = useMemo<EditorContextValue>(
+  const openExport = useCallback(() => {
+    // Render the modal first so the user sees an immediate response
+    // to the tap. The modal itself runs flushPendingApply() inside a
+    // mount-time effect (deferred via setTimeout) so any unapplied
+    // Adjust/Filter slider bake doesn't block the dialog from
+    // appearing — important on mobile where baking a 12 MP canvas
+    // can take a couple hundred milliseconds.
+    setExportOpen(true);
+  }, []);
+  const closeExport = useCallback(() => setExportOpen(false), []);
+  const baseCanvas = useCallback(() => historyRef.current.base()?.canvas ?? null, []);
+
+  // Stable: every callback below has stable identity (refs + setState
+  // dispatchers + useCallback'd handlers), so the actions context value
+  // never changes after first render. Components that subscribe to it
+  // alone will not re-render on any state mutation.
+  const actionsValue = useMemo<ActionsValue>(
+    () => ({
+      patchTool,
+      setActiveTool,
+      setView,
+      setMode,
+      setLayers,
+      setCompareActive,
+      registerPendingApply,
+      flushPendingApply,
+      captureFabricSnapshot,
+      peekFabricSnapshot,
+      getFabricCanvas,
+      setFabricCanvas,
+      commit,
+      undo,
+      redo,
+      resetToOriginal,
+      openExport,
+      closeExport,
+      exit: onExit,
+      batchAddFiles,
+      batchClear,
+      setRecipe,
+      runBatch,
+      baseCanvas,
+      replaceWithFile,
+    }),
+    [
+      patchTool,
+      setActiveTool,
+      setLayers,
+      registerPendingApply,
+      flushPendingApply,
+      captureFabricSnapshot,
+      peekFabricSnapshot,
+      getFabricCanvas,
+      setFabricCanvas,
+      commit,
+      undo,
+      redo,
+      resetToOriginal,
+      openExport,
+      closeExport,
+      onExit,
+      batchAddFiles,
+      batchClear,
+      setRecipe,
+      runBatch,
+      baseCanvas,
+      replaceWithFile,
+    ],
+  );
+
+  // Volatile: tool state (mutated on every slider tick).
+  const toolStateValue = useMemo<ToolStateValue>(() => ({ toolState }), [toolState]);
+
+  // Volatile: everything else.
+  const readValue = useMemo<EditorReadValue>(
     () => ({
       doc,
       loading,
       error,
       view,
-      setView,
-      toolState,
-      patchTool,
-      setActiveTool,
       layers,
-      setLayers,
       mode,
-      setMode,
       layout,
-      commit,
-      undo,
-      redo,
-      resetToOriginal,
-      registerPendingApply,
-      flushPendingApply,
-      captureFabricSnapshot,
-      peekFabricSnapshot,
       // historyVersion is referenced here purely so the value object is
       // recomputed on every history mutation; the actual canUndo/canRedo
       // bits read from the ref.
@@ -481,74 +619,82 @@ export function EditorProvider({
       canReset:
         historyVersion >= 0 && (historyRef.current.canUndo() || historyRef.current.canRedo()),
       exportOpen,
-      openExport: () => {
-        // Render the modal first so the user sees an immediate response
-        // to the tap. The modal itself runs flushPendingApply() inside a
-        // mount-time effect (deferred via setTimeout) so any unapplied
-        // Adjust/Filter slider bake doesn't block the dialog from
-        // appearing — important on mobile where baking a 12 MP canvas
-        // can take a couple hundred milliseconds.
-        setExportOpen(true);
-      },
-      closeExport: () => setExportOpen(false),
-      exit: onExit,
       batchFiles,
       recipe,
-      batchAddFiles,
-      batchClear,
-      setRecipe,
-      runBatch,
       batchRunning,
       compareActive,
-      setCompareActive,
-      baseCanvas: () => historyRef.current.base()?.canvas ?? null,
-      replaceWithFile,
-      getFabricCanvas,
-      setFabricCanvas,
     }),
     [
-      batchAddFiles,
-      batchClear,
-      batchFiles,
-      batchRunning,
-      commit,
-      compareActive,
       doc,
-      error,
-      exportOpen,
-      getFabricCanvas,
-      layers,
-      layout,
       loading,
-      mode,
-      onExit,
-      patchTool,
-      recipe,
-      redo,
-      replaceWithFile,
-      resetToOriginal,
-      registerPendingApply,
-      flushPendingApply,
-      captureFabricSnapshot,
-      peekFabricSnapshot,
-      runBatch,
-      setActiveTool,
-      setFabricCanvas,
-      setLayers,
-      setRecipe,
-      toolState,
-      undo,
+      error,
       view,
+      layers,
+      mode,
+      layout,
       historyVersion,
+      exportOpen,
+      batchFiles,
+      recipe,
+      batchRunning,
+      compareActive,
     ],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  // Backwards-compatible omnibus value — every consumer that calls
+  // `useEditor()` reads this. New code should reach for the focused
+  // slice hooks instead, which avoid re-rendering on unrelated mutations.
+  const value = useMemo<EditorContextValue>(
+    () => ({
+      ...actionsValue,
+      ...toolStateValue,
+      ...readValue,
+    }),
+    [actionsValue, toolStateValue, readValue],
+  );
+
+  return (
+    <ActionsCtx.Provider value={actionsValue}>
+      <ToolStateCtx.Provider value={toolStateValue}>
+        <EditorReadCtx.Provider value={readValue}>
+          <Ctx.Provider value={value}>{children}</Ctx.Provider>
+        </EditorReadCtx.Provider>
+      </ToolStateCtx.Provider>
+    </ActionsCtx.Provider>
+  );
 }
 
 export function useEditor(): EditorContextValue {
   const v = useContext(Ctx);
   if (!v) throw new Error("useEditor must be used inside an <EditorProvider />");
+  return v;
+}
+
+/** Stable-identity actions slice. Use this when a component only needs
+ *  to *dispatch* — never re-renders on state changes. Prefer this over
+ *  `useEditor()` in event handlers / Slider onChange / button callbacks. */
+export function useEditorActions(): ActionsValue {
+  const v = useContext(ActionsCtx);
+  if (!v) throw new Error("useEditorActions must be used inside an <EditorProvider />");
+  return v;
+}
+
+/** Tool-state slice. Mutates on every slider tick — components reading
+ *  this re-render at slider rate, but unrelated state changes (view,
+ *  doc, batch) don't reach them. Pair with `useEditorActions()` to
+ *  dispatch without re-subscribing to the omnibus context. */
+export function useToolState(): ToolState {
+  const v = useContext(ToolStateCtx);
+  if (!v) throw new Error("useToolState must be used inside an <EditorProvider />");
+  return v.toolState;
+}
+
+/** Read-only state slice — doc, view, layers, layout, history flags,
+ *  batch + compare state. Excludes `toolState` so this slice is stable
+ *  while the user drags a slider. */
+export function useEditorReadOnly(): EditorReadValue {
+  const v = useContext(EditorReadCtx);
+  if (!v) throw new Error("useEditorReadOnly must be used inside an <EditorProvider />");
   return v;
 }
 

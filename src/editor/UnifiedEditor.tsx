@@ -75,8 +75,8 @@ function EditorShell() {
       const meta = e.ctrlKey || e.metaKey;
       if (!meta || e.key.toLowerCase() !== "z") return;
       e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
+      if (e.shiftKey) void redo();
+      else void undo();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

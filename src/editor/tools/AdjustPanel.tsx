@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { PropRow, Slider } from "../atoms";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { ADJUST_KEYS } from "../toolState";
 import { copyInto } from "../doc";
 import { bakeAdjust, isIdentity } from "./adjustments";
@@ -46,7 +46,9 @@ function fmt(key: (typeof ADJUST_KEYS)[number], v: number): string {
 }
 
 export function AdjustPanel() {
-  const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
+  const toolState = useToolState();
+  const { patchTool, commit, registerPendingApply } = useEditorActions();
+  const { doc } = useEditorReadOnly();
 
   const reset = useCallback(() => {
     patchTool(

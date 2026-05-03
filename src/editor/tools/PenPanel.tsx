@@ -2,11 +2,12 @@
 // in-progress Pen path. The actual path-building lives in PenTool.tsx.
 
 import { ColorPicker } from "../ColorPicker";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useToolState } from "../EditorContext";
 import { PropRow, Slider } from "../atoms";
 
 export function PenPanel() {
-  const { toolState, patchTool } = useEditor();
+  const toolState = useToolState();
+  const { patchTool } = useEditorActions();
   const fillTransparent = toolState.penFill === "transparent";
   return (
     <>

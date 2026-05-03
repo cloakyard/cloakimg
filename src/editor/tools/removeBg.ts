@@ -12,7 +12,7 @@
 // 1-px feather, which reads as anti-aliased on hair / fuzzy edges and
 // hides per-pixel noise from the threshold.
 
-import { createCanvas } from "../doc";
+import { acquireCanvas } from "../doc";
 
 interface Sample {
   r: number;
@@ -35,7 +35,7 @@ export function removeBackground(
   src: HTMLCanvasElement,
   { threshold, feather, sample, skipSmooth = false }: Opts,
 ): HTMLCanvasElement {
-  const out = createCanvas(src.width, src.height);
+  const out = acquireCanvas(src.width, src.height);
   const ctx = out.getContext("2d");
   if (!ctx) return out;
   ctx.drawImage(src, 0, 0);

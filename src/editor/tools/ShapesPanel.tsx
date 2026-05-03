@@ -8,7 +8,7 @@
 import type { ComponentType } from "react";
 import { I } from "../../icons";
 import { ColorPicker } from "../ColorPicker";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useToolState } from "../EditorContext";
 import { PropRow, Slider, ToggleSwitch } from "../atoms";
 
 interface ShapeDef {
@@ -46,7 +46,8 @@ export const SHAPE_KINDS: readonly ShapeDef[] = [
 ] as const;
 
 export function ShapesPanel() {
-  const { toolState, patchTool } = useEditor();
+  const toolState = useToolState();
+  const { patchTool } = useEditorActions();
   const kind = toolState.shapeKind;
   return (
     <>

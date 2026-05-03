@@ -3,10 +3,11 @@
 // lives in RedactTool.tsx.
 
 import { PropRow, Segment, Slider } from "../atoms";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useToolState } from "../EditorContext";
 
 export function RedactPanel() {
-  const { toolState, patchTool } = useEditor();
+  const toolState = useToolState();
+  const { patchTool } = useEditorActions();
   const isBrush = toolState.redactMode === 1;
   return (
     <>

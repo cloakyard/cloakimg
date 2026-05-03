@@ -7,6 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   useCallback,
+  useEffect,
   useRef,
 } from "react";
 
@@ -42,6 +43,35 @@ interface SliderProps {
 
 export function Slider({ value, onChange, accent = false }: SliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const fillRef = useRef<HTMLDivElement>(null);
+  const thumbRef = useRef<HTMLDivElement>(null);
+  // Drive the visual position imperatively from pointer events so a
+  // 120 Hz pointer stream doesn't translate into 120 React renders per
+  // second across every `useEditor()` consumer. Upstream `onChange` is
+  // coalesced to one call per rAF — fast enough for a live preview
+  // bake, slow enough that React's reconciler isn't the bottleneck.
+  const draggingRef = useRef(false);
+  const pendingValueRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const applyVisual = useCallback((v: number) => {
+    if (fillRef.current) fillRef.current.style.width = `${v * 100}%`;
+    if (thumbRef.current) thumbRef.current.style.left = `calc(${v * 100}% - 7px)`;
+  }, []);
+
+  // Re-sync the DOM with the prop whenever the upstream value changes
+  // and we're not actively dragging. During a drag we own the visual
+  // and React updates from our own onChange are absorbed silently.
+  useEffect(() => {
+    if (!draggingRef.current) applyVisual(value);
+  }, [value, applyVisual]);
+
+  const flushChange = useCallback(() => {
+    rafRef.current = null;
+    const v = pendingValueRef.current;
+    pendingValueRef.current = null;
+    if (v !== null && onChange) onChange(v);
+  }, [onChange]);
 
   const updateFromPointer = useCallback(
     (clientX: number) => {
@@ -49,15 +79,20 @@ export function Slider({ value, onChange, accent = false }: SliderProps) {
       if (!el || !onChange) return;
       const rect = el.getBoundingClientRect();
       const next = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-      onChange(next);
+      applyVisual(next);
+      pendingValueRef.current = next;
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(flushChange);
+      }
     },
-    [onChange],
+    [applyVisual, flushChange, onChange],
   );
 
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!onChange) return;
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      draggingRef.current = true;
       updateFromPointer(e.clientX);
     },
     [onChange, updateFromPointer],
@@ -71,15 +106,37 @@ export function Slider({ value, onChange, accent = false }: SliderProps) {
     [updateFromPointer],
   );
 
+  const handlePointerUp = useCallback(() => {
+    draggingRef.current = false;
+    // Make sure the very last pointer position propagates upstream
+    // even if it arrived between rAF flushes.
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      flushChange();
+    }
+  }, [flushChange]);
+
+  // Cancel any pending rAF on unmount so we don't fire onChange after
+  // the consumer has gone away.
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
   return (
     <div
       ref={trackRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       className={`relative flex h-4.5 items-center touch-none ${onChange ? "cursor-pointer" : "cursor-default"}`}
     >
       <div className="relative h-0.75 w-full rounded-sm bg-page-bg dark:bg-dark-page-bg">
         <div
+          ref={fillRef}
           className={`absolute top-0 left-0 h-full rounded-sm ${
             accent ? "bg-coral-500" : "bg-text dark:bg-dark-text"
           }`}
@@ -87,6 +144,7 @@ export function Slider({ value, onChange, accent = false }: SliderProps) {
         />
       </div>
       <div
+        ref={thumbRef}
         className="pointer-events-none absolute h-3.5 w-3.5 rounded-full border-[1.5px] border-coral-500 bg-white"
         style={{
           left: `calc(${value * 100}% - 7px)`,

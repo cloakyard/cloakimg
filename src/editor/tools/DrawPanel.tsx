@@ -3,10 +3,11 @@
 
 import { ColorPicker } from "../ColorPicker";
 import { PropRow, Segment, Slider } from "../atoms";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useToolState } from "../EditorContext";
 
 export function DrawPanel() {
-  const { toolState, patchTool } = useEditor();
+  const toolState = useToolState();
+  const { patchTool } = useEditorActions();
   return (
     <>
       <PropRow label="Mode">

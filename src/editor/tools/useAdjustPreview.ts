@@ -9,7 +9,7 @@
 // of doc.working for live painting.
 
 import { useEffect, useRef, useState } from "react";
-import { createCanvas } from "../doc";
+import { createCanvas, releaseCanvas } from "../doc";
 import { bakeAdjust, isIdentity } from "./adjustments";
 
 const PREVIEW_LONG_EDGE = 720;
@@ -33,16 +33,22 @@ export function useAdjustPreview(
     }
   }, [source]);
 
-  // Bake the preview on every slider change (rAF-coalesced).
+  // Bake the preview on every slider change (rAF-coalesced). The
+  // previous bake gets returned to the canvas pool right before the
+  // new one replaces it, so we don't allocate per slider tick.
   useEffect(() => {
     if (!source) {
-      setPreview(null);
+      setPreview((prev) => {
+        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
+        return null;
+      });
       return;
     }
-    // Identity → no preview override; <ImageCanvas /> falls back to
-    // doc.working at full resolution.
     if (isIdentity(sliders) && grain === 0 && !monochrome) {
-      setPreview(null);
+      setPreview((prev) => {
+        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
+        return null;
+      });
       return;
     }
     if (!downsampledRef.current) {
@@ -55,13 +61,30 @@ export function useAdjustPreview(
       rafRef.current = null;
       const baked = bakeAdjust(ds, sliders, grain);
       if (monochrome) toMonochrome(baked);
-      setPreview(baked);
+      setPreview((prev) => {
+        // Don't release the downsampled cache by accident — it lives
+        // across renders and bakeAdjust may return it directly when
+        // the source is already small.
+        if (prev && prev !== ds) releaseCanvas(prev);
+        return baked;
+      });
     });
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
   }, [grain, monochrome, sliders, source]);
+
+  // Drop the last preview when the hook unmounts so a tool swap
+  // doesn't leak its final scratch canvas.
+  useEffect(() => {
+    return () => {
+      setPreview((prev) => {
+        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
+        return null;
+      });
+    };
+  }, []);
 
   return preview;
 }
