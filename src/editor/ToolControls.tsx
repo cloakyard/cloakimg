@@ -16,6 +16,7 @@ import { TextPanel } from "./tools/TextPanel";
 import { WatermarkPanel } from "./tools/WatermarkPanel";
 import { ColorPickerPanel } from "./tools/ColorPickerPanel";
 import { ImagePanel } from "./tools/ImagePanel";
+import { MovePanel } from "./tools/MovePanel";
 import { ShapesPanel } from "./tools/ShapesPanel";
 import { StickerPanel } from "./tools/StickerPanel";
 import { SpotHealPanel } from "./tools/SpotHealPanel";
@@ -24,6 +25,8 @@ import { RemoveBgPanel } from "./tools/RemoveBgPanel";
 export function ToolControls() {
   const { toolState } = useEditor();
   switch (toolState.activeTool) {
+    case "move":
+      return <MovePanel />;
     case "crop":
       return <CropPanel />;
     case "resize":

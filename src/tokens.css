@@ -412,17 +412,18 @@ body {
     opacity: 0.78;
   }
 }
-/* Editor on phones — keep the warm static gradient as a backdrop, but
-   stop the keyframe animations. Sunset paints a full-screen layer
-   behind the editor surface; on mobile that means continuous
-   compositor work for blur/blend on a layer the user never directly
-   sees through. The landing page (.sunset-stage without .sunset-subtle)
-   stays animated so the marketing hero still feels alive. */
-@media (max-width: 640px) {
-  .sunset-stage.sunset-subtle .sunset-blob,
-  .sunset-stage.sunset-subtle .sunset-sun,
-  .sunset-stage.sunset-subtle .sunset-horizon {
-    animation: none;
+/* Editor on phones — drop the entire sunset layer. Even with
+   animations off, the three blurred radial layers (filter: blur(8px /
+   28px / 70px)) and mix-blend-mode: multiply force the GPU to
+   re-composite on every canvas paint, which is the single biggest
+   cause of visible lag on phone Safari. The editor chrome already
+   reads cleanly against its solid background; the warm cast is a
+   nice-to-have we trade away for responsiveness. The landing page
+   (.sunset-stage without .sunset-subtle) keeps its full sunset so the
+   marketing hero still feels alive. */
+@media (max-width: 760px) {
+  .sunset-stage.sunset-subtle {
+    display: none;
   }
 }
 

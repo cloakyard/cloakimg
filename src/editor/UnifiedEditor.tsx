@@ -174,13 +174,16 @@ function EditorShell() {
             {mode === "batch" ? (
               <BatchCanvas isMobile={isMobile} />
             ) : isMobile ? (
-              // On mobile, clip the canvas matte with rounded bottom
-              // corners so it visually mirrors the drawer's rounded top
-              // — without this the dark matte meets the light sheet at a
-              // square corner notch that reads as a glitch.
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-2xl">
-                <StageHost />
-                <ToolStage />
+              // On mobile, the canvas + drawer share a single sub-container
+              // so the drawer's `max-h: 50%` resolves against just those two
+              // (not including the toolbar). The matte gets rounded bottom
+              // corners to visually mirror the drawer's rounded top.
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-2xl">
+                  <StageHost />
+                  <ToolStage />
+                </div>
+                {mode === "single" && <MobileSheet />}
               </div>
             ) : (
               // StageHost mounts the live ImageCanvas + Fabric instance
@@ -193,7 +196,6 @@ function EditorShell() {
                 <ToolStage />
               </>
             )}
-            {isMobile && mode === "single" && <MobileSheet />}
             {isMobile && mode === "single" && (
               <MobileToolbar activeTool={toolState.activeTool} onSelect={setActiveTool} />
             )}

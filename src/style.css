@@ -36,24 +36,47 @@
     background: rgba(28, 24, 20, 0.76);
   }
 }
+/* On phones the backdrop-filter is the single biggest compositor cost
+   in the editor — every slider tick or canvas re-paint forces the GPU
+   to re-blur the panels. Drop the blur on mobile and lean on a more
+   opaque background instead; the visual difference is minimal but the
+   tap-to-update latency improves dramatically. */
+@media (max-width: 760px) {
+  .editor-paper {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    .editor-paper {
+      background: rgb(28, 24, 20);
+    }
+  }
+}
 
 /* Mobile bottom sheet — animate the slot's *height* so the drawer's
    space above the toolbar genuinely extends/collapses. Translate-based
    transitions made it look like the toolbar itself was sliding (the
    drawer rendered over it during the travel). With max-height the
    toolbar never moves; only the canvas-above and drawer share the
-   reclaimed space. */
+   reclaimed space.
+
+   The drawer lives in a sub-container that holds only the canvas + the
+   sheet (the bottom toolbar is its sibling, not part of the column).
+   That makes `max-height: 50%` resolve against the canvas+drawer pair
+   exactly, so the drawer can never grow taller than the canvas above
+   it — keeping live edits visible while the user adjusts controls. */
 @keyframes ci-sheet-up {
   from {
     max-height: 0;
   }
   to {
-    max-height: 45vh;
+    max-height: var(--ci-sheet-max, 45vh);
   }
 }
 @keyframes ci-sheet-down {
   from {
-    max-height: 45vh;
+    max-height: var(--ci-sheet-max, 45vh);
   }
   to {
     max-height: 0;
