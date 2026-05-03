@@ -121,9 +121,16 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
 function ModalHeader({ isPhone, onCancel }: { isPhone: boolean; onCancel: () => void }) {
   return (
     <div className={`flex items-start ${isPhone ? "px-5 pt-4.5 pb-1" : "px-7 pt-6 pb-2"}`}>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <div className="t-eyebrow mb-1.5">Start a new project</div>
         <div className="t-headline">How would you like to begin?</div>
+        {/* Privacy reassurance lives in the header now — it sets the
+            tone before the user picks anything, instead of crowding
+            the action footer with a stray label. */}
+        <div className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted dark:text-dark-text-muted">
+          <I.Lock size={11} stroke={2.25} className="text-coral-600 dark:text-coral-400" />
+          Files never leave your browser
+        </div>
       </div>
       <ModalCloseButton onClose={onCancel} className="-mr-1.5" />
     </div>
@@ -183,16 +190,14 @@ function ModalFooter({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  // Footer is buttons-only now. The privacy reassurance moved into
+  // the header so the action row can focus purely on what to do next.
   return (
     <div
-      className={`flex items-center gap-2.5 border-t border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg ${
-        isPhone ? "px-5 py-3.5" : "px-7 py-4"
+      className={`flex shrink-0 items-center justify-end gap-2.5 border-t border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg ${
+        isPhone ? "px-5 py-3.5 pb-[max(env(safe-area-inset-bottom),14px)]" : "px-7 py-4"
       }`}
     >
-      <span className="flex items-center gap-1.5 text-[11.5px] text-text-muted dark:text-dark-text-muted">
-        <I.Lock size={11} /> Files never leave your browser
-      </span>
-      <div className="flex-1" />
       <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
         Cancel
       </button>

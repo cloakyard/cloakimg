@@ -5,13 +5,16 @@
             <stop offset="0" stop-color="rgb(251,146,60)"/>
             <stop offset="1" stop-color="rgb(194,65,12)"/>
         </linearGradient>
-        <radialGradient id="bloom" gradientUnits="userSpaceOnUse" cx="72" cy="50" r="110">
-            <stop offset="0" stop-color="white" stop-opacity="0.32"/>
+        <radialGradient id="bloom" gradientUnits="userSpaceOnUse" cx="72" cy="55" r="100">
+            <stop offset="0" stop-color="white" stop-opacity="0.3"/>
             <stop offset="1" stop-color="white" stop-opacity="0"/>
         </radialGradient>
-        <path id="shield" d="M72,19.5L29.5,37L29.5,77C29.5,98.667 43.667,116.667 72,129.5C100.333,116.667 114.5,98.667 114.5,77L114.5,37L72,19.5Z"/>
+        <!-- Shield + content authored in the original 144-coord space.
+             Scaled at the use-site so coordinates stay readable and the
+             whole mark can be retuned by changing one number. -->
+        <path id="shield" d="M72,30L38,44L38,76C38,93.333 49.333,107.333 72,118C94.667,107.333 106,93.333 106,76L106,44L72,30Z"/>
         <clipPath id="shieldClip">
-            <use href="#shield"/>
+            <path d="M72,30L38,44L38,76C38,93.333 49.333,107.333 72,118C94.667,107.333 106,93.333 106,76L106,44L72,30Z"/>
         </clipPath>
     </defs>
 
@@ -19,13 +22,18 @@
     <rect width="144" height="144" fill="url(#bg)"/>
     <rect width="144" height="144" fill="url(#bloom)"/>
 
-    <!-- Shield — scaled to fill the maskable safe zone -->
-    <use href="#shield" fill="white" fill-opacity="0.18"/>
-    <use href="#shield" fill="none" stroke="white" stroke-opacity="0.55" stroke-width="3.75"/>
-
-    <!-- Sun + mountain peaks, clipped to the shield silhouette -->
-    <g clip-path="url(#shieldClip)">
-        <circle cx="83.25" cy="48.25" r="6.25" fill="white"/>
-        <path d="M39.5,94.5L56.375,69L70.75,85.25L87.625,62L104.5,94.5" fill="none" stroke="white" stroke-width="6.25" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Shield + inner content scaled 1.1× around canvas center.
+         Leaves ~15% top/bottom and ~24% side breathing room so the
+         shield's tip and shoulders don't get clipped by the OS
+         squircle / circular launcher mask. -->
+    <g transform="translate(72 72) scale(1.1) translate(-72 -72)">
+        <use href="#shield" fill="white" fill-opacity="0.18"/>
+        <use href="#shield" fill="none" stroke="white" stroke-opacity="0.55" stroke-width="3"/>
+        <g clip-path="url(#shieldClip)">
+            <circle cx="81" cy="53" r="5" fill="white"/>
+            <g transform="matrix(0.962963,0,0,0.928571,1.703704,4.571429)">
+                <path d="M46,92L60,70L72,84L86,64L100,92" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+        </g>
     </g>
 </svg>
