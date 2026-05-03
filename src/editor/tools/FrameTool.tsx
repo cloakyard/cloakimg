@@ -1,9 +1,11 @@
-// FrameTool.tsx — Inset border (Solid / Polaroid / Double / Rounded)
-// around the working image. The live preview paints into the canvas's
-// screen-space overlay via the same drawFrame helper that the bake
-// uses against the working canvas, so what-you-see is what-you-get.
-// Bake into history happens automatically on tool switch / Export
-// via registerPendingApply — no explicit Apply button.
+// FrameTool.tsx — Inset border around the working image, in any of
+// several styles (Solid, Polaroid, Double, Rounded, Modern with EXIF
+// strip, Cinema letterbox, vintage Film strip, soft Vignette). The
+// live preview paints into the canvas's screen-space overlay via the
+// same drawFrame helper that the bake uses against the working
+// canvas, so what-you-see is what-you-get. Bake into history happens
+// automatically on tool switch / Export via registerPendingApply —
+// no explicit Apply button.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
@@ -13,8 +15,18 @@ import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 import type { ToolState } from "../toolState";
+import type { ExifData } from "./exif";
 
-export const FRAME_STYLES = ["Solid", "Polaroid", "Double", "Rounded"] as const;
+export const FRAME_STYLES = [
+  "Solid",
+  "Polaroid",
+  "Double",
+  "Rounded",
+  "Capture",
+  "Cinema",
+  "Film",
+  "Vignette",
+] as const;
 // Slider max is 15% of the shorter image side (with a 60 px floor so
 // tiny images still get a usable range). A fixed 200-px ceiling looks
 // like a hairline on a 6 kpx photo, which made the tool feel broken.
@@ -28,23 +40,50 @@ const STYLE_THUMB_PX = 64;
 const MIN_THUMB_BORDER_PX = 7;
 
 export function FrameTool() {
-  const paintOverlay = useCallback((ctx: CanvasRenderingContext2D, t: Transform, ts: ToolState) => {
-    const w = ts.frameWidth;
-    if (w <= 0) return;
-    const sx = t.ox;
-    const sy = t.oy;
-    const sw = t.iw * t.scale;
-    const sh = t.ih * t.scale;
-    const sb = w * t.scale;
-    drawFrame(ctx, ts.frameStyle, sx, sy, sw, sh, sb, ts.frameColor);
-  }, []);
+  // Capture exif (and the file-name / dimensions fallback) so styles
+  // like Capture can render real camera metadata in their bottom
+  // strip — and degrade to filename + WxH when EXIF is absent.
+  // Closing over them (rather than threading them through
+  // paintOverlay's signature) keeps the StageProps shape stable.
+  const { doc } = useEditor();
+  const exif = doc?.exif ?? null;
+  const fileName = doc?.fileName ?? null;
+  const imageW = doc?.width ?? 0;
+  const imageH = doc?.height ?? 0;
+  const paintOverlay = useCallback(
+    (ctx: CanvasRenderingContext2D, t: Transform, ts: ToolState) => {
+      const w = ts.frameWidth;
+      if (w <= 0) return;
+      const sx = t.ox;
+      const sy = t.oy;
+      const sw = t.iw * t.scale;
+      const sh = t.ih * t.scale;
+      const sb = w * t.scale;
+      drawFrame(ctx, ts.frameStyle, sx, sy, sw, sh, sb, ts.frameColor, {
+        exif,
+        fileName,
+        imageW,
+        imageH,
+      });
+    },
+    [exif, fileName, imageW, imageH],
+  );
   useStageProps({ paintOverlay });
   return null;
 }
 
 export function FramePanel() {
-  const { toolState, patchTool, doc, commit, registerPendingApply, peekLastCommitLabel, undo } =
-    useEditor();
+  const {
+    toolState,
+    patchTool,
+    doc,
+    commit,
+    registerPendingApply,
+    peekLastCommitLabel,
+    undo,
+    layout,
+  } = useEditor();
+  const isMobile = layout === "mobile";
   const w = toolState.frameWidth;
 
   // Slider range scales with the image's shorter side so the same
@@ -112,7 +151,12 @@ export function FramePanel() {
     const ctx = out.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(source, 0, 0);
-    drawFrame(ctx, toolState.frameStyle, 0, 0, doc.width, doc.height, w, toolState.frameColor);
+    drawFrame(ctx, toolState.frameStyle, 0, 0, doc.width, doc.height, w, toolState.frameColor, {
+      exif: doc.exif,
+      fileName: doc.fileName,
+      imageW: doc.width,
+      imageH: doc.height,
+    });
     copyInto(doc.working, out);
     patchTool("frameWidth", 0);
     commit("Frame");
@@ -146,7 +190,19 @@ export function FramePanel() {
       const ctx = out.getContext("2d");
       if (!ctx) return "";
       ctx.drawImage(sourceThumb, 0, 0);
-      drawFrame(ctx, idx, 0, 0, STYLE_THUMB_PX, STYLE_THUMB_PX, previewWidth, toolState.frameColor);
+      drawFrame(
+        ctx,
+        idx,
+        0,
+        0,
+        STYLE_THUMB_PX,
+        STYLE_THUMB_PX,
+        previewWidth,
+        toolState.frameColor,
+        {
+          thumb: true,
+        },
+      );
       return out.toDataURL("image/png");
     });
   }, [sourceThumb, w, shorterImageSide, toolState.frameColor]);
@@ -166,7 +222,17 @@ export function FramePanel() {
   return (
     <>
       <PropRow label="Style">
-        <div className="grid grid-cols-4 gap-1.5">
+        {/* On mobile the styles reflow into a single horizontally
+            scrolling row so the panel stays short and the canvas above
+            keeps its height. Desktop keeps the 4-up grid where vertical
+            space is plentiful. Same trade FilterPanel makes. */}
+        <div
+          className={
+            isMobile
+              ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+              : "grid grid-cols-4 gap-1.5"
+          }
+        >
           {FRAME_STYLES.map((name, i) => {
             const active = i === toolState.frameStyle;
             const thumbUrl = styleThumbUrls?.[i];
@@ -178,6 +244,8 @@ export function FramePanel() {
                 aria-pressed={active}
                 aria-label={name}
                 className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 dark:bg-dark-page-bg ${
+                  isMobile ? "w-18 shrink-0" : ""
+                } ${
                   active
                     ? "border-2 border-coral-500"
                     : "border border-border dark:border-dark-border"
@@ -192,7 +260,7 @@ export function FramePanel() {
                 ) : (
                   <div className="aspect-square w-full bg-page-bg dark:bg-dark-page-bg" />
                 )}
-                <div className="px-1 py-0.5 text-center text-[9.5px] font-semibold">{name}</div>
+                <div className="px-1 py-0.75 text-center text-[10px] font-semibold">{name}</div>
               </button>
             );
           })}
@@ -238,9 +306,30 @@ function hintFor(style: number): string {
       return "Double: a thin outer band, a small gap, then a thinner inner line.";
     case 3:
       return "Rounded: solid frame with rounded inner corners — gives the image a rounded-card look.";
+    case 4:
+      return "Capture: polaroid card stamped with the photo's camera data — model, ƒ-stop, shutter, ISO, focal. When EXIF isn't available, the file name and pixel dimensions take its place.";
+    case 5:
+      return "Cinema: black letterbox bars on top and bottom — that 2.39:1 movie-still look. Frame colour is ignored.";
+    case 6:
+      return "Film: vintage film strip with sprocket holes top and bottom. Frame colour sets the strip — try black or sepia.";
+    case 7:
+      return "Vignette: soft radial darkening at the corners — no hard frame. Slider controls how strong the fade is.";
     default:
       return "Solid: a uniform inset border on all four sides.";
   }
+}
+
+/** Optional render hints. `exif` is consulted by the Capture style;
+ *  `fileName` and `imageW`/`imageH` are the elegant fallback when
+ *  EXIF is absent (screenshots, edited images, non-JPEGs). `thumb`
+ *  switches text-bearing styles to a compact graphic representation
+ *  that's still readable in the 64-px panel preview. */
+interface DrawFrameOpts {
+  exif?: ExifData | null;
+  fileName?: string | null;
+  imageW?: number;
+  imageH?: number;
+  thumb?: boolean;
 }
 
 /** Paint the chosen frame style over `(x, y, w, h)` with `border` pixels
@@ -255,6 +344,7 @@ function drawFrame(
   h: number,
   border: number,
   color: string,
+  opts: DrawFrameOpts = {},
 ) {
   ctx.save();
   ctx.fillStyle = color;
@@ -267,6 +357,18 @@ function drawFrame(
       break;
     case 3:
       drawRounded(ctx, x, y, w, h, border);
+      break;
+    case 4:
+      drawModern(ctx, x, y, w, h, border, color, opts);
+      break;
+    case 5:
+      drawCinema(ctx, x, y, w, h, border);
+      break;
+    case 6:
+      drawFilm(ctx, x, y, w, h, border, color);
+      break;
+    case 7:
+      drawVignette(ctx, x, y, w, h, border);
       break;
     default:
       drawSolidInset(ctx, x, y, w, h, border);
@@ -339,6 +441,373 @@ function drawRounded(
   ctx.rect(x, y, w, h);
   ctx.roundRect(x + b, y + b, w - 2 * b, h - 2 * b, r);
   ctx.fill("evenodd");
+}
+
+// ── Modern ──────────────────────────────────────────────────────────
+// A polaroid card whose bottom strip carries the photo's camera
+// metadata (camera body, ƒ-stop, shutter, ISO, focal length) with
+// small geometric icons. Useful as a portfolio/social-post overlay.
+function drawModern(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  b: number,
+  color: string,
+  opts: DrawFrameOpts,
+) {
+  // Side margin matches polaroid; bottom is wider so two text lines
+  // (camera + settings) breathe. Capped so the inner image survives.
+  const side = Math.min(b, w / 2, h / 6);
+  const bottomMax = Math.min(b * 6, h - side - 8);
+  const bottom = Math.max(side * 2, bottomMax);
+
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, side);
+  ctx.fillRect(x, y + h - bottom, w, bottom);
+  ctx.fillRect(x, y + side, side, h - side - bottom);
+  ctx.fillRect(x + w - side, y + side, side, h - side - bottom);
+
+  const ink = isLightHex(color) ? "#1a1a1a" : "#f5f5f5";
+  const sub = isLightHex(color) ? "#777" : "#bbb";
+  const stripTop = y + h - bottom;
+  const padX = side * 1.4;
+
+  if (opts.thumb) {
+    // Real text would round to ~1 px on a 64-px thumb. Draw two
+    // horizontal bars + a row of dots so the style still reads as
+    // "metadata strip" at panel-preview size.
+    const titleH = Math.max(2, Math.round(bottom * 0.16));
+    const titleY = stripTop + bottom * 0.28;
+    ctx.fillStyle = ink;
+    ctx.fillRect(x + padX, titleY, (w - 2 * padX) * 0.7, titleH);
+    const dotR = Math.max(1, titleH * 0.6);
+    const dotsY = stripTop + bottom * 0.7;
+    ctx.fillStyle = sub;
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.arc(x + padX + dotR + i * dotR * 5, dotsY, dotR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    return;
+  }
+
+  const settings = formatSettings(opts.exif);
+  const hasExif = settings.length > 0 || !!opts.exif?.Make || !!opts.exif?.Model;
+  const titleText = hasExif
+    ? formatCameraLine(opts.exif)
+    : prettyFileName(opts.fileName) || "Untitled";
+  const titleFont = Math.max(10, bottom * 0.22);
+  const settingFont = Math.max(8, bottom * 0.16);
+  const iconSize = settingFont * 1.05;
+
+  const innerWidth = w - 2 * padX;
+  const lineY = stripTop + bottom * 0.7;
+  const rightLimit = x + w - padX;
+
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = ink;
+  ctx.font = `600 ${titleFont}px "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif`;
+  // Truncate long file names / camera strings with an ellipsis so a
+  // 60-char filename doesn't run off the matte. Measurement happens
+  // in the title font we just set.
+  ctx.fillText(fitText(ctx, titleText, innerWidth), x + padX, stripTop + bottom * 0.34);
+
+  ctx.fillStyle = sub;
+  ctx.font = `500 ${settingFont}px "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif`;
+
+  if (hasExif) {
+    // Settings row: [icon] value · [icon] value · …  Skip silently
+    // when a metric is missing so the row stays clean for partial EXIF.
+    let cursorX = x + padX;
+    const iconGap = iconSize * 0.45;
+    const groupGap = iconSize * 1.4;
+    for (const item of settings) {
+      const textW = ctx.measureText(item.text).width;
+      if (cursorX + iconSize + iconGap + textW > rightLimit) break;
+      drawMetricIcon(ctx, item.kind, cursorX + iconSize / 2, lineY, iconSize, sub);
+      ctx.fillStyle = sub;
+      ctx.fillText(item.text, cursorX + iconSize + iconGap, lineY);
+      cursorX += iconSize + iconGap + textW + groupGap;
+    }
+  } else {
+    // No EXIF — render an honest, well-formed subtitle from what we
+    // do know (image dimensions and format) so the frame doesn't
+    // shout "missing data" at the viewer.
+    ctx.fillText(fitText(ctx, formatFallbackLine(opts), innerWidth), x + padX, lineY);
+  }
+}
+
+// ── Cinema ──────────────────────────────────────────────────────────
+// Pure-black letterbox bars top + bottom (no side bars) for the
+// classic 2.39:1 film-still look. Frame colour is intentionally
+// ignored — letterboxes are always black.
+function drawCinema(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  b: number,
+) {
+  const bar = Math.min(b * 1.6, h / 3);
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(x, y, w, bar);
+  ctx.fillRect(x, y + h - bar, w, bar);
+}
+
+// ── Film ────────────────────────────────────────────────────────────
+// Vintage film strip: solid border on top + bottom in `color`, then
+// regularly spaced rounded "sprocket holes" punched through. Holes
+// are filled with a contrasting tone derived from the strip colour so
+// black film shows white holes and white film shows dark holes.
+function drawFilm(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  b: number,
+  color: string,
+) {
+  const strip = Math.min(b, h / 4);
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, strip);
+  ctx.fillRect(x, y + h - strip, w, strip);
+
+  const holeH = strip * 0.5;
+  const holeW = holeH * 1.5;
+  const holeR = holeH * 0.22;
+  const holeColor = isLightHex(color) ? "#1a1a1a" : "#f5f5f5";
+  // Fit a whole number of holes evenly; keep at least 4 across so the
+  // pattern reads as film even on narrow images.
+  const desired = Math.max(4, Math.floor(w / (holeW * 1.9)));
+  const totalHoleW = desired * holeW;
+  const gap = (w - totalHoleW) / (desired + 1);
+  const yTop = y + (strip - holeH) / 2;
+  const yBot = y + h - strip + (strip - holeH) / 2;
+
+  ctx.fillStyle = holeColor;
+  for (let i = 0; i < desired; i++) {
+    const cx = x + gap + i * (holeW + gap);
+    ctx.beginPath();
+    ctx.roundRect(cx, yTop, holeW, holeH, holeR);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(cx, yBot, holeW, holeH, holeR);
+    ctx.fill();
+  }
+}
+
+// ── Vignette ────────────────────────────────────────────────────────
+// Soft radial darkening from the corners — no hard frame edge.
+// Strength scales with the slider so the user can dial in anything
+// from a hint of falloff to a heavy vintage burn.
+function drawVignette(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  b: number,
+) {
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const innerR = Math.min(w, h) * 0.32;
+  const outerR = Math.hypot(w / 2, h / 2);
+  // Map slider position (b relative to image's max sensible frame) to
+  // a 0..1 strength so the effect is comparable across image sizes.
+  const refMax = Math.min(w, h) * MAX_FRAME_FRACTION;
+  const strength = Math.max(0, Math.min(1, b / refMax));
+  const grad = ctx.createRadialGradient(cx, cy, innerR, cx, cy, outerR);
+  grad.addColorStop(0, "rgba(0,0,0,0)");
+  grad.addColorStop(1, `rgba(0,0,0,${(0.3 + strength * 0.55).toFixed(3)})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(x, y, w, h);
+}
+
+// ── Modern: text + icon helpers ────────────────────────────────────
+type MetricKind = "aperture" | "shutter" | "iso" | "focal";
+
+interface MetricEntry {
+  kind: MetricKind;
+  text: string;
+}
+
+function formatCameraLine(exif: ExifData | null | undefined): string {
+  const make = (exif?.Make ?? "").trim();
+  const model = (exif?.Model ?? "").trim();
+  // Manufacturers often duplicate the make in the model string (e.g.
+  // "FUJIFILM" + "FUJIFILM X-T4") — strip the prefix when present.
+  if (make && model.toLowerCase().startsWith(make.toLowerCase())) {
+    return model.toUpperCase();
+  }
+  if (make && model) return `${make} ${model}`.toUpperCase();
+  return (model || make || "").toUpperCase();
+}
+
+/** Strip the file extension and uppercase what's left so it reads as
+ *  a deliberate title in the Capture frame's first line, rather than
+ *  a raw filename like "img_0042.jpg". */
+function prettyFileName(name: string | null | undefined): string {
+  if (!name) return "";
+  const trimmed = name.trim();
+  const dot = trimmed.lastIndexOf(".");
+  const stem = dot > 0 ? trimmed.slice(0, dot) : trimmed;
+  return stem.toUpperCase();
+}
+
+/** Subtitle when the photo has no EXIF: dimensions plus the file's
+ *  format, formed from whatever the doc carries. Renders as e.g.
+ *  "6048 × 8064 · JPG" or just "6048 × 8064" when the extension is
+ *  unknown. */
+function formatFallbackLine(opts: DrawFrameOpts): string {
+  const parts: string[] = [];
+  if (opts.imageW && opts.imageH) {
+    parts.push(`${opts.imageW} × ${opts.imageH}`);
+  }
+  const ext = extractExtension(opts.fileName);
+  if (ext) parts.push(ext.toUpperCase());
+  return parts.join("  ·  ");
+}
+
+function extractExtension(name: string | null | undefined): string {
+  if (!name) return "";
+  const dot = name.lastIndexOf(".");
+  if (dot < 0 || dot === name.length - 1) return "";
+  return name.slice(dot + 1).toLowerCase();
+}
+
+/** Truncate `text` with an ellipsis so it fits within `maxWidth` in
+ *  the ctx's *current* font. Binary search keeps it cheap even for
+ *  very long inputs. Caller is responsible for setting `ctx.font`
+ *  before calling. */
+function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (maxWidth <= 0 || !text) return "";
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  const ellipsis = "…";
+  if (ctx.measureText(ellipsis).width > maxWidth) return "";
+  let lo = 0;
+  let hi = text.length;
+  let best = ellipsis;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const candidate = text.slice(0, mid).trimEnd() + ellipsis;
+    if (ctx.measureText(candidate).width <= maxWidth) {
+      best = candidate;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return best;
+}
+
+function formatSettings(exif: ExifData | null | undefined): MetricEntry[] {
+  if (!exif) return [];
+  const out: MetricEntry[] = [];
+  if (exif.FNumber) out.push({ kind: "aperture", text: exif.FNumber });
+  if (exif.ExposureTime) out.push({ kind: "shutter", text: exif.ExposureTime });
+  if (exif.ISO) out.push({ kind: "iso", text: `ISO ${exif.ISO}` });
+  if (exif.FocalLength) out.push({ kind: "focal", text: exif.FocalLength });
+  return out;
+}
+
+function drawMetricIcon(
+  ctx: CanvasRenderingContext2D,
+  kind: MetricKind,
+  cx: number,
+  cy: number,
+  size: number,
+  color: string,
+) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = Math.max(0.8, size * 0.09);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  switch (kind) {
+    case "aperture": {
+      // Hexagon outline + a single internal blade line — reads as
+      // "aperture" without trying to draw all six blades.
+      const r = size * 0.42;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 - Math.PI / 2;
+        const px = cx + Math.cos(a) * r;
+        const py = cy + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx - r * 0.55, cy);
+      ctx.lineTo(cx + r * 0.55, cy);
+      ctx.stroke();
+      break;
+    }
+    case "shutter": {
+      // Clock face — circle outline plus one short hand pointing up.
+      const r = size * 0.42;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx, cy - r * 0.7);
+      ctx.stroke();
+      break;
+    }
+    case "iso": {
+      // Rounded rectangle — a generic "tag" badge. ISO is already
+      // labelled in the value text so the icon stays minimalist.
+      const w = size * 0.85;
+      const h = size * 0.6;
+      const r = size * 0.14;
+      ctx.beginPath();
+      ctx.roundRect(cx - w / 2, cy - h / 2, w, h, r);
+      ctx.stroke();
+      break;
+    }
+    case "focal": {
+      // Lens FOV trapezoid — narrow back, wide front.
+      const halfBack = size * 0.18;
+      const halfFront = size * 0.4;
+      const halfH = size * 0.35;
+      ctx.beginPath();
+      ctx.moveTo(cx - halfBack, cy - halfH);
+      ctx.lineTo(cx + halfBack, cy - halfH);
+      ctx.lineTo(cx + halfFront, cy + halfH);
+      ctx.lineTo(cx - halfFront, cy + halfH);
+      ctx.closePath();
+      ctx.stroke();
+      break;
+    }
+  }
+  ctx.restore();
+}
+
+/** Rough luminance test on a #rgb / #rrggbb hex. Used to pick a
+ *  contrasting ink colour when the matte is user-chosen. */
+function isLightHex(hex: string): boolean {
+  const m = hex.replace("#", "");
+  const expand =
+    m.length === 3
+      ? m
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : m;
+  if (expand.length < 6) return true;
+  const r = parseInt(expand.slice(0, 2), 16);
+  const g = parseInt(expand.slice(2, 4), 16);
+  const b = parseInt(expand.slice(4, 6), 16);
+  // Rec. 601 luma; 0.55 threshold lands grey #808080 on the dark side
+  // (so the ink picks white) which matches what people perceive.
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
 }
 
 /** Centre-cropped square thumb for the panel style preview row. */
