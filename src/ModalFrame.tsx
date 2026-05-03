@@ -8,7 +8,7 @@
 // pass children — but the close X is offered as `<ModalCloseButton>`
 // so every modal lands on the same button styling without copying it.
 
-import type { ReactNode, RefObject } from "react";
+import { useEffect, type ReactNode, type RefObject } from "react";
 import { I } from "./icons";
 
 interface ModalFrameProps {
@@ -48,6 +48,30 @@ export function ModalFrame({
   const sheetRadius = bottomSheet ? "rounded-t-3xl" : "rounded-3xl";
   const heightClamp = bottomSheet ? "max-h-[92%]" : "max-h-[calc(100%-48px)]";
   const layout = bottomSheet ? "items-end p-0" : "items-center p-6";
+
+  // Lock the underlying document while a modal is mounted so that
+  // scrolling inside the dialog doesn't bleed through to the page
+  // behind it (especially on iOS where overscroll otherwise pulls the
+  // landing page into view). Each modal saves and restores the
+  // previous values so nested or back-to-back modals leave the page
+  // exactly as they found it.
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyOverscroll: body.style.overscrollBehavior,
+    };
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "contain";
+    return () => {
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.overscrollBehavior = prev.bodyOverscroll;
+    };
+  }, []);
 
   return (
     <div

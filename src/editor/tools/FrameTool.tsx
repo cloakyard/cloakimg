@@ -459,8 +459,12 @@ function drawModern(
 ) {
   // Side margin matches polaroid; bottom is wider so two text lines
   // (camera + settings) breathe. Capped so the inner image survives.
+  // Thumb previews use a slimmer strip (3× instead of 6×) so the
+  // photo area still reads at 64 px — a real-render-proportioned
+  // strip would swallow almost the entire thumbnail.
   const side = Math.min(b, w / 2, h / 6);
-  const bottomMax = Math.min(b * 6, h - side - 8);
+  const bottomMul = opts.thumb ? 3 : 6;
+  const bottomMax = Math.min(b * bottomMul, h - side - 8);
   const bottom = Math.max(side * 2, bottomMax);
 
   ctx.fillStyle = color;
@@ -475,19 +479,21 @@ function drawModern(
   const padX = side * 1.4;
 
   if (opts.thumb) {
-    // Real text would round to ~1 px on a 64-px thumb. Draw two
-    // horizontal bars + a row of dots so the style still reads as
-    // "metadata strip" at panel-preview size.
+    // Real text would round to ~1 px on a 64-px thumb. Draw a title
+    // bar plus four evenly-spaced dots so the style still reads as
+    // "title + metadata icons" at panel-preview size.
     const titleH = Math.max(2, Math.round(bottom * 0.16));
-    const titleY = stripTop + bottom * 0.28;
+    const titleY = stripTop + bottom * 0.32;
     ctx.fillStyle = ink;
-    ctx.fillRect(x + padX, titleY, (w - 2 * padX) * 0.7, titleH);
-    const dotR = Math.max(1, titleH * 0.6);
-    const dotsY = stripTop + bottom * 0.7;
+    ctx.fillRect(x + padX, titleY - titleH / 2, (w - 2 * padX) * 0.7, titleH);
+    const innerW = w - 2 * padX;
+    const dotSpacing = innerW / 4;
+    const dotR = Math.max(0.8, titleH * 0.55);
+    const dotsY = stripTop + bottom * 0.66;
     ctx.fillStyle = sub;
     for (let i = 0; i < 4; i++) {
       ctx.beginPath();
-      ctx.arc(x + padX + dotR + i * dotR * 5, dotsY, dotR, 0, Math.PI * 2);
+      ctx.arc(x + padX + dotSpacing * (i + 0.5), dotsY, dotR, 0, Math.PI * 2);
       ctx.fill();
     }
     return;
@@ -498,9 +504,9 @@ function drawModern(
   const titleText = hasExif
     ? formatCameraLine(opts.exif)
     : prettyFileName(opts.fileName) || "Untitled";
-  const titleFont = Math.max(10, bottom * 0.22);
-  const settingFont = Math.max(8, bottom * 0.16);
-  const iconSize = settingFont * 1.05;
+  const titleFont = Math.max(10, bottom * 0.17);
+  const settingFont = Math.max(8, bottom * 0.12);
+  const iconSize = settingFont * 1.15;
 
   const innerWidth = w - 2 * padX;
   const lineY = stripTop + bottom * 0.7;
@@ -521,8 +527,8 @@ function drawModern(
     // Settings row: [icon] value · [icon] value · …  Skip silently
     // when a metric is missing so the row stays clean for partial EXIF.
     let cursorX = x + padX;
-    const iconGap = iconSize * 0.45;
-    const groupGap = iconSize * 1.4;
+    const iconGap = iconSize * 0.4;
+    const groupGap = iconSize * 1.1;
     for (const item of settings) {
       const textW = ctx.measureText(item.text).width;
       if (cursorX + iconSize + iconGap + textW > rightLimit) break;
@@ -725,63 +731,77 @@ function drawMetricIcon(
   ctx.save();
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
-  ctx.lineWidth = Math.max(0.8, size * 0.09);
+  ctx.lineWidth = Math.max(0.8, size * 0.085);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   switch (kind) {
     case "aperture": {
-      // Hexagon outline + a single internal blade line — reads as
-      // "aperture" without trying to draw all six blades.
+      // Iris diaphragm — outer ring with six tangent blade lines that
+      // form the characteristic hexagonal opening at the centre. Each
+      // blade starts at a vertex on the rim and runs to a point ~half
+      // the radius along the next-but-one direction, recreating the
+      // overlap of real iris blades.
       const r = size * 0.42;
       ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
       for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2 - Math.PI / 2;
-        const px = cx + Math.cos(a) * r;
-        const py = cy + Math.sin(a) * r;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+        const a1 = (i / 6) * Math.PI * 2 - Math.PI / 2;
+        const a2 = ((i + 2) / 6) * Math.PI * 2 - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r);
+        ctx.lineTo(cx + Math.cos(a2) * r * 0.55, cy + Math.sin(a2) * r * 0.55);
+        ctx.stroke();
       }
-      ctx.closePath();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(cx - r * 0.55, cy);
-      ctx.lineTo(cx + r * 0.55, cy);
-      ctx.stroke();
       break;
     }
     case "shutter": {
-      // Clock face — circle outline plus one short hand pointing up.
-      const r = size * 0.42;
+      // Stopwatch — small crown bar + post at 12, body circle, and a
+      // hand pointing toward 1 o'clock. Reads as "elapsed time" which
+      // matches the ExposureTime metric better than a plain clock.
+      const r = size * 0.36;
+      ctx.beginPath();
+      ctx.moveTo(cx - size * 0.1, cy - r - size * 0.14);
+      ctx.lineTo(cx + size * 0.1, cy - r - size * 0.14);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - r - size * 0.14);
+      ctx.lineTo(cx, cy - r);
+      ctx.stroke();
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.lineTo(cx, cy - r * 0.7);
+      ctx.lineTo(cx + r * 0.5, cy - r * 0.45);
       ctx.stroke();
       break;
     }
     case "iso": {
-      // Rounded rectangle — a generic "tag" badge. ISO is already
-      // labelled in the value text so the icon stays minimalist.
-      const w = size * 0.85;
-      const h = size * 0.6;
-      const r = size * 0.14;
+      // Image sensor — rounded square with a faint internal cross
+      // that splits it into four quadrants. Reads as "sensor / pixels"
+      // which matches the sensitivity metric.
+      const r = size * 0.38;
       ctx.beginPath();
-      ctx.roundRect(cx - w / 2, cy - h / 2, w, h, r);
+      ctx.roundRect(cx - r, cy - r, r * 2, r * 2, r * 0.22);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - r * 0.55);
+      ctx.lineTo(cx, cy + r * 0.55);
+      ctx.moveTo(cx - r * 0.55, cy);
+      ctx.lineTo(cx + r * 0.55, cy);
       ctx.stroke();
       break;
     }
     case "focal": {
-      // Lens FOV trapezoid — narrow back, wide front.
-      const halfBack = size * 0.18;
-      const halfFront = size * 0.4;
-      const halfH = size * 0.35;
+      // FOV cone — apex up, opening at the bottom. Reads as a lens'
+      // angle of view, which is what focal length controls.
+      const halfH = size * 0.4;
+      const halfW = size * 0.36;
       ctx.beginPath();
-      ctx.moveTo(cx - halfBack, cy - halfH);
-      ctx.lineTo(cx + halfBack, cy - halfH);
-      ctx.lineTo(cx + halfFront, cy + halfH);
-      ctx.lineTo(cx - halfFront, cy + halfH);
+      ctx.moveTo(cx, cy - halfH);
+      ctx.lineTo(cx - halfW, cy + halfH);
+      ctx.lineTo(cx + halfW, cy + halfH);
       ctx.closePath();
       ctx.stroke();
       break;

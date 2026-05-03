@@ -461,34 +461,42 @@ function BlankTab({
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2.5 rounded-xl bg-page-bg p-3.5 dark:bg-dark-page-bg">
-        <div className="t-eyebrow t-eyebrow-slate text-[10px]">Custom</div>
-        <DimensionInput label="W" value={customW} onChange={setCustomW} />
-        <I.X size={11} className="text-text-muted dark:text-dark-text-muted" />
-        <DimensionInput label="H" value={customH} onChange={setCustomH} />
-        <div className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted">
-          px
-        </div>
-        <div className="flex-1" />
-        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted dark:text-dark-text-muted">
-          <input
-            type="checkbox"
-            checked={bgEnabled}
-            onChange={(e) => setBgEnabled(e.target.checked)}
-            aria-label="Fill canvas with a background color"
-            className="h-3.5 w-3.5 cursor-pointer accent-coral-500"
-          />
-          <span>Background</span>
-        </label>
-        {bgEnabled ? (
-          <div className="w-32">
-            <ColorPicker value={bg} onChange={setBg} enableEyedropper={false} />
+      {/* Two-row layout so a narrow phone (where the size inputs +
+          background row would otherwise wrap awkwardly mid-control)
+          stacks the dimension controls above the background toggle.
+          Wider viewports collapse back into a single row with the
+          background controls right-aligned. */}
+      <div className="mt-4 flex flex-col gap-3 rounded-xl bg-page-bg p-3.5 dark:bg-dark-page-bg sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <div className="t-eyebrow t-eyebrow-slate text-[10px]">Custom</div>
+          <DimensionInput label="W" value={customW} onChange={setCustomW} />
+          <I.X size={11} className="text-text-muted dark:text-dark-text-muted" />
+          <DimensionInput label="H" value={customH} onChange={setCustomH} />
+          <div className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted">
+            px
           </div>
-        ) : (
-          <span className="t-mono rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[11px] text-text-muted dark:border-dark-border dark:bg-dark-page-bg dark:text-dark-text-muted">
-            Transparent
-          </span>
-        )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5 sm:ml-auto">
+          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted dark:text-dark-text-muted">
+            <input
+              type="checkbox"
+              checked={bgEnabled}
+              onChange={(e) => setBgEnabled(e.target.checked)}
+              aria-label="Fill canvas with a background color"
+              className="h-3.5 w-3.5 cursor-pointer accent-coral-500"
+            />
+            <span>Background</span>
+          </label>
+          {bgEnabled ? (
+            <div className="w-32">
+              <ColorPicker value={bg} onChange={setBg} enableEyedropper={false} />
+            </div>
+          ) : (
+            <span className="t-mono rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[11px] text-text-muted dark:border-dark-border dark:bg-dark-page-bg dark:text-dark-text-muted">
+              Transparent
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

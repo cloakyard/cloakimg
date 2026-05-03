@@ -4,10 +4,11 @@
 // redundant — Undo/Redo are the recovery path.
 
 import { useCallback, useEffect, useRef } from "react";
+import { I } from "../../icons";
 import { PropRow, Slider } from "../atoms";
+import { copyInto } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { ADJUST_KEYS } from "../toolState";
-import { copyInto } from "../doc";
 import { bakeAdjust, isIdentity } from "./adjustments";
 
 const LABELS: Record<(typeof ADJUST_KEYS)[number], string> = {
@@ -101,10 +102,11 @@ export function AdjustPanel() {
       })}
       <button
         type="button"
-        className="btn btn-ghost btn-xs justify-center"
+        className="btn btn-secondary btn-xs mt-1 w-full justify-center"
         onClick={reset}
         disabled={!dirty}
       >
+        <I.Refresh size={12} />
         Reset
       </button>
     </>

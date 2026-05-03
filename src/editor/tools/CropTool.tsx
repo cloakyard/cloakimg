@@ -391,7 +391,12 @@ export function CropPanel() {
           </button>
         </div>
       </PropRow>
-      <button type="button" className="btn btn-ghost btn-xs justify-center" onClick={reset}>
+      <button
+        type="button"
+        className="btn btn-secondary btn-xs mt-1 w-full justify-center"
+        onClick={reset}
+      >
+        <I.Refresh size={12} />
         Reset crop area
       </button>
       <p className="text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
