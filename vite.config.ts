@@ -24,6 +24,7 @@ export default defineConfig({
         "icons/favicon.ico",
         "icons/apple-touch-icon.png",
         "icons/cloakyard.svg",
+        "icons/logo.svg",
       ],
       manifest: {
         name: "CloakIMG",
