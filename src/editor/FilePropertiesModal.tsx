@@ -1,7 +1,8 @@
 // FilePropertiesModal.tsx — File properties dialog opened from the
 // top-bar filename. Surfaces what we know about the loaded image:
 // name, dimensions, aspect, file size (when the source bytes are
-// available), MIME / format, JPEG EXIF, layer count.
+// available), MIME / format, EXIF metadata (extracted across JPEG /
+// HEIC / AVIF / WebP / PNG / TIFF), and layer count.
 
 import { useEffect, useRef } from "react";
 import { I } from "../icons";
@@ -103,7 +104,8 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
           </div>
         ) : (
           <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-            No EXIF metadata found. PNG, WebP and AVIF sources don't carry JPEG-style EXIF.
+            No EXIF metadata found. Screenshots, edited exports, and images stripped of metadata
+            won't have any to read.
           </div>
         )}
       </div>
