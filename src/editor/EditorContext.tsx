@@ -89,6 +89,10 @@ interface EditorContextValue {
 
   /** Bake the current working canvas into history under a label. */
   commit: (label: string) => void;
+  /** Label of the most recent committed entry (cursor position) — null
+   *  if history is empty. Lets tools detect "I committed this" and
+   *  replace their own prior entry instead of stacking. */
+  peekLastCommitLabel: () => string | null;
   /** Restore a previous snapshot from history. Async because older
    *  entries are stored as compressed WebP blobs and need a decode. */
   undo: () => Promise<void>;
@@ -153,6 +157,7 @@ interface ActionsValue {
   getFabricCanvas: EditorContextValue["getFabricCanvas"];
   setFabricCanvas: EditorContextValue["setFabricCanvas"];
   commit: EditorContextValue["commit"];
+  peekLastCommitLabel: EditorContextValue["peekLastCommitLabel"];
   undo: EditorContextValue["undo"];
   redo: EditorContextValue["redo"];
   resetToOriginal: EditorContextValue["resetToOriginal"];
@@ -377,6 +382,8 @@ export function EditorProvider({
     setLayersState((prev) => (typeof l === "function" ? l(prev) : l));
   }, []);
 
+  const peekLastCommitLabel = useCallback(() => historyRef.current.currentLabel(), []);
+
   const commit = useCallback(
     (label: string) => {
       if (!doc) return;
@@ -559,6 +566,7 @@ export function EditorProvider({
       getFabricCanvas,
       setFabricCanvas,
       commit,
+      peekLastCommitLabel,
       undo,
       redo,
       resetToOriginal,
@@ -583,6 +591,7 @@ export function EditorProvider({
       getFabricCanvas,
       setFabricCanvas,
       commit,
+      peekLastCommitLabel,
       undo,
       redo,
       resetToOriginal,

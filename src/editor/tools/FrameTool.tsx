@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
 import { ColorPicker } from "../ColorPicker";
-import { copyInto, createCanvas } from "../doc";
+import { copyInto, createCanvas, snapshot } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
@@ -23,9 +23,9 @@ const MIN_MAX_FRAME_PX = 60;
 const STYLE_THUMB_PX = 64;
 // Floor for the panel-thumbnail border so each style's character
 // (polaroid bottom, double rings, rounded corners) is always readable
-// regardless of where the slider sits.
+// even when the actual frame-to-image ratio rounds down to ~0 px on
+// the 64-px thumb.
 const MIN_THUMB_BORDER_PX = 7;
-const MAX_THUMB_BORDER_PX = 18;
 
 export function FrameTool() {
   const paintOverlay = useCallback((ctx: CanvasRenderingContext2D, t: Transform, ts: ToolState) => {
@@ -43,7 +43,8 @@ export function FrameTool() {
 }
 
 export function FramePanel() {
-  const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
+  const { toolState, patchTool, doc, commit, registerPendingApply, peekLastCommitLabel, undo } =
+    useEditor();
   const w = toolState.frameWidth;
 
   // Slider range scales with the image's shorter side so the same
@@ -54,30 +55,63 @@ export function FramePanel() {
     [doc],
   );
 
-  // When the working canvas changes (open / crop / resize), seed a
-  // proportional width if none is set, and clamp any prior width that
-  // is now larger than the new image's max — otherwise the slider
-  // would peg at 100% on small images while the stored value silently
-  // exceeded the visible range.
+  // Frame source — the working canvas as it looked BEFORE any frame
+  // we're currently editing. Each Apply re-draws the frame on top of
+  // this source instead of the live working canvas, so changing style
+  // or width mid-session never stacks one frame on top of another.
+  // Lifecycle:
+  //   • If we re-enter the Frame tool sitting on our own previous
+  //     "Frame" commit, undo it first so the snapshot below captures
+  //     the true pre-frame state — re-editing a frame replaces it
+  //     instead of layering another one.
+  //   • Snapshot once per (doc.working) reference so it survives
+  //     copyInto mutations from our own Apply calls.
+  //   • Re-snapshot when the user opens a new image / crop / etc.
+  const frameSourceRef = useRef<HTMLCanvasElement | null>(null);
   const seededDocRef = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
-    if (!doc?.working) return;
+    if (!doc?.working) {
+      frameSourceRef.current = null;
+      seededDocRef.current = null;
+      return;
+    }
     if (seededDocRef.current === doc.working) return;
     seededDocRef.current = doc.working;
+    if (peekLastCommitLabel() === "Frame") {
+      // Replace, don't stack. undo() is async but copyInto-into-working
+      // runs synchronously in the undo path, and the snapshot below
+      // happens after the next render — so by then the working canvas
+      // is back to the pre-frame state.
+      void undo().then(() => {
+        if (doc?.working) frameSourceRef.current = snapshot(doc.working);
+      });
+    } else {
+      frameSourceRef.current = snapshot(doc.working);
+    }
     const cap = frameMaxFor(doc.width, doc.height);
     if (toolState.frameWidth <= 0) {
       patchTool("frameWidth", defaultFrameWidth(doc.width, doc.height));
     } else if (toolState.frameWidth > cap) {
       patchTool("frameWidth", cap);
     }
-  }, [doc?.working, doc?.width, doc?.height, toolState.frameWidth, patchTool]);
+  }, [
+    doc?.working,
+    doc?.width,
+    doc?.height,
+    toolState.frameWidth,
+    patchTool,
+    peekLastCommitLabel,
+    undo,
+    doc,
+  ]);
 
   const apply = useCallback(() => {
     if (!doc || w <= 0) return;
+    const source = frameSourceRef.current ?? doc.working;
     const out = createCanvas(doc.width, doc.height);
     const ctx = out.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(doc.working, 0, 0);
+    ctx.drawImage(source, 0, 0);
     drawFrame(ctx, toolState.frameStyle, 0, 0, doc.width, doc.height, w, toolState.frameColor);
     copyInto(doc.working, out);
     patchTool("frameWidth", 0);
@@ -97,20 +131,16 @@ export function FramePanel() {
     setSourceThumb(makeSquareThumb(doc.working, STYLE_THUMB_PX));
   }, [doc?.working]);
 
-  // Pre-render each style at its panel-thumbnail size with the user's
-  // current frame width and colour, so the preview matches what Apply
-  // will produce.
+  // Pre-render each style at its panel-thumbnail size. Border width
+  // is the actual frame-to-image ratio mapped onto the 64-px thumb
+  // (so the preview is a true scaled-down photo of what Apply will
+  // bake), with a small floor so the four styles always read as
+  // visually distinct even at very thin frame widths.
+  const shorterImageSide = doc ? Math.max(1, Math.min(doc.width, doc.height)) : 0;
   const styleThumbUrls = useMemo(() => {
-    if (!sourceThumb) return null;
-    // Show the slider's relative width as thumb-space pixels, but
-    // floor it so each style's character (polaroid bottom card,
-    // double rings, rounded inner corners) is always visible — even
-    // when the slider sits near zero.
-    const ratio = maxFramePx > 0 ? w / maxFramePx : 0;
-    const previewWidth = Math.max(
-      MIN_THUMB_BORDER_PX,
-      Math.min(MAX_THUMB_BORDER_PX, Math.round(ratio * MAX_THUMB_BORDER_PX)),
-    );
+    if (!sourceThumb || shorterImageSide <= 0) return null;
+    const exactPreviewPx = (w / shorterImageSide) * STYLE_THUMB_PX;
+    const previewWidth = Math.max(MIN_THUMB_BORDER_PX, Math.round(exactPreviewPx));
     return FRAME_STYLES.map((_, idx) => {
       const out = createCanvas(STYLE_THUMB_PX, STYLE_THUMB_PX);
       const ctx = out.getContext("2d");
@@ -119,7 +149,7 @@ export function FramePanel() {
       drawFrame(ctx, idx, 0, 0, STYLE_THUMB_PX, STYLE_THUMB_PX, previewWidth, toolState.frameColor);
       return out.toDataURL("image/png");
     });
-  }, [sourceThumb, w, maxFramePx, toolState.frameColor]);
+  }, [sourceThumb, w, shorterImageSide, toolState.frameColor]);
 
   // Auto-bake the frame preview if the user navigates away mid-edit.
   const applyRef = useRef(apply);

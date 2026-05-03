@@ -232,7 +232,11 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   stickerKind: 0,
   customStickerId: null,
 
-  frameWidth: 24,
+  // 0 = "no frame yet" — the FramePanel seeds a proportional default
+  // (~3 % of the shorter image side) the first time the user opens
+  // the tool on a given image, so the result scales sensibly across
+  // anything from a 400-px sticker to a 6 kpx photo.
+  frameWidth: 0,
   frameColor: "#ffffff",
   frameStyle: 0,
 

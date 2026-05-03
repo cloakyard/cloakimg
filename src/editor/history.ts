@@ -82,6 +82,14 @@ export class History {
     return this.cursor < this.stack.length - 1;
   }
 
+  /** Label of the entry the cursor is currently on (i.e. the most
+   *  recently committed state). Used by tools like Frame that want to
+   *  detect "you're editing your own previous commit" so they can
+   *  replace it instead of stacking another one on top. */
+  currentLabel(): string | null {
+    return this.stack[this.cursor]?.label ?? null;
+  }
+
   undo(): HistoryEntry | null {
     if (!this.canUndo()) return null;
     this.cursor -= 1;

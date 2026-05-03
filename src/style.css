@@ -23,10 +23,12 @@ body {
      pixel-tuned panel chrome. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Stop iOS from showing the rubber-band "page bounce" on the body
-     when a user drags past the canvas edges — the editor occupies the
-     full viewport and never wants to scroll. */
-  overscroll-behavior: none;
+  /* Stop iOS from showing the horizontal rubber-band "page bounce"
+     when a user drags past a canvas edge sideways — the editor
+     occupies the full viewport and never wants to scroll horizontally.
+     Leave the y-axis on `auto` so the browser's pull-to-refresh
+     gesture still works at the top of the page. */
+  overscroll-behavior-x: none;
 }
 
 @keyframes ci-spin {
