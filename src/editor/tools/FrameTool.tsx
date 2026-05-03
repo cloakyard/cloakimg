@@ -54,16 +54,21 @@ export function FramePanel() {
     [doc],
   );
 
-  // Pick a default proportional width the first time the user opens
-  // the tool on a fresh image — opening Frame on a huge photo with
-  // the legacy 24-px default looks like nothing happened.
+  // When the working canvas changes (open / crop / resize), seed a
+  // proportional width if none is set, and clamp any prior width that
+  // is now larger than the new image's max — otherwise the slider
+  // would peg at 100% on small images while the stored value silently
+  // exceeded the visible range.
   const seededDocRef = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
     if (!doc?.working) return;
     if (seededDocRef.current === doc.working) return;
     seededDocRef.current = doc.working;
+    const cap = frameMaxFor(doc.width, doc.height);
     if (toolState.frameWidth <= 0) {
       patchTool("frameWidth", defaultFrameWidth(doc.width, doc.height));
+    } else if (toolState.frameWidth > cap) {
+      patchTool("frameWidth", cap);
     }
   }, [doc?.working, doc?.width, doc?.height, toolState.frameWidth, patchTool]);
 

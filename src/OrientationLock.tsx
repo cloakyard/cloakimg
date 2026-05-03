@@ -52,7 +52,7 @@ export function OrientationLock() {
     // Best-effort native lock for installed PWAs. Wrapped in try/catch
     // because most browsers reject it outside fullscreen — the failure
     // path is exactly the overlay we render below.
-    const orientation = window.screen?.orientation as ScreenOrientationLock | undefined;
+    const orientation = window.screen?.orientation as LockableOrientation | undefined;
     if (orientation?.lock) {
       const shortEdge = Math.min(window.innerWidth, window.innerHeight);
       const coarse =
