@@ -88,7 +88,7 @@ export function PrivacyModal({ onClose }: Props) {
             rel="noopener noreferrer"
             className="text-coral-600 hover:underline dark:text-coral-400"
           >
-            github.com/sumitsahoo/cloakimg
+            github.com/cloakyard/cloakimg
           </a>{" "}
           to verify these claims independently.
         </Section>

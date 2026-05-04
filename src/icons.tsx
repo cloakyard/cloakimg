@@ -350,6 +350,8 @@ export const I = {
   Crescent: (p: P) => <Icon {...p} d="M20 12a8 8 0 1 1-12-7 6 6 0 0 0 9 8 8 8 0 0 1 3-1Z" />,
   ChevronDown: (p: P) => <Icon {...p} d="m6 9 6 6 6-6" />,
   ChevronUp: (p: P) => <Icon {...p} d="m18 15-6-6-6 6" />,
+  ChevronRight: (p: P) => <Icon {...p} d="m9 18 6-6-6-6" />,
+  ChevronLeft: (p: P) => <Icon {...p} d="m15 18-6-6 6-6" />,
   Shield: (p: P) => <Icon {...p} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />,
   ShieldCheck: (p: P) => (
     <Icon {...p}>

@@ -133,3 +133,33 @@ body {
     opacity: 1;
   }
 }
+
+/* Mobile toolbar overflow chevron: a gentle horizontal nudge that draws
+   the eye toward more tools waiting off the right edge. Subtle so it
+   doesn't feel like a notification badge — opacity dips between cycles
+   so the chevron reads as a soft suggestion rather than a hard ping. */
+@keyframes ci-tool-hint {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateX(3px);
+    opacity: 1;
+  }
+}
+
+/* Mirror of ci-tool-hint for the left-edge indicator: nudges in the
+   opposite direction so both chevrons read as "swipe this way." */
+@keyframes ci-tool-hint-left {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateX(-3px);
+    opacity: 1;
+  }
+}

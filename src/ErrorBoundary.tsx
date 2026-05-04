@@ -10,7 +10,7 @@
 import { Component, createRef, type ErrorInfo, type ReactNode } from "react";
 import { I } from "./icons";
 
-const GITHUB_REPO = "sumitsahoo/cloakimg";
+const GITHUB_REPO = "cloakyard/cloakimg";
 
 interface ErrorBoundaryProps {
   children: ReactNode;

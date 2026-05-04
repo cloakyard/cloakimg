@@ -8,8 +8,8 @@
   <p><strong>Try it here →</strong> <a href="https://img.cloakyard.com/">img.cloakyard.com</a></p>
 
   <p>
-    <img src="https://img.shields.io/github/actions/workflow/status/sumitsahoo/cloakimg/deploy.yml?label=build" alt="Build status" />
-    <img src="https://img.shields.io/github/deployments/sumitsahoo/cloakimg/production?label=deploy" alt="Deployment" />
+    <img src="https://img.shields.io/github/actions/workflow/status/cloakyard/cloakimg/deploy.yml?label=build" alt="Build status" />
+    <img src="https://img.shields.io/github/deployments/cloakyard/cloakimg/production?label=deploy" alt="Deployment" />
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License" /></a>
   </p>
   <p>
