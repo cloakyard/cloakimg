@@ -36,7 +36,6 @@ import {
 import { saveDraft } from "../landing/draft";
 import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
-import { toast } from "./Toasts";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
 import { History, restoreCanvas } from "./history";
 import { snapshotPersistentObjects } from "./tools/penPath";
@@ -483,7 +482,6 @@ export function EditorProvider({
     restoreFabricScene(fabricCanvasRef.current, base.fabric);
     historyRef.current.push("Reset", doc.working, base.layers, base.fabric);
     setHistoryVersion((v) => v + 1);
-    toast.info("Reset to original");
   }, [doc]);
 
   const setRecipe = useCallback((r: RecipeStep[] | ((prev: RecipeStep[]) => RecipeStep[])) => {

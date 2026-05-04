@@ -20,7 +20,6 @@ import { FilePropertiesModal } from "./FilePropertiesModal";
 import { MobileSheet } from "./MobileSheet";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
-import { ToastTray } from "./Toasts";
 import { ToolRail, MobileToolbar } from "./ToolRail";
 import { ToolStage } from "./ToolStage";
 import { TopBar } from "./TopBar";
@@ -220,8 +219,6 @@ function EditorShell() {
       {filePropsOpen && (
         <FilePropertiesModal layout={layout} onClose={() => setFilePropsOpen(false)} />
       )}
-
-      <ToastTray />
     </main>
   );
 }

@@ -8,7 +8,6 @@ import { I } from "../icons";
 import { ModalFrame } from "../ModalFrame";
 import { PropRow, Segment, Slider, Spinner, ToggleSwitch } from "./atoms";
 import { useEditor } from "./EditorContext";
-import { toast } from "./Toasts";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 import {
   estimateBytes,
@@ -45,6 +44,10 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   const isMobile = layout === "mobile";
   const [busy, setBusy] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // Inline error state — populated when exportDoc throws so the user
+  // can read the failure right next to the Download button instead of
+  // chasing a transient toast.
+  const [exportError, setExportError] = useState<string | null>(null);
   // Mobile renders the metadata section inline (always expanded) so
   // the strip toggles are unmissable; desktop keeps the accordion to
   // save vertical space. On mobile the accordion previously hid the
@@ -175,6 +178,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   const download = useCallback(async () => {
     if (!doc) return;
     setBusy(true);
+    setExportError(null);
     try {
       const result = await exportDoc(doc, layers, settings, toolState.meta, getFabricCanvas());
       const url = URL.createObjectURL(result.blob);
@@ -188,13 +192,15 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       setTimeout(() => URL.revokeObjectURL(url), 1500);
       // Successful export → drop the auto-saved draft, otherwise the
       // landing page would offer to "resume" something the user has
-      // already shipped.
+      // already shipped. The browser's own download UI is the success
+      // confirmation; we just close the modal.
       void clearDraft();
-      toast.success(`Exported ${result.fileName}`);
       onClose();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Export failed";
-      toast.warn(msg, 6000);
+      // Show the error inline in the modal so the user can read it,
+      // adjust settings, and retry — instead of a transient toast
+      // that vanishes before they finish reading on a slow network.
+      setExportError(err instanceof Error ? err.message : "Export failed");
     } finally {
       setBusy(false);
     }
@@ -296,6 +302,27 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             meta={toolState.meta}
             onPatch={(key, next) => patchTool("meta", { ...toolState.meta, [key]: next })}
           />
+
+          {exportError && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-coral-300 bg-coral-50 px-3 py-2 text-[12px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200"
+            >
+              <I.ShieldCheck size={13} className="mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold">Export failed</div>
+                <div className="wrap-break-word opacity-80">{exportError}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExportError(null)}
+                aria-label="Dismiss error"
+                className="-mr-1 -mt-1 flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100"
+              >
+                <I.X size={11} />
+              </button>
+            </div>
+          )}
         </div>
         <div
           className={`flex shrink-0 gap-2 ${

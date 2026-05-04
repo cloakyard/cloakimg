@@ -5,16 +5,19 @@
 // how solid the perimeter reads (variance-driven) with a small nudge
 // for very dark / very bright backdrops (luminance).
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../icons";
 import { PropRow, Slider } from "../atoms";
 import { copyInto } from "../doc";
 import { useEditor } from "../EditorContext";
-import { toast } from "../Toasts";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
 
 export function RemoveBgPanel() {
   const { toolState, patchTool, doc, commit, runBusy } = useEditor();
+  // Inline error state replaces the older toast — the canvas itself
+  // is the success confirmation, and a failure stays pinned next to
+  // the Apply button so the user can read it and retry.
+  const [bgError, setBgError] = useState<string | null>(null);
 
   // Re-derive on every render so it tracks undo / redo. Cheap — touches
   // four 1px-thick strips of the perimeter.
@@ -50,12 +53,11 @@ export function RemoveBgPanel() {
 
   const apply = useCallback(() => {
     if (!doc || alreadyRemoved) return;
+    setBgError(null);
     // runBusy paints the global "Removing background…" spinner before
-    // the synchronous chroma-key bake starts; previously this used a
-    // toast with a manual rAF defer, which gave only a thin top-edge
-    // notification while the main thread was frozen for the entire
-    // bake. Spinner overlay is more discoverable and matches the
-    // pattern other heavy tool actions now use.
+    // the synchronous chroma-key bake starts. Success needs no chrome
+    // — the canvas itself shows the cutout. Failures land in the
+    // inline alert below the Apply button.
     void runBusy("Removing background…", () => {
       try {
         const out = removeBackground(doc.working, {
@@ -67,9 +69,8 @@ export function RemoveBgPanel() {
         patchTool("bgSample", null);
         patchTool("bgPickActive", false);
         commit("Remove BG");
-        toast.success("Background removed");
       } catch (err) {
-        toast.warn(err instanceof Error ? err.message : "Couldn't remove background", 6000);
+        setBgError(err instanceof Error ? err.message : "Couldn't remove background");
       }
     });
   }, [
@@ -172,6 +173,23 @@ export function RemoveBgPanel() {
           </>
         )}
       </button>
+      {bgError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-coral-300 bg-coral-50 px-2.5 py-2 text-[11.5px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200"
+        >
+          <I.ShieldCheck size={12} className="mt-0.5 shrink-0" />
+          <span className="min-w-0 flex-1 wrap-break-word">{bgError}</span>
+          <button
+            type="button"
+            onClick={() => setBgError(null)}
+            aria-label="Dismiss error"
+            className="-mr-0.5 -mt-0.5 flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100"
+          >
+            <I.X size={10} />
+          </button>
+        </div>
+      )}
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         {alreadyRemoved
           ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
