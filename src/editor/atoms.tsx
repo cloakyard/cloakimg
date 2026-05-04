@@ -215,7 +215,17 @@ export function Spinner({ size = 36, label }: SpinnerProps) {
         viewBox={`0 0 ${size} ${size}`}
         fill="none"
         aria-hidden="true"
-        style={{ animation: "ci-spin 0.9s linear infinite" }}
+        style={{
+          animation: "ci-spin 0.9s linear infinite",
+          // Promote to a compositor layer so the rotate animation
+          // keeps ticking on the GPU when the main thread is blocked
+          // by a synchronous bake (Filter / Adjust / Resize). Without
+          // this, the browser runs the transform animation on the
+          // main thread and the spinner appears frozen for the
+          // duration of the freeze — exactly when feedback matters.
+          willChange: "transform",
+          transform: "translateZ(0)",
+        }}
       >
         <circle
           cx={size / 2}
