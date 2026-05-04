@@ -68,6 +68,142 @@ export function cssFilterFor(arr: number[]): string {
   return parts.join(" ") || "none";
 }
 
+/** Async, chunked version of `bakeAdjust`. Same per-pixel pipeline,
+ *  but the main loop yields to the event loop every ~64 rows so the
+ *  browser can paint a frame between chunks. This is what lets the
+ *  busy-spinner overlay keep rotating during a full-resolution
+ *  apply on Android Chrome (which, unlike iOS Safari, doesn't run
+ *  CSS transform animations on the compositor while the main
+ *  thread is busy). The yield overhead is single-digit-percent on
+ *  the total bake time. */
+export async function bakeAdjustAsync(
+  src: HTMLCanvasElement,
+  arr: number[],
+  grain = 0,
+): Promise<HTMLCanvasElement> {
+  const out = acquireCanvas(src.width, src.height);
+  const ctx = out.getContext("2d");
+  if (!ctx) return out;
+  ctx.drawImage(src, 0, 0);
+
+  if (isIdentity(arr) && grain === 0) return out;
+
+  const v = sliderArrayToValues(arr);
+
+  if (Math.abs(v.sharpen) > 1e-3) {
+    applySharpen(out, v.sharpen);
+    await yieldToEventLoop();
+  }
+  const img = ctx.getImageData(0, 0, out.width, out.height);
+  const data = img.data;
+
+  const expo = Math.pow(2, v.exposure);
+  const con = 1 + v.contrast;
+  const sat = 1 + v.saturation;
+  const vib = v.vibrance;
+  const hi = v.highlights * 0.6;
+  const sh = v.shadows * 0.6;
+  const wh = v.whites * 0.4;
+  const bl = v.blacks * 0.4;
+  const tempR = v.temp * 25;
+  const tempB = -v.temp * 25;
+  const grainAmount = grain * 40;
+
+  const w = out.width;
+  const h = out.height;
+  const CHUNK_ROWS = 64;
+
+  for (let yStart = 0; yStart < h; yStart += CHUNK_ROWS) {
+    const yEnd = Math.min(yStart + CHUNK_ROWS, h);
+    const startIdx = yStart * w * 4;
+    const endIdx = yEnd * w * 4;
+    for (let i = startIdx; i < endIdx; i += 4) {
+      let r = data[i] ?? 0;
+      let g = data[i + 1] ?? 0;
+      let b = data[i + 2] ?? 0;
+
+      r *= expo;
+      g *= expo;
+      b *= expo;
+
+      r = (r - 128) * con + 128;
+      g = (g - 128) * con + 128;
+      b = (b - 128) * con + 128;
+
+      const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
+      const shadowMask = Math.max(0, 1 - lum / 128);
+      const highlightMask = Math.max(0, (lum - 128) / 128);
+      const sAdjust = sh * 60 * shadowMask;
+      const hAdjust = -hi * 60 * highlightMask;
+      r += sAdjust + hAdjust;
+      g += sAdjust + hAdjust;
+      b += sAdjust + hAdjust;
+
+      if (wh !== 0) {
+        const m = Math.max(0, (lum - 200) / 55);
+        r += wh * 30 * m;
+        g += wh * 30 * m;
+        b += wh * 30 * m;
+      }
+      if (bl !== 0) {
+        const m = Math.max(0, (60 - lum) / 60);
+        r -= bl * 30 * m;
+        g -= bl * 30 * m;
+        b -= bl * 30 * m;
+      }
+
+      if (sat !== 1) {
+        const lum2 = r * 0.2126 + g * 0.7152 + b * 0.0722;
+        r = lum2 + (r - lum2) * sat;
+        g = lum2 + (g - lum2) * sat;
+        b = lum2 + (b - lum2) * sat;
+      }
+
+      if (vib !== 0) {
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const sNow = max === 0 ? 0 : (max - min) / max;
+        const factor = 1 + vib * (1 - sNow);
+        const lum3 = r * 0.2126 + g * 0.7152 + b * 0.0722;
+        r = lum3 + (r - lum3) * factor;
+        g = lum3 + (g - lum3) * factor;
+        b = lum3 + (b - lum3) * factor;
+      }
+
+      if (tempR !== 0) {
+        r += tempR;
+        b += tempB;
+      }
+
+      if (grainAmount > 0) {
+        const n = (Math.random() - 0.5) * grainAmount;
+        r += n;
+        g += n;
+        b += n;
+      }
+
+      data[i] = clamp255(r);
+      data[i + 1] = clamp255(g);
+      data[i + 2] = clamp255(b);
+    }
+    if (yEnd < h) await yieldToEventLoop();
+  }
+
+  ctx.putImageData(img, 0, 0);
+
+  if (Math.abs(v.vignette) > 1e-3) applyVignette(out, v.vignette);
+
+  return out;
+}
+
+function yieldToEventLoop(): Promise<void> {
+  // setTimeout(0) yields long enough for the browser to process
+  // pending paint + animation frames between chunks. requestAnimationFrame
+  // would also work but throttles to ~60 Hz; setTimeout is tighter
+  // and keeps total bake-time overhead under ~10 %.
+  return new Promise<void>((r) => setTimeout(r, 0));
+}
+
 /** Run a real per-pixel pass into a fresh canvas. The output canvas
  *  comes from the scratch pool — preview hooks call `releaseCanvas`
  *  on the prior bake when a new one replaces it, so we don't allocate

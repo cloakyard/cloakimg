@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { copyInto, createCanvas } from "../doc";
-import { bakeAdjust } from "./adjustments";
+import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 
 const THUMB_PX = 96;
@@ -48,7 +48,7 @@ export function FilterPanel() {
     });
   }, [sourceThumb]);
 
-  const apply = useCallback(() => {
+  const apply = useCallback(async (): Promise<void> => {
     if (!doc) return;
     const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
     if (!preset) return;
@@ -56,7 +56,13 @@ export function FilterPanel() {
       const base = toolState.adjust[i] ?? 0.5;
       return Math.min(1, Math.max(0, base + delta * toolState.filterIntensity));
     });
-    let out = bakeAdjust(doc.working, final, toolState.grain);
+    // Async chunked bake yields between row batches so the busy
+    // spinner overlay keeps animating during the full-resolution
+    // pass — Android Chrome doesn't run CSS transform animations on
+    // the compositor while the main thread is JS-busy, and the
+    // periodic yields are what give the browser a chance to paint
+    // new spinner frames.
+    let out = await bakeAdjustAsync(doc.working, final, toolState.grain);
     if (preset.monochrome) out = monochrome(out);
     copyInto(doc.working, out);
     patchTool("filterPreset", 0);

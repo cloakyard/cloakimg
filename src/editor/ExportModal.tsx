@@ -76,13 +76,21 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   // setTimeout(0) — not queueMicrotask — so the browser gets a chance
   // to paint the modal between mount and the (potentially heavy)
   // canvas bake. queueMicrotask would run before paint and defeat the
-  // purpose.
+  // purpose. flushPendingApply is now async (chunked bake), so we
+  // wait for it to complete before flipping `prepared`; otherwise
+  // the export preview would snapshot pre-apply pixels.
   useEffect(() => {
+    let cancelled = false;
     const id = window.setTimeout(() => {
-      flushPendingApply();
-      setPrepared(true);
+      void (async () => {
+        await flushPendingApply();
+        if (!cancelled) setPrepared(true);
+      })();
     }, 0);
-    return () => window.clearTimeout(id);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+    };
   }, [flushPendingApply]);
 
   // Probe Safari-only HEIC encode support once on mount. Other engines

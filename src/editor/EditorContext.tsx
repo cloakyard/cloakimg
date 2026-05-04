@@ -77,9 +77,11 @@ interface EditorContextValue {
    *  clears once `fn` resolves — so any panel that triggers a heavy
    *  bake gets immediate visual feedback instead of a frozen UI. */
   runBusy: (label: string, fn: () => void | Promise<void>) => Promise<void>;
-  registerPendingApply: (fn: (() => void) | null) => void;
-  /** Flush + clear any registered pending-apply callback. */
-  flushPendingApply: () => void;
+  registerPendingApply: (fn: (() => void | Promise<void>) | null) => void;
+  /** Flush + clear any registered pending-apply callback. Returns
+   *  the underlying promise so async-bake panels (Filter / Adjust)
+   *  can await full completion before continuing. */
+  flushPendingApply: () => Promise<void>;
   /** Hand-off ref between successive `<ImageCanvas>` mounts. Each tool
    *  renders its own ImageCanvas which creates+disposes its own Fabric
    *  Canvas; without this ref every IText / shape / sticker / image
@@ -274,14 +276,14 @@ export function EditorProvider({
   // Pending-apply hook — preview tools (Adjust, Filter, Frame, RemoveBg,
   // Crop) register a flush callback so unapplied edits bake into
   // history when the user switches tools, instead of vanishing.
-  const pendingApplyRef = useRef<(() => void) | null>(null);
-  const registerPendingApply = useCallback((fn: (() => void) | null) => {
+  const pendingApplyRef = useRef<(() => void | Promise<void>) | null>(null);
+  const registerPendingApply = useCallback((fn: (() => void | Promise<void>) | null) => {
     pendingApplyRef.current = fn;
   }, []);
-  const flushPendingApply = useCallback(() => {
+  const flushPendingApply = useCallback(async (): Promise<void> => {
     const fn = pendingApplyRef.current;
     pendingApplyRef.current = null;
-    if (fn) fn();
+    if (fn) await fn();
   }, []);
 
   // Fabric scene hand-off — preserves IText / shapes / images / etc.

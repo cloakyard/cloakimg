@@ -9,7 +9,7 @@ import { PropRow, Slider } from "../atoms";
 import { copyInto } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { ADJUST_KEYS } from "../toolState";
-import { bakeAdjust, isIdentity } from "./adjustments";
+import { bakeAdjustAsync, isIdentity } from "./adjustments";
 
 const LABELS: Record<(typeof ADJUST_KEYS)[number], string> = {
   exposure: "Exposure",
@@ -58,10 +58,15 @@ export function AdjustPanel() {
     );
   }, [patchTool]);
 
-  const apply = useCallback(() => {
+  const apply = useCallback(async (): Promise<void> => {
     if (!doc) return;
     if (isIdentity(toolState.adjust)) return;
-    const out = bakeAdjust(doc.working, toolState.adjust, 0);
+    // Async chunked bake so the busy spinner can keep animating
+    // during the full-resolution pass — Android Chrome doesn't run
+    // CSS transform animations on the compositor while the main
+    // thread is JS-busy, and the inter-chunk yields give the
+    // browser frames to paint the rotation.
+    const out = await bakeAdjustAsync(doc.working, toolState.adjust, 0);
     copyInto(doc.working, out);
     reset();
     commit("Adjust");
