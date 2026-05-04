@@ -80,7 +80,7 @@
   /* ── Shadows ─────────────────────────────────────────────── */
   --shadow-card-rest: 0 0 0 1px rgba(15, 23, 42, 0.05);
   --shadow-card-hover: 0 4px 14px -2px rgba(30, 18, 10, 0.1), 0 2px 4px -2px rgba(30, 18, 10, 0.06);
-  --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-modal: 0 10px 24px -10px rgba(15, 23, 42, 0.15);
   --shadow-cta: 0 1px 2px rgba(245, 97, 58, 0.3);
   --shadow-float: 0 12px 32px -8px rgba(30, 18, 10, 0.18), 0 2px 6px rgba(30, 18, 10, 0.06);
 }
@@ -153,7 +153,7 @@
 
   --shadow-card-rest: 0 0 0 1px rgba(15, 23, 42, 0.05);
   --shadow-card-hover: 0 4px 14px -2px rgba(30, 18, 10, 0.1), 0 2px 4px -2px rgba(30, 18, 10, 0.06);
-  --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-modal: 0 10px 24px -10px rgba(15, 23, 42, 0.15);
   --shadow-cta: 0 1px 2px rgba(245, 97, 58, 0.3);
   --shadow-float: 0 12px 32px -8px rgba(30, 18, 10, 0.18), 0 2px 6px rgba(30, 18, 10, 0.06);
 }
