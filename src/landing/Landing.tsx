@@ -3,14 +3,16 @@
 // initial document for the editor.
 
 import { useEffect, useState } from "react";
+import { Grainient } from "../components/Grainient";
 import { I } from "../components/icons";
 import { SamplePhoto } from "../components/SamplePhoto";
+import { GRAINIENT_DARK, GRAINIENT_LIGHT, GRAINIENT_MOTION } from "../constants/grainient";
+import { usePrefersDark } from "../utils/usePrefersDark";
 import { Features } from "./Features";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { PrivacyModal } from "./PrivacyModal";
 import { StartModal, type StartChoice } from "./StartModal";
-import { Sunset } from "./Sunset";
 
 interface Props {
   onStart: (choice: StartChoice) => void;
@@ -25,6 +27,7 @@ export function Landing({ onStart, onIntent }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [width, setWidth] = useState(typeof window === "undefined" ? 1280 : window.innerWidth);
+  const isDark = usePrefersDark();
 
   useEffect(() => {
     const onResize = () => setWidth(window.innerWidth);
@@ -35,10 +38,16 @@ export function Landing({ onStart, onIntent }: Props) {
   // The phone breakpoint here gates the StartModal layout (which still
   // takes a prop). Tailwind's `sm:` covers everything else.
   const isPhone = width < 600;
+  const palette = isDark ? GRAINIENT_DARK : GRAINIENT_LIGHT;
 
   return (
     <div className="relative min-h-full">
-      <Sunset />
+      {/* Sunset-toned animated backdrop. Palette + motion live in
+          src/constants/grainient.ts so the editor shell and the
+          landing hero render the same gradient. The .grainient-fixed
+          class positions it as a page backdrop: fixed inset-0, z-0,
+          with the iOS URL-bar mask. */}
+      <Grainient className="grainient-fixed" {...GRAINIENT_MOTION} {...palette} />
       <div className="relative z-1">
         <Header compact={isPhone} />
 

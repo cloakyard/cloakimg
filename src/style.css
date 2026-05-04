@@ -54,16 +54,15 @@ body {
 }
 
 /* Translucent glass aesthetic for editor chrome panels. Replaces the
-   prior film-grain stipple — panels now layer over a quiet,
-   toned-down sunset (`<Sunset subtle />` mounted in UnifiedEditor)
-   so a hint of warmth bleeds through the chrome.
+   prior film-grain stipple — panels now layer over the Grainient
+   backdrop mounted in UnifiedEditor (desktop only) so a hint of
+   warmth bleeds through the chrome.
 
-   Alpha is tuned per-scheme: light needs 0.78 (the multiply-blended
-   coral haze fades fast against cream, so we leave more headroom),
-   dark holds at 0.84 (screen blend already lifts the coral cleanly,
-   and panels need more body to keep contrast on the near-black
-   page). saturate(180%) amplifies whatever color is behind, so the
-   warm cast reads even where the sunset is faint. */
+   Alpha is tuned per-scheme: light needs 0.78 (the warm wash fades
+   fast against cream so we leave more headroom), dark holds at 0.84
+   (panels need more body to keep contrast on the near-black page).
+   saturate(180%) amplifies whatever colour is behind so the warm
+   cast reads even where the gradient field is faint. */
 .editor-paper {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px) saturate(200%);
