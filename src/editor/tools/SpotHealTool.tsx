@@ -6,14 +6,31 @@
 // canvas and replaced with a live ring sized to the brush slider, so
 // the user can see exactly what will be healed before clicking.
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useEditor } from "../EditorContext";
 import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 
+const SLIDER_PREVIEW_MS = 1200;
+
 export function SpotHealTool() {
   const { doc, toolState, commit } = useEditor();
   const [hover, setHover] = useState<{ x: number; y: number; inside: boolean } | null>(null);
+  // Show the brush ring at the canvas centre for a beat whenever the
+  // size or feather slider changes — gives the user an immediate
+  // visual sense of brush footprint without forcing them to first
+  // hover the canvas. Auto-fades after the user stops adjusting.
+  const [sliderPreview, setSliderPreview] = useState(false);
+  useEffect(() => {
+    // Read the values so the lint sees this effect actually depends on
+    // them — the body uses them only as a re-trigger; the live values
+    // themselves get picked up by paintOverlay on the next render.
+    void toolState.brushSize;
+    void toolState.feather;
+    setSliderPreview(true);
+    const id = window.setTimeout(() => setSliderPreview(false), SLIDER_PREVIEW_MS);
+    return () => window.clearTimeout(id);
+  }, [toolState.brushSize, toolState.feather]);
 
   const heal = useCallback(
     (p: ImagePoint) => {
@@ -109,11 +126,21 @@ export function SpotHealTool() {
 
   const paintOverlay = useCallback(
     (ctx: CanvasRenderingContext2D, t: Transform) => {
-      if (!hover?.inside) return;
+      // Anchor the ring at the hovered pixel when the user is on the
+      // canvas. Otherwise fall back to the centre of the image while
+      // the slider preview is active so the user can size the brush
+      // from the panel without having to first hover the canvas.
+      let anchor: { x: number; y: number } | null = null;
+      if (hover?.inside) {
+        anchor = { x: hover.x, y: hover.y };
+      } else if (sliderPreview && doc) {
+        anchor = { x: doc.width / 2, y: doc.height / 2 };
+      }
+      if (!anchor) return;
       const radius = Math.max(4, toolState.brushSize * 100);
       const feather = Math.max(0.5, toolState.feather * 30);
-      const sx = t.ox + hover.x * t.scale;
-      const sy = t.oy + hover.y * t.scale;
+      const sx = t.ox + anchor.x * t.scale;
+      const sy = t.oy + anchor.y * t.scale;
       const sr = radius * t.scale;
       const sf = (radius + feather) * t.scale;
       ctx.save();
@@ -143,7 +170,7 @@ export function SpotHealTool() {
       ctx.fill();
       ctx.restore();
     },
-    [hover, toolState.brushSize, toolState.feather],
+    [hover, sliderPreview, doc, toolState.brushSize, toolState.feather],
   );
 
   useStageProps({
