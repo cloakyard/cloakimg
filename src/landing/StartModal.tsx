@@ -461,18 +461,19 @@ function BlankTab({
         })}
       </div>
 
-      {/* Two-row layout so a narrow phone (where the size inputs +
-          background row would otherwise wrap awkwardly mid-control)
-          stacks the dimension controls above the background toggle.
-          Wider viewports collapse back into a single row with the
-          background controls right-aligned. */}
+      {/* On phones the row stacks: CUSTOM heading on its own line,
+          then W × H px on a single non-wrapping row (this is the bit
+          that previously broke W and H onto separate rows), then
+          Background controls below. Wider viewports collapse the
+          three groups back into a single flex-wrap row with the
+          background pushed to the right via sm:ml-auto. */}
       <div className="mt-4 flex flex-col gap-3 rounded-xl bg-page-bg p-3.5 dark:bg-dark-page-bg sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-          <div className="t-eyebrow t-eyebrow-slate text-[10px]">Custom</div>
+        <div className="t-eyebrow t-eyebrow-slate text-[10px]">Custom</div>
+        <div className="flex items-center gap-2 sm:gap-2.5">
           <DimensionInput label="W" value={customW} onChange={setCustomW} />
-          <I.X size={11} className="text-text-muted dark:text-dark-text-muted" />
+          <I.X size={11} className="shrink-0 text-text-muted dark:text-dark-text-muted" />
           <DimensionInput label="H" value={customH} onChange={setCustomH} />
-          <div className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted">
+          <div className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted">
             px
           </div>
         </div>
