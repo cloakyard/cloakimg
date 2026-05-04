@@ -50,6 +50,7 @@ function EditorShell() {
     setActiveTool,
     setView,
     loading,
+    busyLabel,
     error,
     exportOpen,
     closeExport,
@@ -164,6 +165,7 @@ function EditorShell() {
 
         {error && <ErrorBanner message={error} />}
         {loading && <LoadingBanner />}
+        {busyLabel && <BusyOverlay label={busyLabel} />}
 
         <div className="flex min-h-0 flex-1">
           {!isMobile && mode === "single" && (
@@ -228,6 +230,29 @@ function LoadingBanner() {
   return (
     <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg dark:bg-dark-page-bg">
       <Spinner label="Loading image…" />
+    </div>
+  );
+}
+
+/** Translucent overlay shown while a heavy operation (e.g. baking a
+ *  Filter preset into history at full resolution) is blocking the
+ *  main thread. Lighter than `LoadingBanner` so the editor stays
+ *  visible behind the spinner — the user knows what's being worked
+ *  on, just that they can't interact for a moment. */
+function BusyOverlay({ label }: { label: string }) {
+  return (
+    <div
+      className="absolute inset-0 z-150 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <div
+        className="flex items-center gap-3 rounded-2xl border border-border-soft bg-surface/95 px-5 py-4 shadow-xl dark:border-dark-border dark:bg-dark-surface/95"
+        style={{ boxShadow: "var(--shadow-modal)" }}
+      >
+        <Spinner size={22} />
+        <span className="text-[13px] font-medium text-text dark:text-dark-text">{label}</span>
+      </div>
     </div>
   );
 }

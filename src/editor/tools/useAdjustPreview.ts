@@ -1,27 +1,29 @@
 // useAdjustPreview.ts — Build a downsampled preview of the working
-// canvas with the adjust pipeline baked in, debounced via rAF so slider
-// drags stay smooth. The preview is capped on the long edge so even
-// huge photos preview at interactive speed.
+// canvas with the adjust pipeline baked in. The preview is capped on
+// the long edge so even huge photos preview at interactive speed,
+// and consumers can opt into a setTimeout debounce so a burst of
+// rapid changes (e.g. tapping 6 filter presets in quick succession)
+// coalesces to a single trailing bake instead of queueing one per
+// change.
 //
-// The cap is viewport-aware: phones use a smaller cap so per-pixel
-// bakes stay under one frame on weaker mobile CPUs; desktops use a
-// larger cap so the upscale Fabric does to remap the preview back
-// into image-space (required so layers / Fabric objects align)
-// doesn't visibly soften the photo. A 720 px cap on a 4 kpx source
-// produced a ~5.7× upscale and obvious blur in the live preview;
-// 1440 cuts that to ~2.8× on desktop and looks crisp at typical zoom
-// levels. Mobile sits in between at 1080 (~3.8× upscale) so slider
-// drags still feel responsive on older phones.
+// The cap is viewport-aware: phones use 720 — small enough that the
+// per-pixel bake stays well under 100 ms on most modern phones, so a
+// click-burst of filter presets settles in under a second total.
+// Desktops can afford 1440, which keeps Fabric's upscale-to-image-
+// space (required so layers and Fabric objects align with the bg)
+// from visibly softening the photo. The cssFilter caller is
+// responsible for matching the cap; this module just returns a
+// preview canvas at the chosen size or null while idle.
 //
-// Returns the latest preview canvas, or null while idle. Consumers pass
-// it as `previewCanvas` to <ImageCanvas /> which then uses it instead
-// of doc.working for live painting.
+// Returns the latest preview canvas, or null while idle. Consumers
+// pass it as `previewCanvas` to <ImageCanvas /> which then uses it
+// instead of doc.working for live painting.
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
 import { bakeAdjust, isIdentity } from "./adjustments";
 
-const PREVIEW_LONG_EDGE_MOBILE = 1080;
+const PREVIEW_LONG_EDGE_MOBILE = 720;
 const PREVIEW_LONG_EDGE_DESKTOP = 1440;
 const MOBILE_BREAKPOINT_PX = 768;
 
@@ -37,11 +39,21 @@ export function useAdjustPreview(
   sliders: number[],
   grain: number,
   monochrome = false,
+  /** Debounce window in ms before scheduling the bake. 0 fires on
+   *  the next animation frame (current Adjust slider behaviour).
+   *  Tools driven by discrete clicks (Filter presets) should pass a
+   *  small value (~80 ms) so a quick tap-tap-tap collapses into one
+   *  trailing bake instead of one bake per click — bakes block the
+   *  main thread for 50–150 ms each on phones, and queueing 6 in a
+   *  row was leaving the UI frozen long enough that subsequent tool
+   *  switches felt unresponsive. */
+  debounceMs = 0,
 ): HTMLCanvasElement | null {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const [preview, setPreview] = useState<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
+  const debounceRef = useRef<number | null>(null);
 
   // Rebuild the downsample only when the source canvas itself changes.
   useEffect(() => {
@@ -51,9 +63,9 @@ export function useAdjustPreview(
     }
   }, [source]);
 
-  // Bake the preview on every slider change (rAF-coalesced). The
-  // previous bake gets returned to the canvas pool right before the
-  // new one replaces it, so we don't allocate per slider tick.
+  // Bake the preview on every change. The previous bake gets returned
+  // to the canvas pool right before the new one replaces it, so we
+  // don't allocate per change.
   useEffect(() => {
     if (!source) {
       setPreview((prev) => {
@@ -74,24 +86,50 @@ export function useAdjustPreview(
     }
     const ds = downsampledRef.current;
     if (!ds) return;
-    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
+    // Cancel any pending work before scheduling new — mid-burst the
+    // debounce timer is still running and the rAF hasn't been queued
+    // yet, so we just reset both.
+    if (debounceRef.current !== null) {
+      window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
-      const baked = bakeAdjust(ds, sliders, grain);
-      if (monochrome) toMonochrome(baked);
-      setPreview((prev) => {
-        // Don't release the downsampled cache by accident — it lives
-        // across renders and bakeAdjust may return it directly when
-        // the source is already small.
-        if (prev && prev !== ds) releaseCanvas(prev);
-        return baked;
+    }
+    const runBake = () => {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        const baked = bakeAdjust(ds, sliders, grain);
+        if (monochrome) toMonochrome(baked);
+        setPreview((prev) => {
+          // Don't release the downsampled cache by accident — it
+          // lives across renders and bakeAdjust may return it
+          // directly when the source is already small.
+          if (prev && prev !== ds) releaseCanvas(prev);
+          return baked;
+        });
       });
-    });
-    return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
     };
-  }, [grain, monochrome, sliders, source]);
+    if (debounceMs > 0) {
+      debounceRef.current = window.setTimeout(() => {
+        debounceRef.current = null;
+        runBake();
+      }, debounceMs);
+    } else {
+      runBake();
+    }
+    return () => {
+      if (debounceRef.current !== null) {
+        window.clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [debounceMs, grain, monochrome, sliders, source]);
 
   // Drop the last preview when the hook unmounts so a tool swap
   // doesn't leak its final scratch canvas.

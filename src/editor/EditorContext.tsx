@@ -55,6 +55,11 @@ const DEFAULT_VIEW: ViewState = { zoom: 1, panX: 0, panY: 0 };
 interface EditorContextValue {
   doc: EditorDoc | null;
   loading: boolean;
+  /** Non-null while a heavy operation (e.g. baking a Filter preset
+   *  into history) is blocking the main thread. UnifiedEditor renders
+   *  a spinner overlay against this so the user has visual feedback
+   *  during the freeze. */
+  busyLabel: string | null;
   error: string | null;
 
   view: ViewState;
@@ -67,6 +72,12 @@ interface EditorContextValue {
    *  register a callback that bakes pending edits into history. The
    *  callback is invoked automatically before a tool change so unapplied
    *  previews carry forward instead of getting dropped. */
+  /** Run a (potentially main-thread-blocking) operation behind the
+   *  global "Applying…" spinner overlay. The spinner mounts before
+   *  `fn` runs (two rAF passes ensure paint happens first), then
+   *  clears once `fn` resolves — so any panel that triggers a heavy
+   *  bake gets immediate visual feedback instead of a frozen UI. */
+  runBusy: (label: string, fn: () => void | Promise<void>) => Promise<void>;
   registerPendingApply: (fn: (() => void) | null) => void;
   /** Flush + clear any registered pending-apply callback. */
   flushPendingApply: () => void;
@@ -150,6 +161,7 @@ interface ActionsValue {
   setMode: EditorContextValue["setMode"];
   setLayers: EditorContextValue["setLayers"];
   setCompareActive: EditorContextValue["setCompareActive"];
+  runBusy: EditorContextValue["runBusy"];
   registerPendingApply: EditorContextValue["registerPendingApply"];
   flushPendingApply: EditorContextValue["flushPendingApply"];
   captureFabricSnapshot: EditorContextValue["captureFabricSnapshot"];
@@ -179,6 +191,7 @@ interface ToolStateValue {
 interface EditorReadValue {
   doc: EditorDoc | null;
   loading: boolean;
+  busyLabel: string | null;
   error: string | null;
   view: ViewState;
   layers: Layer[];
@@ -222,6 +235,7 @@ export function EditorProvider({
 }: ProviderProps) {
   const [doc, setDoc] = useState<EditorDoc | null>(null);
   const [loading, setLoading] = useState(true);
+  const [busyLabel, setBusyLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -368,14 +382,48 @@ export function EditorProvider({
     setToolState((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  // Run a (potentially main-thread-blocking) operation behind a busy
+  // spinner. Two rAF passes ensure the spinner has actually painted
+  // before the work starts; otherwise a sync bake would block the
+  // same frame the spinner was queued on and the overlay wouldn't
+  // appear until the work completed. Async fns are awaited so the
+  // spinner stays up for the duration even when the work itself
+  // runs off the main thread (Web Worker resize, etc.).
+  const runBusy = useCallback((label: string, fn: () => void | Promise<void>): Promise<void> => {
+    return new Promise<void>((resolve, reject) => {
+      setBusyLabel(label);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(async () => {
+          try {
+            await fn();
+            resolve();
+          } catch (e) {
+            reject(e);
+          } finally {
+            setBusyLabel(null);
+          }
+        });
+      });
+    });
+  }, []);
+
   const setActiveTool = useCallback(
     (id: ToolState["activeTool"]) => {
-      // Bake any pending preview before swapping tools so the user's
-      // unapplied edits carry forward.
-      flushPendingApply();
+      // Capture the pending bake before switching tools so the user's
+      // unapplied edits carry forward, but defer running it behind a
+      // busy spinner so a heavy full-resolution bake (e.g. a Filter
+      // preset on a 24 MP photo, ~1–3 s on mobile) doesn't make the
+      // tool-switch tap feel unresponsive. Without runBusy the user
+      // would tap, see nothing change, and assume the button is
+      // broken; with it, the new panel paints + a coral spinner
+      // shows during the freeze, then both clear once the bake
+      // commits.
+      const pending = pendingApplyRef.current;
+      pendingApplyRef.current = null;
       setToolState((prev) => ({ ...prev, activeTool: id }));
+      if (pending) void runBusy("Applying…", pending);
     },
-    [flushPendingApply],
+    [runBusy],
   );
 
   const setLayers = useCallback((l: Layer[] | ((prev: Layer[]) => Layer[])) => {
@@ -559,6 +607,7 @@ export function EditorProvider({
       setMode,
       setLayers,
       setCompareActive,
+      runBusy,
       registerPendingApply,
       flushPendingApply,
       captureFabricSnapshot,
@@ -584,6 +633,7 @@ export function EditorProvider({
       patchTool,
       setActiveTool,
       setLayers,
+      runBusy,
       registerPendingApply,
       flushPendingApply,
       captureFabricSnapshot,
@@ -615,6 +665,7 @@ export function EditorProvider({
     () => ({
       doc,
       loading,
+      busyLabel,
       error,
       view,
       layers,
@@ -636,6 +687,7 @@ export function EditorProvider({
     [
       doc,
       loading,
+      busyLabel,
       error,
       view,
       layers,

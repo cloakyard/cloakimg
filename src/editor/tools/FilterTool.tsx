@@ -22,11 +22,19 @@ export function FilterTool() {
     () => applyPresetVector(adjust, filterPreset, filterIntensity),
     [adjust, filterPreset, filterIntensity],
   );
+  // 80 ms debounce: a typical preset tap-tap-tap lands at 100–300 ms
+  // intervals, faster than a single bake completes on mobile (~50–
+  // 150 ms each at the 720 cap). Without coalescing, every click
+  // would queue another bake behind the in-flight one and the next
+  // tool-switch tap would sit behind that whole chain, freezing the
+  // UI for a second+. With this debounce, a burst of clicks fires
+  // exactly one trailing bake.
   const preview = useAdjustPreview(
     doc?.working ?? null,
     composed,
     toolState.grain,
     preset?.monochrome ?? false,
+    80,
   );
   useStageProps({ previewCanvas: preview });
   return null;

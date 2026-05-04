@@ -10,11 +10,11 @@ import { I } from "../../icons";
 import { PropRow, Slider } from "../atoms";
 import { copyInto } from "../doc";
 import { useEditor } from "../EditorContext";
-import { dismissToast, toast } from "../Toasts";
+import { toast } from "../Toasts";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
 
 export function RemoveBgPanel() {
-  const { toolState, patchTool, doc, commit } = useEditor();
+  const { toolState, patchTool, doc, commit, runBusy } = useEditor();
 
   // Re-derive on every render so it tracks undo / redo. Cheap — touches
   // four 1px-thick strips of the perimeter.
@@ -50,10 +50,13 @@ export function RemoveBgPanel() {
 
   const apply = useCallback(() => {
     if (!doc || alreadyRemoved) return;
-    const pending = toast.info("Removing background…", 60_000);
-    // Defer to the next frame so the toast paints before the
-    // synchronous bake hogs the main thread.
-    requestAnimationFrame(() => {
+    // runBusy paints the global "Removing background…" spinner before
+    // the synchronous chroma-key bake starts; previously this used a
+    // toast with a manual rAF defer, which gave only a thin top-edge
+    // notification while the main thread was frozen for the entire
+    // bake. Spinner overlay is more discoverable and matches the
+    // pattern other heavy tool actions now use.
+    void runBusy("Removing background…", () => {
       try {
         const out = removeBackground(doc.working, {
           threshold: toolState.genericStrength,
@@ -67,8 +70,6 @@ export function RemoveBgPanel() {
         toast.success("Background removed");
       } catch (err) {
         toast.warn(err instanceof Error ? err.message : "Couldn't remove background", 6000);
-      } finally {
-        dismissToast(pending);
       }
     });
   }, [
@@ -76,6 +77,7 @@ export function RemoveBgPanel() {
     commit,
     doc,
     patchTool,
+    runBusy,
     toolState.bgSample,
     toolState.feather,
     toolState.genericStrength,

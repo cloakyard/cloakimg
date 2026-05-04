@@ -19,7 +19,7 @@ const LONG_EDGE_PRESETS = [
 const FIT = ["Fit", "Fill", "Stretch"] as const;
 
 export function ResizePanel() {
-  const { doc, toolState, patchTool, commit } = useEditor();
+  const { doc, toolState, patchTool, commit, runBusy } = useEditor();
   const [fit, setFit] = useState(0);
   const [resizing, setResizing] = useState(false);
 
@@ -74,36 +74,51 @@ export function ResizePanel() {
 
     setResizing(true);
     try {
-      const fitMode = FIT[fit];
-      let out: HTMLCanvasElement;
-      if (fitMode === "Stretch") {
-        out = useLanczos
-          ? await lanczosResampleAsync(doc.working, targetW, targetH)
-          : nativeStretch(doc, targetW, targetH);
-      } else {
-        // Fit / Fill: scale doc proportionally, paste centered onto a target-sized canvas.
-        const s =
-          fitMode === "Fit"
-            ? Math.min(targetW / doc.width, targetH / doc.height)
-            : Math.max(targetW / doc.width, targetH / doc.height);
-        const scaledW = Math.max(1, Math.round(doc.width * s));
-        const scaledH = Math.max(1, Math.round(doc.height * s));
-        const scaled = useLanczos
-          ? await lanczosResampleAsync(doc.working, scaledW, scaledH)
-          : nativeStretch(doc, scaledW, scaledH);
-        out = createCanvas(targetW, targetH);
-        const ctx = out.getContext("2d");
-        if (!ctx) return;
-        ctx.drawImage(scaled, (targetW - scaledW) / 2, (targetH - scaledH) / 2);
-      }
-      copyInto(doc.working, out);
-      doc.width = out.width;
-      doc.height = out.height;
-      commit("Resize");
+      // Lanczos resample on a 24 MP photo runs in a worker but still
+      // takes seconds end-to-end; surface a spinner so the Apply tap
+      // doesn't look like it did nothing while the worker chews
+      // through the resample.
+      await runBusy(useLanczos ? "Resizing (high-quality)…" : "Resizing…", async () => {
+        const fitMode = FIT[fit];
+        let out: HTMLCanvasElement;
+        if (fitMode === "Stretch") {
+          out = useLanczos
+            ? await lanczosResampleAsync(doc.working, targetW, targetH)
+            : nativeStretch(doc, targetW, targetH);
+        } else {
+          // Fit / Fill: scale doc proportionally, paste centered onto a target-sized canvas.
+          const s =
+            fitMode === "Fit"
+              ? Math.min(targetW / doc.width, targetH / doc.height)
+              : Math.max(targetW / doc.width, targetH / doc.height);
+          const scaledW = Math.max(1, Math.round(doc.width * s));
+          const scaledH = Math.max(1, Math.round(doc.height * s));
+          const scaled = useLanczos
+            ? await lanczosResampleAsync(doc.working, scaledW, scaledH)
+            : nativeStretch(doc, scaledW, scaledH);
+          out = createCanvas(targetW, targetH);
+          const ctx = out.getContext("2d");
+          if (!ctx) return;
+          ctx.drawImage(scaled, (targetW - scaledW) / 2, (targetH - scaledH) / 2);
+        }
+        copyInto(doc.working, out);
+        doc.width = out.width;
+        doc.height = out.height;
+        commit("Resize");
+      });
     } finally {
       setResizing(false);
     }
-  }, [commit, doc, fit, resizing, toolState.resizeH, toolState.resizeQuality, toolState.resizeW]);
+  }, [
+    commit,
+    doc,
+    fit,
+    resizing,
+    runBusy,
+    toolState.resizeH,
+    toolState.resizeQuality,
+    toolState.resizeW,
+  ]);
 
   const targetW = toolState.resizeW;
   const targetH = toolState.resizeH;
