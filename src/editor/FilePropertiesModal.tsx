@@ -110,7 +110,11 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
         )}
       </div>
 
-      <div className="border-t border-border-soft px-5 py-3 text-right dark:border-dark-border-soft">
+      <div
+        className={`border-t border-border-soft text-right dark:border-dark-border-soft ${
+          isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
+        }`}
+      >
         <button type="button" className="btn btn-primary btn-sm" onClick={onClose}>
           Close
         </button>

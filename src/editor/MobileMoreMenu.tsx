@@ -7,7 +7,7 @@
 
 import { useEffect, useRef } from "react";
 import { I } from "../icons";
-import { ModalFrame } from "../ModalFrame";
+import { ModalCloseButton, ModalFrame } from "../ModalFrame";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 
 type IconComponent = (typeof I)[keyof typeof I];
@@ -54,18 +54,11 @@ export function MobileMoreMenu({
       labelledBy="mobile-more-title"
       dialogRef={dialogRef}
     >
-      <div className="flex items-center justify-between border-b border-border-soft/60 px-5 py-4 dark:border-dark-border-soft/60">
+      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
         <div id="mobile-more-title" className="t-headline text-base">
           Actions
         </div>
-        <button
-          type="button"
-          className="btn btn-ghost btn-icon-sm"
-          aria-label="Close"
-          onClick={onClose}
-        >
-          <I.X size={16} />
-        </button>
+        <ModalCloseButton onClose={onClose} iconSize={14} />
       </div>
 
       {/* Inner items kept transparent so the dialog's frosted bg-surface/85

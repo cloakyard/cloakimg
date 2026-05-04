@@ -119,7 +119,7 @@ _Your work is always within reach_
 
 ```bash
 # Clone the repository
-git clone https://github.com/sumitsahoo/cloakimg.git
+git clone https://github.com/cloakyard/cloakimg.git
 cd cloakimg
 
 # Install dependencies

@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clearDraft } from "../landing/draft";
 import { I } from "../icons";
-import { ModalFrame } from "../ModalFrame";
+import { ModalCloseButton, ModalFrame } from "../ModalFrame";
 import { PropRow, Segment, Slider, Spinner, ToggleSwitch } from "./atoms";
 import { useEditor } from "./EditorContext";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
@@ -224,9 +224,29 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       dialogRef={dialogRef}
       dialogClassName={isMobile ? "flex-col" : "flex-row"}
     >
+      {/* Mobile pulls the title into a flat header bar with an X close,
+          mirroring FilePropertiesModal/MobileMoreMenu/StartModal. Desktop
+          keeps the title inline in the right column where it pairs with
+          the form fields. */}
+      {isMobile && (
+        <div className="flex items-center justify-between border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+              <I.Download size={15} />
+            </div>
+            <div>
+              <div className="t-eyebrow text-[10px]">Export</div>
+              <div id="export-title" className="t-headline text-base">
+                Save your image
+              </div>
+            </div>
+          </div>
+          <ModalCloseButton onClose={onClose} iconSize={14} />
+        </div>
+      )}
       <div
         className={`flex items-center justify-center overflow-hidden bg-canvas-bg ${
-          isMobile ? "h-44 shrink-0 p-3" : "min-h-80 flex-1 p-6"
+          isMobile ? "h-40 shrink-0 p-3" : "min-h-80 flex-1 p-6"
         }`}
       >
         {previewUrl ? (
@@ -236,7 +256,11 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             className={`rounded-xs ${
               isMobile ? "max-h-full max-w-full object-contain" : "max-h-90 max-w-full"
             }`}
-            style={{ boxShadow: "0 8px 24px -6px rgba(0,0,0,0.4)" }}
+            style={
+              isMobile
+                ? { boxShadow: "0 2px 8px -2px rgba(0,0,0,0.18)" }
+                : { boxShadow: "0 8px 24px -6px rgba(0,0,0,0.4)" }
+            }
           />
         ) : (
           <Spinner label="Preparing preview…" />
@@ -246,15 +270,17 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       <div className={`flex flex-col ${isMobile ? "min-h-0 w-full flex-1" : "w-80"}`}>
         <div
           className={`scroll-thin flex flex-col gap-3.5 ${
-            isMobile ? "min-h-0 flex-1 overflow-y-auto px-4.5 pt-4.5 pb-3" : "px-5.5 pt-5.5 pb-3"
+            isMobile ? "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-3" : "px-5.5 pt-5.5 pb-3"
           }`}
         >
-          <div>
-            <div className="t-eyebrow mb-1 text-[10px]">Export</div>
-            <div id="export-title" className="t-headline text-lg">
-              Save your image
+          {!isMobile && (
+            <div>
+              <div className="t-eyebrow mb-1 text-[10px]">Export</div>
+              <div id="export-title" className="t-headline text-lg">
+                Save your image
+              </div>
             </div>
-          </div>
+          )}
 
           <PropRow label="Format">
             <Segment
@@ -335,7 +361,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
         <div
           className={`flex shrink-0 gap-2 ${
             isMobile
-              ? "border-t border-border-soft px-4.5 py-3 pb-[max(env(safe-area-inset-bottom),12px)] dark:border-dark-border-soft"
+              ? "border-t border-border-soft px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)] dark:border-dark-border-soft"
               : "px-5.5 pb-5.5"
           }`}
         >

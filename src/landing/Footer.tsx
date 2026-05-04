@@ -10,7 +10,7 @@ import { I } from "../icons";
 
 declare const __APP_VERSION__: string;
 
-const REPO_URL = "https://github.com/sumitsahoo/cloakimg";
+const REPO_URL = "https://github.com/cloakyard/cloakimg";
 const CLOAKYARD_URL = "https://github.com/cloakyard";
 const AUTHOR_URL = "https://github.com/sumitsahoo";
 

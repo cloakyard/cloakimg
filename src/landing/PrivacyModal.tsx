@@ -10,7 +10,7 @@ interface Props {
   onClose: () => void;
 }
 
-const REPO_URL = "https://github.com/sumitsahoo/cloakimg";
+const REPO_URL = "https://github.com/cloakyard/cloakimg";
 
 export function PrivacyModal({ onClose }: Props) {
   useEffect(() => {

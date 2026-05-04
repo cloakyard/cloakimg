@@ -8,7 +8,7 @@
 import type { ReactNode } from "react";
 import { BrandMark, I } from "../icons";
 
-const REPO_URL = "https://github.com/sumitsahoo/cloakimg";
+const REPO_URL = "https://github.com/cloakyard/cloakimg";
 
 interface Props {
   right?: ReactNode;
