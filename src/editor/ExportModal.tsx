@@ -45,6 +45,11 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   const isMobile = layout === "mobile";
   const [busy, setBusy] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // Mobile renders the metadata section inline (always expanded) so
+  // the strip toggles are unmissable; desktop keeps the accordion to
+  // save vertical space. On mobile the accordion previously hid the
+  // toggles below the scroll fold even when expanded, since the new
+  // content rendered below the visible viewport.
   const [metaOpen, setMetaOpen] = useState(false);
   const [heicSupported, setHeicSupported] = useState(false);
   // Gate preview generation on a one-shot flush of any pending tool
@@ -282,59 +287,15 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             <span className="t-mono font-semibold">{formatBytes(estimate)}</span>
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg">
-            <button
-              type="button"
-              onClick={() => setMetaOpen((o) => !o)}
-              aria-expanded={metaOpen}
-              className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-semibold text-text dark:text-dark-text ${
-                metaOpen ? "border-b border-border-soft dark:border-dark-border-soft" : ""
-              }`}
-            >
-              <span className="inline-flex items-center gap-1.5">
-                <I.Tag size={12} /> Metadata
-                <span className="text-[10.5px] font-normal text-text-muted dark:text-dark-text-muted">
-                  {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
-                </span>
-              </span>
-              <I.ChevronDown
-                size={14}
-                stroke={2.25}
-                className="text-text-muted dark:text-dark-text-muted"
-                style={{
-                  transform: metaOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 120ms ease",
-                }}
-              />
-            </button>
-            {metaOpen && (
-              <div className="flex flex-col gap-2.5 px-2.5 pt-2.5 pb-3">
-                {metaFields.length > 0 && (
-                  <div className="t-mono rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[11px] leading-7 dark:border-dark-border-soft dark:bg-dark-surface">
-                    {metaFields.map(([k, v]) => (
-                      <div key={k} className="flex justify-between gap-2">
-                        <span className="text-text-muted dark:text-dark-text-muted">{k}</span>
-                        <span className="text-right text-text dark:text-dark-text">{v}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex flex-col gap-1.5">
-                  {META_TOGGLES.map((row) => (
-                    <div key={row.key} className="flex items-center justify-between text-xs">
-                      <span>{row.label}</span>
-                      <ToggleSwitch
-                        on={toolState.meta[row.key]}
-                        onChange={(next) =>
-                          patchTool("meta", { ...toolState.meta, [row.key]: next })
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <MetadataSection
+            isMobile={isMobile}
+            metaFields={metaFields}
+            metaOpen={metaOpen}
+            setMetaOpen={setMetaOpen}
+            toggles={META_TOGGLES}
+            meta={toolState.meta}
+            onPatch={(key, next) => patchTool("meta", { ...toolState.meta, [key]: next })}
+          />
         </div>
         <div
           className={`flex shrink-0 gap-2 ${
@@ -364,6 +325,94 @@ function formatBytes(n: number): string {
   if (n > 1024 * 1024) return `~ ${(n / (1024 * 1024)).toFixed(1)} MB`;
   if (n > 1024) return `~ ${Math.round(n / 1024)} KB`;
   return `~ ${n} B`;
+}
+
+/** EXIF read-out + strip-toggle row. Mobile renders inline (always
+ *  expanded) so the toggles can't be hidden below the scroll fold;
+ *  desktop keeps the accordion to save vertical space. */
+function MetadataSection({
+  isMobile,
+  metaFields,
+  metaOpen,
+  setMetaOpen,
+  toggles,
+  meta,
+  onPatch,
+}: {
+  isMobile: boolean;
+  metaFields: Array<[string, string]>;
+  metaOpen: boolean;
+  setMetaOpen: (next: boolean | ((prev: boolean) => boolean)) => void;
+  toggles: { label: string; key: keyof MetaToggles }[];
+  meta: MetaToggles;
+  onPatch: (key: keyof MetaToggles, next: boolean) => void;
+}) {
+  const body = (
+    <div className="flex flex-col gap-2.5">
+      {metaFields.length > 0 && (
+        <div className="t-mono rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[11px] leading-7 dark:border-dark-border-soft dark:bg-dark-surface">
+          {metaFields.map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-2">
+              <span className="text-text-muted dark:text-dark-text-muted">{k}</span>
+              <span className="text-right text-text dark:text-dark-text">{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex flex-col gap-1.5">
+        {toggles.map((row) => (
+          <div key={row.key} className="flex items-center justify-between text-xs">
+            <span>{row.label}</span>
+            <ToggleSwitch on={meta[row.key]} onChange={(next) => onPatch(row.key, next)} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-2.5 py-2.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-text dark:text-dark-text">
+          <I.Tag size={12} /> Metadata
+          <span className="text-[10.5px] font-normal text-text-muted dark:text-dark-text-muted">
+            {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
+          </span>
+        </div>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg">
+      <button
+        type="button"
+        onClick={() => setMetaOpen((o) => !o)}
+        aria-expanded={metaOpen}
+        className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-semibold text-text dark:text-dark-text ${
+          metaOpen ? "border-b border-border-soft dark:border-dark-border-soft" : ""
+        }`}
+      >
+        <span className="inline-flex items-center gap-1.5">
+          <I.Tag size={12} /> Metadata
+          <span className="text-[10.5px] font-normal text-text-muted dark:text-dark-text-muted">
+            {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
+          </span>
+        </span>
+        <I.ChevronDown
+          size={14}
+          stroke={2.25}
+          className="text-text-muted dark:text-dark-text-muted"
+          style={{
+            transform: metaOpen ? "rotate(180deg)" : "none",
+            transition: "transform 120ms ease",
+          }}
+        />
+      </button>
+      {metaOpen && <div className="px-2.5 pt-2.5 pb-3">{body}</div>}
+    </div>
+  );
 }
 
 function DimInput({

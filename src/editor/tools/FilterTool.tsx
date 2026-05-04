@@ -3,16 +3,25 @@
 // Grain and Mono get a true per-pixel pass so the live view matches
 // what Apply will bake.
 
+import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 import { useAdjustPreview } from "./useAdjustPreview";
-import type { ToolState } from "../toolState";
 
 export function FilterTool() {
   const { toolState, doc } = useEditor();
   const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
-  const composed = applyPresetVector(toolState);
+  // Memoise the composed slider vector against its true inputs.
+  // applyPresetVector returns a fresh array via .slice(), so without
+  // useMemo every render produces a new reference — useAdjustPreview's
+  // effect would then re-fire, bake, setPreview, re-render, and loop
+  // until the browser pegs the CPU. Memoising cuts the cycle.
+  const { adjust, filterPreset, filterIntensity } = toolState;
+  const composed = useMemo(
+    () => applyPresetVector(adjust, filterPreset, filterIntensity),
+    [adjust, filterPreset, filterIntensity],
+  );
   const preview = useAdjustPreview(
     doc?.working ?? null,
     composed,
@@ -23,13 +32,17 @@ export function FilterTool() {
   return null;
 }
 
-function applyPresetVector(s: ToolState): number[] {
-  const preset = FILTER_PRESETS_RECIPES[s.filterPreset];
-  if (!preset) return s.adjust;
-  const out = s.adjust.slice();
+function applyPresetVector(
+  adjust: number[],
+  filterPreset: number,
+  filterIntensity: number,
+): number[] {
+  const preset = FILTER_PRESETS_RECIPES[filterPreset];
+  if (!preset) return adjust;
+  const out = adjust.slice();
   preset.adjust.forEach((delta, i) => {
     const base = out[i] ?? 0.5;
-    out[i] = Math.min(1, Math.max(0, base + delta * s.filterIntensity));
+    out[i] = Math.min(1, Math.max(0, base + delta * filterIntensity));
   });
   return out;
 }

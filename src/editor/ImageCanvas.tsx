@@ -649,6 +649,20 @@ export function ImageCanvas({
     [doc, onImagePointerUp, transform],
   );
 
+  // iOS Safari fires `pointercancel` instead of `pointerup` whenever a
+  // system gesture (edge swipe, banner pull-down, multi-touch
+  // re-arbitration) interrupts a touch. Without this handler the
+  // pointer stays in `pointersRef` forever, and the *next* single tap
+  // is treated as the second finger of a pinch — falling into the
+  // two-finger branch of onPointerDown and silently swallowing
+  // `onImagePointerDown`. Symptom: tap-to-sample tools (Color picker,
+  // Spot heal) appear dead until the page reloads.
+  const onPointerCancel = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (pointersRef.current.size === 0) panRef.current = null;
+  }, []);
+
   const isMobile = size.w > 0 && size.w < 760;
   const cursorStyle = cursor ?? (spaceDown ? (panRef.current ? "grabbing" : "grab") : "crosshair");
 
@@ -658,6 +672,8 @@ export function ImageCanvas({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onLostPointerCapture={onPointerCancel}
       style={{
         flex: 1,
         position: "relative",
