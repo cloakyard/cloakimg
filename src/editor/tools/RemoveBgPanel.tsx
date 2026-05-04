@@ -6,7 +6,7 @@
 // for very dark / very bright backdrops (luminance).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { PropRow, Slider } from "../atoms";
 import { copyInto } from "../doc";
 import { useEditor } from "../EditorContext";

@@ -2,7 +2,7 @@
 // Shows the active tool's icon + name + group header on top, then
 // renders ToolControls below.
 
-import { I } from "../icons";
+import { I } from "../components/icons";
 import { useEditor } from "./EditorContext";
 import { LayersList } from "./LayersList";
 import { findTool } from "./tools";

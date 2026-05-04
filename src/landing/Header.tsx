@@ -6,9 +6,8 @@
 // header so the Cloakyard family reads consistently.
 
 import type { ReactNode } from "react";
-import { BrandMark, I } from "../icons";
-
-const REPO_URL = "https://github.com/cloakyard/cloakimg";
+import { BrandMark, I } from "../components/icons";
+import { GITHUB_REPO_URL } from "../constants/links";
 
 interface Props {
   right?: ReactNode;
@@ -42,7 +41,7 @@ export function Header({ right, compact = false }: Props) {
           </span>
           <span aria-hidden="true" className="h-5 w-px bg-border dark:bg-dark-border" />
           <a
-            href={REPO_URL}
+            href={GITHUB_REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View source on GitHub"

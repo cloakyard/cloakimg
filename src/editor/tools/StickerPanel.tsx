@@ -3,7 +3,7 @@
 // stored in IndexedDB. Click to select, then click the canvas to drop.
 
 import { useCallback, useEffect, useState } from "react";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { useEditor } from "../EditorContext";
 import { PropRow } from "../atoms";
 import {

@@ -5,7 +5,7 @@
 // context so individual tools can focus on their own concerns.
 
 import { useCallback, useEffect, useState } from "react";
-import { I } from "../icons";
+import { I } from "../components/icons";
 import type { StartChoice } from "../landing/StartModal";
 import { Sunset } from "../landing/Sunset";
 import { Spinner } from "./atoms";

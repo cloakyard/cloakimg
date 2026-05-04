@@ -7,7 +7,7 @@ import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { PropRow, Segment } from "../atoms";
 import { lanczosResampleAsync } from "./lanczos";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 
 const LONG_EDGE_PRESETS = [
   { label: "1080", value: 1080 },

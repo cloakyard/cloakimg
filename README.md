@@ -145,23 +145,46 @@ vp dev
 
 ```
 cloakimg/
-├── public/                  # Static assets (icons, manifest, OG image, 404 page)
+├── public/                    # Static assets (icons, manifest, OG image, 404 page)
 ├── src/
-│   ├── main.tsx             # App entry point
-│   ├── App.tsx              # Routing between landing & editor
-│   ├── icons.tsx            # Lucide-style icon set used app-wide
-│   ├── landing/             # Landing page (hero, sunset backdrop, features, footer)
-│   └── editor/              # The single-canvas editor
-│       ├── EditorContext.tsx  # Document, history, layers, autosave
-│       ├── ImageCanvas.tsx    # Fabric-backed canvas + pan/zoom/transform
-│       ├── tools/             # One file per tool (Crop, Adjust, Filter, Redact, …)
-│       └── ExportModal.tsx    # Format, quality, EXIF, target size pipeline
-├── index.html               # HTML entry point + meta/OG tags + CSP
-├── vite.config.ts           # Vite + Tailwind + PWA configuration
-├── wrangler.jsonc           # Cloudflare Workers static-assets config
-├── tsconfig.json            # TypeScript configuration
+│   ├── main.tsx               # App entry point
+│   ├── App.tsx                # Routing between landing & editor
+│   ├── style.css              # Global styles + keyframes
+│   ├── tokens.css             # Design tokens (colour, type, motion)
+│   │
+│   ├── components/            # Cross-cutting UI primitives shared by landing + editor
+│   │   ├── icons.tsx            # Lucide-style icon set used app-wide
+│   │   ├── ModalFrame.tsx       # Shared dialog frame (centered + bottom-sheet variants)
+│   │   ├── ErrorBoundary.tsx    # Top-level render-error catch
+│   │   ├── DropZone.tsx         # Drag/drop/paste + file-picker zone
+│   │   ├── OrientationLock.tsx  # Portrait-only guard for narrow phones
+│   │   └── SamplePhoto.tsx      # Inline sample photo for the landing CTA
+│   │
+│   ├── constants/             # Single source of truth for app-wide constants
+│   │   └── links.ts             # GitHub repo / org / author / issues URLs
+│   │
+│   ├── utils/                 # Pure, stateless helpers shared across features
+│   │   └── formatBytes.ts       # Exact + rough byte-count formatters
+│   │
+│   ├── landing/               # Landing page (hero, sunset backdrop, features, footer)
+│   └── editor/                # The single-canvas editor
+│       ├── EditorContext.tsx    # Document, history, layers, autosave
+│       ├── ImageCanvas.tsx      # Fabric-backed canvas + pan/zoom/transform
+│       ├── tools/               # One file per tool (Crop, Adjust, Filter, Redact, …)
+│       └── ExportModal.tsx      # Format, quality, EXIF, target size pipeline
+│
+├── index.html                 # HTML entry point + meta/OG tags + CSP
+├── vite.config.ts             # Vite + Tailwind + PWA configuration
+├── wrangler.jsonc             # Cloudflare Workers static-assets config
+├── tsconfig.json              # TypeScript configuration
 └── package.json
 ```
+
+### Folder conventions
+
+- **`src/components/`** — anything that's used by _both_ the landing and the editor (or by the top-level `App` shell). Feature-local components stay inside their feature folder (`landing/`, `editor/`) so the boundary stays clear.
+- **`src/constants/`** — values that are referenced from more than one place and would be painful to update if duplicated (URLs, slugs, hard-coded keys). Single-file defaults stay local; only promote here when a constant becomes shared.
+- **`src/utils/`** — pure, framework-agnostic helpers. No React, no DOM-specific state, no project-specific assumptions. Domain helpers (canvas math, EXIF, colour spaces) live next to their tools instead.
 
 ---
 

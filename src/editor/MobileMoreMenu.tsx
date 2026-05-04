@@ -6,8 +6,8 @@
 // consistency with the other editor modals.
 
 import { useEffect, useRef } from "react";
-import { I } from "../icons";
-import { ModalCloseButton, ModalFrame } from "../ModalFrame";
+import { I } from "../components/icons";
+import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 
 type IconComponent = (typeof I)[keyof typeof I];

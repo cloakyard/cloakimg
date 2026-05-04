@@ -9,7 +9,7 @@
 import { type DragEvent as ReactDragEvent, useCallback, useEffect, useState } from "react";
 import type { Canvas as FabricCanvas, FabricImage, FabricObject } from "fabric";
 import { useEditor } from "./EditorContext";
-import { I } from "../icons";
+import { I } from "../components/icons";
 import { LayerFilters } from "./LayerFilters";
 
 interface TaggedFabricObject extends FabricObject {

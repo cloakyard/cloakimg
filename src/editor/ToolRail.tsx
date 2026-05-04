@@ -6,7 +6,7 @@
 // row of icon-and-label chips.
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { I } from "../icons";
+import { I } from "../components/icons";
 import { ALL_TOOLS, type Tool, type ToolId } from "./tools";
 
 interface RailProps {

@@ -4,8 +4,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clearDraft } from "../landing/draft";
-import { I } from "../icons";
-import { ModalCloseButton, ModalFrame } from "../ModalFrame";
+import { I } from "../components/icons";
+import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 import { PropRow, Segment, Slider, Spinner, ToggleSwitch } from "./atoms";
 import { useEditor } from "./EditorContext";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
@@ -20,6 +20,7 @@ import {
 import { exifToFields } from "./tools/exif";
 import type { MetaToggles } from "./toolState";
 import type { Layout } from "./types";
+import { formatBytesRough } from "../utils/formatBytes";
 
 const META_TOGGLES: { label: string; key: keyof MetaToggles }[] = [
   { label: "Strip GPS", key: "stripGPS" },
@@ -324,7 +325,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
 
           <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[11.5px] dark:bg-dark-page-bg">
             <span className="text-text-muted dark:text-dark-text-muted">Estimated size</span>
-            <span className="t-mono font-semibold">{formatBytes(estimate)}</span>
+            <span className="t-mono font-semibold">{formatBytesRough(estimate)}</span>
           </div>
 
           <MetadataSection
@@ -380,12 +381,6 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       </div>
     </ModalFrame>
   );
-}
-
-function formatBytes(n: number): string {
-  if (n > 1024 * 1024) return `~ ${(n / (1024 * 1024)).toFixed(1)} MB`;
-  if (n > 1024) return `~ ${Math.round(n / 1024)} KB`;
-  return `~ ${n} B`;
 }
 
 /** EXIF read-out + strip-toggle row. Mobile renders inline (always

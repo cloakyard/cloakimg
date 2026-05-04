@@ -5,12 +5,13 @@
 // HEIC / AVIF / WebP / PNG / TIFF), and layer count.
 
 import { useEffect, useRef } from "react";
-import { I } from "../icons";
-import { ModalCloseButton, ModalFrame } from "../ModalFrame";
+import { I } from "../components/icons";
+import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 import { useEditor } from "./EditorContext";
 import { exifToFields } from "./tools/exif";
 import type { Layout } from "./types";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
+import { formatBytes } from "../utils/formatBytes";
 
 interface Props {
   layout: Layout;
@@ -194,10 +195,4 @@ function inferFormat(name: string, isJpeg: boolean): string {
     default:
       return ext ? ext.toUpperCase() : "Unknown";
   }
-}
-
-function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }

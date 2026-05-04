@@ -12,7 +12,7 @@ import "@fontsource/instrument-serif/400-italic.css";
 import "./tokens.css";
 import "./style.css";
 import { App } from "./App";
-import { ErrorBoundary } from "./ErrorBoundary";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const root = document.getElementById("app");
 if (!root) {

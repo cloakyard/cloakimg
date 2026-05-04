@@ -6,7 +6,7 @@
 
 import { type FabricObject, FabricImage } from "fabric";
 import { useCallback, useEffect, useState } from "react";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { PropRow, Slider } from "../atoms";
 import { useEditor } from "../EditorContext";
 

@@ -9,8 +9,7 @@
 
 import { Component, createRef, type ErrorInfo, type ReactNode } from "react";
 import { I } from "./icons";
-
-const GITHUB_REPO = "cloakyard/cloakimg";
+import { GITHUB_NEW_ISSUE_URL } from "../constants/links";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -197,5 +196,5 @@ function buildGithubIssueUrl(error: Error | null, componentStack: string): strin
     "```",
   ].join("\n");
   const params = new URLSearchParams({ title, body, labels: "bug" });
-  return `https://github.com/${GITHUB_REPO}/issues/new?${params.toString()}`;
+  return `${GITHUB_NEW_ISSUE_URL}?${params.toString()}`;
 }

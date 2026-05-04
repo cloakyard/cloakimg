@@ -10,7 +10,7 @@ import { Spinner } from "./editor/atoms";
 import { Landing } from "./landing/Landing";
 import { rememberRecent } from "./landing/recents";
 import { ReloadPrompt } from "./landing/ReloadPrompt";
-import { OrientationLock } from "./OrientationLock";
+import { OrientationLock } from "./components/OrientationLock";
 import type { StartChoice } from "./landing/StartModal";
 
 const UnifiedEditor = lazy(() =>

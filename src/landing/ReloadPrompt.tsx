@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { I } from "../icons";
+import { I } from "../components/icons";
 
 const UPDATE_CHECK_INTERVAL_MS = 10 * 60 * 1000;
 const RELOAD_FALLBACK_MS = 1500;

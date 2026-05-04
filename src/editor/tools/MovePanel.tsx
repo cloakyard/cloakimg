@@ -10,7 +10,7 @@
 
 import { type FabricObject } from "fabric";
 import { useCallback, useEffect, useState } from "react";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { useEditor } from "../EditorContext";
 
 interface TaggedFabricObject extends FabricObject {

@@ -6,8 +6,8 @@
 
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { I } from "../icons";
-import { ModalCloseButton, ModalFrame } from "../ModalFrame";
+import { I } from "../components/icons";
+import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 import type { Layout } from "./types";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 

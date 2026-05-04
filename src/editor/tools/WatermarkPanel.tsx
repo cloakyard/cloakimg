@@ -9,7 +9,7 @@ import { ColorPicker } from "../ColorPicker";
 import type { WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
 import { PropRow, Segment, Slider } from "../atoms";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 
 /** Fabric `cloakKind` tags. Used to find the singleton on re-apply
  *  and so future code can route layer ops to the right kind. */

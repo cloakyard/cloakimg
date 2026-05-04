@@ -6,13 +6,10 @@
 // The editor never mounts this — it lives only on the landing page so
 // the working surface stays clean.
 
-import { I } from "../icons";
+import { I } from "../components/icons";
+import { GITHUB_AUTHOR_URL, GITHUB_LICENSE_URL, GITHUB_ORG_URL } from "../constants/links";
 
 declare const __APP_VERSION__: string;
-
-const REPO_URL = "https://github.com/cloakyard/cloakimg";
-const CLOAKYARD_URL = "https://github.com/cloakyard";
-const AUTHOR_URL = "https://github.com/sumitsahoo";
 
 interface Props {
   onPrivacy?: () => void;
@@ -95,7 +92,7 @@ export function Footer({ onPrivacy }: Props) {
 
           {/* Cloakyard family promo card — coral glow anchored bottom-left */}
           <a
-            href={CLOAKYARD_URL}
+            href={GITHUB_ORG_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative flex flex-col justify-between rounded-2xl border border-border-soft bg-surface-glass p-5 text-inherit no-underline backdrop-blur-md transition-colors hover:border-coral-500/45 dark:border-dark-border-soft dark:bg-dark-surface-glass"
@@ -142,7 +139,7 @@ export function Footer({ onPrivacy }: Props) {
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
             <span>Built with care by</span>
             <a
-              href={AUTHOR_URL}
+              href={GITHUB_AUTHOR_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-text no-underline transition-colors hover:text-coral-600 dark:text-dark-text dark:hover:text-coral-400"
@@ -165,7 +162,7 @@ export function Footer({ onPrivacy }: Props) {
               </>
             )}
             <a
-              href={`${REPO_URL}/blob/main/LICENSE`}
+              href={GITHUB_LICENSE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-text-muted no-underline transition-colors hover:text-coral-600 dark:text-dark-text-muted dark:hover:text-coral-400"

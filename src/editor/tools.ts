@@ -2,7 +2,7 @@
 // metadata for separators in the rail and mobile toolbar.
 
 import type { ComponentType } from "react";
-import { I } from "../icons";
+import { I } from "../components/icons";
 
 export type ToolId =
   | "move"

@@ -4,7 +4,7 @@
 // reads consistently across products.
 
 import type { ReactNode } from "react";
-import { I } from "../icons";
+import { I } from "../components/icons";
 
 interface Feature {
   icon: ReactNode;

@@ -6,7 +6,7 @@
 // Pie, Sunburst, Bookmark, Ribbon, Donut, Crescent.
 
 import type { ComponentType } from "react";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { ColorPicker } from "../ColorPicker";
 import { useEditorActions, useToolState } from "../EditorContext";
 import { PropRow, Slider, ToggleSwitch } from "../atoms";

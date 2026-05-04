@@ -4,11 +4,11 @@
 
 import { type DragEvent as ReactDragEvent, useCallback, useMemo, useRef, useState } from "react";
 import { newStepId, type RecipeStep } from "./batch";
-import { DropZone } from "../DropZone";
+import { DropZone } from "../components/DropZone";
 import { useEditor } from "./EditorContext";
 import { buildStoreZip } from "./zip";
 import { FILTER_PRESETS_RECIPES } from "./tools/filterPresets";
-import { I } from "../icons";
+import { I } from "../components/icons";
 
 interface CanvasProps {
   isMobile: boolean;

@@ -4,10 +4,10 @@
 // editor.
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { DropZone } from "../DropZone";
+import { DropZone } from "../components/DropZone";
 import { ColorPicker } from "../editor/ColorPicker";
-import { I } from "../icons";
-import { ModalCloseButton, ModalFrame } from "../ModalFrame";
+import { I } from "../components/icons";
+import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 import { clearDraft, type DraftEntry, draftToFile, loadDraft } from "./draft";
 import {
   clearRecents,

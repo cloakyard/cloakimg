@@ -35,7 +35,7 @@ import {
   rgbToHsv,
   subscribeRecents,
 } from "./colorUtils";
-import { I } from "../icons";
+import { I } from "../components/icons";
 
 interface Props {
   value: string;

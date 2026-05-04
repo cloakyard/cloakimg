@@ -3,8 +3,8 @@
 // initial document for the editor.
 
 import { useEffect, useState } from "react";
-import { I } from "../icons";
-import { SamplePhoto } from "../SamplePhoto";
+import { I } from "../components/icons";
+import { SamplePhoto } from "../components/SamplePhoto";
 import { Features } from "./Features";
 import { Footer } from "./Footer";
 import { Header } from "./Header";

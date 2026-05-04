@@ -18,7 +18,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { I } from "../icons";
+import { I } from "../components/icons";
 import { useEditor } from "./EditorContext";
 import { LayersList } from "./LayersList";
 import { ToolControls } from "./ToolControls";

@@ -17,7 +17,7 @@ import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { PropRow, Segment, Slider } from "../atoms";
 import { ASPECT_OPTIONS, initialRect, type Rect } from "./cropMath";
 

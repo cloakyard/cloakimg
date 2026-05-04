@@ -4,7 +4,7 @@
 // redundant — Undo/Redo are the recovery path.
 
 import { useCallback, useEffect, useRef } from "react";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { PropRow, Slider } from "../atoms";
 import { copyInto } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";

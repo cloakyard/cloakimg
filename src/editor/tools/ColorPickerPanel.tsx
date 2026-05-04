@@ -5,7 +5,7 @@
 // rail entry and keeps the colour-related affordances together.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { I } from "../../icons";
+import { I } from "../../components/icons";
 import { useEditor } from "../EditorContext";
 import { extractPalette } from "./palette";
 

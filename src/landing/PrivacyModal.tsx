@@ -3,14 +3,13 @@
 // surface free of routes, so we surface the same copy in a modal.
 
 import { useEffect } from "react";
-import { I } from "../icons";
-import { ModalCloseButton, ModalFrame } from "../ModalFrame";
+import { I } from "../components/icons";
+import { GITHUB_ISSUES_URL, GITHUB_REPO_DISPLAY, GITHUB_REPO_URL } from "../constants/links";
+import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 
 interface Props {
   onClose: () => void;
 }
-
-const REPO_URL = "https://github.com/cloakyard/cloakimg";
 
 export function PrivacyModal({ onClose }: Props) {
   useEffect(() => {
@@ -83,12 +82,12 @@ export function PrivacyModal({ onClose }: Props) {
         <Section title="Open Source">
           CloakIMG is open source. You can inspect the full source code at{" "}
           <a
-            href={REPO_URL}
+            href={GITHUB_REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-coral-600 hover:underline dark:text-coral-400"
           >
-            github.com/cloakyard/cloakimg
+            {GITHUB_REPO_DISPLAY}
           </a>{" "}
           to verify these claims independently.
         </Section>
@@ -97,7 +96,7 @@ export function PrivacyModal({ onClose }: Props) {
           Because we do not collect any personal data, there is nothing for us to disclose, correct,
           or delete on your behalf. If you have questions about this policy, you can reach out via{" "}
           <a
-            href={`${REPO_URL}/issues`}
+            href={GITHUB_ISSUES_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-coral-600 hover:underline dark:text-coral-400"

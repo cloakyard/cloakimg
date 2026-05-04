@@ -6,7 +6,7 @@
 // `@media (prefers-color-scheme: dark)`. See [tokens.css](../tokens.css).
 
 import { useState } from "react";
-import { BrandMark, I } from "../icons";
+import { BrandMark, I } from "../components/icons";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useEditor } from "./EditorContext";
 import { MobileMoreMenu } from "./MobileMoreMenu";
