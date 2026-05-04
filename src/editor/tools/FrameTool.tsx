@@ -479,22 +479,27 @@ function drawModern(
   const padX = side * 1.4;
 
   if (opts.thumb) {
-    // Real text would round to ~1 px on a 64-px thumb. Draw a title
-    // bar plus four evenly-spaced dots so the style still reads as
-    // "title + metadata icons" at panel-preview size.
-    const titleH = Math.max(2, Math.round(bottom * 0.16));
+    // Real text would round to ~1 px on a 64-px thumb. Draw a bold
+    // title bar plus a row of four short, varied-width bars — one per
+    // metric in the real settings line — so the style reads as
+    // "title + camera metadata" at panel-preview size. Plain dots
+    // looked generic; typographic bars hint at actual values.
+    const titleH = Math.max(2, Math.round(bottom * 0.18));
     const titleY = stripTop + bottom * 0.32;
     ctx.fillStyle = ink;
-    ctx.fillRect(x + padX, titleY - titleH / 2, (w - 2 * padX) * 0.7, titleH);
+    ctx.fillRect(x + padX, titleY - titleH / 2, (w - 2 * padX) * 0.72, titleH);
+
+    const subH = Math.max(1.5, Math.round(bottom * 0.12));
+    const subY = stripTop + bottom * 0.66;
     const innerW = w - 2 * padX;
-    const dotSpacing = innerW / 4;
-    const dotR = Math.max(0.8, titleH * 0.55);
-    const dotsY = stripTop + bottom * 0.66;
+    const widths = [0.18, 0.22, 0.2, 0.16];
+    const gap = innerW * 0.04;
+    let gx = x + padX;
     ctx.fillStyle = sub;
-    for (let i = 0; i < 4; i++) {
-      ctx.beginPath();
-      ctx.arc(x + padX + dotSpacing * (i + 0.5), dotsY, dotR, 0, Math.PI * 2);
-      ctx.fill();
+    for (const ratio of widths) {
+      const segW = innerW * ratio;
+      ctx.fillRect(gx, subY - subH / 2, segW, subH);
+      gx += segW + gap;
     }
     return;
   }
