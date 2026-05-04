@@ -55,8 +55,8 @@ export function BrandMark({ size = 28, style }: { size?: number; style?: CSSProp
       <title>CloakIMG</title>
       <defs>
         <linearGradient id="bm-bg" gradientUnits="userSpaceOnUse" x1="8" y1="8" x2="8" y2="136">
-          <stop offset="0" stopColor="#fb923c" />
-          <stop offset="1" stopColor="#c2410c" />
+          <stop offset="0" stopColor="#ff7d54" />
+          <stop offset="1" stopColor="#b8371a" />
         </linearGradient>
         <radialGradient id="bm-glow" gradientUnits="userSpaceOnUse" cx="72" cy="52.8" r="89.6">
           <stop offset="0" stopColor="#fff" stopOpacity="0.3" />

@@ -2,8 +2,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="0 0 144 144" role="img" aria-label="CloakIMG" style="fill-rule:evenodd;clip-rule:evenodd;">
     <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="rgb(251,146,60)"/>
-            <stop offset="1" stop-color="rgb(194,65,12)"/>
+            <stop offset="0" stop-color="rgb(255,125,84)"/>
+            <stop offset="1" stop-color="rgb(184,55,26)"/>
         </linearGradient>
         <radialGradient id="bloom" gradientUnits="userSpaceOnUse" cx="72" cy="55" r="100">
             <stop offset="0" stop-color="white" stop-opacity="0.3"/>

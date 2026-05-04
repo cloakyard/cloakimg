@@ -17,15 +17,15 @@
       <stop offset="1" stop-color="#fbecdf"/>
     </linearGradient>
 
-    <!-- Brand-orange anchor (Tailwind orange-400, the logo top stop).
-         Sits off-center to evoke the Grainient ribbon weaving
-         through the field. Saturation knocked down via low alpha
-         (max 0.18) to match the static equivalent of the runtime
-         saturation: 0.3 prop. -->
+    <!-- Brand-coral anchor (--coral-500, the brand primary). Sits
+         off-center to evoke the Grainient ribbon weaving through the
+         field. Saturation knocked down via low alpha (max 0.18) to
+         match the static equivalent of the runtime saturation: 0.3
+         prop. -->
     <radialGradient id="anchor" cx="0.72" cy="0.58" r="0.55">
-      <stop offset="0" stop-color="#fb923c" stop-opacity="0.18"/>
-      <stop offset="0.5" stop-color="#fb923c" stop-opacity="0.08"/>
-      <stop offset="1" stop-color="#fb923c" stop-opacity="0"/>
+      <stop offset="0" stop-color="#f5613a" stop-opacity="0.18"/>
+      <stop offset="0.5" stop-color="#f5613a" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#f5613a" stop-opacity="0"/>
     </radialGradient>
 
     <!-- Secondary peach accent on the opposite flank — gives the
@@ -54,19 +54,22 @@
 
     <!-- CloakIMG brand mark gradient (matches favicon.svg) -->
     <linearGradient id="markBg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fb923c"/>
-      <stop offset="1" stop-color="#c2410c"/>
+      <stop offset="0" stop-color="#ff7d54"/>
+      <stop offset="1" stop-color="#b8371a"/>
     </linearGradient>
     <radialGradient id="markGlow" cx="0.5" cy="0.36" r="0.7">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0.3"/>
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- Cloakyard family mark gradient (matches cloakyard.svg) -->
+    <!-- Cloakyard family mark gradient (matches cloakyard.svg). The
+         warm endpoint mirrors CloakIMG's brand primary (--coral-500)
+         so the "Part of Cloakyard" badge reads as coral inside this
+         brand surface, not Tailwind orange. -->
     <linearGradient id="cyBg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#10b981"/>
       <stop offset="0.5" stop-color="#6366f1"/>
-      <stop offset="1" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#f5613a"/>
     </linearGradient>
     <radialGradient id="cyBloom" cx="0.5" cy="0.5" r="0.7">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>

@@ -3,7 +3,7 @@
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#10b981"/>
       <stop offset="50%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#f5613a"/>
     </linearGradient>
     <radialGradient id="bloom" cx="0.5" cy="0.5" r="0.7">
       <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>

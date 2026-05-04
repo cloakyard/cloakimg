@@ -19,7 +19,7 @@
         </g>
     </g>
     <defs>
-        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,128,-128,0,8,8)"><stop offset="0" style="stop-color:rgb(251,146,60);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(194,65,12);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,128,-128,0,8,8)"><stop offset="0" style="stop-color:rgb(255,125,84);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(184,55,26);stop-opacity:1"/></linearGradient>
         <radialGradient id="_Radial2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(89.6,0,0,89.6,72,52.8)"><stop offset="0" style="stop-color:white;stop-opacity:0.3"/><stop offset="1" style="stop-color:white;stop-opacity:0"/></radialGradient>
     </defs>
 </svg>

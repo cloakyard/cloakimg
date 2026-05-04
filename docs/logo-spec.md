@@ -94,12 +94,12 @@ darker) so the bloom highlight reads naturally.
 
 ### Reference palettes
 
-| Brand       | `bg-from`         | `bg-to`          | Notes                                                                         |
-| ----------- | ----------------- | ---------------- | ----------------------------------------------------------------------------- |
-| CloakIMG    | `rgb(251,146,60)` | `rgb(194,65,12)` | Sunset coral                                                                  |
-| CloakPDF    | _TBD_             | _TBD_            | Pick a print-archival hue (deep red / sepia / inky blue).                     |
-| CloakResume | _TBD_             | _TBD_            | Existing brand uses ocean blue — match the app's `--brand`.                   |
-| CloakYard   | _TBD_             | _TBD_            | Use the existing multi-stop green→indigo→orange if matching the current logo. |
+| Brand       | `bg-from`         | `bg-to`          | Notes                                                                                                |
+| ----------- | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
+| CloakIMG    | `rgb(255,125,84)` | `rgb(184,55,26)` | Sunset coral — `--coral-400` → `--coral-700`, midpoint is `--coral-500` (`#f5613a`, the app primary) |
+| CloakPDF    | _TBD_             | _TBD_            | Pick a print-archival hue (deep red / sepia / inky blue).                                            |
+| CloakResume | _TBD_             | _TBD_            | Existing brand uses ocean blue — match the app's `--brand`.                                          |
+| CloakYard   | _TBD_             | _TBD_            | Use the existing multi-stop green→indigo→orange if matching the current logo.                        |
 
 When picking new gradients: stay inside one hue family (don't cross
 from warm to cool within a single mark), keep ≥ 30 % luminance gap

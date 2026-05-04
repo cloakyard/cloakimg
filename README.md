@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/icons/og-image.svg" alt="CloakIMG — A minimal photo editor that respects your photos" width="800" />
+  <img src="public/icons/og-image.png" alt="CloakIMG — A minimal photo editor that respects your photos" width="800" />
 
   <p>A fast, modern, privacy-focused photo editor that runs entirely in your browser.<br>
   No uploads, no servers, no tracking — your photos never leave your device.</p>
@@ -8,12 +8,11 @@
   <p><strong>Try it here →</strong> <a href="https://img.cloakyard.com/">img.cloakyard.com</a></p>
 
   <p>
-    <img src="https://img.shields.io/github/actions/workflow/status/cloakyard/cloakimg/deploy.yml?label=build" alt="Build status" />
-    <img src="https://img.shields.io/github/deployments/cloakyard/cloakimg/production?label=deploy" alt="Deployment" />
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License" /></a>
+    <a href="https://developers.cloudflare.com/workers/"><img src="https://img.shields.io/badge/deploy-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white" alt="Deployed on Cloudflare Workers" /></a>
+    <img src="https://img.shields.io/badge/platform-Web%20%7C%20PWA-blue" alt="Platform: Web & PWA" />
   </p>
   <p>
-    <img src="https://img.shields.io/badge/platform-Web%20%7C%20PWA-blue" alt="Platform: Web & PWA" />
     <img src="https://img.shields.io/badge/privacy-100%25%20client--side-brightgreen" alt="100% client-side" />
   </p>
 
