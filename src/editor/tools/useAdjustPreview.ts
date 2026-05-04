@@ -1,8 +1,17 @@
 // useAdjustPreview.ts — Build a downsampled preview of the working
 // canvas with the adjust pipeline baked in, debounced via rAF so slider
-// drags stay smooth. The preview is sized to roughly 25% of the source
-// (capped at 720px on the long edge) so even huge photos preview at
-// interactive speed.
+// drags stay smooth. The preview is capped on the long edge so even
+// huge photos preview at interactive speed.
+//
+// The cap is viewport-aware: phones use a smaller cap so per-pixel
+// bakes stay under one frame on weaker mobile CPUs; desktops use a
+// larger cap so the upscale Fabric does to remap the preview back
+// into image-space (required so layers / Fabric objects align)
+// doesn't visibly soften the photo. A 720 px cap on a 4 kpx source
+// produced a ~5.7× upscale and obvious blur in the live preview;
+// 1440 cuts that to ~2.8× on desktop and looks crisp at typical zoom
+// levels. Mobile sits in between at 1080 (~3.8× upscale) so slider
+// drags still feel responsive on older phones.
 //
 // Returns the latest preview canvas, or null while idle. Consumers pass
 // it as `previewCanvas` to <ImageCanvas /> which then uses it instead
@@ -12,7 +21,16 @@ import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
 import { bakeAdjust, isIdentity } from "./adjustments";
 
-const PREVIEW_LONG_EDGE = 720;
+const PREVIEW_LONG_EDGE_MOBILE = 1080;
+const PREVIEW_LONG_EDGE_DESKTOP = 1440;
+const MOBILE_BREAKPOINT_PX = 768;
+
+function previewLongEdge(): number {
+  if (typeof window === "undefined") return PREVIEW_LONG_EDGE_DESKTOP;
+  return window.innerWidth < MOBILE_BREAKPOINT_PX
+    ? PREVIEW_LONG_EDGE_MOBILE
+    : PREVIEW_LONG_EDGE_DESKTOP;
+}
 
 export function useAdjustPreview(
   source: HTMLCanvasElement | null,
@@ -90,9 +108,10 @@ export function useAdjustPreview(
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {
+  const cap = previewLongEdge();
   const long = Math.max(src.width, src.height);
-  if (long <= PREVIEW_LONG_EDGE) return src;
-  const ratio = PREVIEW_LONG_EDGE / long;
+  if (long <= cap) return src;
+  const ratio = cap / long;
   const w = Math.max(1, Math.round(src.width * ratio));
   const h = Math.max(1, Math.round(src.height * ratio));
   const out = createCanvas(w, h);
