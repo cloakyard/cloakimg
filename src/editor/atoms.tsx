@@ -217,14 +217,16 @@ export function Spinner({ size = 36, label }: SpinnerProps) {
         aria-hidden="true"
         style={{
           animation: "ci-spin 0.9s linear infinite",
-          // Promote to a compositor layer so the rotate animation
-          // keeps ticking on the GPU when the main thread is blocked
-          // by a synchronous bake (Filter / Adjust / Resize). Without
-          // this, the browser runs the transform animation on the
-          // main thread and the spinner appears frozen for the
-          // duration of the freeze — exactly when feedback matters.
+          // Promote to a compositor layer so the rotate animation can
+          // run on the GPU. We deliberately do NOT set a base
+          // `transform: translateZ(0)` here — the keyframes only
+          // specify `transform: rotate(360deg)`, and CSS does a
+          // *discrete* swap (not a smooth interpolation) when the
+          // FROM and TO transform function lists don't match. With
+          // a translateZ(0) base, the spinner would visually jump at
+          // 50 % of each cycle and look frozen mid-rotation. Plain
+          // `will-change` is enough to hint the layer.
           willChange: "transform",
-          transform: "translateZ(0)",
         }}
       >
         <circle
