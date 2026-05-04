@@ -123,7 +123,7 @@ export function Landing({ onStart, onIntent }: Props) {
         />
       )}
 
-      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
+      {privacyOpen && <PrivacyModal isPhone={isPhone} onClose={() => setPrivacyOpen(false)} />}
     </div>
   );
 }
