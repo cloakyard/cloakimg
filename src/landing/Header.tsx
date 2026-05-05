@@ -11,22 +11,14 @@ import { GITHUB_REPO_URL } from "../constants/links";
 
 interface Props {
   right?: ReactNode;
-  compact?: boolean;
 }
 
-export function Header({ right, compact = false }: Props) {
+export function Header({ right }: Props) {
   return (
-    <header
-      className={`sticky top-0 z-50 flex items-center gap-3.5 border-b border-border-soft bg-surface-glass backdrop-blur-2xl backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface-glass ${
-        compact ? "px-2.5 py-2.5" : "px-4 py-3"
-      }`}
-    >
+    <header className="sticky top-0 z-50 flex items-center gap-3.5 border-b border-border-soft bg-surface-glass px-4 py-3 backdrop-blur-2xl backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface-glass">
       <div className="flex items-center gap-2.5">
-        <BrandMark size={compact ? 32 : 40} />
-        <div
-          className="logo-wordmark"
-          style={{ fontSize: compact ? 17 : 19, letterSpacing: "-0.025em" }}
-        >
+        <BrandMark size={40} />
+        <div className="logo-wordmark" style={{ fontSize: 19, letterSpacing: "-0.025em" }}>
           Cloak<span>IMG</span>
         </div>
       </div>

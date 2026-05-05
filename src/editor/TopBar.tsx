@@ -44,29 +44,23 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   return (
     <>
       <div
-        className={`editor-paper flex shrink-0 items-center border-b border-border bg-surface dark:border-dark-border dark:bg-dark-surface ${
-          isMobile ? "h-14 gap-1.5 px-2.5 py-2.5" : "h-16 gap-3 px-4 py-3"
+        className={`editor-paper flex h-16 shrink-0 items-center border-b border-border bg-surface py-3 dark:border-dark-border dark:bg-dark-surface ${
+          isMobile ? "gap-1.5 px-2.5" : "gap-3 px-4"
         }`}
       >
         <button
           type="button"
           onClick={exit}
           aria-label="Back to start"
-          className="flex cursor-pointer items-center gap-2 border-none bg-transparent p-0 font-[inherit] text-inherit sm:gap-2.5"
+          className="flex cursor-pointer items-center gap-2.5 border-none bg-transparent p-0 font-[inherit] text-inherit"
         >
           <BrandMark
-            size={isMobile ? 30 : 40}
+            size={40}
             style={{
               filter: "drop-shadow(0 2px 6px rgba(245, 97, 58, 0.28))",
             }}
           />
-          <div
-            className="logo-wordmark"
-            style={{
-              fontSize: isMobile ? 15 : 19,
-              letterSpacing: "-0.025em",
-            }}
-          >
+          <div className="logo-wordmark" style={{ fontSize: 19, letterSpacing: "-0.025em" }}>
             Cloak<span>IMG</span>
           </div>
         </button>

@@ -49,7 +49,7 @@ export function Landing({ onStart, onIntent }: Props) {
           with the iOS URL-bar mask. */}
       <Grainient className="grainient-fixed" {...GRAINIENT_MOTION} {...palette} />
       <div className="relative z-1">
-        <Header compact={isPhone} />
+        <Header />
 
         <section className="mx-auto max-w-275 px-5 pt-14 pb-10 text-center sm:px-8 sm:pt-24 sm:pb-20">
           <h1 className="t-hero mx-auto mb-4.5 max-w-205">

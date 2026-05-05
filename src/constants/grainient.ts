@@ -17,9 +17,9 @@ export const GRAINIENT_LIGHT = {
 } as const;
 
 export const GRAINIENT_DARK = {
-  color1: "#3A2516",
-  color2: "#F5613A",
-  color3: "#1F140A",
+  color1: "#2E1D11",
+  color2: "#C24A2B",
+  color3: "#1A1009",
 } as const;
 
 // Mode-independent motion + saturation knockdown. The brand coral
