@@ -79,6 +79,36 @@ export default defineConfig({
             label: "CloakIMG App on iPad Pro Landscape",
           },
         ],
+        // Register as a system-wide handler for common image types.
+        // When the user picks "Open with CloakIMG" in the OS file
+        // browser, the launchQueue API delivers the FileSystemFileHandle
+        // to the app and we route it into the editor like any drag/drop.
+        file_handlers: [
+          {
+            action: "/",
+            accept: {
+              "image/png": [".png"],
+              "image/jpeg": [".jpg", ".jpeg"],
+              "image/webp": [".webp"],
+              "image/avif": [".avif"],
+              "image/gif": [".gif"],
+              "image/heic": [".heic", ".heif"],
+            },
+          },
+        ],
+        // Web Share Target (GET): the app shows up in OS share sheets
+        // for URL/text shares. File-based POST sharing also needs a
+        // service-worker handler — that requires migrating from
+        // generateSW to injectManifest and is tracked as a follow-up.
+        share_target: {
+          action: "/",
+          method: "GET",
+          params: {
+            title: "title",
+            text: "text",
+            url: "url",
+          },
+        },
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],

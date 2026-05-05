@@ -41,6 +41,30 @@ export const ADJUST_KEYS: AdjustKey[] = [
   "sharpen",
 ];
 
+/** A control point on the tone curve. Both axes are 8-bit pixel
+ *  intensities (0..255). The curve maps an input value on x to an
+ *  output value on y. */
+export interface CurvePoint {
+  x: number;
+  y: number;
+}
+
+/** Identity curve — straight line from (0,0) to (255,255). */
+export const IDENTITY_CURVE: CurvePoint[] = [
+  { x: 0, y: 0 },
+  { x: 255, y: 255 },
+];
+
+/** Cheap "is this curve a no-op?" check. Skipping the LUT bake
+ *  entirely is a meaningful win on big images. */
+export function isCurveIdentity(curve: CurvePoint[]): boolean {
+  if (curve.length !== 2) return false;
+  const a = curve[0];
+  const b = curve[1];
+  if (!a || !b) return false;
+  return a.x === 0 && a.y === 0 && b.x === 255 && b.y === 255;
+}
+
 export interface ToolState {
   activeTool: ToolId;
 
@@ -59,6 +83,12 @@ export interface ToolState {
 
   // Adjust — 9 sliders, each 0..1, 0.5 == "no change"
   adjust: number[];
+
+  /** Master tone curve. Each point is ([0..255] in, [0..255] out),
+   *  sorted by x ascending. The identity curve has exactly two points:
+   *  (0,0) and (255,255). Applied as a 256-entry LUT after every other
+   *  per-pixel adjustment in bakeAdjust. */
+  curveRGB: CurvePoint[];
 
   // Redact
   redactMode: number; // [Rect, Brush]
@@ -172,6 +202,7 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   resizeQuality: 0,
 
   adjust: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+  curveRGB: IDENTITY_CURVE,
 
   redactMode: 0,
   redactStyle: 0,

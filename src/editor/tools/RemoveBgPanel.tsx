@@ -103,11 +103,17 @@ export function RemoveBgPanel() {
   return (
     <>
       <PropRow label="Edge feather" value={`${Math.round(toolState.feather * 30)} px`}>
-        <Slider value={toolState.feather} accent onChange={(v) => patchTool("feather", v)} />
+        <Slider
+          value={toolState.feather}
+          accent
+          defaultValue={0.2}
+          onChange={(v) => patchTool("feather", v)}
+        />
       </PropRow>
       <PropRow label="Threshold" value={`${Math.round(toolState.genericStrength * 100)}%`}>
         <Slider
           value={toolState.genericStrength}
+          defaultValue={0.5}
           onChange={(v) => patchTool("genericStrength", v)}
         />
       </PropRow>

@@ -206,6 +206,10 @@ interface EditorReadValue {
   recipe: RecipeStep[];
   batchRunning: boolean;
   compareActive: boolean;
+  /** Bumps on every commit/undo/redo. Useful for tools that need to
+   *  reread `doc.working`'s pixels — the canvas reference is stable,
+   *  but its bitmap mutates in place on each history step. */
+  historyVersion: number;
 }
 
 const ActionsCtx = createContext<ActionsValue | null>(null);
@@ -683,6 +687,7 @@ export function EditorProvider({
       recipe,
       batchRunning,
       compareActive,
+      historyVersion,
     }),
     [
       doc,

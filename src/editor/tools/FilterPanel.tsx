@@ -143,11 +143,12 @@ export function FilterPanel() {
         <Slider
           value={toolState.filterIntensity}
           accent
+          defaultValue={0.65}
           onChange={(v) => patchTool("filterIntensity", v)}
         />
       </PropRow>
       <PropRow label="Grain" value={`${Math.round(toolState.grain * 100)}%`}>
-        <Slider value={toolState.grain} onChange={(v) => patchTool("grain", v)} />
+        <Slider value={toolState.grain} defaultValue={0} onChange={(v) => patchTool("grain", v)} />
       </PropRow>
     </>
   );

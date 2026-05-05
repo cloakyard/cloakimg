@@ -35,6 +35,17 @@ shortcuts.
   library + drop tool, per-image Fabric `Image.filters` controls in
   the Layers panel, full alignment-guide overlay (doc edges + center
   - every other object's edges + centers).
+- **Phase F4.7 (polish pack)** is **done** — PWA file_handlers + GET
+  share target, slider double-click reset (across all major panels),
+  numeric input next to Adjust sliders with real-unit conversion,
+  PNG copy-to-clipboard from Export, live RGB+luma histogram in
+  Adjust, Spot heal touch loupe with finger-offset ring, two-finger
+  tap → undo gesture on touch.
+- **Phase F4.8 (tone curve)** is **done** — interactive
+  Catmull-Rom-spline curve editor in the Adjust panel. The standalone
+  histogram from F4.7 is now the editor's background. Per-pixel LUT
+  applies after every other adjust stage; lives in tool state, baked
+  on apply, threaded through the live preview path.
 - **Phases F5 (project save / load), F6 (polish), F7 (verify & ship)**
   remain.
 
@@ -45,24 +56,26 @@ Fabric-delta target — F7 audit will prune if we go more).
 
 ## Phase status
 
-| #    | Phase                                   | Status                                                                            |
-| ---- | --------------------------------------- | --------------------------------------------------------------------------------- |
-| 1    | Strip AI surface + offline guarantee    | Done                                                                              |
-| 2    | Fill must-work feature gaps             | Done                                                                              |
-| 3    | Polish (live preview, batch, shortcuts) | Done                                                                              |
-| 4    | Verify & ship (auto checks)             | Auto checks done; manual smoke on the human                                       |
-| F0   | Fabric audit                            | Done                                                                              |
-| F1   | Fabric foundation                       | Done                                                                              |
-| F2-A | Fabric becomes the rendering surface    | Done                                                                              |
-| F2-B | Migrate non-destructive layer types     | Done (Text · Watermark · Draw · WatermarkImage all Fabric)                        |
-| F3   | Crop overlay + Move/Select + Layers     | Done                                                                              |
-| F4   | New tools enabled by Fabric             | Done (rolled forward into F4.5)                                                   |
-| F4.5 | UX fixes + F4 carryover                 | Done — UX fixes + Pen + Stickers + per-image filters + alignment overlay all live |
-| FX   | Tailwind v4 migration + auto dark mode  | Done — 388 → 95 inline-style blocks, manual theme toggle removed, dark follows OS |
-| F4.6 | Cross-tool state preservation           | Done — Fabric scene carries across tool swaps; preview tools auto-flush; Reset    |
-| F5   | Project save / load                     | Pending                                                                           |
-| F6   | Polish (group, lock, copy, etc.)        | Pending                                                                           |
-| F7   | Verify & ship Fabric-era                | Pending                                                                           |
+| #    | Phase                                   | Status                                                                                                                                                |
+| ---- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Strip AI surface + offline guarantee    | Done                                                                                                                                                  |
+| 2    | Fill must-work feature gaps             | Done                                                                                                                                                  |
+| 3    | Polish (live preview, batch, shortcuts) | Done                                                                                                                                                  |
+| 4    | Verify & ship (auto checks)             | Auto checks done; manual smoke on the human                                                                                                           |
+| F0   | Fabric audit                            | Done                                                                                                                                                  |
+| F1   | Fabric foundation                       | Done                                                                                                                                                  |
+| F2-A | Fabric becomes the rendering surface    | Done                                                                                                                                                  |
+| F2-B | Migrate non-destructive layer types     | Done (Text · Watermark · Draw · WatermarkImage all Fabric)                                                                                            |
+| F3   | Crop overlay + Move/Select + Layers     | Done                                                                                                                                                  |
+| F4   | New tools enabled by Fabric             | Done (rolled forward into F4.5)                                                                                                                       |
+| F4.5 | UX fixes + F4 carryover                 | Done — UX fixes + Pen + Stickers + per-image filters + alignment overlay all live                                                                     |
+| FX   | Tailwind v4 migration + auto dark mode  | Done — 388 → 95 inline-style blocks, manual theme toggle removed, dark follows OS                                                                     |
+| F4.6 | Cross-tool state preservation           | Done — Fabric scene carries across tool swaps; preview tools auto-flush; Reset                                                                        |
+| F4.7 | Polish pack (Option A)                  | Done — PWA file/share targets, slider double-click reset, numeric input, clipboard copy, Adjust histogram, Spot heal touch loupe, two-finger-tap undo |
+| F4.8 | Tone curve                              | Done — Catmull-Rom curve editor over the histogram in Adjust; LUT bakes after every other adjust stage; live preview                                  |
+| F5   | Project save / load                     | Pending                                                                                                                                               |
+| F6   | Polish (group, lock, copy, etc.)        | Pending                                                                                                                                               |
+| F7   | Verify & ship Fabric-era                | Pending                                                                                                                                               |
 
 ---
 
@@ -91,7 +104,13 @@ Live preview runs the real per-pixel adjust pipeline against a
 720px-long-edge preview canvas (rAF-coalesced). Apply bakes at full
 resolution. All nine controls (exposure, contrast, highlights,
 shadows, whites, blacks, saturation, vibrance, temp) update visibly
-during slider drag.
+during slider drag. **Tone curve** (Phase F4.8) sits at the top of
+the panel — interactive Catmull-Rom curve over a live RGB+luma
+histogram. Click empty space to add a control point, drag to move,
+double-click an interior point to remove. Endpoints are sticky on x
+so the curve always covers the full input range. Baked as a 256-entry
+LUT after every other adjust stage in `bakeAdjust` /
+`bakeAdjustAsync`.
 
 ### 4. Filter
 
@@ -599,6 +618,132 @@ isolation (least-coupled first).
 - [ ] Manual sweep — light + dark, landing + editor + modals +
       every tool panel. To be done by the human before F5 starts.
 
+### ✅ Phase F4.7 — Polish pack (2026-05-05)
+
+A grab-bag of small UX items that don't fit a single phase but raise the
+overall feel of the editor. Sequenced before F5 so the chrome is settled
+before save/load lands.
+
+- [x] **PWA file_handlers + GET share target.**
+      [vite.config.ts](vite.config.ts) — manifest now declares the app
+      as a system handler for png/jpg/webp/avif/gif/heic. The OS
+      "Open with CloakIMG" path uses the LaunchQueue API to deliver a
+      `FileSystemFileHandle` to [App.tsx](src/App.tsx), which resolves
+      it to a `File` and feeds it through the existing upload flow —
+      bypassing the StartModal entirely. GET-style share target also
+      registered for URL/text shares. **Note:** POST-with-files share
+      (the photo → Share → CloakIMG path on Android) needs a custom
+      service worker — generateSW won't intercept the POST, so this
+      requires migrating to `injectManifest`. Tracked in the backlog.
+- [x] **Slider double-click → reset to default.**
+      [atoms.tsx](src/editor/atoms.tsx) — `Slider` accepts an optional
+      `defaultValue` prop; double-click fires `onChange(defaultValue)`.
+      Wired across Adjust (0.5 for all 11 sliders), SpotHeal (brush
+      0.32, feather 0.2), Filter (intensity 0.65, grain 0), Redact
+      (strength 0.5, brush 0.32, feather 0.2), Remove BG (feather
+      0.2, threshold 0.5), and Export quality (0.92).
+- [x] **Numeric input next to sliders (Adjust panel).**
+      [atoms.tsx](src/editor/atoms.tsx) gains a `NumericReadout` atom
+      and `PropRow.valueInput` slot. The displayed chip is now a real
+      `<input>` — click to edit, type a number, Enter / blur to commit,
+      Esc to revert. AdjustPanel wires real-unit conversion per slider
+      so a user can type "+12" or "-30" instead of dragging. Slider
+      also gets `role="slider"` + aria-valuemin/max/now and tabIndex
+      for keyboard a11y.
+- [x] **Copy to clipboard from Export.**
+      [ExportModal.tsx](src/editor/ExportModal.tsx) — new "Copy" button
+      between Cancel and Download. PNG-encodes the working canvas (with
+      Fabric overlays baked in) at full resolution and writes it via
+      `navigator.clipboard.write`. Brief "Copied" confirmation; modal
+      stays open so users can also Download right after. PNG regardless
+      of selected Format because clipboard interop is tightest with
+      PNG (Slack, Mail, Photos, Messages).
+- [x] **Live histogram in the Adjust panel.**
+      New [Histogram.tsx](src/editor/Histogram.tsx) renders a 256-bin
+      RGB + luma histogram of the current working canvas. Sourced from
+      a 240-px-long-edge scratch downsample (cached + recycled across
+      recomputes). Refreshes whenever `historyVersion` ticks (commit /
+      undo / redo); uses `mix-blend-mode: screen` so overlapping
+      channel curves read white, matching Photoshop's look. Required
+      adding `historyVersion` to `EditorReadValue` so consumers can
+      tell when the working bitmap mutated in place.
+- [x] **Spot heal touch loupe + offset.**
+      [SpotHealTool.tsx](src/editor/tools/SpotHealTool.tsx) — on
+      coarse pointers the heal target now sits 80 CSS px above the
+      finger, clamped against the top edge so the ring doesn't fly
+      off-image. A coral pip at the actual touch point with a dashed
+      connector up to the ring tells the user where they're touching
+      vs where the heal will land. Heal target is offset in image-space
+      via the cached transform scale, so visual ring and heal pixel
+      stay in sync at any zoom. Builds on the earlier coarse-pointer
+      stroke-thickness pass.
+- [x] **Two-finger-tap → undo on touch.**
+      [ImageCanvas.tsx](src/editor/ImageCanvas.tsx) — when both
+      fingers come up within 280 ms of the second going down, with
+      neither finger having strayed > 10 px from the start midpoint
+      and the pinch distance change < 10 px, we fire `undo()`. Any
+      meaningful pinch-zoom or two-finger pan invalidates the tap;
+      `pointercancel` clears any pending tap. Matches the
+      Procreate / Concepts / Pixelmator gesture vocabulary.
+- [x] **Verified already-shipped items.** AVIF export
+      ([exportPipeline.ts](src/editor/exportPipeline.ts) — listed in
+      `BASE_FORMATS`, with WebP fallback for older engines) and
+      drag-reorder layers
+      ([LayersList.tsx](src/editor/LayersList.tsx) — HTML5 drag with
+      Fabric `bringObjectForward` / `sendObjectBackwards`).
+
+`vp check` clean. No new runtime dependencies — all changes are
+either manifest fields, ambient TS types, or new components built on
+the existing atoms.
+
+### ✅ Phase F4.8 — Tone curve (2026-05-05)
+
+A real Curves tool inside the Adjust panel. Pairs naturally with the
+F4.7 histogram (now the curve editor's background); unlocks classic
+S-curves, shadow lift, and highlight roll-off without touching the
+sliders.
+
+- [x] **Curve in tool state.**
+      [toolState.ts](src/editor/toolState.ts) — new
+      `curveRGB: CurvePoint[]` field, defaulted to the two-point
+      identity `[(0,0), (255,255)]`. Helpers `IDENTITY_CURVE` and
+      `isCurveIdentity` for fast no-op detection.
+- [x] **LUT bake in the per-pixel pipeline.**
+      [adjustments.ts](src/editor/tools/adjustments.ts) — new
+      `buildCurveLUT(curve)` evaluates a Catmull-Rom spline through
+      the user's points at every x ∈ [0..255] and clamps. Both
+      `bakeAdjust` and `bakeAdjustAsync` accept an optional `curve`
+      param and apply the LUT at the end of each pixel's pass (after
+      grain, before write-back). Identity curves skip the LUT build
+      entirely. New `isAdjustIdentity(arr, curve)` helper handles the
+      "any reason to bake at all?" check across both inputs.
+- [x] **Live preview.**
+      [useAdjustPreview.ts](src/editor/tools/useAdjustPreview.ts) —
+      new optional `curve` param, threaded into the bake call and
+      added to the effect deps so a curve drag re-bakes at rAF rate
+      against the downsampled preview canvas, just like a slider.
+      [AdjustTool.tsx](src/editor/tools/AdjustTool.tsx) passes
+      `toolState.curveRGB` through.
+- [x] **CurveEditor component.**
+      [CurveEditor.tsx](src/editor/tools/CurveEditor.tsx) — square
+      SVG with quartile grid, fade-blend RGB+luma histogram in the
+      background, dashed identity diagonal, coral curve, white-fill
+      coral-stroke control points. Click empty area to add a point;
+      drag to move (with neighbour-bound x clamping); double-click an
+      interior point to remove. Endpoints are sticky on x so the
+      curve never chops off shadows or highlights. Reset link in the
+      footer caption snaps back to identity.
+- [x] **Adjust panel rewrite.**
+      [AdjustPanel.tsx](src/editor/tools/AdjustPanel.tsx) — replaces
+      the F4.7 standalone `<Histogram />` with `<CurveEditor />` (the
+      histogram lives inside the editor now). Reset clears the curve
+      back to identity alongside the sliders; the dirty / pending-apply
+      check now considers both sliders and curve, so a curve-only
+      change still auto-flushes on tool switch.
+- [x] **Histogram.tsx removed.** Its compute helper was inlined into
+      `CurveEditor.tsx` and no other consumer existed; deletion keeps
+      the surface area honest.
+
 ### ⏳ Phase F5 — Project save / load
 
 - [ ] `.cloakimg` project file —
@@ -658,6 +803,11 @@ isolation (least-coupled first).
 10. WebGL Fabric backend for very large canvases.
 11. Animation timeline (Fabric supports per-property animations).
 12. Export profiles (saved combinations of format + size + quality).
+13. **Web Share Target POST (file payload)** — declares the app as a
+    target in the OS Share sheet for images. Needs migrating the PWA
+    plugin from `generateSW` to `injectManifest` so a custom service
+    worker can intercept the multipart POST and route the file into
+    the launch flow. (F4.7 shipped GET-only as a partial step.)
 
 Collaboration is explicitly out of scope — would break the
 local-only guarantee.

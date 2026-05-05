@@ -184,6 +184,45 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
     };
   }, [doc, fallbackEstimate, settings, targetH, targetW]);
 
+  const [copied, setCopied] = useState(false);
+  const copyToClipboard = useCallback(async () => {
+    if (!doc) return;
+    setBusy(true);
+    setExportError(null);
+    try {
+      // Encode at full canvas resolution as PNG. Clipboard interop is
+      // tightest with PNG — Slack, Mail, Photos, Messages and basically
+      // every other app accept it. Skipping the user's Format choice
+      // here is intentional: clipboard isn't a download, it's a paste
+      // target, and PNG is the lingua franca.
+      const out = document.createElement("canvas");
+      out.width = doc.width;
+      out.height = doc.height;
+      const ctx = out.getContext("2d");
+      if (!ctx) throw new Error("Could not create canvas context");
+      ctx.drawImage(doc.working, 0, 0);
+      const fc = getFabricCanvas();
+      if (fc) {
+        for (const obj of fc.getObjects()) {
+          if (!obj.visible) continue;
+          obj.render(ctx);
+        }
+      }
+      const blob = await new Promise<Blob | null>((r) => out.toBlob((b) => r(b), "image/png"));
+      if (!blob) throw new Error("Browser refused to encode PNG");
+      if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) {
+        throw new Error("Clipboard image copy isn't supported in this browser");
+      }
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : "Copy failed");
+    } finally {
+      setBusy(false);
+    }
+  }, [doc, getFabricCanvas]);
+
   const download = useCallback(async () => {
     if (!doc) return;
     setBusy(true);
@@ -305,7 +344,12 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
                 : `${Math.round(settings.quality * 100)}%`
             }
           >
-            <Slider value={settings.quality} accent onChange={(v) => onPatch({ quality: v })} />
+            <Slider
+              value={settings.quality}
+              accent
+              defaultValue={0.92}
+              onChange={(v) => onPatch({ quality: v })}
+            />
           </PropRow>
           <PropRow label="Size">
             <Segment
@@ -368,6 +412,15 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
         >
           <button type="button" className="btn btn-ghost btn-sm flex-1" onClick={onClose}>
             Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm flex-1 justify-center"
+            onClick={copyToClipboard}
+            disabled={busy}
+            title="Copy edited image to clipboard as PNG"
+          >
+            {copied ? <I.Check size={13} /> : <I.Copy size={13} />} {copied ? "Copied" : "Copy"}
           </button>
           <button
             type="button"

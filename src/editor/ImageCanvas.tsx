@@ -118,6 +118,7 @@ export function ImageCanvas({
     captureFabricSnapshot,
     peekFabricSnapshot,
     commit,
+    undo,
   } = useEditor();
   const containerRef = useRef<HTMLDivElement>(null);
   // Fabric inserts a wrapper div + two canvases, then disposes the
@@ -140,6 +141,18 @@ export function ImageCanvas({
   // midpoint + pan, so the move handler can drive both gestures from
   // the same two-pointer session.
   const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  // Two-finger-tap → undo. The gesture starts when a second pointer
+  // joins; if both pointers come up within ~280 ms with negligible
+  // movement (< ~10 px from the start midpoint and minimal pinch
+  // change) we treat the lift as a tap and fire undo. Any meaningful
+  // pinch / pan invalidates the tap.
+  const twoFingerTapRef = useRef<{
+    startTime: number;
+    startMidX: number;
+    startMidY: number;
+    startDist: number;
+    valid: boolean;
+  } | null>(null);
   const pinchRef = useRef<{
     startDist: number;
     startZoom: number;
@@ -558,18 +571,31 @@ export function ImageCanvas({
         const a = pts[0];
         const b = pts[1];
         if (a && b) {
+          const startDist = Math.hypot(a.x - b.x, a.y - b.y);
+          const startMidX = (a.x + b.x) / 2;
+          const startMidY = (a.y + b.y) / 2;
           pinchRef.current = {
-            startDist: Math.hypot(a.x - b.x, a.y - b.y),
+            startDist,
             startZoom: view.zoom,
-            startMidX: (a.x + b.x) / 2,
-            startMidY: (a.y + b.y) / 2,
+            startMidX,
+            startMidY,
             startPanX: view.panX,
             startPanY: view.panY,
+          };
+          twoFingerTapRef.current = {
+            startTime: performance.now(),
+            startMidX,
+            startMidY,
+            startDist,
+            valid: true,
           };
           panRef.current = null;
         }
         return;
       }
+      // Any single-pointer down with another already in flight kills
+      // the pending two-finger tap — the user is doing something else.
+      twoFingerTapRef.current = null;
       const panning = spaceDown || e.button === 1;
       if (panning) {
         panRef.current = {
@@ -601,6 +627,14 @@ export function ImageCanvas({
           const midX = (a.x + b.x) / 2;
           const midY = (a.y + b.y) / 2;
           const { startZoom, startMidX, startMidY, startPanX, startPanY } = pinchRef.current;
+          // Invalidate the pending two-finger-tap if either fingers moved
+          // far enough to suggest a pinch-zoom or two-finger-pan.
+          const tap = twoFingerTapRef.current;
+          if (tap) {
+            const movedMid = Math.hypot(midX - tap.startMidX, midY - tap.startMidY);
+            const distDelta = Math.abs(dist - tap.startDist);
+            if (movedMid > 10 || distDelta > 10) tap.valid = false;
+          }
           // Drive zoom + pan together: pinch ratio scales the zoom,
           // midpoint translation pans the canvas. Two-finger pan is
           // the touch equivalent of Space-drag on desktop, useful
@@ -636,6 +670,17 @@ export function ImageCanvas({
       pointersRef.current.delete(e.pointerId);
       if (pinchRef.current && pointersRef.current.size < 2) {
         pinchRef.current = null;
+        // If the second finger lifts within the tap window with neither
+        // finger having strayed far, treat the lift as a two-finger tap
+        // and undo the most recent commit. The first finger lifting
+        // alone (size === 1 here) starts the window; the *second* lift
+        // (size === 0) closes it.
+        const tap = twoFingerTapRef.current;
+        if (tap?.valid && pointersRef.current.size === 0) {
+          const elapsed = performance.now() - tap.startTime;
+          if (elapsed < 280) void undo();
+        }
+        if (pointersRef.current.size === 0) twoFingerTapRef.current = null;
         return;
       }
       if (panRef.current) {
@@ -646,7 +691,7 @@ export function ImageCanvas({
       const pt = toImagePoint(e, transform, doc.width, doc.height);
       onImagePointerUp?.(pt, e);
     },
-    [doc, onImagePointerUp, transform],
+    [doc, onImagePointerUp, transform, undo],
   );
 
   // iOS Safari fires `pointercancel` instead of `pointerup` whenever a
@@ -661,6 +706,9 @@ export function ImageCanvas({
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) pinchRef.current = null;
     if (pointersRef.current.size === 0) panRef.current = null;
+    // System gestures cancel any pending two-finger-tap — we'd rather
+    // skip the undo than fire it for an interrupted touch.
+    twoFingerTapRef.current = null;
   }, []);
 
   const isMobile = size.w > 0 && size.w < 760;

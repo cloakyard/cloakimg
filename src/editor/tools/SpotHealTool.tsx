@@ -6,16 +6,31 @@
 // canvas and replaced with a live ring sized to the brush slider, so
 // the user can see exactly what will be healed before clicking.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor } from "../EditorContext";
 import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 
-const SLIDER_PREVIEW_MS = 1200;
+// Coarse pointers (touch) lack a hover state, so the brush ring is the
+// user's only preview of where the heal will land. We make it bolder
+// and hold the slider-driven preview longer than on desktop.
+const COARSE_POINTER =
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(pointer: coarse)").matches;
+const SLIDER_PREVIEW_MS = COARSE_POINTER ? 1800 : 1200;
+// Screen-space offset of the heal target above the finger on touch.
+// 80 CSS px clears most fingertip silhouettes without flying off the
+// canvas; converted to image-space at heal() time using the live
+// transform scale so the gap reads the same regardless of zoom.
+const TOUCH_OFFSET_PX = COARSE_POINTER ? 80 : 0;
 
 export function SpotHealTool() {
   const { doc, toolState, commit } = useEditor();
   const [hover, setHover] = useState<{ x: number; y: number; inside: boolean } | null>(null);
+  // paintOverlay receives the live Transform; heal() runs from a
+  // pointer handler that doesn't, so we stash the latest scale here.
+  const transformRef = useRef<{ scale: number } | null>(null);
   // Show the brush ring at the canvas centre for a beat whenever the
   // size or feather slider changes — gives the user an immediate
   // visual sense of brush footprint without forcing them to first
@@ -40,8 +55,14 @@ export function SpotHealTool() {
       const radius = Math.max(4, toolState.brushSize * 100);
       const feather = Math.max(0.5, toolState.feather * 30);
       const ringMax = radius + feather + 4;
+      // Touch offset: shift the heal target above the finger so the
+      // user can see it. Converts the CSS-px constant to image-space
+      // using the live scale; clamped so we don't run off-image when
+      // tapping near the top edge.
+      const scale = transformRef.current?.scale ?? 1;
+      const offY = TOUCH_OFFSET_PX > 0 ? Math.min(p.y, TOUCH_OFFSET_PX / scale) : 0;
       const cx = Math.round(p.x);
-      const cy = Math.round(p.y);
+      const cy = Math.round(p.y - offY);
       const sampleSize = Math.ceil(ringMax) * 2;
       const sx = Math.max(0, cx - Math.ceil(ringMax));
       const sy = Math.max(0, cy - Math.ceil(ringMax));
@@ -126,6 +147,9 @@ export function SpotHealTool() {
 
   const paintOverlay = useCallback(
     (ctx: CanvasRenderingContext2D, t: Transform) => {
+      // Cache the live scale so the heal pointer handler can convert
+      // the touch-offset constant from CSS px back to image-space.
+      transformRef.current = { scale: t.scale };
       // Anchor the ring at the hovered pixel when the user is on the
       // canvas. Otherwise fall back to the centre of the image while
       // the slider preview is active so the user can size the brush
@@ -139,35 +163,81 @@ export function SpotHealTool() {
       if (!anchor) return;
       const radius = Math.max(4, toolState.brushSize * 100);
       const feather = Math.max(0.5, toolState.feather * 30);
-      const sx = t.ox + anchor.x * t.scale;
-      const sy = t.oy + anchor.y * t.scale;
+      // On touch, the heal target sits above the finger by
+      // TOUCH_OFFSET_PX in screen space — clamped against the top edge
+      // so the ring doesn't fly off the image when tapping near the
+      // top. The "finger pip" below shows the user where they're
+      // actually touching, with a connector line up to the ring.
+      const fingerSx = t.ox + anchor.x * t.scale;
+      const fingerSy = t.oy + anchor.y * t.scale;
+      const offsetScreen =
+        TOUCH_OFFSET_PX > 0 && hover?.inside ? Math.min(anchor.y * t.scale, TOUCH_OFFSET_PX) : 0;
+      const sx = fingerSx;
+      const sy = fingerSy - offsetScreen;
       const sr = radius * t.scale;
       const sf = (radius + feather) * t.scale;
+      // Touch screens are typically high-DPI and the user's finger
+      // covers the heal point, so hairline strokes are unreadable.
+      // Bump every line + the crosshair pip on coarse pointers, and
+      // widen the dash gap so it doesn't blur into a solid ring.
+      const outerW = COARSE_POINTER ? 2 : 1;
+      const innerDarkW = COARSE_POINTER ? 2.5 : 1.5;
+      const innerLightW = COARSE_POINTER ? 1.5 : 0.75;
+      const dash: [number, number] = COARSE_POINTER ? [6, 4] : [3, 3];
+      const pipR = COARSE_POINTER ? 3 : 1.5;
       ctx.save();
       // Outer feather ring (dashed).
-      ctx.strokeStyle = "rgba(255,255,255,0.55)";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = "rgba(255,255,255,0.7)";
+      ctx.lineWidth = outerW;
+      ctx.setLineDash(dash);
       ctx.beginPath();
       ctx.arc(sx, sy, sf, 0, Math.PI * 2);
       ctx.stroke();
       // Inner solid ring at the heal radius — the actual replacement zone.
       ctx.setLineDash([]);
       ctx.strokeStyle = "rgba(0,0,0,0.85)";
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = innerDarkW;
       ctx.beginPath();
       ctx.arc(sx, sy, sr, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.strokeStyle = "rgba(255,255,255,0.85)";
-      ctx.lineWidth = 0.75;
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = innerLightW;
       ctx.beginPath();
       ctx.arc(sx, sy, sr, 0, Math.PI * 2);
       ctx.stroke();
-      // Center crosshair pip.
-      ctx.fillStyle = "rgba(0,0,0,0.7)";
+      // Center crosshair pip — outlined so it stays visible on any
+      // background colour the finger isn't covering.
+      ctx.fillStyle = "rgba(255,255,255,0.95)";
       ctx.beginPath();
-      ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+      ctx.arc(sx, sy, pipR, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = "rgba(0,0,0,0.85)";
+      ctx.beginPath();
+      ctx.arc(sx, sy, pipR * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+      // Touch only: when the heal point is offset above the finger,
+      // draw a small marker at the actual finger position with a thin
+      // connector line up to the ring. Lets the user track which
+      // direction the offset goes without guessing.
+      if (offsetScreen > 0) {
+        ctx.strokeStyle = "rgba(245,97,58,0.7)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.moveTo(fingerSx, fingerSy);
+        ctx.lineTo(sx, sy + sf + 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(245,97,58,0.85)";
+        ctx.beginPath();
+        ctx.arc(fingerSx, fingerSy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.95)";
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.arc(fingerSx, fingerSy, 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
     },
     [hover, sliderPreview, doc, toolState.brushSize, toolState.feather],

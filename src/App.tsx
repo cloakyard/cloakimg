@@ -5,7 +5,7 @@
 // Fabric is fetched in the background as soon as the user starts to
 // interact, masking the load behind the StartModal.
 
-import { lazy, Suspense, useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Spinner } from "./editor/atoms";
 import { Landing } from "./landing/Landing";
 import { rememberRecent } from "./landing/recents";
@@ -33,6 +33,24 @@ export function App() {
     setChoice(next);
     if (next.kind === "upload") void rememberRecent(next.file);
   }, []);
+
+  // PWA "Open with CloakIMG" path. When the user picks the app from
+  // the OS file menu, the LaunchQueue API delivers FileSystemFileHandles
+  // here. We resolve each handle to a File and feed it through the same
+  // upload flow as drag/drop, skipping the StartModal entirely. Only
+  // installed PWAs on Chromium-based browsers expose launchQueue today.
+  useEffect(() => {
+    const lq = window.launchQueue;
+    if (!lq) return;
+    lq.setConsumer((params) => {
+      const handle = params.files[0];
+      if (!handle) return;
+      preloadEditor();
+      void handle.getFile().then((file) => {
+        onStart({ kind: "upload", file });
+      });
+    });
+  }, [onStart]);
 
   if (!choice) {
     return (

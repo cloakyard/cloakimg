@@ -10,7 +10,14 @@ import { useAdjustPreview } from "./useAdjustPreview";
 
 export function AdjustTool() {
   const { toolState, doc } = useEditor();
-  const preview = useAdjustPreview(doc?.working ?? null, toolState.adjust, 0);
+  const preview = useAdjustPreview(
+    doc?.working ?? null,
+    toolState.adjust,
+    0,
+    false,
+    0,
+    toolState.curveRGB,
+  );
   useStageProps({ previewCanvas: preview });
   return null;
 }

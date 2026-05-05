@@ -9,10 +9,19 @@ export function SpotHealPanel() {
   return (
     <>
       <PropRow label="Brush size" value={`${Math.round(toolState.brushSize * 100)} px`}>
-        <Slider value={toolState.brushSize} accent onChange={(v) => patchTool("brushSize", v)} />
+        <Slider
+          value={toolState.brushSize}
+          accent
+          defaultValue={0.32}
+          onChange={(v) => patchTool("brushSize", v)}
+        />
       </PropRow>
       <PropRow label="Edge feather" value={`${Math.round(toolState.feather * 30)} px`}>
-        <Slider value={toolState.feather} onChange={(v) => patchTool("feather", v)} />
+        <Slider
+          value={toolState.feather}
+          defaultValue={0.2}
+          onChange={(v) => patchTool("feather", v)}
+        />
       </PropRow>
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         Click on a spot to heal it from neighbouring pixels.

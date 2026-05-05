@@ -5,10 +5,64 @@
 // Each slider stores 0..1 with 0.5 == "no change". We map those to a
 // signed range and let the math do the rest.
 
-import { ADJUST_KEYS, type AdjustKey } from "../toolState";
+import { ADJUST_KEYS, type AdjustKey, type CurvePoint, isCurveIdentity } from "../toolState";
 import { acquireCanvas } from "../doc";
 
 export type AdjustValues = Partial<Record<AdjustKey, number>>;
+
+/** Build a 256-entry LUT from a sorted list of control points. The
+ *  curve passes through every point exactly; values between points
+ *  are interpolated with a Catmull-Rom spline (smooth without needing
+ *  user-set tangents). Values are clamped to 0..255 before storage so
+ *  the LUT is safe to index with any 8-bit pixel. */
+export function buildCurveLUT(curve: CurvePoint[]): Uint8Array {
+  const lut = new Uint8Array(256);
+  // Sort defensively — the editor always feeds us sorted points, but
+  // we never want a corrupt LUT on a freshly-restored draft.
+  const pts = [...curve].sort((a, b) => a.x - b.x);
+  if (pts.length === 0) {
+    for (let x = 0; x < 256; x++) lut[x] = x;
+    return lut;
+  }
+  for (let x = 0; x < 256; x++) {
+    lut[x] = clamp255(catmullRomY(pts, x));
+  }
+  return lut;
+}
+
+function catmullRomY(pts: CurvePoint[], x: number): number {
+  const first = pts[0];
+  const last = pts[pts.length - 1];
+  if (!first || !last) return x;
+  if (x <= first.x) return first.y;
+  if (x >= last.x) return last.y;
+  // Find the segment [p1..p2] enclosing x.
+  let i = 0;
+  for (; i < pts.length - 1; i++) {
+    const next = pts[i + 1];
+    if (next && next.x >= x) break;
+  }
+  const p1 = pts[i];
+  const p2 = pts[i + 1];
+  if (!p1 || !p2) return x;
+  // Mirror endpoints when there's no neighbour for Catmull-Rom — keeps
+  // the curve flat at the ends instead of overshooting.
+  const p0 = pts[i - 1] ?? p1;
+  const p3 = pts[i + 2] ?? p2;
+  const span = p2.x - p1.x;
+  if (span <= 0) return p1.y;
+  const t = (x - p1.x) / span;
+  const t2 = t * t;
+  const t3 = t2 * t;
+  // Standard Catmull-Rom basis (tension = 0.5).
+  return (
+    0.5 *
+    (2 * p1.y +
+      (-p0.y + p2.y) * t +
+      (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+      (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)
+  );
+}
 
 const RANGE: Record<AdjustKey, number> = {
   exposure: 2, // ±2 stops
@@ -39,6 +93,16 @@ export function sliderArrayToValues(arr: number[]): Required<AdjustValues> {
 /** Identity if all sliders are 0.5. */
 export function isIdentity(arr: number[]): boolean {
   return arr.every((v) => Math.abs(v - 0.5) < 1e-3);
+}
+
+/** True when *both* sliders and the curve are no-ops, so callers can
+ *  skip the entire bake path. Sliders alone aren't enough — a user
+ *  with all sliders centred but a non-identity curve still needs the
+ *  per-pixel pass. */
+export function isAdjustIdentity(arr: number[], curve?: CurvePoint[]): boolean {
+  if (!isIdentity(arr)) return false;
+  if (curve && !isCurveIdentity(curve)) return false;
+  return true;
 }
 
 /** A CSS filter string that approximates the adjust pipeline. Used for
@@ -80,15 +144,18 @@ export async function bakeAdjustAsync(
   src: HTMLCanvasElement,
   arr: number[],
   grain = 0,
+  curve?: CurvePoint[],
 ): Promise<HTMLCanvasElement> {
   const out = acquireCanvas(src.width, src.height);
   const ctx = out.getContext("2d");
   if (!ctx) return out;
   ctx.drawImage(src, 0, 0);
 
-  if (isIdentity(arr) && grain === 0) return out;
+  const curveActive = !!curve && !isCurveIdentity(curve);
+  if (isIdentity(arr) && grain === 0 && !curveActive) return out;
 
   const v = sliderArrayToValues(arr);
+  const lut = curveActive && curve ? buildCurveLUT(curve) : null;
 
   if (Math.abs(v.sharpen) > 1e-3) {
     applySharpen(out, v.sharpen);
@@ -182,6 +249,16 @@ export async function bakeAdjustAsync(
         b += n;
       }
 
+      if (lut) {
+        // Pre-clamping ensures the LUT index is a valid byte even when
+        // an upstream stage drove a channel out of range — Catmull-Rom
+        // can briefly overshoot, but the LUT itself was clamped at
+        // build time so the result is safe to write back directly.
+        r = lut[clamp255(r)] ?? r;
+        g = lut[clamp255(g)] ?? g;
+        b = lut[clamp255(b)] ?? b;
+      }
+
       data[i] = clamp255(r);
       data[i + 1] = clamp255(g);
       data[i + 2] = clamp255(b);
@@ -208,15 +285,22 @@ function yieldToEventLoop(): Promise<void> {
  *  comes from the scratch pool — preview hooks call `releaseCanvas`
  *  on the prior bake when a new one replaces it, so we don't allocate
  *  per slider tick. */
-export function bakeAdjust(src: HTMLCanvasElement, arr: number[], grain = 0): HTMLCanvasElement {
+export function bakeAdjust(
+  src: HTMLCanvasElement,
+  arr: number[],
+  grain = 0,
+  curve?: CurvePoint[],
+): HTMLCanvasElement {
   const out = acquireCanvas(src.width, src.height);
   const ctx = out.getContext("2d");
   if (!ctx) return out;
   ctx.drawImage(src, 0, 0);
 
-  if (isIdentity(arr) && grain === 0) return out;
+  const curveActive = !!curve && !isCurveIdentity(curve);
+  if (isIdentity(arr) && grain === 0 && !curveActive) return out;
 
   const v = sliderArrayToValues(arr);
+  const lut = curveActive && curve ? buildCurveLUT(curve) : null;
 
   // Sharpen runs first (spatial 5-tap) so subsequent per-pixel passes
   // operate on the sharpened result.
@@ -312,6 +396,12 @@ export function bakeAdjust(src: HTMLCanvasElement, arr: number[], grain = 0): HT
       r += n;
       g += n;
       b += n;
+    }
+
+    if (lut) {
+      r = lut[clamp255(r)] ?? r;
+      g = lut[clamp255(g)] ?? g;
+      b = lut[clamp255(b)] ?? b;
     }
 
     data[i] = clamp255(r);

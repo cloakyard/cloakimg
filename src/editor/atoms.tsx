@@ -14,24 +14,111 @@ import {
 interface PropRowProps {
   label: string;
   value?: string;
+  /** Editable readout — replaces `value` when present so the user can
+   *  type a precise number instead of dragging. */
+  valueInput?: ReactNode;
   children: ReactNode;
 }
 
-export function PropRow({ label, value, children }: PropRowProps) {
+export function PropRow({ label, value, valueInput, children }: PropRowProps) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-[11.5px] font-medium text-text-muted dark:text-dark-text-muted">
           {label}
         </span>
-        {value && (
-          <span className="t-mono text-[11px] font-semibold text-text dark:text-dark-text">
-            {value}
-          </span>
-        )}
+        {valueInput
+          ? valueInput
+          : value && (
+              <span className="t-mono text-[11px] font-semibold text-text dark:text-dark-text">
+                {value}
+              </span>
+            )}
       </div>
       {children}
     </div>
+  );
+}
+
+interface NumericReadoutProps {
+  /** Default display string when not focused (lets the panel keep its
+   *  own formatting — sign, units, decimals). */
+  display: string;
+  /** Current slider value in 0..1 normalized space. */
+  normalized: number;
+  /** Convert 0..1 normalized → real-world units (e.g. -100..100). */
+  fromNormalized: (n: number) => number;
+  /** Convert real-world units → 0..1 normalized. */
+  toNormalized: (real: number) => number;
+  /** Granularity of the displayed real value. Used for round-tripping
+   *  while editing — we don't bake this into the slider. */
+  step?: number;
+  onCommit: (next: number) => void;
+}
+
+/** Click the value chip to edit it directly. Esc reverts; Enter or
+ *  blur commits. The readout uses each panel's own formatting when
+ *  not focused — only switches to a raw number while typing. */
+export function NumericReadout({
+  display,
+  normalized,
+  fromNormalized,
+  toNormalized,
+  step = 1,
+  onCommit,
+}: NumericReadoutProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const editingRef = useRef(false);
+
+  const real = fromNormalized(normalized);
+  const editStr = step >= 1 ? Math.round(real).toString() : real.toFixed(1);
+
+  const commit = useCallback(
+    (raw: string) => {
+      const parsed = Number.parseFloat(raw.replace(/[^0-9+\-.]/g, ""));
+      if (Number.isFinite(parsed)) {
+        const next = Math.min(1, Math.max(0, toNormalized(parsed)));
+        onCommit(next);
+      }
+    },
+    [onCommit, toNormalized],
+  );
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      inputMode="numeric"
+      defaultValue={display}
+      // Keep the visible chip in sync when the slider is dragged, but
+      // not while the user is mid-edit (or their typing would be wiped
+      // every time onCommit fires).
+      key={editingRef.current ? "editing" : `${normalized}`}
+      onFocus={(e) => {
+        editingRef.current = true;
+        e.currentTarget.value = editStr;
+        e.currentTarget.select();
+      }}
+      onChange={(e) => {
+        commit(e.currentTarget.value);
+      }}
+      onBlur={(e) => {
+        editingRef.current = false;
+        // Snap the chip back to the formatted display, in case the
+        // user typed something out of range that got clamped.
+        e.currentTarget.value = display;
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur();
+        } else if (e.key === "Escape") {
+          e.currentTarget.value = display;
+          e.currentTarget.blur();
+        }
+      }}
+      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg dark:text-dark-text dark:hover:border-dark-border-soft dark:focus:bg-dark-page-bg"
+      aria-label="Edit value"
+    />
   );
 }
 
@@ -39,9 +126,13 @@ interface SliderProps {
   value: number; // 0..1
   onChange?: (next: number) => void;
   accent?: boolean;
+  /** Snap-back target on double-click. Most adjustment sliders centre
+   *  at 0.5 (neutral); brush/opacity sliders that "default to off" can
+   *  pass 0, etc. Omitted → no double-click reset. */
+  defaultValue?: number;
 }
 
-export function Slider({ value, onChange, accent = false }: SliderProps) {
+export function Slider({ value, onChange, accent = false, defaultValue }: SliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const fillRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
@@ -129,18 +220,32 @@ export function Slider({ value, onChange, accent = false }: SliderProps) {
     };
   }, []);
 
+  const handleDoubleClick = useCallback(() => {
+    if (defaultValue === undefined || !onChange) return;
+    const v = Math.min(1, Math.max(0, defaultValue));
+    applyVisual(v);
+    onChange(v);
+  }, [applyVisual, defaultValue, onChange]);
+
   return (
     <div
       ref={trackRef}
+      role="slider"
+      aria-valuemin={0}
+      aria-valuemax={1}
+      aria-valuenow={value}
+      tabIndex={onChange ? 0 : -1}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onDoubleClick={handleDoubleClick}
       // Coarse pointers (touch) get a much taller hit area — Apple HIG
       // and Material both ask for ≥44 pt. The visible rail stays the
       // same; only the wrapper's height grows so the thumb is easier
       // to grab without changing the panel layout density.
       className={`relative flex h-4.5 items-center touch-none pointer-coarse:h-9 ${onChange ? "cursor-pointer" : "cursor-default"}`}
+      title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
       <div className="relative h-0.75 w-full rounded-sm bg-page-bg pointer-coarse:h-1 dark:bg-dark-page-bg">
         <div

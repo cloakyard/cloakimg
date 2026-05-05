@@ -21,6 +21,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
+import { type CurvePoint, isCurveIdentity } from "../toolState";
 import { bakeAdjust, isIdentity } from "./adjustments";
 
 const PREVIEW_LONG_EDGE_MOBILE = 720;
@@ -48,6 +49,10 @@ export function useAdjustPreview(
    *  row was leaving the UI frozen long enough that subsequent tool
    *  switches felt unresponsive. */
   debounceMs = 0,
+  /** Optional master tone curve. Identity curves are detected and
+   *  skipped at bake time. Filter / preview consumers without a
+   *  user-facing curve simply leave this undefined. */
+  curve?: CurvePoint[],
 ): HTMLCanvasElement | null {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
@@ -74,7 +79,8 @@ export function useAdjustPreview(
       });
       return;
     }
-    if (isIdentity(sliders) && grain === 0 && !monochrome) {
+    const curveActive = !!curve && !isCurveIdentity(curve);
+    if (isIdentity(sliders) && grain === 0 && !monochrome && !curveActive) {
       setPreview((prev) => {
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;
@@ -100,7 +106,7 @@ export function useAdjustPreview(
     const runBake = () => {
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
-        const baked = bakeAdjust(ds, sliders, grain);
+        const baked = bakeAdjust(ds, sliders, grain, curve);
         if (monochrome) toMonochrome(baked);
         setPreview((prev) => {
           // Don't release the downsampled cache by accident — it
@@ -129,7 +135,7 @@ export function useAdjustPreview(
         rafRef.current = null;
       }
     };
-  }, [debounceMs, grain, monochrome, sliders, source]);
+  }, [debounceMs, grain, monochrome, sliders, source, curve]);
 
   // Drop the last preview when the hook unmounts so a tool swap
   // doesn't leak its final scratch canvas.
