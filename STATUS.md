@@ -46,6 +46,18 @@ shortcuts.
   histogram from F4.7 is now the editor's background. Per-pixel LUT
   applies after every other adjust stage; lives in tool state, baked
   on apply, threaded through the live preview path.
+- **Phase F4.9 (refinement)** is **done** — touch-target + usability
+  pass over F4.7 / F4.8. Curve editor stays square on every panel
+  width, control points + hit radius scale on coarse pointers, drag
+  off the editor to delete (replaces unreliable dblclick), bigger
+  Reset link on touch. Numeric readout grows to ~44 pt on coarse.
+  Slider double-tap reset reimplemented via pointer events so it
+  works on iOS Safari (where dblclick is suppressed by
+  `touch-action: none`). Two-finger-tap undo only arms when both
+  fingers land within 80 ms — fixes the false-positive where a
+  single-finger heal followed by an accidental brush undid the heal.
+  Export modal hides the redundant bottom Cancel on mobile so Copy +
+  Download have room to breathe.
 - **Phases F5 (project save / load), F6 (polish), F7 (verify & ship)**
   remain.
 
@@ -56,26 +68,27 @@ Fabric-delta target — F7 audit will prune if we go more).
 
 ## Phase status
 
-| #    | Phase                                   | Status                                                                                                                                                |
-| ---- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Strip AI surface + offline guarantee    | Done                                                                                                                                                  |
-| 2    | Fill must-work feature gaps             | Done                                                                                                                                                  |
-| 3    | Polish (live preview, batch, shortcuts) | Done                                                                                                                                                  |
-| 4    | Verify & ship (auto checks)             | Auto checks done; manual smoke on the human                                                                                                           |
-| F0   | Fabric audit                            | Done                                                                                                                                                  |
-| F1   | Fabric foundation                       | Done                                                                                                                                                  |
-| F2-A | Fabric becomes the rendering surface    | Done                                                                                                                                                  |
-| F2-B | Migrate non-destructive layer types     | Done (Text · Watermark · Draw · WatermarkImage all Fabric)                                                                                            |
-| F3   | Crop overlay + Move/Select + Layers     | Done                                                                                                                                                  |
-| F4   | New tools enabled by Fabric             | Done (rolled forward into F4.5)                                                                                                                       |
-| F4.5 | UX fixes + F4 carryover                 | Done — UX fixes + Pen + Stickers + per-image filters + alignment overlay all live                                                                     |
-| FX   | Tailwind v4 migration + auto dark mode  | Done — 388 → 95 inline-style blocks, manual theme toggle removed, dark follows OS                                                                     |
-| F4.6 | Cross-tool state preservation           | Done — Fabric scene carries across tool swaps; preview tools auto-flush; Reset                                                                        |
-| F4.7 | Polish pack (Option A)                  | Done — PWA file/share targets, slider double-click reset, numeric input, clipboard copy, Adjust histogram, Spot heal touch loupe, two-finger-tap undo |
-| F4.8 | Tone curve                              | Done — Catmull-Rom curve editor over the histogram in Adjust; LUT bakes after every other adjust stage; live preview                                  |
-| F5   | Project save / load                     | Pending                                                                                                                                               |
-| F6   | Polish (group, lock, copy, etc.)        | Pending                                                                                                                                               |
-| F7   | Verify & ship Fabric-era                | Pending                                                                                                                                               |
+| #    | Phase                                   | Status                                                                                                                                                                                           |
+| ---- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | Strip AI surface + offline guarantee    | Done                                                                                                                                                                                             |
+| 2    | Fill must-work feature gaps             | Done                                                                                                                                                                                             |
+| 3    | Polish (live preview, batch, shortcuts) | Done                                                                                                                                                                                             |
+| 4    | Verify & ship (auto checks)             | Auto checks done; manual smoke on the human                                                                                                                                                      |
+| F0   | Fabric audit                            | Done                                                                                                                                                                                             |
+| F1   | Fabric foundation                       | Done                                                                                                                                                                                             |
+| F2-A | Fabric becomes the rendering surface    | Done                                                                                                                                                                                             |
+| F2-B | Migrate non-destructive layer types     | Done (Text · Watermark · Draw · WatermarkImage all Fabric)                                                                                                                                       |
+| F3   | Crop overlay + Move/Select + Layers     | Done                                                                                                                                                                                             |
+| F4   | New tools enabled by Fabric             | Done (rolled forward into F4.5)                                                                                                                                                                  |
+| F4.5 | UX fixes + F4 carryover                 | Done — UX fixes + Pen + Stickers + per-image filters + alignment overlay all live                                                                                                                |
+| FX   | Tailwind v4 migration + auto dark mode  | Done — 388 → 95 inline-style blocks, manual theme toggle removed, dark follows OS                                                                                                                |
+| F4.6 | Cross-tool state preservation           | Done — Fabric scene carries across tool swaps; preview tools auto-flush; Reset                                                                                                                   |
+| F4.7 | Polish pack (Option A)                  | Done — PWA file/share targets, slider double-click reset, numeric input, clipboard copy, Adjust histogram, Spot heal touch loupe, two-finger-tap undo                                            |
+| F4.8 | Tone curve                              | Done — Catmull-Rom curve editor over the histogram in Adjust; LUT bakes after every other adjust stage; live preview                                                                             |
+| F4.9 | Refinement (touch / usability pass)     | Done — curve editor square aspect + drag-off delete + coarse-pointer geometry; numeric readout coarse sizing; iOS-safe slider double-tap; tighter two-finger-tap; export modal mobile button row |
+| F5   | Project save / load                     | Pending                                                                                                                                                                                          |
+| F6   | Polish (group, lock, copy, etc.)        | Pending                                                                                                                                                                                          |
+| F7   | Verify & ship Fabric-era                | Pending                                                                                                                                                                                          |
 
 ---
 
@@ -743,6 +756,84 @@ sliders.
 - [x] **Histogram.tsx removed.** Its compute helper was inlined into
       `CurveEditor.tsx` and no other consumer existed; deletion keeps
       the surface area honest.
+
+### ✅ Phase F4.9 — Refinement: touch + usability audit (2026-05-05)
+
+A focused pass over the F4.7 (polish pack) and F4.8 (tone curve)
+features to make sure every interaction works the same on desktop,
+tablet, and phone, and that touch-target sizes match the
+`pointer-coarse:` conventions the rest of the editor already follows.
+
+**Curve editor (F4.8 carryover)**
+
+- [x] **Square aspect, locked.**
+      [CurveEditor.tsx](src/editor/tools/CurveEditor.tsx) — dropped
+      the `maxHeight: 180` cap that was stretching the SVG to a
+      non-square box on wider panels (which turned every control
+      handle into an ellipse and skewed the diagonal identity
+      reference). The widget now uses `aspectRatio: 1/1` only, so
+      it scales with the panel width on phones, tablets, and
+      desktop while staying geometrically honest.
+- [x] **Coarse-pointer geometry.** Control point radius doubled
+      (7 → 11 viewBox units), hit-test radius bumped (14 → 20), and
+      the drag-off-edge delete margin grown (24 → 32). The constants
+      live behind the `COARSE_POINTER` matchMedia detection so
+      precision pointers keep their compact handle.
+- [x] **Drag-off-edge to delete.** Replaces the previous
+      `onDoubleClick` on the SVG circles, which was unreliable
+      across mobile WebKit / WebView combos and triggered the lint
+      rule against interactive static SVG elements. The point
+      currently in delete range fades to 0.35 opacity so the user
+      sees the lift will remove it; endpoints are exempt and lifts
+      that aren't past the margin restore normally. Single,
+      consistent gesture on every device — desktop included.
+- [x] **Reset link tap-target.** The footer Reset button gets
+      `pointer-coarse:` padding + type-size variants so it clears
+      ~44 pt on touch without changing the desktop chrome.
+
+**Sliders + numeric readout (F4.7 carryover)**
+
+- [x] **Numeric readout coarse sizing.**
+      [atoms.tsx](src/editor/atoms.tsx) — `NumericReadout` now grows
+      from `w-12 px-1 text-[11px]` to `w-16 px-2 py-1 text-[12.5px]`
+      on coarse pointers. The visible chip stays compact on hover
+      pointers; only the touch-target footprint expands.
+- [x] **iOS-safe double-tap reset.** Replaced the `onDoubleClick`
+      handler with a pointer-event detector that records the time +
+      x of each completed tap (down → up with < 6 px movement) and
+      fires the snap-back to `defaultValue` when a second tap lands
+      within 300 ms and 18 px of the first. iOS Safari suppresses
+      `dblclick` on elements with `touch-action: none`, which the
+      slider has to keep the page from scrolling on a horizontal
+      drag — the manual detector sidesteps that.
+
+**Pointer / gesture (F4.7 carryover)**
+
+- [x] **Two-finger-tap undo: false-positive guard.**
+      [ImageCanvas.tsx](src/editor/ImageCanvas.tsx) — the gesture
+      now only arms when the second pointer arrives within 80 ms of
+      the first. Real two-finger taps land both fingers within
+      ~50 ms; a single-finger tool gesture (Spot Heal commits on
+      pointerdown) followed by an accidental second-finger brush
+      ~100 ms later no longer turns into a destructive undo. Existing
+      motion-based invalidation (≥ 10 px change in midpoint or pinch
+      distance) still applies. `firstPointerDownTimeRef` is cleared
+      on the last pointer release / cancel so the timer doesn't
+      bleed across gestures.
+
+**Export modal (F4.7 carryover)**
+
+- [x] **Mobile button row.** Three buttons in a single row —
+      Cancel + Copy + Download — were squeezing on the smallest
+      phones (320 px). The mobile modal already has an X close
+      button in its header, so the bottom Cancel was redundant on
+      small screens; it's now hidden on mobile, which gives Copy
+      and Download breathing room. Desktop keeps Cancel for
+      muscle-memory parity with the other modals.
+
+`vp check` clean across all 105 files. No new dependencies; every
+change is either a JS state addition, a Tailwind variant, or a
+delete.
 
 ### ⏳ Phase F5 — Project save / load
 

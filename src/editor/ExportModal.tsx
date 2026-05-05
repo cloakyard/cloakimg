@@ -410,9 +410,17 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
               : "px-5.5 pb-5.5"
           }`}
         >
-          <button type="button" className="btn btn-ghost btn-sm flex-1" onClick={onClose}>
-            Cancel
-          </button>
+          {/* Mobile already has an X close button in the modal header
+              (see ModalCloseButton in the mobile-only title bar above)
+              so the bottom Cancel is redundant on small screens — and
+              cramming three buttons into ~280 px squeezes the labels.
+              Desktop keeps Cancel for muscle-memory parity with the
+              other modals. */}
+          {!isMobile && (
+            <button type="button" className="btn btn-ghost btn-sm flex-1" onClick={onClose}>
+              Cancel
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-secondary btn-sm flex-1 justify-center"

@@ -146,6 +146,15 @@ export function ImageCanvas({
   // movement (< ~10 px from the start midpoint and minimal pinch
   // change) we treat the lift as a tap and fire undo. Any meaningful
   // pinch / pan invalidates the tap.
+  //
+  // To avoid firing after a single-finger tool tap (Spot Heal, Color
+  // Picker, Redact-rect drag-start) where a second finger brushed
+  // against the screen mid-gesture, we also require the second pointer
+  // to arrive within `TWO_FINGER_GAP_MS` of the first. A genuine
+  // two-finger tap lands both fingers within ~50 ms; a one-finger
+  // gesture followed by an accidental brush usually has a much
+  // longer gap.
+  const firstPointerDownTimeRef = useRef<number | null>(null);
   const twoFingerTapRef = useRef<{
     startTime: number;
     startMidX: number;
@@ -565,7 +574,9 @@ export function ImageCanvas({
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!doc) return;
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      const wasEmpty = pointersRef.current.size === 0;
       pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (wasEmpty) firstPointerDownTimeRef.current = performance.now();
       if (pointersRef.current.size === 2) {
         const pts = Array.from(pointersRef.current.values());
         const a = pts[0];
@@ -582,13 +593,23 @@ export function ImageCanvas({
             startPanX: view.panX,
             startPanY: view.panY,
           };
-          twoFingerTapRef.current = {
-            startTime: performance.now(),
-            startMidX,
-            startMidY,
-            startDist,
-            valid: true,
-          };
+          // Only arm the tap session if the second finger landed soon
+          // after the first. A single-finger tool gesture that picked
+          // up a brush from a second finger 200 ms later doesn't get
+          // turned into an undo — the user already committed.
+          const TWO_FINGER_GAP_MS = 80;
+          const firstDown = firstPointerDownTimeRef.current ?? 0;
+          if (performance.now() - firstDown <= TWO_FINGER_GAP_MS) {
+            twoFingerTapRef.current = {
+              startTime: performance.now(),
+              startMidX,
+              startMidY,
+              startDist,
+              valid: true,
+            };
+          } else {
+            twoFingerTapRef.current = null;
+          }
           panRef.current = null;
         }
         return;
@@ -680,13 +701,17 @@ export function ImageCanvas({
           const elapsed = performance.now() - tap.startTime;
           if (elapsed < 280) void undo();
         }
-        if (pointersRef.current.size === 0) twoFingerTapRef.current = null;
+        if (pointersRef.current.size === 0) {
+          twoFingerTapRef.current = null;
+          firstPointerDownTimeRef.current = null;
+        }
         return;
       }
       if (panRef.current) {
         panRef.current = null;
         return;
       }
+      if (pointersRef.current.size === 0) firstPointerDownTimeRef.current = null;
       if (!doc) return;
       const pt = toImagePoint(e, transform, doc.width, doc.height);
       onImagePointerUp?.(pt, e);
@@ -705,7 +730,10 @@ export function ImageCanvas({
   const onPointerCancel = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) pinchRef.current = null;
-    if (pointersRef.current.size === 0) panRef.current = null;
+    if (pointersRef.current.size === 0) {
+      panRef.current = null;
+      firstPointerDownTimeRef.current = null;
+    }
     // System gestures cancel any pending two-finger-tap — we'd rather
     // skip the undo than fire it for an interrupted touch.
     twoFingerTapRef.current = null;

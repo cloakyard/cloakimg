@@ -116,7 +116,11 @@ export function NumericReadout({
           e.currentTarget.blur();
         }
       }}
-      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg dark:text-dark-text dark:hover:border-dark-border-soft dark:focus:bg-dark-page-bg"
+      // Coarse pointers (touch) get a larger pill so the tap target
+      // clears the ~44 pt minimum without dominating desktop's denser
+      // panel layout. The visible chip stays compact on hover-precise
+      // pointers; only width / padding / type-size grow on coarse.
+      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px] dark:text-dark-text dark:hover:border-dark-border-soft dark:focus:bg-dark-page-bg"
       aria-label="Edit value"
     />
   );
@@ -144,6 +148,14 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
   const draggingRef = useRef(false);
   const pendingValueRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
+  // Manual double-tap detector. iOS Safari ignores `dblclick` on
+  // elements with `touch-action: none` (the slider has it to keep the
+  // page from scrolling on a horizontal drag), so we synthesise the
+  // gesture from pointer events. A tap is "down/up with < 6 px of
+  // movement"; two taps within 300 ms and 18 px of each other count
+  // as a double-tap and trigger the defaultValue snap-back.
+  const tapStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lastTapRef = useRef<{ time: number; x: number } | null>(null);
 
   const applyVisual = useCallback((v: number) => {
     if (fillRef.current) fillRef.current.style.width = `${v * 100}%`;
@@ -186,31 +198,71 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!onChange) return;
+      // Detect a double-tap *before* we start dragging — if the gap
+      // between this tap and the previous one is short enough, snap
+      // the slider back to its default and bail out of drag mode so
+      // the second tap doesn't pull the value to wherever the user's
+      // finger happened to land.
+      const prev = lastTapRef.current;
+      const now = performance.now();
+      if (
+        defaultValue !== undefined &&
+        prev &&
+        now - prev.time < 300 &&
+        Math.abs(prev.x - e.clientX) < 18
+      ) {
+        const v = Math.min(1, Math.max(0, defaultValue));
+        applyVisual(v);
+        onChange(v);
+        lastTapRef.current = null;
+        tapStartRef.current = null;
+        return;
+      }
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       draggingRef.current = true;
+      tapStartRef.current = { x: e.clientX, y: e.clientY };
       updateFromPointer(e.clientX);
     },
-    [onChange, updateFromPointer],
+    [applyVisual, defaultValue, onChange, updateFromPointer],
   );
 
   const handlePointerMove = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (e.buttons === 0) return;
+      // Cancel the "this might be a tap" state once the user moves
+      // far enough that we're clearly in a drag.
+      const start = tapStartRef.current;
+      if (start) {
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        if (dx * dx + dy * dy > 36) tapStartRef.current = null;
+      }
       updateFromPointer(e.clientX);
     },
     [updateFromPointer],
   );
 
-  const handlePointerUp = useCallback(() => {
-    draggingRef.current = false;
-    // Make sure the very last pointer position propagates upstream
-    // even if it arrived between rAF flushes.
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      flushChange();
-    }
-  }, [flushChange]);
+  const handlePointerUp = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      draggingRef.current = false;
+      // Make sure the very last pointer position propagates upstream
+      // even if it arrived between rAF flushes.
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        flushChange();
+      }
+      // If the down→up never strayed past the tap threshold, this was
+      // a tap — record it so the next tap can complete a double-tap.
+      if (tapStartRef.current) {
+        lastTapRef.current = { time: performance.now(), x: e.clientX };
+        tapStartRef.current = null;
+      } else {
+        lastTapRef.current = null;
+      }
+    },
+    [flushChange],
+  );
 
   // Cancel any pending rAF on unmount so we don't fire onChange after
   // the consumer has gone away.
@@ -219,13 +271,6 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
   }, []);
-
-  const handleDoubleClick = useCallback(() => {
-    if (defaultValue === undefined || !onChange) return;
-    const v = Math.min(1, Math.max(0, defaultValue));
-    applyVisual(v);
-    onChange(v);
-  }, [applyVisual, defaultValue, onChange]);
 
   return (
     <div
@@ -239,7 +284,6 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      onDoubleClick={handleDoubleClick}
       // Coarse pointers (touch) get a much taller hit area — Apple HIG
       // and Material both ask for ≥44 pt. The visible rail stays the
       // same; only the wrapper's height grows so the thumb is easier
