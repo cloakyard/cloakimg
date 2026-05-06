@@ -125,9 +125,19 @@ export function BgBlurPanel() {
   const lensIndex = LENS_OPTIONS.indexOf(lens);
   const handleTarget = useCallback(
     (i: number) => {
-      patchTool("bgBlurScope", i === 0 ? 2 : 0);
+      // i=0 → "Background only" → bgBlurScope=2; i=1 → "Whole image"
+      // → bgBlurScope=0. Note the segment index ↔ scope value
+      // inversion: index 0 in the UI is the *AI-using* option.
+      const nextScope = i === 0 ? 2 : 0;
+      patchTool("bgBlurScope", nextScope);
+      // Picking Background-only after a previous deny is the explicit
+      // re-opt-in signal — kick off the resume flow so the consent
+      // dialog re-opens instead of leaving the panel paused.
+      if (nextScope !== 0 && subjectMask.state.userDenied) {
+        void subjectMask.resumeAfterDeny();
+      }
     },
-    [patchTool],
+    [patchTool, subjectMask],
   );
   const handleLens = useCallback(
     (i: number) => {

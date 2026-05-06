@@ -405,7 +405,10 @@ export function CropPanel() {
     setSmartError(null);
     setSmartBusy(true);
     try {
-      const mask = subjectMask.peek() ?? (await subjectMask.request());
+      // requestExplicit clears any prior dismiss latch — Smart Crop
+      // is a user-initiated tap, so re-opening the consent dialog if
+      // they dismissed it earlier is the right behaviour.
+      const mask = subjectMask.peek() ?? (await subjectMask.requestExplicit());
       const bbox = getSubjectBBox(mask, 0.06);
       if (!bbox) {
         setSmartError("Couldn't find a clear subject in this photo.");

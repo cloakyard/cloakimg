@@ -135,7 +135,9 @@ export function RemoveBgPanel() {
       // Routes through the shared mask service — if another tool
       // already detected the subject for this image, this returns the
       // cached cut instantly and we skip straight to compositing.
-      const cut = await subjectMask.request();
+      // requestExplicit clears the dismiss latch so a prior "Not now"
+      // doesn't make the Apply button silently no-op.
+      const cut = await subjectMask.requestExplicit();
       // Defensive: if the source dimensions changed mid-flight (Crop
       // ran after we kicked off detection), the cut won't match
       // doc.working. Bail rather than commit a misaligned image.

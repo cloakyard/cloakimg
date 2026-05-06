@@ -43,7 +43,10 @@ export function RedactPanel() {
       setSmartError(null);
       setSmartBusy(scope === 1 ? "subject" : "background");
       try {
-        const mask = subjectMask.peek() ?? (await subjectMask.request());
+        // Smart anonymize is user-initiated; clear any prior dismiss
+        // latch via requestExplicit so the consent dialog re-opens
+        // instead of the button silently no-op'ing.
+        const mask = subjectMask.peek() ?? (await subjectMask.requestExplicit());
         // Build a fully-redacted copy of the working canvas, then
         // composite it back through the subject mask. We re-use the
         // existing per-style redaction (pixelate / blur / solid) to

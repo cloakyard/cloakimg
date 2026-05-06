@@ -50,7 +50,10 @@ export function WatermarkPanel() {
     setSmartError(null);
     setSmartBusy(true);
     try {
-      const mask = subjectMask.peek() ?? (await subjectMask.request());
+      // Smart Place is user-initiated; requestExplicit clears the
+      // dismiss latch so a prior "Not now" doesn't silently break
+      // future taps.
+      const mask = subjectMask.peek() ?? (await subjectMask.requestExplicit());
       // Region footprint: ~22 % of the short edge in each dimension.
       // That covers a generous corner / edge area — bigger than the
       // typical text watermark, so the score reflects "is this side

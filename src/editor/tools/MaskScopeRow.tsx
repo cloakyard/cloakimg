@@ -75,8 +75,18 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
   const handleScope = useCallback(
     (i: number) => {
       onScope(i);
+      // Picking a non-Whole scope is an explicit "I want the AI"
+      // signal. If the user previously dismissed the consent dialog
+      // (state.userDenied), kick off the resume flow so the dialog
+      // re-opens instead of the panel staying paused forever.
+      // resumeAfterDeny clears the latch and fires detection — same
+      // path as the "Enable AI" chip, keeping both re-opt-in surfaces
+      // aligned. No-op when scope is Whole or no deny is pending.
+      if (i !== 0 && state.userDenied) {
+        void resumeAfterDeny();
+      }
     },
-    [onScope],
+    [onScope, resumeAfterDeny, state.userDenied],
   );
 
   const handleRetry = useCallback(() => {

@@ -43,8 +43,20 @@ export interface UseSubjectMask {
    *  Concurrent callers share the same in-flight promise. May reject
    *  with `MaskConsentError` when the user hasn't authorised the
    *  download yet — callers should let the dialog handle that path
-   *  rather than treating it as a failure toast. */
+   *  rather than treating it as a failure toast.
+   *
+   *  This is the *passive* request — it respects `state.userDenied`
+   *  and won't re-pop the dialog after a dismiss (used by useEffect
+   *  auto-triggers so dismissing actually sticks). For an *explicit
+   *  user action* (clicking Smart Crop, Smart Anonymize, Apply on
+   *  Remove BG, etc.) reach for `requestExplicit` instead — it
+   *  clears the deny latch first so the dialog re-opens. */
   request: () => Promise<HTMLCanvasElement>;
+  /** Like `request`, but clears the deny latch first. Use this from
+   *  any user-initiated control where the click itself signals
+   *  "yes, I want the AI" — the consent dialog should reopen even if
+   *  the user dismissed it earlier in the session. */
+  requestExplicit: () => Promise<HTMLCanvasElement>;
   /** User accepted the model download. Clears `needs-consent` state
    *  and lets a follow-up `request()` proceed. */
   grantConsent: () => void;
@@ -99,6 +111,16 @@ export function useSubjectMask(): UseSubjectMask {
     return ensureSubjectMask(doc.working, quality);
   }, [doc, quality]);
 
+  const requestExplicit = useCallback(async (): Promise<HTMLCanvasElement> => {
+    if (!doc) throw new Error("No document open");
+    // Clear the deny latch first — the user just clicked an
+    // AI-powered button, which is the explicit "yes I want this"
+    // signal the latch was waiting for. Without this, every
+    // user-facing AI button silently no-ops after a single dismiss.
+    clearMaskDeny();
+    return ensureSubjectMask(doc.working, quality);
+  }, [doc, quality]);
+
   const grantConsent = useCallback(() => {
     grantMaskConsent();
   }, []);
@@ -131,6 +153,7 @@ export function useSubjectMask(): UseSubjectMask {
       peek,
       peekDownsample,
       request,
+      requestExplicit,
       grantConsent,
       denyConsent,
       resumeAfterDeny,
@@ -144,6 +167,7 @@ export function useSubjectMask(): UseSubjectMask {
       peekDownsample,
       quality,
       request,
+      requestExplicit,
       resumeAfterDeny,
       state,
     ],
