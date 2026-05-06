@@ -4,10 +4,14 @@
 
 import { useEditor } from "./EditorContext";
 import { AdjustPanel } from "./tools/AdjustPanel";
+import { BorderPanel } from "./tools/BorderPanel";
 import { CropPanel } from "./tools/CropTool";
 import { DefaultPanel } from "./tools/DefaultPanel";
 import { FilterPanel } from "./tools/FilterPanel";
 import { FramePanel } from "./tools/FrameTool";
+import { HslPanel } from "./tools/HslPanel";
+import { LevelsPanel } from "./tools/LevelsPanel";
+import { PerspectivePanel } from "./tools/PerspectivePanel";
 import { RedactPanel } from "./tools/RedactPanel";
 import { ResizePanel } from "./tools/ResizePanel";
 import { DrawPanel } from "./tools/DrawPanel";
@@ -33,8 +37,16 @@ export function ToolControls() {
       return <ResizePanel />;
     case "adjust":
       return <AdjustPanel />;
+    case "levels":
+      return <LevelsPanel />;
+    case "hsl":
+      return <HslPanel />;
     case "filter":
       return <FilterPanel />;
+    case "perspective":
+      return <PerspectivePanel />;
+    case "border":
+      return <BorderPanel />;
     case "redact":
       return <RedactPanel />;
     case "draw":

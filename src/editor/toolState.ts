@@ -4,6 +4,8 @@
 // matches the design's promise of a single canvas.
 
 import type { Rect } from "./tools/cropMath";
+import { LEVELS_DEFAULT } from "./tools/levels";
+import { hslIdentity } from "./tools/hsl";
 import type { ToolId } from "./tools";
 
 export interface MetaToggles {
@@ -191,6 +193,36 @@ export interface ToolState {
   /** True while the user has the eyedropper armed in the Remove BG
    *  panel. The next canvas click sets `bgSample` and turns this off. */
   bgPickActive: boolean;
+
+  // Levels — input black/white/midtone gamma + output black/white.
+  levelsBlackIn: number; // 0..255
+  levelsWhiteIn: number; // 0..255
+  levelsGamma: number; // 0.1..3.0 (1.0 = neutral)
+  levelsBlackOut: number; // 0..255
+  levelsWhiteOut: number; // 0..255
+
+  // HSL Selective Colour — eight bands × Hue/Sat/Lum sliders. Each
+  // array has eight entries, one per band, each in 0..1 with 0.5 ==
+  // "no change". `hslBand` is the currently selected band index used
+  // by the panel to drive the Hue/Sat/Lum sliders.
+  hslHue: number[];
+  hslSat: number[];
+  hslLum: number[];
+  hslBand: number;
+
+  // Border / padding — Solid mode adds N pixels on every side; Aspect
+  // mode pads the shorter dimension to match `borderAspect`.
+  borderMode: number; // 0 = Solid, 1 = Aspect
+  borderThickness: number; // image-space pixels (Solid mode)
+  borderColor: string;
+  /** Aspect ratio for Aspect mode, expressed as width / height. 0
+   *  means "no aspect chosen yet" and the bake skips. */
+  borderAspect: number;
+
+  // Perspective — four image-space corner points, in TL/TR/BR/BL
+  // order. Null until the tool seeds them to the image corners on
+  // first open. Drag handles on the canvas mutate this.
+  persCorners: [number, number][] | null;
 }
 
 export const DEFAULT_TOOL_STATE: ToolState = {
@@ -287,4 +319,25 @@ export const DEFAULT_TOOL_STATE: ToolState = {
 
   bgSample: null,
   bgPickActive: false,
+
+  levelsBlackIn: LEVELS_DEFAULT.blackIn,
+  levelsWhiteIn: LEVELS_DEFAULT.whiteIn,
+  levelsGamma: LEVELS_DEFAULT.gamma,
+  levelsBlackOut: LEVELS_DEFAULT.blackOut,
+  levelsWhiteOut: LEVELS_DEFAULT.whiteOut,
+
+  // hslIdentity returns fresh arrays each call so the default state's
+  // arrays aren't shared by reference with anyone else.
+  ...(() => {
+    const id = hslIdentity();
+    return { hslHue: id.hue, hslSat: id.sat, hslLum: id.lum };
+  })(),
+  hslBand: 0,
+
+  borderMode: 0,
+  borderThickness: 0,
+  borderColor: "#ffffff",
+  borderAspect: 0,
+
+  persCorners: null,
 };

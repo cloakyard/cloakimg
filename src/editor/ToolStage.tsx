@@ -8,13 +8,17 @@
 import { useEditor } from "./EditorContext";
 import { useStageProps } from "./StageHost";
 import { AdjustTool } from "./tools/AdjustTool";
+import { BorderTool } from "./tools/BorderTool";
 import { ColorPickerTool } from "./tools/ColorPickerTool";
 import { CropTool } from "./tools/CropTool";
 import { DrawTool } from "./tools/DrawTool";
 import { FilterTool } from "./tools/FilterTool";
 import { FrameTool } from "./tools/FrameTool";
+import { HslTool } from "./tools/HslTool";
 import { ImageTool } from "./tools/ImageTool";
+import { LevelsTool } from "./tools/LevelsTool";
 import { PenTool } from "./tools/PenTool";
+import { PerspectiveTool } from "./tools/PerspectiveTool";
 import { RedactTool } from "./tools/RedactTool";
 import { RemoveBgTool } from "./tools/RemoveBgTool";
 import { ShapesTool } from "./tools/ShapesTool";
@@ -29,8 +33,16 @@ export function ToolStage() {
       return <CropTool />;
     case "adjust":
       return <AdjustTool />;
+    case "levels":
+      return <LevelsTool />;
+    case "hsl":
+      return <HslTool />;
     case "filter":
       return <FilterTool />;
+    case "perspective":
+      return <PerspectiveTool />;
+    case "border":
+      return <BorderTool />;
     case "redact":
       return <RedactTool />;
     case "draw":

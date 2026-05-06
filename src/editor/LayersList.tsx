@@ -324,6 +324,14 @@ function LayerRow({
   );
 }
 
+/** Tags for objects Fabric paints onto the canvas as transient
+ *  tool-UI rather than persistent layers. They live in the live
+ *  scene only while the corresponding tool is active and are stripped
+ *  from history snapshots — so the Layers panel must skip them too,
+ *  otherwise the panel fills with "cloak:penAnchor" entries during
+ *  pen-edit mode, or shows the live crop rect as a deletable layer. */
+const TRANSIENT_KINDS = new Set(["cloak:cropOverlay", "cloak:penAnchor", "cloak:penWork"]);
+
 /** Build per-row metadata from the live Fabric scene. We use the
  *  object's stable identity for `id`; tagged objects carry a
  *  `cloakKind` that drives the icon + label. Untagged objects
@@ -333,7 +341,7 @@ function buildRows(fc: FabricCanvas): RowMeta[] {
   for (const obj of fc.getObjects()) {
     const kind = (obj as TaggedFabricObject).cloakKind;
     if (!kind) continue;
-    if (kind === "cloak:cropOverlay") continue; // transient tool overlay
+    if (TRANSIENT_KINDS.has(kind)) continue;
     out.push({
       obj,
       id: objId(obj),

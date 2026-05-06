@@ -13,10 +13,11 @@ scaffolding is in place.
 ## TL;DR
 
 The chrome, document model, history, layout, theme switching, landing
-flow, batch runner, and export pipeline are real. All **17 tools** in
-the rail (the 14 originals plus Shapes / Pen / Stickers) have working,
-non-placeholder behaviour with accurate live previews and keyboard
-shortcuts.
+flow, batch runner, and export pipeline are real. All **21 tools** in
+the rail (the 14 originals plus Shapes / Pen / Stickers from the F4.5
+rollup and Levels / Selective colour / Perspective / Border from the
+F4.10 additions) have working, non-placeholder behaviour with accurate
+live previews and keyboard shortcuts.
 
 - **Phases 1–4** (the original feature build) are **done**.
 - **Phases F0–F3** of the Fabric.js integration are **done**: Fabric is
@@ -58,6 +59,14 @@ shortcuts.
   single-finger heal followed by an accidental brush undid the heal.
   Export modal hides the redundant bottom Cancel on mobile so Copy +
   Download have room to breathe.
+- **Phase F4.10 (new tools pack)** is **done** — Levels (B/W/midtone
+  in + B/W out, LUT-based bake), Selective colour (8-band HSL over a
+  360-entry hue LUT with neighbour blending), Perspective (4-corner
+  homography warp with on-canvas drag handles), and Border (Solid pad
+  or Aspect pad with layer-shift on apply). Each ships with a Tool
+  component for live preview, a Panel for desktop/tablet/mobile
+  parity, history commit, auto-flush on tool switch where
+  appropriate, and a keyboard shortcut.
 - **Phases F5 (project save / load), F6 (polish), F7 (verify & ship)**
   remain.
 
@@ -68,27 +77,28 @@ Fabric-delta target — F7 audit will prune if we go more).
 
 ## Phase status
 
-| #    | Phase                                   | Status                                                                                                                                                                                           |
-| ---- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1    | Strip AI surface + offline guarantee    | Done                                                                                                                                                                                             |
-| 2    | Fill must-work feature gaps             | Done                                                                                                                                                                                             |
-| 3    | Polish (live preview, batch, shortcuts) | Done                                                                                                                                                                                             |
-| 4    | Verify & ship (auto checks)             | Auto checks done; manual smoke on the human                                                                                                                                                      |
-| F0   | Fabric audit                            | Done                                                                                                                                                                                             |
-| F1   | Fabric foundation                       | Done                                                                                                                                                                                             |
-| F2-A | Fabric becomes the rendering surface    | Done                                                                                                                                                                                             |
-| F2-B | Migrate non-destructive layer types     | Done (Text · Watermark · Draw · WatermarkImage all Fabric)                                                                                                                                       |
-| F3   | Crop overlay + Move/Select + Layers     | Done                                                                                                                                                                                             |
-| F4   | New tools enabled by Fabric             | Done (rolled forward into F4.5)                                                                                                                                                                  |
-| F4.5 | UX fixes + F4 carryover                 | Done — UX fixes + Pen + Stickers + per-image filters + alignment overlay all live                                                                                                                |
-| FX   | Tailwind v4 migration + auto dark mode  | Done — 388 → 95 inline-style blocks, manual theme toggle removed, dark follows OS                                                                                                                |
-| F4.6 | Cross-tool state preservation           | Done — Fabric scene carries across tool swaps; preview tools auto-flush; Reset                                                                                                                   |
-| F4.7 | Polish pack (Option A)                  | Done — PWA file/share targets, slider double-click reset, numeric input, clipboard copy, Adjust histogram, Spot heal touch loupe, two-finger-tap undo                                            |
-| F4.8 | Tone curve                              | Done — Catmull-Rom curve editor over the histogram in Adjust; LUT bakes after every other adjust stage; live preview                                                                             |
-| F4.9 | Refinement (touch / usability pass)     | Done — curve editor square aspect + drag-off delete + coarse-pointer geometry; numeric readout coarse sizing; iOS-safe slider double-tap; tighter two-finger-tap; export modal mobile button row |
-| F5   | Project save / load                     | Pending                                                                                                                                                                                          |
-| F6   | Polish (group, lock, copy, etc.)        | Pending                                                                                                                                                                                          |
-| F7   | Verify & ship Fabric-era                | Pending                                                                                                                                                                                          |
+| #     | Phase                                          | Status                                                                                                                                                                                           |
+| ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1     | Strip AI surface + offline guarantee           | Done                                                                                                                                                                                             |
+| 2     | Fill must-work feature gaps                    | Done                                                                                                                                                                                             |
+| 3     | Polish (live preview, batch, shortcuts)        | Done                                                                                                                                                                                             |
+| 4     | Verify & ship (auto checks)                    | Auto checks done; manual smoke on the human                                                                                                                                                      |
+| F0    | Fabric audit                                   | Done                                                                                                                                                                                             |
+| F1    | Fabric foundation                              | Done                                                                                                                                                                                             |
+| F2-A  | Fabric becomes the rendering surface           | Done                                                                                                                                                                                             |
+| F2-B  | Migrate non-destructive layer types            | Done (Text · Watermark · Draw · WatermarkImage all Fabric)                                                                                                                                       |
+| F3    | Crop overlay + Move/Select + Layers            | Done                                                                                                                                                                                             |
+| F4    | New tools enabled by Fabric                    | Done (rolled forward into F4.5)                                                                                                                                                                  |
+| F4.5  | UX fixes + F4 carryover                        | Done — UX fixes + Pen + Stickers + per-image filters + alignment overlay all live                                                                                                                |
+| FX    | Tailwind v4 migration + auto dark mode         | Done — 388 → 95 inline-style blocks, manual theme toggle removed, dark follows OS                                                                                                                |
+| F4.6  | Cross-tool state preservation                  | Done — Fabric scene carries across tool swaps; preview tools auto-flush; Reset                                                                                                                   |
+| F4.7  | Polish pack (Option A)                         | Done — PWA file/share targets, slider double-click reset, numeric input, clipboard copy, Adjust histogram, Spot heal touch loupe, two-finger-tap undo                                            |
+| F4.8  | Tone curve                                     | Done — Catmull-Rom curve editor over the histogram in Adjust; LUT bakes after every other adjust stage; live preview                                                                             |
+| F4.9  | Refinement (touch / usability pass)            | Done — curve editor square aspect + drag-off delete + coarse-pointer geometry; numeric readout coarse sizing; iOS-safe slider double-tap; tighter two-finger-tap; export modal mobile button row |
+| F4.10 | New tools pack (Levels / HSL / Persp / Border) | Done — four new rail entries, each with desktop/tablet/mobile parity, live preview where it makes sense, and a single-key shortcut                                                               |
+| F5    | Project save / load                            | Pending                                                                                                                                                                                          |
+| F6    | Polish (group, lock, copy, etc.)               | Pending                                                                                                                                                                                          |
+| F7    | Verify & ship Fabric-era                       | Pending                                                                                                                                                                                          |
 
 ---
 
@@ -248,6 +258,69 @@ segment (Fast / High); High runs a Lanczos-3 separable resample with
 normalised weights, auto-falling-back to Fast when the target is
 within 1.4× of the source on the long edge.
 
+### 17. Levels (Phase F4.10)
+
+[LevelsPanel.tsx](src/editor/tools/LevelsPanel.tsx) +
+[LevelsTool.tsx](src/editor/tools/LevelsTool.tsx) +
+[levels.ts](src/editor/tools/levels.ts). Five sliders — input black,
+midtone gamma, input white, output black, output white. Builds a
+256-entry LUT in `buildLevelsLUT` and applies it per pixel through
+`bakeLevels`; the LUT is essentially free to compute, so the live
+preview re-runs against the cached downsample on every slider tick
+(see `useLevelsPreview`). Auto-flushes on tool switch via
+`registerPendingApply`. `L` shortcut.
+
+### 18. Selective colour (Phase F4.10)
+
+[HslPanel.tsx](src/editor/tools/HslPanel.tsx) +
+[HslTool.tsx](src/editor/tools/HslTool.tsx) +
+[hsl.ts](src/editor/tools/hsl.ts). Eight band swatches across the
+top (Red, Orange, Yellow, Green, Cyan, Blue, Purple, Magenta), three
+sliders (Hue ±60°, Saturation ±100%, Luminance ±50%) for the active
+band underneath. A 360-entry hue LUT linearly blends each pixel's
+two surrounding band offsets, so a tone sitting between Orange (30°)
+and Yellow (60°) gets a 50/50 mix instead of a hard transition. The
+inner loop does an RGB→HSL → LUT → HSL→RGB pass per pixel; the
+saturation gate keeps neutral greys from picking up colour shifts.
+Live preview at 720 px on phones / 1440 px on desktop. `J` shortcut.
+
+### 19. Perspective (Phase F4.10)
+
+[PerspectivePanel.tsx](src/editor/tools/PerspectivePanel.tsx) +
+[PerspectiveTool.tsx](src/editor/tools/PerspectiveTool.tsx) +
+[perspective.ts](src/editor/tools/perspective.ts). Four coral
+corner handles (12 px on precise pointers, 20 px on coarse) sit on
+the canvas via `paintOverlay`; pointer events route through
+`onImagePointer*` so a drag is in image-space. The bake solves the
+3×3 homography H that maps the user's quad to a clean rectangle (8×8
+linear system via Gaussian elimination with partial pivoting), then
+walks every output pixel and bilinear-samples the source through
+H⁻¹. Output dimensions auto-derive from the average of opposite-side
+lengths so a wide-of-tall quad rectifies to wide-of-tall pixels.
+Apply runs behind the busy-spinner overlay because the warp scales
+with output area. `Q` shortcut. Caveat: Fabric layers are dropped on
+apply since their positions don't translate cleanly through a
+homography.
+
+### 20. Border (Phase F4.10)
+
+[BorderPanel.tsx](src/editor/tools/BorderPanel.tsx) +
+[BorderTool.tsx](src/editor/tools/BorderTool.tsx) +
+[border.ts](src/editor/tools/border.ts). Two modes: Solid (uniform
+thickness on every side, 0..25 % of the shorter image side) and
+Aspect (pad the shorter axis until the canvas hits one of seven
+target ratios — 1:1, 4:5, 5:4, 16:9, 9:16, 3:2, 2:3 — from
+`BORDER_ASPECTS`). Live preview paints the new border directly on
+the matte via `paintOverlay`, so the user sees the eventual edge
+before Apply commits. The bake grows the working canvas to its new
+dimensions, fills with the chosen colour, draws the original image
+centred, and shifts every Fabric layer by the (offsetX, offsetY)
+delta so a watermark stays in its corner relative to the image.
+Auto-flushes on tool switch. `O` shortcut. Distinct from Frame:
+Frame paints inset stylized borders inside the existing canvas;
+Border grows the canvas with a flat pad (closer to Photoshop's
+Image → Canvas Size).
+
 ---
 
 ## Cross-cutting
@@ -264,12 +337,13 @@ canvas Shift-click into the panel.
 ### Keyboard shortcuts
 
 [useKeyboardShortcuts.ts](src/editor/useKeyboardShortcuts.ts) maps
-`V/M/C/A/F/R/T/H/B/D/N/W/I/P/S/U/K` to the 17 tools (Pen → `N`,
-Stickers → `K`), `[` `]` brush size, `{` `}` feather, `0` fit-zoom,
-`1` 2.5×, `Esc` clears layer selection, **`Delete` / `Backspace`
-removes the selected Fabric object(s)** (skips Crop overlay; honours
-`IText.isEditing` so backspacing inside a text caret still edits the
-text).
+`V/M/C/A/F/R/T/H/B/D/N/W/I/P/S/U/K` to the original 17 tools (Pen →
+`N`, Stickers → `K`) plus `L` Levels, `J` Selective colour, `Q`
+Perspective, `O` Border for the four F4.10 additions. `[` `]` brush
+size, `{` `}` feather, `0` fit-zoom, `1` 2.5×, `Esc` clears layer
+selection, **`Delete` / `Backspace` removes the selected Fabric
+object(s)** (skips Crop overlay; honours `IText.isEditing` so
+backspacing inside a text caret still edits the text).
 
 ### Recents
 
@@ -834,6 +908,89 @@ tablet, and phone, and that touch-target sizes match the
 `vp check` clean across all 105 files. No new dependencies; every
 change is either a JS state addition, a Tailwind variant, or a
 delete.
+
+### ✅ Phase F4.10 — New tools pack: Levels / Selective colour / Perspective / Border (2026-05-06)
+
+A user-facing audit during the F4.9 → F5 transition flagged four
+gaps versus Lightroom / Snapseed / Photoshop: no Levels, no per-band
+HSL, no perspective rectification, and Frame's stylized inset borders
+didn't cover the simpler "pad the canvas to a square for Instagram"
+case. F4.10 ships all four as standalone rail tools, each with the
+same desktop / tablet / mobile UX as the existing tools (rail
+button + scrolling mobile toolbar entry + `PropertiesPanel` on
+desktop / `MobileSheet` on phones, single-key shortcut, history
+commit on apply).
+
+- [x] **Levels.** Five sliders — input black, midtone gamma, input
+      white, output black, output white. New
+      [levels.ts](src/editor/tools/levels.ts) with `buildLevelsLUT`
+      (256-entry, linear remap into output range with a
+      pow(1/gamma) midtone), `bakeLevels` (single LUT lookup per
+      channel), and identity detection. Live preview through
+      [useLevelsPreview.ts](src/editor/tools/useLevelsPreview.ts) at
+      720 px / 1440 px depending on viewport, just like Adjust.
+      Auto-flushes on tool switch via `registerPendingApply` so an
+      unapplied slider never silently drops.
+- [x] **Selective colour (HSL).** Eight bands × three sliders.
+      [hsl.ts](src/editor/tools/hsl.ts) precomputes a 360-entry hue
+      LUT in `buildHslLUT` — for every integer input hue, blend the
+      two surrounding band offsets linearly so a tone halfway between
+      Orange (30°) and Yellow (60°) gets a smooth 50/50 mix instead of
+      a hard transition. The per-pixel pass: RGB→HSL, gate the effect
+      by saturation (so neutral greys aren't tinted), apply offsets,
+      HSL→RGB. The panel's eight-square grid uses `hsl(C, 75%, 50%)`
+      as the swatch background so each band's pickability matches the
+      colour it controls. A small white dot in the corner of any
+      band that's been edited makes the dirty state visible without
+      tapping in.
+- [x] **Perspective.** Four image-space corner handles painted via
+      `paintOverlay`; pointer events route through the stage's
+      `onImagePointer*` so a drag stays in image-space at any zoom
+      level. Touch hit radius doubles on coarse pointers (28 px vs
+      18 px) so the handles stay grabbable on a phone. The bake in
+      [perspective.ts](src/editor/tools/perspective.ts) solves the
+      3×3 homography that maps the user's quad to a clean rectangle
+      via Gaussian elimination on the 8×8 linear system, then
+      bilinear-samples every output pixel through H⁻¹. Output
+      dimensions auto-derive from the average of opposite-side
+      lengths so the rectified subject keeps its real-world aspect.
+      Apply runs behind the busy spinner (`runBusy`) since the warp
+      is O(W × H) sampling work. Fabric layers are dropped on apply
+      because their positions don't translate cleanly through a
+      homography — users with custom layers will Cmd-Z and finish the
+      perspective first.
+- [x] **Border.** Two modes via Segment.
+      [border.ts](src/editor/tools/border.ts) carries `bakeBorder`,
+      which returns the new canvas + the (offsetX, offsetY) by which
+      the original image was shifted. The Apply step grows the
+      working canvas, fills the chosen colour, draws the original
+      image centred, and shifts every Fabric layer by the same offset
+      so a watermark or text label stays anchored to the image rather
+      than sliding to the new top-left. Live preview paints the
+      eventual border into the matte via `paintOverlay`. Aspect mode
+      offers seven ratios from `BORDER_ASPECTS`; tapping the active
+      ratio toggles it off so the user can step out of Aspect mode
+      without switching tools. Distinct from Frame, which paints
+      stylized borders inset on the existing canvas; Border grows the
+      canvas with a flat pad (closer to Photoshop's Image → Canvas
+      Size).
+- [x] **Wiring.** New `ToolId` entries in
+      [tools.ts](src/editor/tools.ts) keep the rail in editing-stage
+      order (Perspective sits next to Crop in the `select` group;
+      Levels and Selective colour join Adjust in `tone`; Border joins
+      Frame in `output`). Four new icons in
+      [icons.tsx](src/components/icons.tsx) — `Perspective` (a square
+      in two-point perspective), `Levels` (dual-triangle Photoshop
+      glyph), `Hsl` (concentric hue arcs), `Border` (outer rect +
+      inner rect). [useKeyboardShortcuts.ts](src/editor/useKeyboardShortcuts.ts)
+      maps `L` / `J` / `Q` / `O`. State fields land in
+      [toolState.ts](src/editor/toolState.ts) with neutral defaults
+      so the rail reads identical-output until the user changes
+      something.
+
+`vp check` clean across all 119 files. `vp build` clean. The mobile
+rail is already a horizontal scroller (Phase F4.5) so the four new
+entries fit without any chrome refactor.
 
 ### ⏳ Phase F5 — Project save / load
 

@@ -32,6 +32,11 @@ const TOOL_KEY_MAP: Record<string, ToolId> = {
   i: "color",
   e: "frame",
   s: "resize",
+  // New tools (Phase F4.10).
+  l: "levels",
+  j: "hsl",
+  q: "perspective",
+  o: "border",
 };
 
 interface Args {

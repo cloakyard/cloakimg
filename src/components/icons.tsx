@@ -499,4 +499,47 @@ export const I = {
       <path d="M17 9v6" />
     </Icon>
   ),
+  // A trapezoid (image in perspective) with four solid corner dots —
+  // mirrors the on-canvas UI: drag the four handles to mark the real
+  // corners of the rectangular subject. Reads more clearly as
+  // "perspective rectify" than a static keystone shape would.
+  Perspective: (p: P) => (
+    <Icon {...p}>
+      <path d="M7 4 L17 5 L20 20 L4 19 Z" />
+      <circle cx="7" cy="4" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="5" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="20" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="19" r="1.6" fill="currentColor" stroke="none" />
+    </Icon>
+  ),
+  // Two black/white triangles meeting in the middle — Photoshop's
+  // Levels-icon convention.
+  Levels: (p: P) => (
+    <Icon {...p}>
+      <path d="M3 19 12 5l9 14H3Z" />
+      <line x1="12" y1="5" x2="12" y2="19" />
+    </Icon>
+  ),
+  // Three concentric arcs of different colours stand in for a hue
+  // wheel; lucide doesn't ship a clean HSL glyph so this approximates
+  // the colour-band metaphor.
+  Hsl: (p: P) => (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12a9 9 0 0 1 18 0" />
+      <path d="M7 12a5 5 0 0 1 10 0" />
+    </Icon>
+  ),
+  // Small inner image with four outward-pointing arrows — reads as
+  // "grow the canvas with padding". Distinct from Frame (which is a
+  // rectangle-in-rectangle, suggesting an inset stylized border).
+  Border: (p: P) => (
+    <Icon {...p}>
+      <rect x="9" y="9" width="6" height="6" rx="1" />
+      <path d="M5 5 L7.5 7.5 M5 5 H7.5 M5 5 V7.5" />
+      <path d="M19 5 L16.5 7.5 M19 5 H16.5 M19 5 V7.5" />
+      <path d="M5 19 L7.5 16.5 M5 19 H7.5 M5 19 V16.5" />
+      <path d="M19 19 L16.5 16.5 M19 19 H16.5 M19 19 V16.5" />
+    </Icon>
+  ),
 };
