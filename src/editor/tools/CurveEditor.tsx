@@ -61,9 +61,13 @@ interface HistogramData {
 interface Props {
   curve: CurvePoint[];
   onChange: (next: CurvePoint[]) => void;
+  /** When true the widget grows to fill the parent's remaining space
+   *  (height-driven, still square). Used by the mobile drawer's
+   *  Histogram tab so the curve fills the sheet without scrolling. */
+  fit?: boolean;
 }
 
-export function CurveEditor({ curve, onChange }: Props) {
+export function CurveEditor({ curve, onChange, fit = false }: Props) {
   const { doc, historyVersion } = useEditorReadOnly();
   const svgRef = useRef<SVGSVGElement>(null);
   const scratchRef = useRef<HTMLCanvasElement | null>(null);
@@ -247,13 +251,27 @@ export function CurveEditor({ curve, onChange }: Props) {
         ref={svgRef}
         viewBox="0 0 255 255"
         preserveAspectRatio="none"
-        className="block w-full touch-none"
-        // Square aspect — circles stay round, the diagonal stays at
-        // 45°, and the histogram bins read at consistent visual
-        // density. Earlier maxHeight cap stretched the editor into
-        // a non-square box on wider panels; that turned every control
-        // handle into an ellipse and skewed the identity reference.
-        style={{ aspectRatio: "1 / 1" }}
+        // In `fit` mode (mobile Histogram tab) the height is capped by
+        // the drawer's actual max — exposed by MobileSheet as
+        // `--ci-sheet-max`, inherited via CSS — so total content fits
+        // without scrolling. The width grows up to 1.2× the height,
+        // which closes the side gaps a square left behind on phones
+        // without crossing into "stretched" territory (control points
+        // become only mildly elliptical, the diagonal stays close to
+        // 45°). `min(100%, …)` keeps it inside the panel on narrow
+        // viewports; `mx-auto` centers when the cap kicks in.
+        className={fit ? "mx-auto block touch-none" : "block w-full touch-none"}
+        // Square aspect on desktop — circles stay round, the diagonal
+        // stays at 45°, and the histogram bins read at consistent
+        // visual density.
+        style={
+          fit
+            ? {
+                height: "max(140px, calc(var(--ci-sheet-max, 45vh) - 220px))",
+                width: "min(100%, calc(max(140px, calc(var(--ci-sheet-max, 45vh) - 220px)) * 1.2))",
+              }
+            : { aspectRatio: "1 / 1" }
+        }
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

@@ -34,7 +34,7 @@ export default defineConfig({
         theme_color: "#f5613a",
         background_color: "#faf7f4",
         display: "standalone",
-        orientation: "any",
+        orientation: "portrait",
         scope: process.env.VITE_APP_BASE_PATH || "/",
         start_url: process.env.VITE_APP_BASE_PATH || "/",
         icons: [

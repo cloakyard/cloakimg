@@ -3,14 +3,16 @@
 // (registerPendingApply hook), so an explicit Apply button is
 // redundant — Undo/Redo are the recovery path.
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { I } from "../../components/icons";
-import { NumericReadout, PropRow, Slider } from "../atoms";
+import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
 import { copyInto } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
 import { CurveEditor } from "./CurveEditor";
+
+const TABS = ["Histogram", "Adjust"] as const;
 
 const LABELS: Record<(typeof ADJUST_KEYS)[number], string> = {
   exposure: "Exposure",
@@ -50,7 +52,13 @@ function fmt(key: (typeof ADJUST_KEYS)[number], v: number): string {
 export function AdjustPanel() {
   const toolState = useToolState();
   const { patchTool, commit, registerPendingApply } = useEditorActions();
-  const { doc } = useEditorReadOnly();
+  const { doc, layout } = useEditorReadOnly();
+  const isMobile = layout === "mobile";
+  // On mobile the CurveEditor's 1:1 aspect ratio swallows the entire
+  // sheet height — pointer events on the SVG are `touch-none` for the
+  // drag gesture, so the sliders below were both below the fold and
+  // unreachable by scroll. Tabs sidestep both problems.
+  const [tab, setTab] = useState(0);
 
   const reset = useCallback(() => {
     patchTool(
@@ -98,45 +106,58 @@ export function AdjustPanel() {
     [patchTool, toolState.adjust],
   );
 
+  const showCurve = !isMobile || tab === 0;
+  const showSliders = !isMobile || tab === 1;
+
   return (
     <>
-      <CurveEditor curve={toolState.curveRGB} onChange={(next) => patchTool("curveRGB", next)} />
-      {ADJUST_KEYS.map((key, i) => {
-        const v = toolState.adjust[i] ?? 0.5;
-        return (
-          <PropRow
-            key={key}
-            label={LABELS[key]}
-            valueInput={
-              <NumericReadout
-                key={key}
-                display={fmt(key, v)}
-                normalized={v}
-                step={key === "exposure" ? 0.1 : 1}
-                fromNormalized={(n) => (n - 0.5) * 2 * RANGES[key]}
-                toNormalized={(real) => real / (2 * RANGES[key]) + 0.5}
-                onCommit={(n) => setAt(i, n)}
+      {isMobile && <Segment options={TABS} active={tab} onChange={setTab} />}
+      {showCurve && (
+        <CurveEditor
+          curve={toolState.curveRGB}
+          onChange={(next) => patchTool("curveRGB", next)}
+          fit={isMobile}
+        />
+      )}
+      {showSliders &&
+        ADJUST_KEYS.map((key, i) => {
+          const v = toolState.adjust[i] ?? 0.5;
+          return (
+            <PropRow
+              key={key}
+              label={LABELS[key]}
+              valueInput={
+                <NumericReadout
+                  key={key}
+                  display={fmt(key, v)}
+                  normalized={v}
+                  step={key === "exposure" ? 0.1 : 1}
+                  fromNormalized={(n) => (n - 0.5) * 2 * RANGES[key]}
+                  toNormalized={(real) => real / (2 * RANGES[key]) + 0.5}
+                  onCommit={(n) => setAt(i, n)}
+                />
+              }
+            >
+              <Slider
+                value={v}
+                accent={Math.abs(v - 0.5) > 0.001}
+                defaultValue={0.5}
+                onChange={(next) => setAt(i, next)}
               />
-            }
-          >
-            <Slider
-              value={v}
-              accent={Math.abs(v - 0.5) > 0.001}
-              defaultValue={0.5}
-              onChange={(next) => setAt(i, next)}
-            />
-          </PropRow>
-        );
-      })}
-      <button
-        type="button"
-        className="btn btn-secondary btn-xs mt-1 w-full justify-center"
-        onClick={reset}
-        disabled={!dirty}
-      >
-        <I.Refresh size={12} />
-        Reset
-      </button>
+            </PropRow>
+          );
+        })}
+      {showSliders && (
+        <button
+          type="button"
+          className="btn btn-secondary btn-xs mt-1 w-full justify-center"
+          onClick={reset}
+          disabled={!dirty}
+        >
+          <I.Refresh size={12} />
+          Reset
+        </button>
+      )}
     </>
   );
 }
