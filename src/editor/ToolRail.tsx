@@ -51,7 +51,9 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
             key={tool.id}
             type="button"
             onClick={() => onSelect(tool.id)}
-            title={tool.name}
+            title={
+              tool.subjectAware ? `${tool.name} — supports subject / background scoping` : tool.name
+            }
             aria-label={tool.name}
             aria-pressed={active}
             className={`relative mx-auto my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-none p-0 ${
@@ -61,6 +63,14 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
             }`}
           >
             <Ic size={17} />
+            {tool.subjectAware && (
+              <span
+                aria-hidden
+                className="absolute top-1 right-1 text-coral-500 dark:text-coral-400"
+              >
+                <I.Sparkles size={8} stroke={2.5} />
+              </span>
+            )}
             {active && (
               <span className="absolute top-[20%] -left-2 bottom-[20%] w-0.5 rounded-sm bg-coral-500" />
             )}
@@ -138,13 +148,21 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
               onClick={() => onSelect(tool.id)}
               aria-label={tool.name}
               aria-pressed={active}
-              className={`flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 ${
+              className={`relative flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 ${
                 active
                   ? "bg-coral-50 text-coral-700 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30 dark:text-coral-300"
                   : "bg-transparent text-text-muted dark:text-dark-text-muted"
               }`}
             >
               <Ic size={18} />
+              {tool.subjectAware && (
+                <span
+                  aria-hidden
+                  className="absolute top-1 right-1.5 text-coral-500 dark:text-coral-400"
+                >
+                  <I.Sparkles size={8} stroke={2.5} />
+                </span>
+              )}
               <span className="text-[10px] leading-tight font-semibold">{tool.name}</span>
             </button>
           );

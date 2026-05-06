@@ -6,11 +6,15 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
+import type { MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function FilterTool() {
   const { toolState, doc } = useEditor();
+  const subjectMask = useSubjectMask();
+  const mask = subjectMask.state.status === "ready" ? subjectMask.peek() : null;
   const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
   // Memoise the composed slider vector against its true inputs.
   // applyPresetVector returns a fresh array via .slice(), so without
@@ -22,6 +26,7 @@ export function FilterTool() {
     () => applyPresetVector(adjust, filterPreset, filterIntensity),
     [adjust, filterPreset, filterIntensity],
   );
+  const scope = (toolState.filterScope as MaskScope) ?? 0;
   // 80 ms debounce: a typical preset tap-tap-tap lands at 100–300 ms
   // intervals, faster than a single bake completes on mobile (~50–
   // 150 ms each at the 720 cap). Without coalescing, every click
@@ -35,6 +40,9 @@ export function FilterTool() {
     toolState.grain,
     preset?.monochrome ?? false,
     80,
+    undefined,
+    scope,
+    mask,
   );
   useStageProps({ previewCanvas: preview });
   return null;

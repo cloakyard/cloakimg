@@ -21,6 +21,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
+import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { type CurvePoint, isCurveIdentity } from "../toolState";
 import { bakeAdjust, isIdentity } from "./adjustments";
 
@@ -53,6 +54,16 @@ export function useAdjustPreview(
    *  skipped at bake time. Filter / preview consumers without a
    *  user-facing curve simply leave this undefined. */
   curve?: CurvePoint[],
+  /** Mask-aware scope for the bake: 0 (whole), 1 (subject), 2 (bg).
+   *  When scope is non-zero AND `mask` is provided, the preview
+   *  composites the bake with the downsampled source so the
+   *  modifications visibly land only in the chosen region. When
+   *  scope is non-zero but the mask hasn't loaded yet, we render
+   *  the un-scoped preview — the user sees the bake on the whole
+   *  image until detection lands, at which point the next render
+   *  re-bakes with the mask. */
+  scope: MaskScope = 0,
+  mask: HTMLCanvasElement | null = null,
 ): HTMLCanvasElement | null {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
@@ -111,8 +122,20 @@ export function useAdjustPreview(
     const runBake = () => {
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
-        const baked = bakeAdjust(ds, sliders, grain, curve);
+        let baked = bakeAdjust(ds, sliders, grain, curve);
         if (monochrome) toMonochrome(baked);
+        // Mask-aware compositing: when the user has picked Subject or
+        // Background scope and we have a mask, splice the bake with
+        // the original downsample so changes only land in-scope. The
+        // mask is full-resolution; applyMaskScope scales it to the
+        // baked surface during the composite.
+        if (scope !== 0 && mask) {
+          const scoped = applyMaskScope(ds, baked, mask, scope);
+          if (scoped !== baked) {
+            releaseCanvas(baked);
+            baked = scoped;
+          }
+        }
         setPreview((prev) => {
           // Don't release the downsampled cache by accident — it
           // lives across renders and bakeAdjust may return it
@@ -140,7 +163,7 @@ export function useAdjustPreview(
         rafRef.current = null;
       }
     };
-  }, [debounceMs, grain, monochrome, sliders, source, curve]);
+  }, [debounceMs, grain, monochrome, sliders, source, curve, scope, mask]);
 
   // Drop the last preview AND the cached downsample when the hook
   // unmounts so a tool swap doesn't leak either. The downsample is

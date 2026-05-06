@@ -7,10 +7,15 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import { bakeLevels, isLevelsIdentity, LEVELS_DEFAULT, type LevelsParams } from "./levels";
+import { MaskScopeRow } from "./MaskScopeRow";
 
 export function LevelsPanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
+  const subjectMask = useSubjectMask();
+  const scope = (toolState.levelsScope as MaskScope) ?? 0;
 
   const params = useMemo<LevelsParams>(
     () => ({
@@ -37,11 +42,24 @@ export function LevelsPanel() {
     patchTool("levelsGamma", LEVELS_DEFAULT.gamma);
     patchTool("levelsBlackOut", LEVELS_DEFAULT.blackOut);
     patchTool("levelsWhiteOut", LEVELS_DEFAULT.whiteOut);
+    patchTool("levelsScope", 0);
   }, [patchTool]);
 
-  const apply = useCallback(() => {
+  const apply = useCallback(async () => {
     if (!doc || !dirty) return;
-    const out = bakeLevels(doc.working, params);
+    let out = bakeLevels(doc.working, params);
+    if (scope !== 0) {
+      try {
+        const mask = subjectMask.peek() ?? (await subjectMask.request());
+        const scoped = applyMaskScope(doc.working, out, mask, scope);
+        if (scoped !== out) {
+          releaseCanvas(out);
+          out = scoped;
+        }
+      } catch {
+        // Fall through to whole-image bake.
+      }
+    }
     copyInto(doc.working, out);
     // bakeLevels pulls from the canvas pool; once copyInto has
     // mirrored the pixels we can hand the bake canvas back instead
@@ -49,7 +67,7 @@ export function LevelsPanel() {
     releaseCanvas(out);
     reset();
     commit("Levels");
-  }, [commit, dirty, doc, params, reset]);
+  }, [commit, dirty, doc, params, reset, scope, subjectMask]);
 
   const applyRef = useRef(apply);
   applyRef.current = apply;
@@ -92,6 +110,7 @@ export function LevelsPanel() {
 
   return (
     <>
+      <MaskScopeRow scope={toolState.levelsScope} onScope={(i) => patchTool("levelsScope", i)} />
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         Pull the input black up to crush shadows, the white down to clip highlights, and the midtone
         slider to lift or darken the middle of the curve.

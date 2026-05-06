@@ -38,6 +38,7 @@ import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
 import { History, restoreCanvas } from "./history";
+import { invalidateSubjectMask } from "./subjectMask";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import { DEFAULT_TOOL_STATE, type ToolState } from "./toolState";
 import type { Layout, Mode } from "./types";
@@ -368,6 +369,10 @@ export function EditorProvider({
         // A new doc starts with an empty Fabric scene; clear any
         // hand-off snapshot left over from a previous session.
         fabricSnapshotRef.current = null;
+        // Drop any subject-mask cached against a previous editor
+        // session — its source canvas is gone, the cache is dead
+        // weight.
+        invalidateSubjectMask();
         historyRef.current.push("Open", d.working, d.layers, null);
         setHistoryVersion((v) => v + 1);
         setLoading(false);
@@ -486,6 +491,10 @@ export function EditorProvider({
     setDoc({ ...doc, width: base.width, height: base.height });
     setLayersState(base.layers);
     restoreFabricScene(fabricCanvasRef.current, base.fabric);
+    // Reset replays the original pixels into doc.working. Any cached
+    // subject mask was detected against intermediate state and is now
+    // out of date — drop it so the next scoped tool re-detects.
+    invalidateSubjectMask();
     historyRef.current.push("Reset", doc.working, base.layers, base.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
@@ -533,6 +542,10 @@ export function EditorProvider({
         fc.requestRenderAll();
       }
       fabricSnapshotRef.current = null;
+      // The previous doc's subject-mask cache is keyed to its working
+      // canvas; drop it now so the new image starts fresh and we don't
+      // hold the old canvas alive in the cache.
+      invalidateSubjectMask();
       historyRef.current.push("Open", next.working, next.layers, null);
       setHistoryVersion((v) => v + 1);
     } catch (e: unknown) {

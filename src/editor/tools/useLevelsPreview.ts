@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
+import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { bakeLevels, isLevelsIdentity, type LevelsParams } from "./levels";
 
 const PREVIEW_LONG_EDGE_MOBILE = 720;
@@ -22,6 +23,8 @@ function previewLongEdge(): number {
 export function useLevelsPreview(
   source: HTMLCanvasElement | null,
   params: LevelsParams,
+  scope: MaskScope = 0,
+  mask: HTMLCanvasElement | null = null,
 ): HTMLCanvasElement | null {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
@@ -62,7 +65,14 @@ export function useLevelsPreview(
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
-      const baked = bakeLevels(ds, params);
+      let baked = bakeLevels(ds, params);
+      if (scope !== 0 && mask) {
+        const scoped = applyMaskScope(ds, baked, mask, scope);
+        if (scoped !== baked) {
+          releaseCanvas(baked);
+          baked = scoped;
+        }
+      }
       setPreview((prev) => {
         if (prev && prev !== ds) releaseCanvas(prev);
         return baked;
@@ -74,7 +84,7 @@ export function useLevelsPreview(
         rafRef.current = null;
       }
     };
-  }, [params, source]);
+  }, [params, source, scope, mask]);
 
   useEffect(() => {
     return () => {

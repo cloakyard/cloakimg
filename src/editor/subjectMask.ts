@@ -1,0 +1,209 @@
+// subjectMask.ts — Central subject-mask service.
+//
+// One U²-Net inference per source image, shared across every tool
+// that asks for it. Whoever triggers detection first pays the cost;
+// everyone after that gets a synchronous cache hit. The service is a
+// module-level singleton — components subscribe via
+// `useSubjectMask()` to drive UI (progress, badges, status), and
+// call `request()` to either start detection or grab the cached cut.
+//
+// Cache key is the source canvas *instance* plus its current
+// width/height. Most edits mutate `doc.working` in place (same canvas
+// reference, same dims), so the mask survives Adjust / Filter /
+// Levels / HSL bakes — only crop / resize / perspective / replace-
+// file cause a miss, which is the right behaviour because those are
+// the operations that actually move the subject relative to the frame.
+//
+// The mask is stored as the *cut* canvas the lib produces (subject at
+// original colour, background fully transparent). For scope-aware
+// blending we just composite via canvas operations — no need to
+// extract a single-channel alpha buffer.
+
+import { acquireCanvas, releaseCanvas } from "./doc";
+import {
+  type BgQuality,
+  smartRemoveBackground,
+  type SmartRemoveProgress,
+} from "./tools/smartRemoveBg";
+
+export type MaskStatus = "idle" | "loading" | "ready" | "error";
+
+export interface MaskState {
+  status: MaskStatus;
+  progress: SmartRemoveProgress | null;
+  error: string | null;
+  /** Bumps every time the state changes — useful for components that
+   *  want to subscribe via React without setState wrapper. */
+  version: number;
+  /** True when a detection has ever completed, even if the cache has
+   *  since been invalidated. Lets the UI distinguish "first run, model
+   *  needs to download" (cold) from "we've done this before, the
+   *  detection will be fast" (warm). */
+  warm: boolean;
+}
+
+interface CacheEntry {
+  source: HTMLCanvasElement;
+  /** Dimensions captured at detection time. We compare against the
+   *  source canvas's *current* width/height on every peek — when they
+   *  differ (Crop / Resize / Perspective have mutated `doc.working` in
+   *  place), the cache is implicitly stale and we drop it. */
+  width: number;
+  height: number;
+  /** RGBA canvas: subject at original colour, bg fully transparent. */
+  cut: HTMLCanvasElement;
+}
+
+let cache: CacheEntry | null = null;
+let inflight: Promise<HTMLCanvasElement> | null = null;
+let state: MaskState = {
+  status: "idle",
+  progress: null,
+  error: null,
+  version: 0,
+  warm: false,
+};
+
+const listeners = new Set<(s: MaskState) => void>();
+
+function setState(next: Partial<MaskState>) {
+  state = { ...state, ...next, version: state.version + 1 };
+  for (const l of listeners) l(state);
+}
+
+export function getMaskState(): MaskState {
+  return state;
+}
+
+export function subscribeMaskState(l: (s: MaskState) => void): () => void {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+}
+
+/** Synchronous read. Returns null when no fresh mask matches the
+ *  current source canvas. A dimension change invalidates the cache
+ *  in place (Crop / Resize / Perspective mutate `doc.working` width
+ *  + height directly, so source instance equality alone isn't
+ *  enough). */
+export function peekSubjectMask(source: HTMLCanvasElement): HTMLCanvasElement | null {
+  if (!cache) return null;
+  if (cache.source !== source) return null;
+  if (cache.width !== source.width || cache.height !== source.height) {
+    // Dimensions drifted — drop the stale entry so memory bounds stay
+    // honest, and report idle so any subscribed UI clears its
+    // "ready" indicator.
+    releaseCanvas(cache.cut);
+    cache = null;
+    setState({ status: "idle", progress: null, error: null });
+    return null;
+  }
+  return cache.cut;
+}
+
+/** Drop the cached mask. Called by EditorContext when the doc swaps
+ *  out (replaceWithFile, resetToOriginal) so the next session starts
+ *  clean. `peekSubjectMask` also auto-invalidates on dimension drift,
+ *  but explicit calls cover the cases where pixels change without
+ *  dimensions changing (Reset, undo through a non-geometry edit). */
+export function invalidateSubjectMask() {
+  if (!cache) return;
+  releaseCanvas(cache.cut);
+  cache = null;
+  // Don't reset `warm` — the model's still loaded in memory, future
+  // detections will be fast.
+  setState({ status: "idle", progress: null, error: null });
+}
+
+/** Lazily detect (or return cached). Concurrent callers share a
+ *  single in-flight promise so kicking off two scoped tools in quick
+ *  succession only runs one inference. */
+export async function ensureSubjectMask(
+  source: HTMLCanvasElement,
+  quality: BgQuality = "small",
+): Promise<HTMLCanvasElement> {
+  const existing = peekSubjectMask(source);
+  if (existing) return existing;
+  if (inflight) return inflight;
+
+  setState({
+    status: "loading",
+    progress: { phase: "download", ratio: 0, label: "Preparing…" },
+    error: null,
+  });
+
+  inflight = (async () => {
+    try {
+      const cut = await smartRemoveBackground(source, {
+        quality,
+        onProgress: (p) => setState({ progress: p }),
+      });
+      // Drop any prior cache (dimensions changed, or simply a stale
+      // cut from before the user crop/resized).
+      if (cache) releaseCanvas(cache.cut);
+      cache = { source, width: source.width, height: source.height, cut };
+      setState({ status: "ready", progress: null, error: null, warm: true });
+      return cut;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setState({ status: "error", progress: null, error: msg });
+      throw err;
+    } finally {
+      inflight = null;
+    }
+  })();
+
+  return inflight;
+}
+
+/** Mask scope: 0 whole image (no compositing), 1 subject only, 2
+ *  background only. The numeric values match the toolState segment
+ *  indices so they can be passed straight through. */
+export type MaskScope = 0 | 1 | 2;
+
+/** Composite `baked` over `original` using `mask`. Returns a fresh
+ *  pooled canvas matching the baked dimensions. Caller is responsible
+ *  for `releaseCanvas` once the result has been read.
+ *
+ *  When `scope` is 0 returns `baked` unchanged (still the caller's
+ *  canvas — caller already owns its lifecycle).
+ *
+ *  Mask resolution doesn't have to match — the browser scales it
+ *  during the composite. We deliberately don't pre-resize because
+ *  preview baked surfaces are tiny (≤1440 px on the long edge) and a
+ *  scaled drawImage costs <2 ms. */
+export function applyMaskScope(
+  original: HTMLCanvasElement,
+  baked: HTMLCanvasElement,
+  mask: HTMLCanvasElement,
+  scope: MaskScope,
+): HTMLCanvasElement {
+  if (scope === 0) return baked;
+  if (original.width !== baked.width || original.height !== baked.height) {
+    // Defensive: scope blending only makes sense at matched dimensions.
+    return baked;
+  }
+  const out = acquireCanvas(baked.width, baked.height);
+  const ctx = out.getContext("2d");
+  if (!ctx) return baked;
+
+  if (scope === 1) {
+    // Subject scope: keep baked where mask is opaque, original elsewhere.
+    ctx.drawImage(baked, 0, 0);
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.drawImage(mask, 0, 0, baked.width, baked.height);
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.drawImage(original, 0, 0);
+  } else {
+    // Background scope: keep baked where mask is transparent, original
+    // (subject pixels) elsewhere.
+    ctx.drawImage(baked, 0, 0);
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.drawImage(mask, 0, 0, baked.width, baked.height);
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.drawImage(original, 0, 0);
+  }
+  ctx.globalCompositeOperation = "source-over";
+  return out;
+}

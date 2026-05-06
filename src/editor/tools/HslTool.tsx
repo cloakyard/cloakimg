@@ -5,11 +5,16 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
+import type { MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import { type HslParams } from "./hsl";
 import { useHslPreview } from "./useHslPreview";
 
 export function HslTool() {
   const { toolState, doc } = useEditor();
+  const subjectMask = useSubjectMask();
+  const mask = subjectMask.state.status === "ready" ? subjectMask.peek() : null;
+  const scope = (toolState.hslScope as MaskScope) ?? 0;
   const params = useMemo<HslParams>(
     () => ({
       hue: toolState.hslHue,
@@ -18,7 +23,7 @@ export function HslTool() {
     }),
     [toolState.hslHue, toolState.hslSat, toolState.hslLum],
   );
-  const preview = useHslPreview(doc?.working ?? null, params);
+  const preview = useHslPreview(doc?.working ?? null, params, scope, mask);
   useStageProps({ previewCanvas: preview });
   return null;
 }

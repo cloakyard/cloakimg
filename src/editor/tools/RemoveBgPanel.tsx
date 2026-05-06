@@ -5,6 +5,9 @@
 //     products) that the chroma keyer can't touch. The model + ONNX
 //     runtime are downloaded once on first use and cached by the
 //     service worker so subsequent removes are offline + instant.
+//     Detection runs through the central subject-mask service so a
+//     mask cached by another tool (Adjust scoped to Subject, etc.)
+//     makes Apply effectively free.
 //
 //   • Chroma — the original perimeter-sampling chroma keyer. Faster
 //     than Auto on flat studio backdrops since it skips the model
@@ -20,12 +23,12 @@ import { I } from "../../components/icons";
 import { PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { useSubjectMask } from "../useSubjectMask";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
-import { type BgQuality, smartRemoveBackground, type SmartRemoveProgress } from "./smartRemoveBg";
+import type { SmartRemoveProgress } from "./smartRemoveBg";
 
 const MODES = ["Auto", "Chroma"] as const;
 const QUALITY_LABELS = ["Fast", "Better", "Best"] as const;
-const QUALITY_KEYS: BgQuality[] = ["small", "medium", "large"];
 const QUALITY_HINTS = [
   "~44 MB · best for portraits and most photos",
   "~88 MB · sharper edges, slower on first run",
@@ -34,19 +37,21 @@ const QUALITY_HINTS = [
 
 export function RemoveBgPanel() {
   const { toolState, patchTool, doc, commit, runBusy } = useEditor();
+  const subjectMask = useSubjectMask();
   // Inline error state replaces the older toast — the canvas itself
   // is the success confirmation, and a failure stays pinned next to
   // the Apply button so the user can read it and retry.
   const [bgError, setBgError] = useState<string | null>(null);
-  // Auto-mode progress (download + inference). Held in local state so
-  // it can drive a progress bar without bouncing through global tool
-  // state, which would re-render every consumer of `useEditor`.
-  const [progress, setProgress] = useState<SmartRemoveProgress | null>(null);
-  // True while the Auto pipeline is running. We surface it inline on
-  // the Apply button instead of via runBusy so the panel stays
-  // interactive (user can still cancel by switching tools).
-  const [autoBusy, setAutoBusy] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
+
+  // Auto-mode busy / progress now route through the central
+  // subject-mask service: state.status === "loading" means a detection
+  // is running (started by this panel or any other scoped tool), and
+  // state.progress carries the lib's download / inference reports. We
+  // still need a *local* "applying" flag to know when we should react
+  // to a fresh "ready" by writing the cut into doc.working — without
+  // it, opening this panel after another tool already cached the mask
+  // would auto-apply on mount.
+  const [applying, setApplying] = useState(false);
 
   const isAuto = toolState.bgMode === 0;
 
@@ -71,14 +76,11 @@ export function RemoveBgPanel() {
     patchTool("feather", 0);
   }, [doc, alreadyRemoved, patchTool]);
 
-  // Cancel any in-flight auto removal when the panel unmounts (tool
-  // switch, doc replace) so a slow inference doesn't write back to a
-  // canvas the user has already moved past.
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-    };
-  }, []);
+  // We no longer hold an AbortController here — the central
+  // subject-mask service owns the inference promise so other tools
+  // can opportunistically reuse it. Switching away while a detection
+  // is in flight just leaves the service to finish; the result lands
+  // in the cache for whichever tool the user opens next.
 
   const autoTune = useCallback(() => {
     if (!doc) return;
@@ -120,35 +122,33 @@ export function RemoveBgPanel() {
   const applyAuto = useCallback(async () => {
     if (!doc || alreadyRemoved) return;
     setBgError(null);
-    setProgress({ phase: "download", ratio: 0, label: "Preparing…" });
-    setAutoBusy(true);
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
+    setApplying(true);
     try {
-      const out = await smartRemoveBackground(doc.working, {
-        quality: QUALITY_KEYS[toolState.bgQuality] ?? "small",
-        signal: ac.signal,
-        onProgress: (p) => setProgress(p),
-      });
-      if (ac.signal.aborted) {
-        releaseCanvas(out);
+      // Routes through the shared mask service — if another tool
+      // already detected the subject for this image, this returns the
+      // cached cut instantly and we skip straight to compositing.
+      const cut = await subjectMask.request();
+      // Defensive: if the source dimensions changed mid-flight (Crop
+      // ran after we kicked off detection), the cut won't match
+      // doc.working. Bail rather than commit a misaligned image.
+      if (cut.width !== doc.working.width || cut.height !== doc.working.height) {
+        setBgError("The image changed during detection — try Remove again.");
         return;
       }
-      copyInto(doc.working, out);
-      releaseCanvas(out);
+      copyInto(doc.working, cut);
+      // The mask is now identical to the working canvas alpha-keyed,
+      // so further scoped tools won't benefit from re-detecting.
+      // Drop the cache to free its memory.
+      subjectMask.invalidate();
       patchTool("bgSample", null);
       patchTool("bgPickActive", false);
       commit("Remove BG");
     } catch (err) {
-      if ((err as { name?: string })?.name === "AbortError") return;
       setBgError(err instanceof Error ? err.message : "Couldn't remove background");
     } finally {
-      setAutoBusy(false);
-      setProgress(null);
-      if (abortRef.current === ac) abortRef.current = null;
+      setApplying(false);
     }
-  }, [alreadyRemoved, commit, doc, patchTool, toolState.bgQuality]);
+  }, [alreadyRemoved, commit, doc, patchTool, subjectMask]);
 
   const togglePick = useCallback(() => {
     patchTool("bgPickActive", !toolState.bgPickActive);
@@ -184,8 +184,15 @@ export function RemoveBgPanel() {
           quality={toolState.bgQuality}
           onQuality={(q) => patchTool("bgQuality", q)}
           alreadyRemoved={alreadyRemoved}
-          busy={autoBusy}
-          progress={progress}
+          // The "busy" flag spans both the central detection (driven
+          // by another scoped tool or this very Apply click) AND this
+          // panel's own commit step. Subscribing to subjectMask.state
+          // means the Apply button stays in the busy state if the
+          // user hopped over to Adjust → Subject scope which kicked
+          // off detection, then jumped back here.
+          busy={applying || subjectMask.state.status === "loading"}
+          progress={subjectMask.state.progress}
+          warm={subjectMask.state.warm}
           onApply={() => void applyAuto()}
         />
       ) : (
@@ -234,10 +241,22 @@ interface AutoProps {
   alreadyRemoved: boolean;
   busy: boolean;
   progress: SmartRemoveProgress | null;
+  /** Has detection ever completed in this session? Drives the
+   *  "first-time download (cold)" vs "already downloaded (warm)" copy
+   *  in the progress card. */
+  warm: boolean;
   onApply: () => void;
 }
 
-function AutoPanel({ quality, onQuality, alreadyRemoved, busy, progress, onApply }: AutoProps) {
+function AutoPanel({
+  quality,
+  onQuality,
+  alreadyRemoved,
+  busy,
+  progress,
+  warm,
+  onApply,
+}: AutoProps) {
   const isDownload = progress?.phase === "download";
   const isInference = progress?.phase === "inference" || progress?.phase === "decode";
   const downloadPct = isDownload ? Math.round((progress?.ratio ?? 0) * 100) : null;
@@ -282,7 +301,9 @@ function AutoPanel({ quality, onQuality, alreadyRemoved, busy, progress, onApply
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         {alreadyRemoved
           ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
-          : `${QUALITY_HINTS[quality] ?? ""} The model downloads once and then runs offline.`}
+          : warm
+            ? `${QUALITY_HINTS[quality] ?? ""} Model already loaded — detection is instant.`
+            : `${QUALITY_HINTS[quality] ?? ""} The model downloads once and then runs offline.`}
       </div>
     </>
   );

@@ -8,6 +8,8 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import {
   bakeHsl,
   HSL_BAND_CENTERS,
@@ -17,10 +19,13 @@ import {
   type HslParams,
   isHslIdentity,
 } from "./hsl";
+import { MaskScopeRow } from "./MaskScopeRow";
 
 export function HslPanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
+  const subjectMask = useSubjectMask();
   const band = toolState.hslBand;
+  const scope = (toolState.hslScope as MaskScope) ?? 0;
 
   const params = useMemo<HslParams>(
     () => ({
@@ -38,6 +43,7 @@ export function HslPanel() {
     patchTool("hslHue", id.hue);
     patchTool("hslSat", id.sat);
     patchTool("hslLum", id.lum);
+    patchTool("hslScope", 0);
   }, [patchTool]);
 
   const resetBand = useCallback(() => {
@@ -52,16 +58,28 @@ export function HslPanel() {
     patchTool("hslLum", lum);
   }, [band, patchTool, toolState.hslHue, toolState.hslLum, toolState.hslSat]);
 
-  const apply = useCallback(() => {
+  const apply = useCallback(async () => {
     if (!doc || !dirty) return;
-    const out = bakeHsl(doc.working, params);
+    let out = bakeHsl(doc.working, params);
+    if (scope !== 0) {
+      try {
+        const mask = subjectMask.peek() ?? (await subjectMask.request());
+        const scoped = applyMaskScope(doc.working, out, mask, scope);
+        if (scoped !== out) {
+          releaseCanvas(out);
+          out = scoped;
+        }
+      } catch {
+        // Fall through to whole-image bake.
+      }
+    }
     copyInto(doc.working, out);
     // bakeHsl pulls from the canvas pool; once copyInto has mirrored
     // the pixels we can return the bake canvas for reuse.
     releaseCanvas(out);
     reset();
     commit("Selective colour");
-  }, [commit, dirty, doc, params, reset]);
+  }, [commit, dirty, doc, params, reset, scope, subjectMask]);
 
   const applyRef = useRef(apply);
   applyRef.current = apply;
@@ -89,6 +107,7 @@ export function HslPanel() {
 
   return (
     <>
+      <MaskScopeRow scope={toolState.hslScope} onScope={(i) => patchTool("hslScope", i)} />
       <PropRow label="Color band">
         <div className="grid grid-cols-8 gap-1">
           {HSL_BAND_NAMES.map((name, i) => {

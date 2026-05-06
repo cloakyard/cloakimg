@@ -9,10 +9,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
-import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { copyInto, createCanvas, releaseCanvas } from "../doc";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
+import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
+import { MaskScopeRow } from "./MaskScopeRow";
 
 const THUMB_PX = 96;
 
@@ -20,7 +23,9 @@ export function FilterPanel() {
   const toolState = useToolState();
   const { patchTool, commit, registerPendingApply } = useEditorActions();
   const { doc, layout } = useEditorReadOnly();
+  const subjectMask = useSubjectMask();
   const isMobile = layout === "mobile";
+  const scope = (toolState.filterScope as MaskScope) ?? 0;
 
   // Build a small square thumb from doc.working once per panel mount.
   // The Filter tool is usually opened mid-edit, so this captures the
@@ -64,6 +69,23 @@ export function FilterPanel() {
     // new spinner frames.
     let out = await bakeAdjustAsync(doc.working, final, toolState.grain);
     if (preset.monochrome) out = monochrome(out);
+    // Same scope-aware composite as Adjust — when the user picked
+    // Subject / Background, splice the filter result against the
+    // original so it only lands in-scope. Detection is awaited at
+    // commit time so the bake is honest about what the user asked
+    // for; preview already shows the scoped result.
+    if (scope !== 0) {
+      try {
+        const mask = subjectMask.peek() ?? (await subjectMask.request());
+        const scoped = applyMaskScope(doc.working, out, mask, scope);
+        if (scoped !== out) {
+          releaseCanvas(out);
+          out = scoped;
+        }
+      } catch {
+        // Fall through to whole-image bake.
+      }
+    }
     copyInto(doc.working, out);
     // bakeAdjustAsync acquires from the canvas pool; once copyInto has
     // mirrored the pixels into doc.working we can hand the bake canvas
@@ -72,8 +94,9 @@ export function FilterPanel() {
     patchTool("filterPreset", 0);
     patchTool("filterIntensity", 0.65);
     patchTool("grain", 0);
+    patchTool("filterScope", 0);
     commit("Filter");
-  }, [commit, doc, patchTool, toolState]);
+  }, [commit, doc, patchTool, scope, subjectMask, toolState]);
 
   const dirty = toolState.filterPreset !== 0 || toolState.grain > 0;
 
@@ -92,6 +115,7 @@ export function FilterPanel() {
 
   return (
     <>
+      <MaskScopeRow scope={toolState.filterScope} onScope={(i) => patchTool("filterScope", i)} />
       <PropRow label="Preset">
         {/* On mobile the presets reflow into a single horizontally
             scrolling row so the panel stays short and the canvas above

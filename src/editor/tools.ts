@@ -34,6 +34,14 @@ export interface Tool {
   name: string;
   icon: ComponentType<{ size?: number; stroke?: number }>;
   group: ToolGroup;
+  /** True when the tool exposes subject-aware scoping (Apply to:
+   *  Whole / Subject / Background) backed by the central U²-Net mask
+   *  service. The rail / mobile toolbar paint a small sparkle dot
+   *  on these tools so users know which ones can target subject vs
+   *  background. Detection itself is lazy — opening the tool doesn't
+   *  download the model; only the user picking a non-Whole scope
+   *  does. */
+  subjectAware?: boolean;
 }
 
 // Rail order follows the user's editing stages roughly left-to-right:
@@ -52,11 +60,12 @@ export const ALL_TOOLS: Tool[] = [
 
   // Tone — colour and brightness. Adjust is the workhorse; Filters
   // is the one-click stylistic option; Levels and Selective colour
-  // are the advanced precision tools.
-  { id: "adjust", name: "Adjust", icon: I.Sliders, group: "tone" },
-  { id: "filter", name: "Filters", icon: I.Wand, group: "tone" },
-  { id: "levels", name: "Levels", icon: I.Levels, group: "tone" },
-  { id: "hsl", name: "Selective color", icon: I.Hsl, group: "tone" },
+  // are the advanced precision tools. All four expose subject-aware
+  // scoping so the user can apply changes to subject vs background.
+  { id: "adjust", name: "Adjust", icon: I.Sliders, group: "tone", subjectAware: true },
+  { id: "filter", name: "Filters", icon: I.Wand, group: "tone", subjectAware: true },
+  { id: "levels", name: "Levels", icon: I.Levels, group: "tone", subjectAware: true },
+  { id: "hsl", name: "Selective color", icon: I.Hsl, group: "tone", subjectAware: true },
 
   // Mark — annotations and overlays. Text and Shapes lead since
   // they're the screenshot-annotation core; freehand (Draw, Pen)
@@ -70,9 +79,10 @@ export const ALL_TOOLS: Tool[] = [
   { id: "image", name: "Place image", icon: I.FileImage, group: "mark" },
   { id: "mark", name: "Watermark", icon: I.Stamp, group: "mark" },
 
-  // Retouch — fix imperfections.
+  // Retouch — fix imperfections. Remove BG runs the same model the
+  // tone group's subject scopes use, so it shares the badge.
   { id: "spot", name: "Spot heal", icon: I.Eraser, group: "retouch" },
-  { id: "bgrm", name: "Remove BG", icon: I.Layers, group: "retouch" },
+  { id: "bgrm", name: "Remove BG", icon: I.Layers, group: "retouch", subjectAware: true },
 
   // Sampling — read pixel values.
   { id: "color", name: "Color picker", icon: I.Pipette, group: "color" },

@@ -8,9 +8,12 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
+import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
+import { useSubjectMask } from "../useSubjectMask";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
 import { CurveEditor } from "./CurveEditor";
+import { MaskScopeRow } from "./MaskScopeRow";
 
 const TABS = ["Histogram", "Adjust"] as const;
 
@@ -53,7 +56,9 @@ export function AdjustPanel() {
   const toolState = useToolState();
   const { patchTool, commit, registerPendingApply } = useEditorActions();
   const { doc, layout } = useEditorReadOnly();
+  const subjectMask = useSubjectMask();
   const isMobile = layout === "mobile";
+  const scope = (toolState.adjustScope as MaskScope) ?? 0;
   // On mobile the CurveEditor's 1:1 aspect ratio swallows the entire
   // sheet height — pointer events on the SVG are `touch-none` for the
   // drag gesture, so the sliders below were both below the fold and
@@ -66,6 +71,7 @@ export function AdjustPanel() {
       Array.from({ length: ADJUST_KEYS.length }, () => 0.5),
     );
     patchTool("curveRGB", IDENTITY_CURVE);
+    patchTool("adjustScope", 0);
   }, [patchTool]);
 
   const apply = useCallback(async (): Promise<void> => {
@@ -76,7 +82,27 @@ export function AdjustPanel() {
     // CSS transform animations on the compositor while the main
     // thread is JS-busy, and the inter-chunk yields give the
     // browser frames to paint the rotation.
-    const out = await bakeAdjustAsync(doc.working, toolState.adjust, 0, toolState.curveRGB);
+    let out = await bakeAdjustAsync(doc.working, toolState.adjust, 0, toolState.curveRGB);
+    // Mask scoping: if the user picked Subject / Background, ensure
+    // the cut is ready (await detection if it isn't), then composite
+    // so the bake only lands inside the chosen region. We *await*
+    // detection here because Apply is the moment of truth — a
+    // half-completed mask would silently fall back to whole-image,
+    // which is the opposite of what the user asked for. If detection
+    // errors, fall back to whole-image with a console warn rather
+    // than blocking the commit.
+    if (scope !== 0) {
+      try {
+        const mask = subjectMask.peek() ?? (await subjectMask.request());
+        const scoped = applyMaskScope(doc.working, out, mask, scope);
+        if (scoped !== out) {
+          releaseCanvas(out);
+          out = scoped;
+        }
+      } catch {
+        // Fall through to whole-image bake.
+      }
+    }
     copyInto(doc.working, out);
     // bakeAdjustAsync acquires from the canvas pool; copyInto already
     // duplicated the pixels into doc.working, so the bake canvas can
@@ -84,7 +110,7 @@ export function AdjustPanel() {
     releaseCanvas(out);
     reset();
     commit("Adjust");
-  }, [commit, doc, reset, toolState.adjust, toolState.curveRGB]);
+  }, [commit, doc, reset, scope, subjectMask, toolState.adjust, toolState.curveRGB]);
 
   const dirty = !isAdjustIdentity(toolState.adjust, toolState.curveRGB);
 
@@ -116,6 +142,9 @@ export function AdjustPanel() {
   return (
     <>
       {isMobile && <Segment options={TABS} active={tab} onChange={setTab} />}
+      {showSliders && (
+        <MaskScopeRow scope={toolState.adjustScope} onScope={(i) => patchTool("adjustScope", i)} />
+      )}
       {showCurve && (
         <CurveEditor
           curve={toolState.curveRGB}
