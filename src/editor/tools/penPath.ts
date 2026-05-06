@@ -15,7 +15,14 @@ export interface PenAnchor {
 
 /** Build an SVG `d` string from a list of anchors. Bezier control
  *  points on either side of an anchor turn that segment into a `C`
- *  curve; otherwise it falls back to a straight line. */
+ *  curve; otherwise it falls back to a straight line.
+ *
+ *  When the last anchor coincides with the first (within half a
+ *  pixel — the close-by-clicking-first-anchor path duplicates the
+ *  first anchor at the end), the result ends with `Z` so the path
+ *  is genuinely closed. Without `Z`, Fabric paints the stroke
+ *  closed but leaves fill un-rendered, which is the bug behind
+ *  "Fill is on but my shape is hollow". */
 export function buildPenD(anchors: PenAnchor[]): string {
   if (anchors.length === 0) return "";
   const a0 = anchors[0];
@@ -32,6 +39,15 @@ export function buildPenD(anchors: PenAnchor[]): string {
     } else {
       d += ` L ${cur.x},${cur.y}`;
     }
+  }
+  const aLast = anchors[anchors.length - 1];
+  if (
+    aLast &&
+    anchors.length > 2 &&
+    Math.abs(a0.x - aLast.x) < 0.5 &&
+    Math.abs(a0.y - aLast.y) < 0.5
+  ) {
+    d += " Z";
   }
   return d;
 }
