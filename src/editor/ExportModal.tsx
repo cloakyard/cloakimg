@@ -259,7 +259,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       onClose={onClose}
       bottomSheet={isMobile}
       position="absolute"
-      maxWidth="max-w-180"
+      maxWidth="max-w-200"
       labelledBy="export-title"
       dialogRef={dialogRef}
       dialogClassName={isMobile ? "flex-col" : "flex-row"}
@@ -314,11 +314,20 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           }`}
         >
           {!isMobile && (
-            <div>
-              <div className="t-eyebrow mb-1 text-[10px]">Export</div>
-              <div id="export-title" className="t-headline text-lg">
-                Save your image
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="t-eyebrow mb-1 text-[10px]">Export</div>
+                <div id="export-title" className="t-headline text-lg">
+                  Save your image
+                </div>
               </div>
+              {/* Mobile already gets a close X in its dedicated header
+                  bar above; desktop puts it next to the title to mirror
+                  PrivacyModal / StartModal / FilePropertiesModal and so
+                  the bottom button row can drop the Cancel button —
+                  keeping Copy and Download equal-width even when the
+                  Copy label flips to "Copied". */}
+              <ModalCloseButton onClose={onClose} label="Close export" iconSize={14} />
             </div>
           )}
 
@@ -410,20 +419,16 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
               : "px-5.5 pb-5.5"
           }`}
         >
-          {/* Mobile already has an X close button in the modal header
-              (see ModalCloseButton in the mobile-only title bar above)
-              so the bottom Cancel is redundant on small screens — and
-              cramming three buttons into ~280 px squeezes the labels.
-              Desktop keeps Cancel for muscle-memory parity with the
-              other modals. */}
-          {!isMobile && (
-            <button type="button" className="btn btn-ghost btn-sm flex-1" onClick={onClose}>
-              Cancel
-            </button>
-          )}
+          {/* Both buttons are flex-1 with min-w-0 so the row stays
+              perfectly even on every state — including the moment Copy
+              flips to "Copied" mid-cooldown. The Cancel button used to
+              live here on desktop, but the close X in the title row
+              above replaces it (mirrors PrivacyModal / StartModal /
+              FilePropertiesModal); this keeps Copy and Download the
+              same width on both layouts. */}
           <button
             type="button"
-            className="btn btn-secondary btn-sm flex-1 justify-center"
+            className="btn btn-secondary btn-sm flex-1 min-w-0 justify-center"
             onClick={copyToClipboard}
             disabled={busy}
             title="Copy edited image to clipboard as PNG"
@@ -432,7 +437,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           </button>
           <button
             type="button"
-            className="btn btn-primary btn-sm flex-2 justify-center"
+            className="btn btn-primary btn-sm flex-1 min-w-0 justify-center"
             onClick={download}
             disabled={busy}
           >

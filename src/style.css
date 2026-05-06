@@ -37,6 +37,21 @@ body {
   }
 }
 
+/* Indeterminate progress shimmer — the highlight stripe slides
+   across a filled bar so the user sees motion during phases we
+   can't measure (e.g. ML inference inside a Web Worker, where the
+   ONNX runtime doesn't surface per-step progress). The
+   background-position runs from off-left to off-right so the bright
+   stripe enters and exits cleanly. */
+@keyframes ci-bg-shimmer {
+  from {
+    background-position: -40% 0;
+  }
+  to {
+    background-position: 140% 0;
+  }
+}
+
 /* Subtle rotation cue used by the OrientationLock overlay — tilts a
    phone glyph back and forth so the user reads "rotate this device"
    even before they parse the headline. */

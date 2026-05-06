@@ -193,6 +193,15 @@ export interface ToolState {
   /** True while the user has the eyedropper armed in the Remove BG
    *  panel. The next canvas click sets `bgSample` and turns this off. */
   bgPickActive: boolean;
+  /** Remove BG mode: 0 = Auto (U²-Net ML), 1 = Chroma (perimeter
+   *  sampling). Auto is the default; chroma stays available for
+   *  flat studio backdrops where it's faster + needs no model load. */
+  bgMode: number;
+  /** Auto-mode quality / size trade-off:
+   *    0 = small  (~44 MB int8 model, fastest, fine for ~1 MP photos)
+   *    1 = medium (~88 MB fp16 model, sharper edges)
+   *    2 = large  (~176 MB fp32 model, best quality, slow on phones) */
+  bgQuality: number;
 
   // Levels — input black/white/midtone gamma + output black/white.
   levelsBlackIn: number; // 0..255
@@ -319,6 +328,8 @@ export const DEFAULT_TOOL_STATE: ToolState = {
 
   bgSample: null,
   bgPickActive: false,
+  bgMode: 0,
+  bgQuality: 0,
 
   levelsBlackIn: LEVELS_DEFAULT.blackIn,
   levelsWhiteIn: LEVELS_DEFAULT.whiteIn,

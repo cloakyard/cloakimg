@@ -1,10 +1,16 @@
 // RemoveBgTool.tsx — Live preview wrapper for the Remove BG tool.
 // Renders ImageCanvas with a debounced, downsampled-then-upsampled
 // background-removed preview so threshold + feather changes show
-// instantly on canvas. While the panel's eyedropper is armed, the
-// next image-space click samples the pixel under the pointer and
-// stores it as the explicit chroma target. Final commit is owned by
-// RemoveBgPanel.
+// instantly on canvas (chroma mode only). While the panel's
+// eyedropper is armed, the next image-space click samples the pixel
+// under the pointer and stores it as the explicit chroma target.
+//
+// Auto mode (toolState.bgMode === 0) doesn't have a live preview —
+// the U²-Net inference takes hundreds of ms per pass and a full bake
+// only really makes sense once on Apply. The canvas keeps showing
+// the original image until the user runs the model.
+//
+// Final commit is owned by RemoveBgPanel.
 
 import { useCallback } from "react";
 import { useEditor } from "../EditorContext";
@@ -14,8 +20,12 @@ import { useRemoveBgPreview } from "./useRemoveBgPreview";
 
 export function RemoveBgTool() {
   const { toolState, patchTool, doc } = useEditor();
+  const isChroma = toolState.bgMode === 1;
   const preview = useRemoveBgPreview(
-    doc?.working ?? null,
+    // Source is null in Auto mode so the preview hook stays idle and
+    // doesn't allocate a downsample for a chroma keyer the user
+    // isn't running.
+    isChroma ? (doc?.working ?? null) : null,
     toolState.genericStrength,
     toolState.feather,
     toolState.bgSample,
@@ -28,7 +38,9 @@ export function RemoveBgTool() {
 
   const onPick = useCallback(
     (p: ImagePoint) => {
-      if (!toolState.bgPickActive || !doc || !p.inside) return;
+      // Eyedropper only works in chroma mode; Auto mode doesn't sample
+      // a colour, the model handles segmentation end-to-end.
+      if (!isChroma || !toolState.bgPickActive || !doc || !p.inside) return;
       const ctx = doc.working.getContext("2d");
       if (!ctx) return;
       const x = Math.round(Math.max(0, Math.min(doc.width - 1, p.x)));
@@ -40,12 +52,12 @@ export function RemoveBgTool() {
       patchTool("bgSample", hex);
       patchTool("bgPickActive", false);
     },
-    [doc, patchTool, toolState.bgPickActive],
+    [doc, isChroma, patchTool, toolState.bgPickActive],
   );
 
   useStageProps({
-    previewCanvas: preview,
-    cursor: toolState.bgPickActive ? "crosshair" : undefined,
+    previewCanvas: isChroma ? preview : null,
+    cursor: isChroma && toolState.bgPickActive ? "crosshair" : undefined,
     onImagePointerDown: onPick,
   });
   return null;
