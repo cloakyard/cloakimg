@@ -71,7 +71,12 @@ export interface ToolState {
   // Crop / rotate
   cropAspect: number; // index into ASPECT_OPTIONS
   cropRect: Rect | null; // image-space pixels
-  rotationDeg: number; // -45..+45 (free) or any 0/90/180/270 from the 90° button
+  /** Fine rotation from the slider, in degrees, range [-45, +45]. */
+  rotationDeg: number;
+  /** 90° button presses; total rotation = `cropQuarterTurns * 90 + rotationDeg`.
+   *  Kept separate so the slider's fine adjustment composes with quarter-
+   *  turn rotation instead of overflowing past its [-45, +45] range. */
+  cropQuarterTurns: number;
   flipH: boolean;
   flipV: boolean;
 
@@ -193,6 +198,7 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   cropAspect: 0,
   cropRect: null,
   rotationDeg: 0,
+  cropQuarterTurns: 0,
   flipH: false,
   flipV: false,
 

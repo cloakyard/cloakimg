@@ -13,12 +13,13 @@
 
 import { type FabricObject, Rect as FabricRect } from "fabric";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { I } from "../../components/icons";
+import { PropRow, Segment, Slider } from "../atoms";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
-import { I } from "../../components/icons";
-import { PropRow, Segment, Slider } from "../atoms";
+import type { ToolState } from "../toolState";
 import { ASPECT_OPTIONS, initialRect, type Rect } from "./cropMath";
 
 const CROP_TAG = "cloak:cropOverlay";
@@ -58,35 +59,93 @@ export function CropTool() {
   const cropRectRef = useRef<FabricObject | null>(null);
 
   // Dim the area outside the live crop rect so the kept region reads
-  // clearly. We draw on the lower canvas via paintOverlay; Fabric's
-  // selection handles live on the upper canvas and stay crisp.
-  const paintOverlay = useCallback((ctx: CanvasRenderingContext2D, t: Transform) => {
-    const rect = cropRectRef.current;
-    if (!rect) return;
-    const left = rect.left ?? 0;
-    const top = rect.top ?? 0;
-    const w = (rect.width ?? 0) * (rect.scaleX ?? 1);
-    const h = (rect.height ?? 0) * (rect.scaleY ?? 1);
-    const sx = t.ox + left * t.scale;
-    const sy = t.oy + top * t.scale;
-    const sw = w * t.scale;
-    const sh = h * t.scale;
-    const ix = t.ox;
-    const iy = t.oy;
-    const iw = t.iw * t.scale;
-    const ih = t.ih * t.scale;
-    ctx.save();
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-    // Top strip
-    if (sy > iy) ctx.fillRect(ix, iy, iw, sy - iy);
-    // Bottom strip
-    if (sy + sh < iy + ih) ctx.fillRect(ix, sy + sh, iw, iy + ih - (sy + sh));
-    // Left strip
-    if (sx > ix) ctx.fillRect(ix, sy, sx - ix, sh);
-    // Right strip
-    if (sx + sw < ix + iw) ctx.fillRect(sx + sw, sy, ix + iw - (sx + sw), sh);
-    ctx.restore();
-  }, []);
+  // clearly, AND render a live rotation/flip preview over the doc area
+  // when the panel's rotation/flip controls are non-default. We draw on
+  // the lower canvas via paintOverlay; Fabric's selection handles live
+  // on the upper canvas and stay crisp.
+  const paintOverlay = useCallback(
+    (ctx: CanvasRenderingContext2D, t: Transform, ts: ToolState) => {
+      const rect = cropRectRef.current;
+      if (!rect || !doc) return;
+      const left = rect.left ?? 0;
+      const top = rect.top ?? 0;
+      const w = (rect.width ?? 0) * (rect.scaleX ?? 1);
+      const h = (rect.height ?? 0) * (rect.scaleY ?? 1);
+      const sx = t.ox + left * t.scale;
+      const sy = t.oy + top * t.scale;
+      const sw = w * t.scale;
+      const sh = h * t.scale;
+      const ix = t.ox;
+      const iy = t.oy;
+      const iw = t.iw * t.scale;
+      const ih = t.ih * t.scale;
+
+      // Live rotation/flip preview: replace the unrotated bg Fabric
+      // just drew with a rotated/flipped copy of `doc.working`. The
+      // crop rect stays axis-aligned over the rotated image, matching
+      // the bake (rotate around image center, then crop).
+      //
+      // Negate the angle so positive rotationDeg reads as a counter-
+      // clockwise tilt visually — matching the slider direction in
+      // iOS Photos / Lightroom (drag right → image tilts left). The
+      // canvas API's positive direction is clockwise on screen, so the
+      // sign flip lives here rather than in the slider mapping.
+      const totalDeg = ts.cropQuarterTurns * 90 + ts.rotationDeg;
+      if (totalDeg !== 0 || ts.flipH || ts.flipV) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(ix, iy, iw, ih);
+        ctx.clip();
+        ctx.clearRect(ix, iy, iw, ih);
+        ctx.translate(ix + iw / 2, iy + ih / 2);
+        ctx.rotate((-totalDeg * Math.PI) / 180);
+        ctx.scale(ts.flipH ? -1 : 1, ts.flipV ? -1 : 1);
+        ctx.drawImage(doc.working, -iw / 2, -ih / 2, iw, ih);
+        ctx.restore();
+      }
+
+      ctx.save();
+      // Dim flush with the rect edge so the orange stroke unambiguously
+      // marks the crop boundary: clear = kept, grey = cropped away.
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      if (sy > iy) ctx.fillRect(ix, iy, iw, sy - iy);
+      if (sy + sh < iy + ih) ctx.fillRect(ix, sy + sh, iw, iy + ih - (sy + sh));
+      if (sx > ix) ctx.fillRect(ix, sy, sx - ix, sh);
+      if (sx + sw < ix + iw) ctx.fillRect(sx + sw, sy, ix + iw - (sx + sw), sh);
+
+      // Re-draw the 8 handle chips on the lower canvas above the dim.
+      // Fabric also paints them on the upper canvas; both sets land at
+      // the same positions/sizes/colours so the user sees one crisp
+      // chip per corner. This is the belt-and-braces fix that ensures
+      // the handles are unmistakably above the grey, without resorting
+      // to a clear "halo" that confuses the crop-edge boundary.
+      const cornerSize = (rect as unknown as { cornerSize?: number }).cornerSize ?? 14;
+      const r = cornerSize / 2;
+      const cx = sx + sw / 2;
+      const cy = sy + sh / 2;
+      const handlePts: Array<[number, number]> = [
+        [sx, sy],
+        [cx, sy],
+        [sx + sw, sy],
+        [sx, cy],
+        [sx + sw, cy],
+        [sx, sy + sh],
+        [cx, sy + sh],
+        [sx + sw, sy + sh],
+      ];
+      ctx.fillStyle = "#f5613a";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      for (const [hx, hy] of handlePts) {
+        ctx.beginPath();
+        ctx.arc(hx, hy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+    [doc],
+  );
 
   // Mount the crop overlay rect; tear it down on tool switch.
   useEffect(() => {
@@ -122,6 +181,13 @@ export function CropTool() {
       transparentCorners: false,
       borderColor: "#f5613a",
       borderScaleFactor: 1.5,
+      // The global default is 6 px on phones (gives most objects a
+      // wider hit halo). On the crop rect that offset paints Fabric's
+      // selection border 6 px outside the rect's own stroke, so the
+      // user reads two concentric orange rectangles. Pin to 0 here so
+      // border + stroke land on the same line — `touchCornerSize` in
+      // fabricDefaults already handles touch hit-target sizing.
+      padding: 0,
       // Rotation belongs to the panel, not the rect.
       hasRotatingPoint: false,
       lockRotation: true,
@@ -134,6 +200,12 @@ export function CropTool() {
       hasBorders: true,
     });
     (rect as TaggedFabricObject).cloakKind = CROP_TAG;
+    // Strip the rotation control. `hasRotatingPoint: false` is the v5
+    // API and is a no-op in Fabric v7 — the lollipop above the top-mid
+    // handle would otherwise still render and read as an extra "bar"
+    // bleeding into the dim overlay outside the crop rect.
+    rect.controls = { ...rect.controls };
+    delete (rect.controls as { mtr?: unknown }).mtr;
     fc.add(rect);
     fc.setActiveObject(rect);
     cropRectRef.current = rect;
@@ -213,7 +285,11 @@ export function CropTool() {
   return null;
 }
 
-/** Bake the rotated/flipped crop region from `src` into a new canvas. */
+/** Bake the rotated/flipped crop region from `src` into a new canvas.
+ *  Semantics: rotate (and flip) the source around the *image* centre,
+ *  then take the axis-aligned doc-space rect from the rotated image.
+ *  The output is exactly `rect.w × rect.h` — matching what the user
+ *  saw in the live preview drawn by paintOverlay. */
 export function applyCrop(
   src: HTMLCanvasElement,
   rect: Rect,
@@ -221,20 +297,21 @@ export function applyCrop(
   flipH: boolean,
   flipV: boolean,
 ): HTMLCanvasElement {
-  const angle = (rotationDeg * Math.PI) / 180;
-  const cos = Math.abs(Math.cos(angle));
-  const sin = Math.abs(Math.sin(angle));
-  const outW = Math.round(rect.w * cos + rect.h * sin);
-  const outH = Math.round(rect.w * sin + rect.h * cos);
-  const out = createCanvas(Math.max(1, outW), Math.max(1, outH));
+  const out = createCanvas(Math.max(1, Math.round(rect.w)), Math.max(1, Math.round(rect.h)));
   const ctx = out.getContext("2d");
   if (!ctx) return out;
+  const cx = src.width / 2;
+  const cy = src.height / 2;
   ctx.save();
-  ctx.translate(out.width / 2, out.height / 2);
-  ctx.rotate(angle);
+  // Map doc point (rect.x, rect.y) → output (0, 0), then apply the
+  // same centre-pivoted rotate+flip the preview does. Angle is negated
+  // so positive rotationDeg reads as counter-clockwise on screen,
+  // matching the slider direction (kept consistent with paintOverlay).
+  ctx.translate(-rect.x, -rect.y);
+  ctx.translate(cx, cy);
+  ctx.rotate((-rotationDeg * Math.PI) / 180);
   ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
-  ctx.translate(-rect.w / 2, -rect.h / 2);
-  ctx.drawImage(src, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+  ctx.drawImage(src, -cx, -cy);
   ctx.restore();
   return out;
 }
@@ -244,11 +321,18 @@ export function applyCrop(
 export function CropPanel() {
   const { toolState, patchTool, doc, getFabricCanvas, commit, registerPendingApply } = useEditor();
   const aspect = ASPECT_OPTIONS[toolState.cropAspect]?.ratio ?? null;
-  const rotationLabel = useMemo(
-    () => `${toolState.rotationDeg.toFixed(0)}°`,
-    [toolState.rotationDeg],
-  );
+  // Total rotation = quarter turns from the 90° button + fine slider.
+  // Normalised to [0, 360) for display so 90° presses don't grow the
+  // displayed angle without bound.
+  const totalRotation = useMemo(() => {
+    const raw = toolState.cropQuarterTurns * 90 + toolState.rotationDeg;
+    return ((raw % 360) + 360) % 360;
+  }, [toolState.cropQuarterTurns, toolState.rotationDeg]);
+  const rotationLabel = useMemo(() => `${totalRotation.toFixed(0)}°`, [totalRotation]);
 
+  // Slider operates only on the fine [-45, +45] portion. The quarter-
+  // turn portion is owned by the 90° button so the slider can never
+  // overflow its track even after several quarter-turn presses.
   const rotationSlider = (toolState.rotationDeg + 45) / 90;
   const setRotation = useCallback(
     (v: number) => patchTool("rotationDeg", Math.round((v - 0.5) * 90)),
@@ -267,14 +351,19 @@ export function CropPanel() {
     // image but pollute history with a no-op "Crop" entry. Important
     // now that pendingApply auto-fires on tool switch / Export.
     const init = initialRect(doc.width, doc.height, aspect);
-    const noTransform = toolState.rotationDeg === 0 && !toolState.flipH && !toolState.flipV;
+    const noTransform =
+      toolState.rotationDeg === 0 &&
+      toolState.cropQuarterTurns === 0 &&
+      !toolState.flipH &&
+      !toolState.flipV;
     const noCrop =
       Math.abs(r.x - init.x) < 1 &&
       Math.abs(r.y - init.y) < 1 &&
       Math.abs(r.w - init.w) < 1 &&
       Math.abs(r.h - init.h) < 1;
     if (noTransform && noCrop) return;
-    const out = applyCrop(doc.working, r, toolState.rotationDeg, toolState.flipH, toolState.flipV);
+    const totalDeg = toolState.cropQuarterTurns * 90 + toolState.rotationDeg;
+    const out = applyCrop(doc.working, r, totalDeg, toolState.flipH, toolState.flipV);
     copyInto(doc.working, out);
     doc.width = out.width;
     doc.height = out.height;
@@ -290,6 +379,7 @@ export function CropPanel() {
     });
     fc.requestRenderAll();
     patchTool("rotationDeg", 0);
+    patchTool("cropQuarterTurns", 0);
     patchTool("flipH", false);
     patchTool("flipV", false);
     commit("Crop");
@@ -309,8 +399,21 @@ export function CropPanel() {
       scaleX: 1,
       scaleY: 1,
     });
+    // Without setCoords, Fabric's cached corner positions stay anchored
+    // to the pre-reset rect — the visual handles snap to the new rect
+    // but their hit-test zones stay where they were, so taps near the
+    // new corners miss. setCoords forces both to agree.
+    rectObj.setCoords();
+    // "Reset crop area" is a full reset: rotation, flip, and quarter-
+    // turn rotation all clear too. Otherwise the rect snaps back to
+    // centred but the user's prior 45° / Flip H / 90° presses persist,
+    // which reads as "the button didn't actually undo my work."
+    patchTool("rotationDeg", 0);
+    patchTool("cropQuarterTurns", 0);
+    patchTool("flipH", false);
+    patchTool("flipV", false);
     fc.requestRenderAll();
-  }, [aspect, doc, getFabricCanvas]);
+  }, [aspect, doc, getFabricCanvas, patchTool]);
 
   // Press Enter to apply.
   useEffect(() => {
@@ -384,7 +487,7 @@ export function CropPanel() {
           <button
             type="button"
             className="btn btn-secondary flex-1"
-            onClick={() => patchTool("rotationDeg", (toolState.rotationDeg + 90) % 360)}
+            onClick={() => patchTool("cropQuarterTurns", (toolState.cropQuarterTurns + 1) % 4)}
             style={{ fontSize: 11.5, padding: "7px 10px" }}
           >
             <I.Rotate size={12} /> 90°
