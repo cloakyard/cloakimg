@@ -369,13 +369,18 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   bgMode: 0,
   bgQuality: 0,
 
-  // Default to Background scope so picking the tool gives the
-  // recognisable phone-portrait result without further ceremony.
-  // Default amount = 0.4 (16 px gaussian) — visible blur without
-  // looking artificial; the slider goes to 1.0 (40 px) for stylised
-  // looks.
+  // Default to Background scope so the moment the user touches the
+  // strength slider, the bake targets the right region without
+  // further ceremony. Strength itself defaults to 0 (identity) — the
+  // tool must do nothing until the user explicitly asks for it,
+  // matching every other auto-flushing pixel tool (Adjust / Filter /
+  // Levels / HSL all start at identity). Earlier we seeded 0.4 so
+  // opening the panel showed an immediate phone-portrait preview,
+  // but that meant just *visiting* the tool and switching away baked
+  // a blur into history — silent, surprising, and inconsistent with
+  // how every other tool behaves.
   bgBlurScope: 2,
-  bgBlurAmount: 0.4,
+  bgBlurAmount: 0,
   // Default lens kind reads naturally on most photos; users can opt
   // into "lens" for a more cinematic falloff or "tilt-shift" for the
   // miniature look. Progressive falloff defaults to off because it's

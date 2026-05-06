@@ -17,20 +17,28 @@ export function useBgBlurPreview(
   progressive: boolean,
   scope: MaskScope,
   mask: HTMLCanvasElement | null,
+  /** Bumps on undo / redo / reset / replaceWithFile so the cached
+   *  downsample picks up the new pixels even when source identity
+   *  is unchanged. See useAdjustPreview for the full rationale. */
+  invalidationKey: unknown = null,
 ): HTMLCanvasElement | null {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
+  const versionRef = useRef<unknown>(null);
   const [preview, setPreview] = useState<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (source !== sourceRef.current) {
+    const sourceChanged = source !== sourceRef.current;
+    const versionChanged = invalidationKey !== versionRef.current;
+    if (sourceChanged || versionChanged) {
       const prev = downsampledRef.current;
       if (prev && prev !== sourceRef.current) releaseCanvas(prev);
       sourceRef.current = source;
+      versionRef.current = invalidationKey;
       downsampledRef.current = source ? makeDownsampled(source) : null;
     }
-  }, [source]);
+  }, [source, invalidationKey]);
 
   useEffect(() => {
     if (!source) {

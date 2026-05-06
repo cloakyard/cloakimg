@@ -13,7 +13,7 @@ import { previewLongEdge } from "./previewSize";
 import { useLevelsPreview } from "./useLevelsPreview";
 
 export function LevelsTool() {
-  const { toolState, doc } = useEditor();
+  const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
   const mask =
     subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
@@ -34,7 +34,11 @@ export function LevelsTool() {
       toolState.levelsWhiteOut,
     ],
   );
-  const preview = useLevelsPreview(doc?.working ?? null, params, scope, mask);
+  // historyVersion as invalidation key — refreshes the cached
+  // downsample after every commit / undo / redo / reset (the doc
+  // ref alone misses intra-tool commits because commit() doesn't
+  // setDoc).
+  const preview = useLevelsPreview(doc?.working ?? null, params, scope, mask, historyVersion);
   useStageProps({ previewCanvas: preview });
   return null;
 }

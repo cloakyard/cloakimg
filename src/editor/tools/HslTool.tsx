@@ -12,7 +12,7 @@ import { previewLongEdge } from "./previewSize";
 import { useHslPreview } from "./useHslPreview";
 
 export function HslTool() {
-  const { toolState, doc } = useEditor();
+  const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
   const mask =
     subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
@@ -25,7 +25,11 @@ export function HslTool() {
     }),
     [toolState.hslHue, toolState.hslSat, toolState.hslLum],
   );
-  const preview = useHslPreview(doc?.working ?? null, params, scope, mask);
+  // historyVersion as invalidation key — refreshes the cached
+  // downsample after every commit / undo / redo / reset (the doc
+  // ref alone misses intra-tool commits because commit() doesn't
+  // setDoc).
+  const preview = useHslPreview(doc?.working ?? null, params, scope, mask, historyVersion);
   useStageProps({ previewCanvas: preview });
   return null;
 }

@@ -12,7 +12,7 @@ import { previewLongEdge } from "./previewSize";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function AdjustTool() {
-  const { toolState, doc } = useEditor();
+  const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
   // Pull a mask sized to match the preview surface so each per-rAF
   // composite skips a full-res scaled drawImage (the cut can be 24
@@ -23,6 +23,13 @@ export function AdjustTool() {
   const mask =
     subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
   const scope = (toolState.adjustScope as MaskScope) ?? 0;
+  // historyVersion bumps on every history mutation — commit (Adjust /
+  // Filter / etc bake into history), undo, redo, resetToOriginal,
+  // replaceWithFile's "Open" push. That covers every path that
+  // changes doc.working pixels in place. Passing it as the cache
+  // key forces useAdjustPreview to rebuild its downsample so the
+  // next bake reads the fresh pixels instead of the pre-mutation
+  // ones cached on first mount.
   const preview = useAdjustPreview(
     doc?.working ?? null,
     toolState.adjust,
@@ -32,6 +39,7 @@ export function AdjustTool() {
     toolState.curveRGB,
     scope,
     mask,
+    historyVersion,
   );
   useStageProps({ previewCanvas: preview });
   return null;

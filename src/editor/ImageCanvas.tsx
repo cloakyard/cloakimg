@@ -522,7 +522,33 @@ export function ImageCanvas({
       bgImageRef.current = bg;
     } else {
       bg.setElement(sourceCanvas);
-      bg.set({ scaleX, scaleY, left: 0, top: 0, originX: "left", originY: "top" });
+      // Always re-set the intrinsic width/height alongside scale —
+      // when the underlying preview canvas changes size (e.g. a Crop
+      // shrinks the doc, or the user moves between full-res and a
+      // downsampled live-preview canvas) Fabric won't resize the
+      // FabricImage on its own and the bg renders at the previous
+      // dimensions, scaled to the new doc rect — i.e. the wrong
+      // pixels mapped onto the same screen rectangle.
+      bg.set({
+        width: sourceCanvas.width,
+        height: sourceCanvas.height,
+        scaleX,
+        scaleY,
+        left: 0,
+        top: 0,
+        originX: "left",
+        originY: "top",
+      });
+      // Fabric.js caches each object's rasterised output. `setElement`
+      // updates the source canvas reference but doesn't reliably
+      // invalidate the cache pattern — without this explicit `dirty`
+      // flag, swapping the bg to a fresh per-frame Adjust/Filter
+      // preview canvas would paint the OLD pixels until something
+      // else marked the object dirty (e.g. a dimension change). The
+      // explicit flag is the belt-and-suspenders fix: even if Fabric
+      // already marked dirty for a scale change, we don't trust that
+      // for the element swap.
+      bg.dirty = true;
     }
     fc.backgroundImage = bg;
     // Bilinear filtering on upscale (preview is ~720px long edge); without

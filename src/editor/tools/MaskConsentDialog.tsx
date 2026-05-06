@@ -8,9 +8,12 @@
 // Goals:
 //   • No surprise downloads. The dialog states the size, the model
 //     name, and what the model does before any bytes hit the wire.
-//   • Quality choice is part of the same tap, not a separate panel —
-//     desktop, tablet and mobile all see the same three tiers
-//     (Fast / Better / Best) with byte estimates next to each.
+//   • Quality choice is part of the same tap, not a separate panel.
+//     The "Best" tier (~176 MB) is hidden on phones — the prior copy
+//     said "desktop only" but we weren't actually gating, which the
+//     user flagged as misleading. Tablets keep the option (iPad-class
+//     RAM + storage handle 176 MB fine); only the small-screen
+//     mobile layout hides it.
 //   • Privacy: the panel reiterates that the model + image stay on
 //     this device, since "do you want to download an AI model" reads
 //     scarier than "do you want me to call an API" otherwise.
@@ -23,9 +26,22 @@ import { useCallback, useEffect, useState } from "react";
 import { I } from "../../components/icons";
 import { ModalFrame } from "../../components/ModalFrame";
 import { useEditorActions, useEditorReadOnly } from "../EditorContext";
+import type { Layout } from "../types";
 import { type BgQuality, isModelCached } from "./smartRemoveBg";
 
-const TIERS: { id: BgQuality; index: number; label: string; mb: number; hint: string }[] = [
+interface Tier {
+  id: BgQuality;
+  index: number;
+  label: string;
+  mb: number;
+  hint: string;
+  /** When true, this tier only appears on tablet/desktop. The 176 MB
+   *  model is heavy for phone storage budgets and most phone use
+   *  cases — Fast/Better are the right defaults there. */
+  desktopAndTabletOnly?: boolean;
+}
+
+const TIERS: Tier[] = [
   {
     id: "small",
     index: 0,
@@ -45,9 +61,15 @@ const TIERS: { id: BgQuality; index: number; label: string; mb: number; hint: st
     index: 2,
     label: "Best",
     mb: 176,
-    hint: "Highest fidelity. Heavy download — desktop only.",
+    hint: "Highest fidelity, heaviest download.",
+    desktopAndTabletOnly: true,
   },
 ];
+
+function tiersForLayout(layout: Layout): Tier[] {
+  if (layout === "mobile") return TIERS.filter((t) => !t.desktopAndTabletOnly);
+  return TIERS;
+}
 
 interface Props {
   /** Quality the caller initially asked for. The user can change it
@@ -63,7 +85,16 @@ interface Props {
 export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props) {
   const { layout } = useEditorReadOnly();
   const { patchTool } = useEditorActions();
-  const [picked, setPicked] = useState<BgQuality>(initialQuality);
+  const visibleTiers = tiersForLayout(layout);
+  // Defensive: if a prior session left `bgQuality` at "large" and the
+  // user is now on a mobile layout where Best is hidden, downgrade
+  // the initial pick so the radio actually reflects something
+  // visible. Without this the dialog would show no selected tier and
+  // the Download button would advertise an unavailable size.
+  const safeInitial: BgQuality = visibleTiers.some((t) => t.id === initialQuality)
+    ? initialQuality
+    : (visibleTiers[0]?.id ?? "small");
+  const [picked, setPicked] = useState<BgQuality>(safeInitial);
   // Track which tiers are already on disk from a prior session — those
   // get a "ready" badge so the user can pick a free option without
   // hesitating, and we still surface the current selection's status.
@@ -71,7 +102,11 @@ export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all(TIERS.map(async (t) => [t.id, await isModelCached(t.id)] as const)).then(
+    // Recompute the visible tier list inside the effect so the deps
+    // stay primitive (`layout`) rather than the derived array — the
+    // hook lint can't see that `tiersForLayout` is pure of `layout`.
+    const tiers = tiersForLayout(layout);
+    void Promise.all(tiers.map(async (t) => [t.id, await isModelCached(t.id)] as const)).then(
       (entries) => {
         if (cancelled) return;
         const next = new Set<BgQuality>();
@@ -82,7 +117,7 @@ export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [layout]);
 
   const accept = useCallback(() => {
     const idx = TIERS.find((t) => t.id === picked)?.index ?? 0;
@@ -123,7 +158,7 @@ export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props
           <div className="text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
             Pick a model size
           </div>
-          {TIERS.map((tier) => {
+          {visibleTiers.map((tier) => {
             const active = picked === tier.id;
             const cached = cachedTiers.has(tier.id);
             return (
@@ -184,7 +219,10 @@ export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-border-soft px-5 pt-3 pb-5 sm:px-6 dark:border-dark-border-soft">
-        <button type="button" className="btn btn-secondary" onClick={onDismiss}>
+        {/* Dismissive action uses the same `btn-ghost btn-sm` style
+            as Cancel in StartModal / ConfirmDialog — keeps every
+            "back out" button reading the same way across the app. */}
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onDismiss}>
           Not now
         </button>
         <button type="button" className="btn btn-primary" onClick={accept}>

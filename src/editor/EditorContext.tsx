@@ -143,6 +143,13 @@ interface EditorContextValue {
   /** Drop or paste an image into the editor — replaces the current doc. */
   replaceWithFile: (file: File) => Promise<void>;
 
+  /** Bumps on every commit / undo / redo / reset / replaceWithFile.
+   *  Useful for tools that need to invalidate cached previews when
+   *  doc.working pixels mutate in place — `commit()` only bumps this
+   *  counter, it doesn't re-create the doc, so identity comparison
+   *  alone misses intra-tool commits. */
+  historyVersion: number;
+
   /** Live Fabric canvas accessor (Phase F2-A onwards). Tools that add
    *  Fabric objects (watermark image, text, draw, shapes) call
    *  `getFabricCanvas()` to reach the live `Canvas` instance.

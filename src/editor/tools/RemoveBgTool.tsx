@@ -19,7 +19,7 @@ import { useStageProps } from "../StageHost";
 import { useRemoveBgPreview } from "./useRemoveBgPreview";
 
 export function RemoveBgTool() {
-  const { toolState, patchTool, doc } = useEditor();
+  const { toolState, patchTool, doc, historyVersion } = useEditor();
   const isChroma = toolState.bgMode === 1;
   const preview = useRemoveBgPreview(
     // Source is null in Auto mode so the preview hook stays idle and
@@ -29,11 +29,12 @@ export function RemoveBgTool() {
     toolState.genericStrength,
     toolState.feather,
     toolState.bgSample,
-    // doc identity bumps on every commit / undo / redo / reset, even
-    // when the underlying canvas is reused. The hook uses this to
-    // refresh its downsampled cache so the preview reflects the
-    // current pixels instead of the previous keyed version.
-    doc,
+    // historyVersion bumps on every commit / undo / redo / reset.
+    // doc identity alone wouldn't catch intra-tool commits (Apply
+    // chroma → bake → commit doesn't setDoc), which would leave the
+    // downsample showing the pre-keyed pixels until the user left
+    // and re-entered the tool.
+    historyVersion,
   );
 
   const onPick = useCallback(

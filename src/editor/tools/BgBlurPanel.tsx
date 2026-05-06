@@ -56,7 +56,12 @@ export function BgBlurPanel() {
   const dirty = !isBgBlurIdentity(amount);
 
   const reset = useCallback(() => {
-    patchTool("bgBlurAmount", 0.4);
+    // Match the panel's "fresh open" state: no blur, background
+    // scope, soft lens, no progressive falloff. Reset is a "back to
+    // factory" affordance — anything non-zero would silently put the
+    // panel in a dirty state immediately after a reset, which mirrors
+    // exactly the bug the default change addressed.
+    patchTool("bgBlurAmount", 0);
     patchTool("bgBlurScope", 2);
     patchTool("bgBlurLens", "gaussian");
     patchTool("bgBlurProgressive", false);
@@ -187,6 +192,11 @@ export function BgBlurPanel() {
         </div>
 
         <PropRow label="Strength" value={`${radiusPx} px`}>
+          {/* defaultValue=0.4 keeps the dblclick "snap to a sensible
+              portrait blur" affordance even though the panel itself
+              opens at 0 — gives users a one-tap path to "phone
+              portrait look" without committing them to it on tool
+              entry. */}
           <Slider
             value={amount}
             accent={amount > 0.001}
@@ -208,7 +218,7 @@ export function BgBlurPanel() {
           type="button"
           className="btn btn-secondary btn-xs mt-1 w-full justify-center"
           onClick={reset}
-          disabled={amount === 0.4 && scope === 2 && lens === "gaussian" && !progressive}
+          disabled={amount === 0 && scope === 2 && lens === "gaussian" && !progressive}
         >
           <I.Refresh size={12} />
           Reset

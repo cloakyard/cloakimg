@@ -54,25 +54,39 @@ export function useAdjustPreview(
    *  re-bakes with the mask. */
   scope: MaskScope = 0,
   mask: HTMLCanvasElement | null = null,
+  /** Bumps whenever doc.working pixels may have changed without
+   *  changing canvas identity (undo, redo, reset, replaceWithFile,
+   *  another tool baked into history). The caller passes the doc
+   *  reference itself — `setDoc` produces a new doc object on every
+   *  history mutation so identity comparison here catches all cases.
+   *  Without this, the cached downsample holds the pre-mutation
+   *  pixels and the preview ghost-survives the undo. */
+  invalidationKey: unknown = null,
 ): HTMLCanvasElement | null {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
+  const versionRef = useRef<unknown>(null);
   const [preview, setPreview] = useState<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const debounceRef = useRef<number | null>(null);
 
-  // Rebuild the downsample only when the source canvas itself changes.
-  // Return the previous downsample to the pool before replacing the ref —
-  // `makeDownsampled` returns the source itself when the image is
-  // already under the cap, so guard against releasing the live canvas.
+  // Rebuild the downsample when EITHER the source canvas reference
+  // changes (replaceWithFile) OR the invalidation key changes (undo,
+  // redo, reset, prior-tool's commit). Return the previous downsample
+  // to the pool before replacing the ref — `makeDownsampled` returns
+  // the source itself when the image is already under the cap, so
+  // guard against releasing the live canvas.
   useEffect(() => {
-    if (source !== sourceRef.current) {
+    const sourceChanged = source !== sourceRef.current;
+    const versionChanged = invalidationKey !== versionRef.current;
+    if (sourceChanged || versionChanged) {
       const prev = downsampledRef.current;
       if (prev && prev !== sourceRef.current) releaseCanvas(prev);
       sourceRef.current = source;
+      versionRef.current = invalidationKey;
       downsampledRef.current = source ? makeDownsampled(source) : null;
     }
-  }, [source]);
+  }, [source, invalidationKey]);
 
   // Bake the preview on every change. The previous bake gets returned
   // to the canvas pool right before the new one replaces it, so we

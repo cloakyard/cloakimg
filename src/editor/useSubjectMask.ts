@@ -13,11 +13,13 @@ import {
   getMaskState,
   grantMaskConsent,
   invalidateSubjectMask,
+  MaskConsentError,
   type MaskState,
   peekMaskDownsample,
   peekSubjectMask,
   probeModelCache,
   subscribeMaskState,
+  waitForMaskResolution,
 } from "./subjectMask";
 import type { BgQuality } from "./tools/smartRemoveBg";
 
@@ -118,7 +120,20 @@ export function useSubjectMask(): UseSubjectMask {
     // signal the latch was waiting for. Without this, every
     // user-facing AI button silently no-ops after a single dismiss.
     clearMaskDeny();
-    return ensureSubjectMask(doc.working, quality);
+    try {
+      return await ensureSubjectMask(doc.working, quality);
+    } catch (err) {
+      // Consent gate fired — the host dialog is now up. Instead of
+      // bouncing the smart action's promise rejection, *wait* for the
+      // user to either accept (resolves with the mask) or dismiss
+      // (rejects with MaskConsentError, which the caller's catch
+      // already swallows quietly). This turns "tap, accept, tap
+      // again" into a single tap that resumes after consent.
+      if (err instanceof MaskConsentError) {
+        return waitForMaskResolution(doc.working, quality);
+      }
+      throw err;
+    }
   }, [doc, quality]);
 
   const grantConsent = useCallback(() => {

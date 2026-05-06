@@ -304,6 +304,21 @@ export async function ensureSubjectMask(
         quality,
         onProgress: (p) => setState({ progress: p }),
       });
+      // Validate that the model actually found a subject. The lib
+      // happily returns a fully-transparent cut when there's no
+      // recognisable subject (e.g. a landscape, a flat-colour
+      // backdrop). Without this check the service would flip to
+      // "ready" and every scope-aware tool would silently apply
+      // edits to an empty region — preview shows the original, the
+      // user thinks "preview is broken". Fail fast with a clear
+      // error instead.
+      if (!hasOpaqueContent(cut)) {
+        releaseCanvas(cut);
+        const msg =
+          "No subject detected. Try a photo with a clearer foreground (people, animals, products).";
+        setState({ status: "error", progress: null, error: msg });
+        throw new Error(msg);
+      }
       // Drop any prior cache (dimensions changed, or simply a stale
       // cut from before the user crop/resized).
       if (cache) releaseCacheEntry(cache);
@@ -324,7 +339,11 @@ export async function ensureSubjectMask(
       return cut;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setState({ status: "error", progress: null, error: msg });
+      // Don't double-write state for the "no subject" branch — that
+      // branch already set its own user-friendly error.
+      if (state.status !== "error") {
+        setState({ status: "error", progress: null, error: msg });
+      }
       throw err;
     } finally {
       inflight = null;
@@ -345,6 +364,106 @@ export class MaskConsentError extends Error {
     this.name = "MaskConsentError";
     this.quality = quality;
   }
+}
+
+/** Wait until the central mask service settles, given an outstanding
+ *  consent request. Resolves with the cached cut once detection
+ *  completes for `source`; rejects with `MaskConsentError` if the
+ *  user dismisses the consent dialog instead, or with the underlying
+ *  error if detection itself fails.
+ *
+ *  Used by `useSubjectMask().requestExplicit()` so a smart-action
+ *  click (Smart Crop, Smart Anonymize, Watermark Smart Place,
+ *  Remove BG Apply) can `await` through the entire consent + download
+ *  + inference flow rather than throwing as soon as the gate fires.
+ *  Without this, the user would have to tap their button a second
+ *  time after accepting the dialog. */
+export function waitForMaskResolution(
+  source: HTMLCanvasElement,
+  quality: BgQuality,
+): Promise<HTMLCanvasElement> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      unsubscribe();
+      action();
+    };
+    const check = (s: MaskState) => {
+      if (s.status === "ready") {
+        const mask = peekSubjectMask(source);
+        if (mask) finish(() => resolve(mask));
+        return;
+      }
+      if (s.status === "error") {
+        finish(() => reject(new Error(s.error ?? "Detection failed")));
+        return;
+      }
+      if (s.status === "idle") {
+        // Anything that lands at idle without a "ready" along the way
+        // (deny, replaceWithFile, resetToOriginal, dimension drift)
+        // means our wait won't resolve — bail with the consent error
+        // so the smart-action's catch can quietly back out.
+        finish(() => reject(new MaskConsentError(quality)));
+      }
+    };
+    const unsubscribe = subscribeMaskState(check);
+    // Cover the race where the listener subscribes after the state
+    // has already moved past needs-consent — apply the current state
+    // synchronously before waiting on transitions.
+    check(state);
+  });
+}
+
+/** Cheap "did the model actually find anything?" probe. The lib
+ *  occasionally returns an entirely transparent cut on photos with
+ *  no recognisable subject (open landscapes, flat backdrops). We
+ *  used to accept that as success and the scoped tools would then
+ *  composite against an empty mask — preview reads as "nothing
+ *  changed".
+ *
+ *  We downsample to a 128 px proxy first to bound the `getImageData`
+ *  allocation; any opaque pixel above the alpha threshold counts as
+ *  "subject present". The proxy also smooths over the case where
+ *  detection produced a tiny one-pixel sliver — those wouldn't
+ *  produce a usable scope mask anyway. */
+const PROBE_LONG_EDGE = 128;
+const PROBE_ALPHA_THRESHOLD = 32;
+
+function hasOpaqueContent(cut: HTMLCanvasElement): boolean {
+  const long = Math.max(cut.width, cut.height);
+  // Proxy down to 128 px on the long edge before getImageData — on a
+  // 24 MP cut this drops the allocation from ~96 MB to ~64 KB and
+  // the scan from ~200 ms to <2 ms.
+  const ratio = Math.min(1, PROBE_LONG_EDGE / long);
+  const w = Math.max(1, Math.round(cut.width * ratio));
+  const h = Math.max(1, Math.round(cut.height * ratio));
+  const proxy = ratio < 1 ? acquireCanvas(w, h) : cut;
+  if (proxy !== cut) {
+    const pctx = proxy.getContext("2d");
+    if (!pctx) {
+      releaseCanvas(proxy);
+      return true; // can't probe → assume valid; the tool layer will surface its own issues
+    }
+    pctx.imageSmoothingQuality = "low";
+    pctx.drawImage(cut, 0, 0, w, h);
+  }
+  const ctx = proxy.getContext("2d");
+  if (!ctx) {
+    if (proxy !== cut) releaseCanvas(proxy);
+    return true;
+  }
+  const data = ctx.getImageData(0, 0, w, h).data;
+  let found = false;
+  for (let i = 3; i < data.length; i += 4) {
+    if ((data[i] ?? 0) > PROBE_ALPHA_THRESHOLD) {
+      found = true;
+      break;
+    }
+  }
+  if (proxy !== cut) releaseCanvas(proxy);
+  return found;
 }
 
 /** Axis-aligned subject bounding box in image-space pixels. */

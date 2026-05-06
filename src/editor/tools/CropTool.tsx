@@ -611,8 +611,22 @@ export function CropPanel() {
         <I.Refresh size={12} />
         Reset crop area
       </button>
+      {/* Explicit Apply — the prior "Enter or tool-switch" approach was
+          discoverable on desktop but invisible on touch. Bake-on-tool-
+          switch still works as a safety net, so this button is purely
+          additive: it gives a touch user a tappable surface, and a
+          desktop user a visible "I'm done" signal. */}
+      <button
+        type="button"
+        className="btn btn-primary mt-1 w-full justify-center"
+        onClick={() => apply()}
+        style={{ fontSize: 12.5, padding: "9px" }}
+      >
+        <I.Check size={13} />
+        Apply crop
+      </button>
       <p className="text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
-        Press Enter or switch to another tool to apply. Undo/Redo recover.
+        Or press Enter / switch tools. Undo/Redo recover.
       </p>
     </>
   );

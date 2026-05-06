@@ -13,7 +13,7 @@ import { previewLongEdge } from "./previewSize";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function FilterTool() {
-  const { toolState, doc } = useEditor();
+  const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
   const mask =
     subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
@@ -29,22 +29,31 @@ export function FilterTool() {
     [adjust, filterPreset, filterIntensity],
   );
   const scope = (toolState.filterScope as MaskScope) ?? 0;
-  // 80 ms debounce: a typical preset tap-tap-tap lands at 100–300 ms
-  // intervals, faster than a single bake completes on mobile (~50–
-  // 150 ms each at the 720 cap). Without coalescing, every click
-  // would queue another bake behind the in-flight one and the next
-  // tool-switch tap would sit behind that whole chain, freezing the
-  // UI for a second+. With this debounce, a burst of clicks fires
-  // exactly one trailing bake.
+  // No timer-based debounce. The previous build added an 80 ms
+  // trailing window so a tap-tap-tap of presets coalesced into a
+  // single bake — but the trailing semantics meant *no preview*
+  // until the user stopped clicking, which read as "stuck". The
+  // hook's own rAF cancellation already coalesces work: every
+  // effect run cancels the still-pending rAF from the previous
+  // run, so a burst of clicks ends up scheduling exactly one bake
+  // (the latest preset) on the next animation frame. That gives
+  // immediate feedback on the first click *and* skips the wasted
+  // bakes from intermediate clicks.
+  // historyVersion as invalidation key — refreshes the cached
+  // downsample after every commit / undo / redo / reset (any path
+  // that mutates doc.working pixels in place). doc identity alone
+  // misses commits within the same tool — only setDoc bumps doc,
+  // and commit() doesn't.
   const preview = useAdjustPreview(
     doc?.working ?? null,
     composed,
     toolState.grain,
     preset?.monochrome ?? false,
-    80,
+    0,
     undefined,
     scope,
     mask,
+    historyVersion,
   );
   useStageProps({ previewCanvas: preview });
   return null;
