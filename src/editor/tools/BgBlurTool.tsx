@@ -1,8 +1,8 @@
 // BgBlurTool.tsx — Live preview wrapper for the Background blur tool.
-// Reads scope + amount from toolState, fetches the cached subject
-// mask if ready, and feeds them to the preview hook. The hook hands
-// back a downsampled blur preview which StageHost paints over
-// doc.working.
+// Reads scope + amount + lens kind + progressive flag from toolState,
+// fetches the cached subject mask if ready, and feeds them to the
+// preview hook. The hook hands back a downsampled blur preview which
+// StageHost paints over doc.working.
 
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
@@ -22,8 +22,18 @@ export function BgBlurTool() {
   // is in flight (matching the gated panel controls above).
   const mask =
     subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
-  const scope = (toolState.bgBlurScope as MaskScope) ?? 2;
-  const preview = useBgBlurPreview(doc?.working ?? null, toolState.bgBlurAmount, scope, mask);
+  // Coerce stale Subject scope (1) from older sessions to Background
+  // (2) — the panel UI no longer offers Subject mode.
+  const rawScope = (toolState.bgBlurScope as MaskScope) ?? 2;
+  const scope: MaskScope = rawScope === 1 ? 2 : rawScope;
+  const preview = useBgBlurPreview(
+    doc?.working ?? null,
+    toolState.bgBlurAmount,
+    toolState.bgBlurLens,
+    toolState.bgBlurProgressive,
+    scope,
+    mask,
+  );
   useStageProps({ previewCanvas: preview });
   return null;
 }

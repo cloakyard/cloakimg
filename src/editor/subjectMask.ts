@@ -22,11 +22,12 @@
 import { acquireCanvas, releaseCanvas } from "./doc";
 import {
   type BgQuality,
+  isModelCached,
   smartRemoveBackground,
   type SmartRemoveProgress,
 } from "./tools/smartRemoveBg";
 
-export type MaskStatus = "idle" | "loading" | "ready" | "error";
+export type MaskStatus = "idle" | "loading" | "ready" | "error" | "needs-consent";
 
 export interface MaskState {
   status: MaskStatus;
@@ -40,6 +41,14 @@ export interface MaskState {
    *  needs to download" (cold) from "we've done this before, the
    *  detection will be fast" (warm). */
   warm: boolean;
+  /** True when the requested model's bytes are already on disk from a
+   *  prior session — detection will run instantly without a download
+   *  prompt. Updated lazily by `probeModelCache()`. Distinct from
+   *  `warm` (which only reflects this session). */
+  modelCached: boolean;
+  /** When status === "needs-consent", which quality the user is being
+   *  asked to download. Lets the dialog render the right MB / label. */
+  pendingQuality: BgQuality | null;
 }
 
 interface CacheEntry {
@@ -62,12 +71,21 @@ interface CacheEntry {
 
 let cache: CacheEntry | null = null;
 let inflight: Promise<HTMLCanvasElement> | null = null;
+/** Per-session consent flag. The first time a tool needs the model
+ *  (download not already on disk), the UI flips status to
+ *  "needs-consent" and the user has to confirm. After they confirm
+ *  once we don't ask again until the page reloads — switching tools
+ *  shouldn't require re-consenting. Cached-on-disk models implicitly
+ *  count as consented (the user chose them in a prior session). */
+let consentGranted = false;
 let state: MaskState = {
   status: "idle",
   progress: null,
   error: null,
   version: 0,
   warm: false,
+  modelCached: false,
+  pendingQuality: null,
 };
 
 const listeners = new Set<(s: MaskState) => void>();
@@ -161,9 +179,61 @@ export function invalidateSubjectMask() {
   setState({ status: "idle", progress: null, error: null });
 }
 
+/** Probe the browser's CacheStorage for the requested model and
+ *  publish the answer on `state.modelCached`. Cheap (low-thousands of
+ *  cache keys at worst); the UI calls this when it needs an honest
+ *  "the bytes are already on disk" cue (warm vs cold copy, deciding
+ *  whether to skip the consent dialog). Idempotent — repeat calls
+ *  just refresh the bit. */
+export async function probeModelCache(quality: BgQuality): Promise<boolean> {
+  const cached = await isModelCached(quality);
+  if (cached) {
+    // A cached model implies the user already accepted the download
+    // some prior session. Suppress the dialog from now on so a
+    // page-reload doesn't re-prompt for an asset they already have.
+    consentGranted = true;
+  }
+  if (state.modelCached !== cached) setState({ modelCached: cached });
+  return cached;
+}
+
+/** User has accepted the download via the consent dialog. The next
+ *  call to `ensureSubjectMask` proceeds straight to the lib. */
+export function grantMaskConsent() {
+  consentGranted = true;
+  if (state.status === "needs-consent") {
+    setState({ status: "idle", pendingQuality: null });
+  }
+}
+
+/** User dismissed the consent dialog. Clear the pending state so the
+ *  panel UI returns to its idle shape — the user can pick a different
+ *  scope or quality and the dialog will reappear. */
+export function denyMaskConsent() {
+  if (state.status === "needs-consent") {
+    setState({ status: "idle", pendingQuality: null });
+  }
+}
+
+/** True iff the user (or a prior session) has already authorised
+ *  downloading the model bytes. Used by callers that want to know
+ *  whether `ensureSubjectMask` will prompt or just run. */
+export function hasMaskConsent(): boolean {
+  return consentGranted;
+}
+
 /** Lazily detect (or return cached). Concurrent callers share a
  *  single in-flight promise so kicking off two scoped tools in quick
- *  succession only runs one inference. */
+ *  succession only runs one inference.
+ *
+ *  Two-stage gate:
+ *    1. If we have no in-memory cache and no consent, surface
+ *       `needs-consent` and reject — the UI's MaskOptInDialog will
+ *       call `grantMaskConsent` and the caller can retry.
+ *    2. Otherwise run the lib through `smartRemoveBackground`.
+ *
+ *  Already-cached-on-disk models implicitly count as consented — we
+ *  don't re-prompt for bytes the user agreed to last time. */
 export async function ensureSubjectMask(
   source: HTMLCanvasElement,
   quality: BgQuality = "small",
@@ -172,10 +242,32 @@ export async function ensureSubjectMask(
   if (existing) return existing;
   if (inflight) return inflight;
 
+  if (!consentGranted) {
+    // Probe the on-disk cache one more time before blocking — a model
+    // already downloaded in a prior session counts as implicit
+    // consent. This is the *transparent* opt-in: we ask the user
+    // exactly once across sessions, then never again as long as the
+    // browser keeps the bytes.
+    const cached = await isModelCached(quality);
+    if (cached) {
+      consentGranted = true;
+      if (!state.modelCached) setState({ modelCached: true });
+    } else {
+      setState({
+        status: "needs-consent",
+        progress: null,
+        error: null,
+        pendingQuality: quality,
+      });
+      throw new MaskConsentError(quality);
+    }
+  }
+
   setState({
     status: "loading",
     progress: { phase: "download", ratio: 0, label: "Preparing…" },
     error: null,
+    pendingQuality: null,
   });
 
   inflight = (async () => {
@@ -194,7 +286,13 @@ export async function ensureSubjectMask(
         cut,
         downsamples: new Map(),
       };
-      setState({ status: "ready", progress: null, error: null, warm: true });
+      setState({
+        status: "ready",
+        progress: null,
+        error: null,
+        warm: true,
+        modelCached: true,
+      });
       return cut;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -206,6 +304,19 @@ export async function ensureSubjectMask(
   })();
 
   return inflight;
+}
+
+/** Thrown by `ensureSubjectMask` when the user hasn't yet authorised
+ *  downloading the model. Callers can detect this specifically (vs a
+ *  detection failure) and stay quiet — the consent dialog renders via
+ *  the mask-state subscription, not a thrown-error toast. */
+export class MaskConsentError extends Error {
+  readonly quality: BgQuality;
+  constructor(quality: BgQuality) {
+    super("Subject detection paused — user consent required.");
+    this.name = "MaskConsentError";
+    this.quality = quality;
+  }
 }
 
 /** Axis-aligned subject bounding box in image-space pixels. */

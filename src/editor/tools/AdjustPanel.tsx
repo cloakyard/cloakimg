@@ -12,6 +12,7 @@ import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
 import { useSubjectMask } from "../useSubjectMask";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
+import { AiSectionHeader } from "./AiSectionHeader";
 import { CurveEditor } from "./CurveEditor";
 import { MaskScopeRow } from "./MaskScopeRow";
 import { ScopeGate } from "./ScopeGate";
@@ -151,7 +152,13 @@ export function AdjustPanel() {
     <>
       {isMobile && <Segment options={TABS} active={tab} onChange={setTab} />}
       {showSliders && (
-        <MaskScopeRow scope={toolState.adjustScope} onScope={(i) => patchTool("adjustScope", i)} />
+        <>
+          <AiSectionHeader />
+          <MaskScopeRow
+            scope={toolState.adjustScope}
+            onScope={(i) => patchTool("adjustScope", i)}
+          />
+        </>
       )}
       <ScopeGate disabled={gated}>
         {showCurve && (

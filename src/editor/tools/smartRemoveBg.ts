@@ -92,14 +92,17 @@ export async function smartRemoveBackground(
   const srcBlob = await canvasToPngBlob(src);
   if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-  onProgress?.({ phase: "download", ratio: 0, label: "Loading model…" });
+  onProgress?.({ phase: "download", ratio: 0, label: "Preparing model…" });
 
   // 2. Track download progress across multiple resource files. The
   //    lib reports per-resource bytes, so we accumulate into a single
   //    "download progress" number for the user. Inference itself
   //    isn't progress-reportable from the lib — we flip to a
-  //    deterministic "Removing background…" label once download
+  //    deterministic "Detecting subject…" label once download
   //    finishes and a chunk-based ratio that bumps to 1 on completion.
+  //    The label is intentionally generic: this same code path runs
+  //    when *any* tool (Adjust scoped to Subject, Portrait blur, Smart
+  //    Crop, etc.) needs the subject mask, not just Remove BG.
   const downloadState = new Map<string, { current: number; total: number }>();
   let lastReportedRatio = -1;
   const reportDownload = (key: string, current: number, total: number) => {
@@ -131,7 +134,7 @@ export async function smartRemoveBackground(
   const mod = await loadModule();
   if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-  onProgress?.({ phase: "inference", ratio: 0, label: "Removing background…" });
+  onProgress?.({ phase: "inference", ratio: 0, label: "Detecting subject…" });
 
   // 3. Run inference. proxyToWorker keeps it off the main thread so
   //    the editor stays interactive even on a slow phone. The progress
@@ -142,8 +145,7 @@ export async function smartRemoveBackground(
   // model id. The package accepts "small"/"medium"/"large" via its
   // own preprocess mapper, but typing it as the resolved enum keeps
   // strict TS happy without an `as any`.
-  const modelId =
-    quality === "large" ? "isnet" : quality === "medium" ? "isnet_fp16" : "isnet_quint8";
+  const modelId = qualityToModelId(quality);
   const result = await mod.removeBackground(srcBlob, {
     model: modelId,
     proxyToWorker: true,
@@ -176,6 +178,60 @@ export async function smartRemoveBackground(
 
   onProgress?.({ phase: "decode", ratio: 1, label: "Done" });
   return out;
+}
+
+/** Best-effort byte size lookup for a quality tier. The package
+ *  resolves to a CDN that supports HEAD; we only use the value to
+ *  brief the user before they consent to the download, so a missing
+ *  network is not a hard failure — fall back to the static estimates
+ *  in the public hint table. */
+export const QUALITY_BYTE_ESTIMATES: Record<BgQuality, number> = {
+  small: 44 * 1024 * 1024,
+  medium: 88 * 1024 * 1024,
+  large: 176 * 1024 * 1024,
+};
+
+/** Check whether the user has already downloaded a given model tier in
+ *  a previous session. We probe the browser's CacheStorage for the
+ *  package's static asset URL — `@imgly/background-removal` serves its
+ *  weight files from `staticimgly.com` and the package's own cache
+ *  layer registers them under `imgly-background-removal-data` (or, on
+ *  a lib upgrade, a versioned variant). This is a "did the bytes
+ *  survive the last session?" check, distinct from `state.warm` which
+ *  only tracks "did detection complete during this tab's lifetime?".
+ *
+ *  Returns true when at least one cache entry references the model id.
+ *  Errors and unsupported environments resolve to false — we'd rather
+ *  prompt the user than silently skip a real download.
+ */
+export async function isModelCached(quality: BgQuality): Promise<boolean> {
+  if (typeof caches === "undefined") return false;
+  try {
+    const modelId = qualityToModelId(quality);
+    const keys = await caches.keys();
+    for (const key of keys) {
+      // Filter to imgly-related caches so we don't iterate every
+      // service-worker bucket on the origin.
+      if (!key.toLowerCase().includes("imgly")) continue;
+      const c = await caches.open(key);
+      const entries = await c.keys();
+      for (const req of entries) {
+        if (req.url.includes(modelId)) return true;
+      }
+    }
+  } catch {
+    // CacheStorage is gated behind secure context; on http://localhost
+    // it works, on file:// it doesn't. Either way, no info means no
+    // info — return false and the dialog will offer the download.
+  }
+  return false;
+}
+
+/** Friendly quality enum → the model id the lib actually wires up.
+ *  The literal-union return type keeps strict TS happy when this is
+ *  passed straight into `removeBackground({ model: ... })`. */
+function qualityToModelId(quality: BgQuality): "isnet" | "isnet_fp16" | "isnet_quint8" {
+  return quality === "large" ? "isnet" : quality === "medium" ? "isnet_fp16" : "isnet_quint8";
 }
 
 function canvasToPngBlob(c: HTMLCanvasElement): Promise<Blob> {

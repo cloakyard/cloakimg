@@ -14,6 +14,7 @@ import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorCont
 import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
+import { AiSectionHeader } from "./AiSectionHeader";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 import { MaskScopeRow } from "./MaskScopeRow";
 import { ScopeGate } from "./ScopeGate";
@@ -122,6 +123,7 @@ export function FilterPanel() {
 
   return (
     <>
+      <AiSectionHeader />
       <MaskScopeRow scope={toolState.filterScope} onScope={(i) => patchTool("filterScope", i)} />
       <ScopeGate disabled={gated}>
         <PropRow label="Preset">

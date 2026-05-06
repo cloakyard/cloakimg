@@ -1,36 +1,65 @@
 // BgBlurPanel.tsx — Portrait-mode-style depth-of-field. The user
-// picks which side of the subject gets the blur (Background by
-// default → recognisable phone-portrait look) and how strong it is.
-// The first non-Whole scope auto-fires subject detection through
-// MaskScopeRow; from then on every tool that uses the mask is
-// instant.
+// picks a lens flavour (Soft / Lens / Tilt-shift) and a strength;
+// the bake composites the result against the subject mask so the
+// subject stays sharp and the background takes the blur. Picking
+// any non-Whole scope auto-fires subject detection through the
+// central mask service; from then on every tool that uses the mask
+// is instant.
+//
+// Design call: this tool intentionally does NOT offer "blur the
+// subject" any more. Anonymising a face is the Redact tool's job
+// (it already supports pixelate / blur / solid styles, including a
+// person-aware shortcut). Keeping that mode here was confusing and
+// duplicated functionality. The numeric scope keys still match the
+// central MaskScope type (0 = whole, 2 = background) so existing
+// state migrates without conversion.
 
 import { useCallback, useEffect, useRef } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Slider } from "../atoms";
+import { PropRow, Segment, Slider, ToggleSwitch } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { type MaskScope } from "../subjectMask";
+import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
-import { bakeBgBlur, blurAmountToPx, isBgBlurIdentity } from "./bgBlur";
-import { MaskScopeRow } from "./MaskScopeRow";
+import {
+  bakeBgBlur,
+  blurAmountToPx,
+  isBgBlurIdentity,
+  LENS_KIND_HINTS,
+  LENS_KIND_LABELS,
+  type LensKind,
+} from "./bgBlur";
+import { DetectionErrorCard, DetectionProgressCard, DetectionReadyChip } from "./DetectionStatus";
 import { ScopeGate } from "./ScopeGate";
+
+const TARGETS = ["Background only", "Whole image"] as const;
+const LENS_OPTIONS: LensKind[] = ["gaussian", "lens", "tilt-shift"];
+const LENS_LABELS = LENS_OPTIONS.map((k) => LENS_KIND_LABELS[k]);
 
 export function BgBlurPanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
   const subjectMask = useSubjectMask();
-  const scope = (toolState.bgBlurScope as MaskScope) ?? 2;
+  // 0 (whole) or 2 (background). The Subject scope (1) used to live
+  // here; we coerce any leftover value-1 doc state to 2 so old saved
+  // sessions round-trip cleanly.
+  const rawScope = (toolState.bgBlurScope as MaskScope) ?? 2;
+  const scope: MaskScope = rawScope === 1 ? 2 : rawScope;
+  const targetIndex = scope === 0 ? 1 : 0;
   const amount = toolState.bgBlurAmount;
+  const lens = toolState.bgBlurLens;
+  const progressive = toolState.bgBlurProgressive;
   const dirty = !isBgBlurIdentity(amount);
 
   const reset = useCallback(() => {
     patchTool("bgBlurAmount", 0.4);
     patchTool("bgBlurScope", 2);
+    patchTool("bgBlurLens", "gaussian");
+    patchTool("bgBlurProgressive", false);
   }, [patchTool]);
 
   const apply = useCallback(async (): Promise<void> => {
     if (!doc || !dirty) return;
-    // For non-Whole scopes, await the cached cut (or trigger
+    // For background scope, await the cached cut (or trigger
     // detection if the user committed before MaskScopeRow's
     // auto-trigger had fired). Whole-image blur runs without ever
     // touching the model.
@@ -44,15 +73,13 @@ export function BgBlurPanel() {
         mask = null;
       }
     }
-    const out = bakeBgBlur(doc.working, mask, scope, amount);
+    const out = bakeBgBlur(doc.working, mask, scope, { amount, lens, progressive });
     copyInto(doc.working, out);
     releaseCanvas(out);
     reset();
     commit("Portrait blur");
-  }, [amount, commit, dirty, doc, reset, scope, subjectMask]);
+  }, [amount, commit, dirty, doc, lens, progressive, reset, scope, subjectMask]);
 
-  // Auto-flush on tool switch / Export, same pattern as the tone
-  // tools.
   const applyRef = useRef(apply);
   applyRef.current = apply;
   useEffect(() => {
@@ -64,23 +91,79 @@ export function BgBlurPanel() {
     return () => registerPendingApply(null);
   }, [dirty, registerPendingApply]);
 
+  // Auto-trigger detection when the panel opens with the default
+  // background scope and the mask isn't ready. Mirrors MaskScopeRow's
+  // own auto-trigger but happens at the panel level since the row UI
+  // is now custom (Background-only / Whole-image, not Whole / Subject /
+  // Background). State mid-flight: do nothing — the inline progress
+  // card below already reads "Detecting subject…".
+  useEffect(() => {
+    if (scope === 0) return;
+    const status = subjectMask.state.status;
+    if (status === "ready" || status === "loading" || status === "error") return;
+    if (status === "needs-consent") return;
+    void subjectMask.request().catch(() => undefined);
+  }, [scope, subjectMask]);
+
   const radiusPx = Math.round(blurAmountToPx(amount));
   // Gate the blur strength slider while a non-Whole scope is picked
   // and the mask isn't ready. Without this, dragging during detection
   // would show whole-image blur (the bake's mask=null fallback) and
-  // read as "Subject scope is broken" — exactly the regression this
+  // read as "Background-only is broken" — exactly the regression this
   // gate prevents.
   const gated = scope !== 0 && subjectMask.state.status !== "ready";
 
+  const lensIndex = LENS_OPTIONS.indexOf(lens);
+  const handleTarget = useCallback(
+    (i: number) => {
+      patchTool("bgBlurScope", i === 0 ? 2 : 0);
+    },
+    [patchTool],
+  );
+  const handleLens = useCallback(
+    (i: number) => {
+      patchTool("bgBlurLens", LENS_OPTIONS[i] ?? "gaussian");
+    },
+    [patchTool],
+  );
+  const handleRetry = useCallback(() => {
+    void subjectMask.request().catch(() => undefined);
+  }, [subjectMask]);
+
   return (
     <>
-      <MaskScopeRow
-        label="Blur target"
-        scope={toolState.bgBlurScope}
-        onScope={(i) => patchTool("bgBlurScope", i)}
-      />
+      {/* AI section header — sparkle indicates this panel uses the
+          on-device subject model when targeting the background. */}
+      <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+        <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+        Subject-aware lens
+      </div>
+
+      <PropRow label="Blur target">
+        <Segment options={TARGETS} active={targetIndex} onChange={handleTarget} />
+      </PropRow>
+
+      {scope !== 0 && subjectMask.state.status === "loading" && (
+        <DetectionProgressCard
+          progress={subjectMask.state.progress}
+          warm={subjectMask.state.warm}
+        />
+      )}
+      {scope !== 0 && subjectMask.state.status === "ready" && (
+        <DetectionReadyChip message="Subject locked in — adjust the blur below." />
+      )}
+      {scope !== 0 && subjectMask.state.status === "error" && (
+        <DetectionErrorCard msg={subjectMask.state.error} onRetry={handleRetry} />
+      )}
 
       <ScopeGate disabled={gated}>
+        <PropRow label="Lens">
+          <Segment options={LENS_LABELS} active={Math.max(0, lensIndex)} onChange={handleLens} />
+        </PropRow>
+        <div className="text-[11px] leading-snug text-text-muted dark:text-dark-text-muted">
+          {LENS_KIND_HINTS[lens]}
+        </div>
+
         <PropRow label="Strength" value={`${radiusPx} px`}>
           <Slider
             value={amount}
@@ -90,11 +173,20 @@ export function BgBlurPanel() {
           />
         </PropRow>
 
+        {/* Progressive falloff is meaningless on whole-image and on
+            tilt-shift (which has its own falloff geometry). Hide it
+            in those cases instead of showing a no-op toggle. */}
+        {scope !== 0 && lens !== "tilt-shift" && (
+          <PropRow label="Progressive falloff">
+            <ToggleSwitch on={progressive} onChange={(v) => patchTool("bgBlurProgressive", v)} />
+          </PropRow>
+        )}
+
         <button
           type="button"
           className="btn btn-secondary btn-xs mt-1 w-full justify-center"
           onClick={reset}
-          disabled={amount === 0.4 && scope === 2}
+          disabled={amount === 0.4 && scope === 2 && lens === "gaussian" && !progressive}
         >
           <I.Refresh size={12} />
           Reset
@@ -102,10 +194,10 @@ export function BgBlurPanel() {
 
         <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
           {scope === 2
-            ? "Subject stays sharp; the background gets a phone-portrait gaussian blur."
-            : scope === 1
-              ? "Background stays sharp; the subject gets blurred — useful for stylised covers or anonymising a face."
-              : "The whole image is gaussian-blurred. Pick Subject or Background to keep one side crisp."}
+            ? progressive
+              ? "Subject stays crisp; the background blur ramps softer near the subject and stronger toward the edges of the frame."
+              : "Subject stays crisp; the entire background takes a uniform lens blur."
+            : "The whole image is blurred. Pick Background only to keep the subject in focus."}
         </div>
       </ScopeGate>
     </>

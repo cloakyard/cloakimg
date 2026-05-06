@@ -34,7 +34,11 @@ interface ProgressProps {
  *      (e.g. "23 / 44 MB"). Visible once on first-ever AI use.
  *    • Inference — indeterminate sliding-stripe; the lib doesn't
  *      surface inference progress, so we show motion instead of a
- *      fake percentage. */
+ *      fake percentage.
+ *
+ *  Labels read generically — "Detecting subject…" — so the same card
+ *  is honest whether triggered by Adjust scope, Portrait blur, Smart
+ *  Crop, or Remove BG itself. */
 export function DetectionProgressCard({ progress, warm, fallbackLabel }: ProgressProps) {
   const isDownload = progress?.phase === "download";
   const isInference = progress?.phase === "inference" || progress?.phase === "decode";

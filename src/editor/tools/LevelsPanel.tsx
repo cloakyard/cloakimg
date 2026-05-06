@@ -9,6 +9,7 @@ import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
+import { AiSectionHeader } from "./AiSectionHeader";
 import { bakeLevels, isLevelsIdentity, LEVELS_DEFAULT, type LevelsParams } from "./levels";
 import { MaskScopeRow } from "./MaskScopeRow";
 import { ScopeGate } from "./ScopeGate";
@@ -117,6 +118,7 @@ export function LevelsPanel() {
 
   return (
     <>
+      <AiSectionHeader />
       <MaskScopeRow scope={toolState.levelsScope} onScope={(i) => patchTool("levelsScope", i)} />
       <ScopeGate disabled={gated}>
         <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">

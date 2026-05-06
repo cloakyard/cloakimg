@@ -30,6 +30,12 @@ import type { SmartRemoveProgress } from "./smartRemoveBg";
 
 const MODES = ["Auto", "Chroma"] as const;
 const QUALITY_LABELS = ["Fast", "Better", "Best"] as const;
+// Short hint shown under the Apply button when the model is *not*
+// already cached. Once the bytes are local the panel switches to a
+// dedicated "ready, instant" line so we don't double up the size
+// reminder (the previous build accidentally concatenated the two and
+// produced "…heavy downloadModel already loaded — detection is
+// instant.").
 const QUALITY_HINTS = [
   "~44 MB · best for portraits and most photos",
   "~88 MB · sharper edges, slower on first run",
@@ -194,6 +200,7 @@ export function RemoveBgPanel() {
           busy={applying || subjectMask.state.status === "loading"}
           progress={subjectMask.state.progress}
           warm={subjectMask.state.warm}
+          modelCached={subjectMask.state.modelCached}
           onApply={() => void applyAuto()}
         />
       ) : (
@@ -246,6 +253,10 @@ interface AutoProps {
    *  "first-time download (cold)" vs "already downloaded (warm)" copy
    *  in the progress card. */
   warm: boolean;
+  /** Are the bytes for the chosen quality already in CacheStorage from
+   *  a prior session? Distinct from `warm` — `modelCached` survives
+   *  page reloads, `warm` only survives within this tab. */
+  modelCached: boolean;
   onApply: () => void;
 }
 
@@ -256,10 +267,24 @@ function AutoPanel({
   busy,
   progress,
   warm,
+  modelCached,
   onApply,
 }: AutoProps) {
+  // Three distinct surfaces, no concatenation:
+  //   1. ready (warm or cached) — emphasise "instant" so the user
+  //      knows there's no wait this time.
+  //   2. busy — DetectionProgressCard owns the surface.
+  //   3. cold — a single sentence stating the size + privacy promise.
+  // Concatenating the two cases produced the "heavy downloadModel
+  // already loaded" run-on; this split avoids that class of bug
+  // entirely.
+  const readyForInstant = warm || modelCached;
   return (
     <>
+      <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+        <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+        On-device AI
+      </div>
       <PropRow label="Quality">
         <Segment options={QUALITY_LABELS} active={quality} onChange={onQuality} />
       </PropRow>
@@ -283,7 +308,7 @@ function AutoPanel({
           </>
         ) : busy ? (
           <>
-            <InlineSpinner /> {progress?.label ?? "Removing…"}
+            <InlineSpinner /> {progress?.label ?? "Working…"}
           </>
         ) : (
           <>
@@ -292,14 +317,16 @@ function AutoPanel({
         )}
       </button>
 
-      {busy && <DetectionProgressCard progress={progress} warm={warm} fallbackLabel="Removing…" />}
+      {busy && (
+        <DetectionProgressCard progress={progress} warm={warm} fallbackLabel="Detecting subject…" />
+      )}
 
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         {alreadyRemoved
           ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
-          : warm
-            ? `${QUALITY_HINTS[quality] ?? ""} Model already loaded — detection is instant.`
-            : `${QUALITY_HINTS[quality] ?? ""} The model downloads once and then runs offline.`}
+          : readyForInstant
+            ? `Model is loaded on this device — detection is instant. (${QUALITY_HINTS[quality] ?? ""})`
+            : `${QUALITY_HINTS[quality] ?? ""}. Downloads once on apply, then runs offline.`}
       </div>
     </>
   );

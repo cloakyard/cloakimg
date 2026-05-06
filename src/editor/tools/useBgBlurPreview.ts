@@ -6,13 +6,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { type MaskScope } from "../subjectMask";
-import { bakeBgBlur, isBgBlurIdentity } from "./bgBlur";
+import type { MaskScope } from "../subjectMask";
+import { bakeBgBlur, isBgBlurIdentity, type LensKind } from "./bgBlur";
 import { previewLongEdge } from "./previewSize";
 
 export function useBgBlurPreview(
   source: HTMLCanvasElement | null,
   amount: number,
+  lens: LensKind,
+  progressive: boolean,
   scope: MaskScope,
   mask: HTMLCanvasElement | null,
 ): HTMLCanvasElement | null {
@@ -64,7 +66,7 @@ export function useBgBlurPreview(
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
-      const baked = bakeBgBlur(ds, mask, scope, amount);
+      const baked = bakeBgBlur(ds, mask, scope, { amount, lens, progressive });
       setPreview((prev) => {
         if (prev && prev !== ds) releaseCanvas(prev);
         return baked;
@@ -76,7 +78,7 @@ export function useBgBlurPreview(
         rafRef.current = null;
       }
     };
-  }, [amount, mask, scope, source]);
+  }, [amount, lens, progressive, mask, scope, source]);
 
   useEffect(() => {
     return () => {

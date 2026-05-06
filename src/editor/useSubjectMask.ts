@@ -7,12 +7,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useEditorReadOnly, useToolState } from "./EditorContext";
 import {
+  denyMaskConsent,
   ensureSubjectMask,
   getMaskState,
+  grantMaskConsent,
   invalidateSubjectMask,
   type MaskState,
   peekMaskDownsample,
   peekSubjectMask,
+  probeModelCache,
   subscribeMaskState,
 } from "./subjectMask";
 import type { BgQuality } from "./tools/smartRemoveBg";
@@ -21,6 +24,10 @@ const QUALITY_KEYS: BgQuality[] = ["small", "medium", "large"];
 
 export interface UseSubjectMask {
   state: MaskState;
+  /** Currently selected quality tier as a friendly enum. Mirrors
+   *  `bgQuality` from toolState so callers don't have to map indices
+   *  themselves. */
+  quality: BgQuality;
   /** Returns the cached cut canvas if it matches the current doc.
    *  Sync — does not trigger a load. */
   peek: () => HTMLCanvasElement | null;
@@ -32,8 +39,17 @@ export interface UseSubjectMask {
    *  cut on every preview rAF. */
   peekDownsample: (longEdge: number) => HTMLCanvasElement | null;
   /** Trigger detection if needed. Returns the cut canvas on success.
-   *  Concurrent callers share the same in-flight promise. */
+   *  Concurrent callers share the same in-flight promise. May reject
+   *  with `MaskConsentError` when the user hasn't authorised the
+   *  download yet — callers should let the dialog handle that path
+   *  rather than treating it as a failure toast. */
   request: () => Promise<HTMLCanvasElement>;
+  /** User accepted the model download. Clears `needs-consent` state
+   *  and lets a follow-up `request()` proceed. */
+  grantConsent: () => void;
+  /** User dismissed the consent dialog. Returns to idle without
+   *  starting a download. */
+  denyConsent: () => void;
   /** Drop the cached mask + reset state to idle. */
   invalidate: () => void;
 }
@@ -41,12 +57,22 @@ export interface UseSubjectMask {
 export function useSubjectMask(): UseSubjectMask {
   const { doc } = useEditorReadOnly();
   const { bgQuality } = useToolState();
+  const quality = QUALITY_KEYS[bgQuality] ?? "small";
   const [state, setState] = useState<MaskState>(() => getMaskState());
 
   useEffect(() => {
     setState(getMaskState());
     return subscribeMaskState(setState);
   }, []);
+
+  // Probe the on-disk cache when the chosen quality changes so the
+  // warm/cold copy and the consent dialog have an honest picture of
+  // whether the user actually faces a fresh download. Probing is
+  // cheap (low-thousands of cache keys at worst) and the result is
+  // memoised on the mask state.
+  useEffect(() => {
+    void probeModelCache(quality);
+  }, [quality]);
 
   const peek = useCallback(() => {
     if (!doc) return null;
@@ -63,15 +89,32 @@ export function useSubjectMask(): UseSubjectMask {
 
   const request = useCallback(async (): Promise<HTMLCanvasElement> => {
     if (!doc) throw new Error("No document open");
-    return ensureSubjectMask(doc.working, QUALITY_KEYS[bgQuality] ?? "small");
-  }, [bgQuality, doc]);
+    return ensureSubjectMask(doc.working, quality);
+  }, [doc, quality]);
+
+  const grantConsent = useCallback(() => {
+    grantMaskConsent();
+  }, []);
+
+  const denyConsent = useCallback(() => {
+    denyMaskConsent();
+  }, []);
 
   const invalidate = useCallback(() => {
     invalidateSubjectMask();
   }, []);
 
   return useMemo(
-    () => ({ state, peek, peekDownsample, request, invalidate }),
-    [invalidate, peek, peekDownsample, request, state],
+    () => ({
+      state,
+      quality,
+      peek,
+      peekDownsample,
+      request,
+      grantConsent,
+      denyConsent,
+      invalidate,
+    }),
+    [denyConsent, grantConsent, invalidate, peek, peekDownsample, quality, request, state],
   );
 }

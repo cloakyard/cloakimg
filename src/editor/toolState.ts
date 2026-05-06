@@ -215,16 +215,26 @@ export interface ToolState {
    *    2 = large  (~176 MB fp32 model, best quality, slow on phones) */
   bgQuality: number;
 
-  // Portrait blur — gaussian blur applied to one side of the subject
-  // mask. Defaults to "background" because that's the recognisable
-  // phone-portrait look; "subject" is provided for stylistic effects
-  // (anonymising a face while keeping the scene readable, etc.).
-  /** 0 = Whole, 1 = Subject (blur subject, keep bg sharp), 2 =
-   *  Background (blur bg, keep subject sharp). Default 2. */
+  // Portrait blur — gaussian / lens / tilt-shift blur applied to the
+  // background. The "blur the subject" mode used to live here too but
+  // it overlapped with Redact's anonymisation tooling; this panel is
+  // now strictly background-focused depth-of-field.
+  /** 0 = Whole image, 2 = Background only. We deliberately skip the
+   *  numeric value 1 to keep numeric parity with the other scope
+   *  fields and the central MaskScope type, so existing applyMaskScope
+   *  helpers don't need a mode switch for this tool. */
   bgBlurScope: number;
   /** Blur strength 0..1; mapped to 0..40 px gaussian radius at the
    *  bake. 0 means no blur. */
   bgBlurAmount: number;
+  /** Lens flavour. "gaussian" = even soft blur, "lens" = multi-pass
+   *  bokeh approximation, "tilt-shift" = horizontal sharp band over
+   *  the subject with strong blur top + bottom. */
+  bgBlurLens: "gaussian" | "lens" | "tilt-shift";
+  /** When true, blur strength ramps with distance from the subject —
+   *  near the silhouette stays softer, far parts of the image get the
+   *  full radius. Subject-aware progressive depth-of-field. */
+  bgBlurProgressive: boolean;
 
   // Levels — input black/white/midtone gamma + output black/white.
   levelsBlackIn: number; // 0..255
@@ -366,6 +376,13 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   // looks.
   bgBlurScope: 2,
   bgBlurAmount: 0.4,
+  // Default lens kind reads naturally on most photos; users can opt
+  // into "lens" for a more cinematic falloff or "tilt-shift" for the
+  // miniature look. Progressive falloff defaults to off because it's
+  // a stylistic choice — the basic phone-portrait look is even-blur
+  // and most users want exactly that.
+  bgBlurLens: "gaussian",
+  bgBlurProgressive: false,
 
   levelsBlackIn: LEVELS_DEFAULT.blackIn,
   levelsWhiteIn: LEVELS_DEFAULT.whiteIn,

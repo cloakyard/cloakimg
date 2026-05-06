@@ -1,11 +1,11 @@
 // MaskScopeRow.tsx — Shared "Apply to: Whole / Subject / Background"
 // segmented control. Drop this into any per-pixel tool (Adjust,
-// Filter, Levels, HSL, Background blur) to give the user mask-aware
-// editing without any extra thinking — the moment they pick Subject
-// or Background, the central subject-mask service kicks off detection
-// if it hasn't already, shows progress inline, and the tool's bake
-// quietly starts scoping its output. Once detected, every other
-// tool's scope toggle is instant.
+// Filter, Levels, HSL) to give the user mask-aware editing without
+// any extra thinking — the moment they pick Subject or Background,
+// the central subject-mask service kicks off detection if it hasn't
+// already, shows progress inline, and the tool's bake quietly starts
+// scoping its output. Once detected, every other tool's scope toggle
+// is instant.
 //
 // Visual states (top → bottom):
 //   • Idle, scope = Whole — just the segmented control.
@@ -13,13 +13,15 @@
 //     detection on mount; shows the inline progress card.
 //   • Loading — DetectionProgressCard with download or inference state.
 //   • Ready — DetectionReadyChip.
+//   • Needs consent — DetectionConsentChip while the host dialog is up.
 //   • Error — DetectionErrorCard with a Try Again button.
 //
-// All three sub-states render the *exact* same components Remove BG
-// uses (`./DetectionStatus`), so the visual rhythm is uniform across
-// every subject-aware tool.
+// All sub-states render the *exact* same components Remove BG uses
+// (`./DetectionStatus`), so the visual rhythm is uniform across every
+// subject-aware tool.
 
 import { useCallback, useEffect } from "react";
+import { I } from "../../components/icons";
 import { PropRow, Segment } from "../atoms";
 import { useSubjectMask } from "../useSubjectMask";
 import { DetectionErrorCard, DetectionProgressCard, DetectionReadyChip } from "./DetectionStatus";
@@ -29,9 +31,7 @@ const SCOPE_OPTIONS = ["Whole", "Subject", "Background"] as const;
 interface Props {
   scope: number;
   onScope: (i: number) => void;
-  /** Override the section label. Defaults to "Apply to". The
-   *  Background-blur tool overrides this to "Blur target" so the
-   *  segment makes sense in context. */
+  /** Override the section label. Defaults to "Apply to". */
   label?: string;
 }
 
@@ -41,15 +41,27 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
 
   // Auto-trigger detection the moment the user picks a scoped option
   // and the mask isn't ready. We don't trigger if status is already
-  // "loading" or "error" (avoid hammering retries; the error card
-  // owns the retry button). Idle status is the "first time after
-  // pick" case — kick it off without making the user hunt for a
-  // button.
+  // "loading", "error" or "needs-consent" (avoid hammering retries;
+  // the error card owns the retry button, the consent dialog owns the
+  // accept tap). Idle status is the "first time after pick" case —
+  // kick it off without making the user hunt for a button. The
+  // request may bounce off the consent gate (MaskConsentError) — the
+  // mask state then reads "needs-consent" and the host dialog
+  // surfaces; we treat that as a quiet path, not a thrown failure.
   useEffect(() => {
     if (!wantsMask) return;
-    if (state.status === "ready" || state.status === "loading" || state.status === "error") return;
+    if (
+      state.status === "ready" ||
+      state.status === "loading" ||
+      state.status === "error" ||
+      state.status === "needs-consent"
+    )
+      return;
     void request().catch(() => {
-      // Errors surface via state.error → DetectionErrorCard.
+      // Either a real detection error (surfaces via DetectionErrorCard
+      // through state.error) or a consent bounce (handled by the host
+      // dialog through state.status === "needs-consent"). Either way
+      // the user is told via state, not an exception.
     });
   }, [request, state.status, wantsMask]);
 
@@ -76,9 +88,23 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
 
       {wantsMask && state.status === "ready" && <DetectionReadyChip />}
 
+      {wantsMask && state.status === "needs-consent" && <DetectionConsentChip />}
+
       {wantsMask && state.status === "error" && (
         <DetectionErrorCard msg={state.error} onRetry={handleRetry} />
       )}
     </>
+  );
+}
+
+/** Sits in for the progress card while the user has the consent
+ *  dialog up. Reassures them the panel is waiting on their tap, not
+ *  on a stuck download. */
+function DetectionConsentChip() {
+  return (
+    <div className="flex items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px] font-medium text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted">
+      <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
+      <span className="min-w-0 flex-1">Approve the on-device model to continue.</span>
+    </div>
   );
 }

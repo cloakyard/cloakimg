@@ -10,6 +10,7 @@ import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
+import { AiSectionHeader } from "./AiSectionHeader";
 import {
   bakeHsl,
   HSL_BAND_CENTERS,
@@ -114,6 +115,7 @@ export function HslPanel() {
 
   return (
     <>
+      <AiSectionHeader />
       <MaskScopeRow scope={toolState.hslScope} onScope={(i) => patchTool("hslScope", i)} />
       <ScopeGate disabled={gated}>
         <PropRow label="Color band">
