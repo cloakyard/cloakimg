@@ -64,33 +64,50 @@ export function useRemoveBgPreview(
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
       const sample = parseHex(sampleHex);
-      // `skipSmooth` halves the per-frame cost — the 3×3 alpha box
-      // average doesn't materially change what the user sees while
-      // they're moving sliders. Apply re-runs `removeBackground` at
-      // full res with smoothing on, so the final cutout still gets the
-      // anti-aliased edge.
-      const cleared = removeBackground(ds, {
-        threshold,
-        feather,
-        sample,
-        skipSmooth: true,
-      });
-      // Upsample to source dimensions so Fabric renders the preview
-      // at the same on-canvas size as the real image. If the keyer's
-      // output already matches we can skip the extra blit and reuse
-      // its canvas directly.
-      let out: HTMLCanvasElement;
-      if (cleared.width === source.width && cleared.height === source.height) {
-        out = cleared;
-      } else {
-        out = upsample(cleared, source.width, source.height);
-        // The downsampled cleared canvas was a one-shot scratch — back
-        // to the pool so the next frame reuses it.
-        releaseCanvas(cleared);
+      // Bake guard: `removeBackground` allocates a full RGBA buffer
+      // and can throw on memory-pressured mobile. Without try/catch
+      // the rejection would leak `cleared` and leave the previous
+      // preview painted; instead clear back to doc.working.
+      let cleared: HTMLCanvasElement | null = null;
+      let out: HTMLCanvasElement | null = null;
+      try {
+        // `skipSmooth` halves the per-frame cost — the 3×3 alpha box
+        // average doesn't materially change what the user sees while
+        // they're moving sliders. Apply re-runs `removeBackground` at
+        // full res with smoothing on, so the final cutout still gets
+        // the anti-aliased edge.
+        cleared = removeBackground(ds, {
+          threshold,
+          feather,
+          sample,
+          skipSmooth: true,
+        });
+        // Upsample to source dimensions so Fabric renders the preview
+        // at the same on-canvas size as the real image. If the
+        // keyer's output already matches we can skip the extra blit
+        // and reuse its canvas directly.
+        if (cleared.width === source.width && cleared.height === source.height) {
+          out = cleared;
+          cleared = null;
+        } else {
+          out = upsample(cleared, source.width, source.height);
+          releaseCanvas(cleared);
+          cleared = null;
+        }
+      } catch (err) {
+        console.error("[useRemoveBgPreview] keyer failed", err);
+        if (cleared) releaseCanvas(cleared);
+        if (out) releaseCanvas(out);
+        setPreview((prev) => {
+          if (prev) releaseCanvas(prev);
+          return null;
+        });
+        return;
       }
+      const result = out;
       setPreview((prev) => {
         if (prev) releaseCanvas(prev);
-        return out;
+        return result;
       });
     });
     return () => {

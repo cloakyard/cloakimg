@@ -77,6 +77,19 @@ interface CacheEntry {
 
 let cache: CacheEntry | null = null;
 let inflight: Promise<HTMLCanvasElement> | null = null;
+/** Source canvas the current `inflight` promise is detecting against.
+ *  Lets us dedup concurrent calls *only* when they're for the same
+ *  image — without it, an `ensureSubjectMask(docB.working)` call that
+ *  arrives mid-detection on `docA.working` would silently return docA's
+ *  mask. */
+let inflightSource: HTMLCanvasElement | null = null;
+/** Generation counter for in-flight detections. Bumped by
+ *  `invalidateSubjectMask` (and at the start of every fresh detection)
+ *  so a detection that started on doc A but finishes after a
+ *  `replaceWithFile` to doc B can detect the supersession and skip
+ *  writing its stale cut to the cache. The lib's underlying fetch /
+ *  inference can't actually be cancelled, but we can refuse its result. */
+let inflightGeneration = 0;
 /** Per-session consent flag. The first time a tool needs the model
  *  (download not already on disk), the UI flips status to
  *  "needs-consent" and the user has to confirm. After they confirm
@@ -176,11 +189,24 @@ function releaseCacheEntry(entry: CacheEntry) {
  *  out (replaceWithFile, resetToOriginal) so the next session starts
  *  clean. `peekSubjectMask` also auto-invalidates on dimension drift,
  *  but explicit calls cover the cases where pixels change without
- *  dimensions changing (Reset, undo through a non-geometry edit). */
+ *  dimensions changing (Reset, undo through a non-geometry edit).
+ *
+ *  Also bumps the inflight generation so any detection that started
+ *  before this call and is still running won't write its stale cut
+ *  back into the cache when it eventually resolves. */
 export function invalidateSubjectMask() {
-  if (!cache) return;
-  releaseCacheEntry(cache);
-  cache = null;
+  const hadCache = !!cache;
+  const hadInflight = !!inflight;
+  if (cache) {
+    releaseCacheEntry(cache);
+    cache = null;
+  }
+  if (inflight) {
+    inflightGeneration += 1;
+    inflight = null;
+    inflightSource = null;
+  }
+  if (!hadCache && !hadInflight) return;
   // Don't reset `warm` — the model's still loaded in memory, future
   // detections will be fast.
   setState({ status: "idle", progress: null, error: null });
@@ -260,7 +286,11 @@ export async function ensureSubjectMask(
 ): Promise<HTMLCanvasElement> {
   const existing = peekSubjectMask(source);
   if (existing) return existing;
-  if (inflight) return inflight;
+  // Only dedup against the inflight promise when it's detecting the
+  // *same* source. Otherwise (e.g. user replaceWithFile mid-detection)
+  // returning the inflight promise would silently hand the caller a
+  // mask for the wrong image.
+  if (inflight && inflightSource === source) return inflight;
 
   if (!consentGranted) {
     // If the user already denied this session, throw silently without
@@ -298,12 +328,33 @@ export async function ensureSubjectMask(
     pendingQuality: null,
   });
 
+  // Capture the generation this detection belongs to. If
+  // `invalidateSubjectMask` (or another fresh detection) bumps the
+  // counter while we're awaiting, we discard our result on completion
+  // — the caller has already moved on to a different doc/state and
+  // wiring our stale cut into the cache would cause the next
+  // peekSubjectMask to return geometry from the wrong image.
+  inflightGeneration += 1;
+  const myGeneration = inflightGeneration;
+  inflightSource = source;
   inflight = (async () => {
     try {
       const cut = await smartRemoveBackground(source, {
         quality,
-        onProgress: (p) => setState({ progress: p }),
+        onProgress: (p) => {
+          // Don't push progress updates for a superseded detection —
+          // the UI may have already returned to idle for a new doc and
+          // a late "Detecting subject…" tick would re-flip status.
+          if (myGeneration === inflightGeneration) setState({ progress: p });
+        },
       });
+      if (myGeneration !== inflightGeneration) {
+        // Detection raced with a doc swap / invalidate. Drop the cut
+        // and bail without touching state — the new generation owns
+        // the UI now.
+        releaseCanvas(cut);
+        throw new Error("Subject detection superseded.");
+      }
       // Validate that the model actually found a subject. The lib
       // happily returns a fully-transparent cut when there's no
       // recognisable subject (e.g. a landscape, a flat-colour
@@ -338,6 +389,9 @@ export async function ensureSubjectMask(
       });
       return cut;
     } catch (err) {
+      // Superseded errors are silent — they're a cooperative signal
+      // from our own generation guard, not a user-visible failure.
+      if (myGeneration !== inflightGeneration) throw err;
       const msg = err instanceof Error ? err.message : String(err);
       // Don't double-write state for the "no subject" branch — that
       // branch already set its own user-friendly error.
@@ -346,7 +400,12 @@ export async function ensureSubjectMask(
       }
       throw err;
     } finally {
-      inflight = null;
+      // Only clear the inflight slot if it's still ours. A newer
+      // detection may have already taken over the variables.
+      if (myGeneration === inflightGeneration) {
+        inflight = null;
+        inflightSource = null;
+      }
     }
   })();
 
@@ -393,7 +452,17 @@ export function waitForMaskResolution(
     const check = (s: MaskState) => {
       if (s.status === "ready") {
         const mask = peekSubjectMask(source);
-        if (mask) finish(() => resolve(mask));
+        if (mask) {
+          finish(() => resolve(mask));
+        } else {
+          // Status flipped to "ready" but the cache no longer maps to
+          // *our* source — typically a dimension drift or a doc swap
+          // raced with the detection. Without this branch the listener
+          // would no-op and the smart-action's await would hang
+          // forever. Bail as a consent error so the caller's catch
+          // (CropTool / RedactPanel / etc.) quietly backs out.
+          finish(() => reject(new MaskConsentError(quality)));
+        }
         return;
       }
       if (s.status === "error") {

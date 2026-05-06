@@ -73,17 +73,33 @@ export function useHslPreview(
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
-      let baked = bakeHsl(ds, params);
-      if (scope !== 0 && mask) {
-        const scoped = applyMaskScope(ds, baked, mask, scope);
-        if (scoped !== baked) {
-          releaseCanvas(baked);
-          baked = scoped;
+      // Bake guard: see useAdjustPreview for the rationale. Mobile
+      // devices can throw on OOM or getContext failure mid-bake; we
+      // release any intermediate canvas and clear the preview so the
+      // canvas falls back to doc.working instead of leaking.
+      let baked: HTMLCanvasElement | null = null;
+      try {
+        baked = bakeHsl(ds, params);
+        if (scope !== 0 && mask) {
+          const scoped = applyMaskScope(ds, baked, mask, scope);
+          if (scoped !== baked) {
+            releaseCanvas(baked);
+            baked = scoped;
+          }
         }
+      } catch (err) {
+        console.error("[useHslPreview] bake failed", err);
+        if (baked && baked !== ds) releaseCanvas(baked);
+        setPreview((prev) => {
+          if (prev && prev !== ds) releaseCanvas(prev);
+          return null;
+        });
+        return;
       }
+      const result = baked;
       setPreview((prev) => {
         if (prev && prev !== ds) releaseCanvas(prev);
-        return baked;
+        return result;
       });
     });
     return () => {

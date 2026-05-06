@@ -74,10 +74,25 @@ export function useBgBlurPreview(
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
-      const baked = bakeBgBlur(ds, mask, scope, { amount, lens, progressive });
+      // Bake guard: bakeBgBlur composes 4+ pooled canvases on
+      // progressive mode. A throw mid-compose would orphan whichever
+      // canvases were still in flight; bail back to doc.working
+      // instead of holding a half-built preview canvas.
+      let baked: HTMLCanvasElement | null = null;
+      try {
+        baked = bakeBgBlur(ds, mask, scope, { amount, lens, progressive });
+      } catch (err) {
+        console.error("[useBgBlurPreview] bake failed", err);
+        setPreview((prev) => {
+          if (prev && prev !== ds) releaseCanvas(prev);
+          return null;
+        });
+        return;
+      }
+      const result = baked;
       setPreview((prev) => {
         if (prev && prev !== ds) releaseCanvas(prev);
-        return baked;
+        return result;
       });
     });
     return () => {

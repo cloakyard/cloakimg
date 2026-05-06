@@ -139,26 +139,38 @@ export function useAdjustPreview(
     const runBake = () => {
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
-        let baked = bakeAdjust(ds, sliders, grain, curve);
-        if (monochrome) toMonochrome(baked);
-        // Mask-aware compositing: when the user has picked Subject or
-        // Background scope and we have a mask, splice the bake with
-        // the original downsample so changes only land in-scope. The
-        // mask is full-resolution; applyMaskScope scales it to the
-        // baked surface during the composite.
-        if (scope !== 0 && mask) {
-          const scoped = applyMaskScope(ds, baked, mask, scope);
-          if (scoped !== baked) {
-            releaseCanvas(baked);
-            baked = scoped;
+        // Defend against bake / compositing throws (OOM, getContext
+        // failures on memory-pressured mobile). Without this guard a
+        // single failing frame leaks the intermediate `baked` canvas
+        // *and* leaves the previous preview painted, so the user sees
+        // stale pixels until they touch a slider again.
+        let baked: HTMLCanvasElement | null = null;
+        try {
+          baked = bakeAdjust(ds, sliders, grain, curve);
+          if (monochrome) toMonochrome(baked);
+          if (scope !== 0 && mask) {
+            const scoped = applyMaskScope(ds, baked, mask, scope);
+            if (scoped !== baked) {
+              releaseCanvas(baked);
+              baked = scoped;
+            }
           }
+        } catch (err) {
+          console.error("[useAdjustPreview] bake failed", err);
+          if (baked && baked !== ds) releaseCanvas(baked);
+          setPreview((prev) => {
+            if (prev && prev !== ds) releaseCanvas(prev);
+            return null;
+          });
+          return;
         }
+        const result = baked;
         setPreview((prev) => {
           // Don't release the downsampled cache by accident — it
           // lives across renders and bakeAdjust may return it
           // directly when the source is already small.
           if (prev && prev !== ds) releaseCanvas(prev);
-          return baked;
+          return result;
         });
       });
     };
