@@ -14,6 +14,7 @@ import { useSubjectMask } from "../useSubjectMask";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
 import { CurveEditor } from "./CurveEditor";
 import { MaskScopeRow } from "./MaskScopeRow";
+import { ScopeGate } from "./ScopeGate";
 
 const TABS = ["Histogram", "Adjust"] as const;
 
@@ -138,6 +139,13 @@ export function AdjustPanel() {
 
   const showCurve = !isMobile || tab === 0;
   const showSliders = !isMobile || tab === 1;
+  // Gate the per-pixel controls (sliders + curve) while the user has
+  // a scoped mode picked but the subject mask isn't ready yet —
+  // dragging during detection would silently produce a whole-image
+  // bake (mask=null fallback), which reads as "subject scope is
+  // broken". The MaskScopeRow stays interactive so the user can
+  // always step back to Whole.
+  const gated = scope !== 0 && subjectMask.state.status !== "ready";
 
   return (
     <>
@@ -145,52 +153,54 @@ export function AdjustPanel() {
       {showSliders && (
         <MaskScopeRow scope={toolState.adjustScope} onScope={(i) => patchTool("adjustScope", i)} />
       )}
-      {showCurve && (
-        <CurveEditor
-          curve={toolState.curveRGB}
-          onChange={(next) => patchTool("curveRGB", next)}
-          fit={isMobile}
-        />
-      )}
-      {showSliders &&
-        ADJUST_KEYS.map((key, i) => {
-          const v = toolState.adjust[i] ?? 0.5;
-          return (
-            <PropRow
-              key={key}
-              label={LABELS[key]}
-              valueInput={
-                <NumericReadout
-                  key={key}
-                  display={fmt(key, v)}
-                  normalized={v}
-                  step={key === "exposure" ? 0.1 : 1}
-                  fromNormalized={(n) => (n - 0.5) * 2 * RANGES[key]}
-                  toNormalized={(real) => real / (2 * RANGES[key]) + 0.5}
-                  onCommit={(n) => setAt(i, n)}
+      <ScopeGate disabled={gated}>
+        {showCurve && (
+          <CurveEditor
+            curve={toolState.curveRGB}
+            onChange={(next) => patchTool("curveRGB", next)}
+            fit={isMobile}
+          />
+        )}
+        {showSliders &&
+          ADJUST_KEYS.map((key, i) => {
+            const v = toolState.adjust[i] ?? 0.5;
+            return (
+              <PropRow
+                key={key}
+                label={LABELS[key]}
+                valueInput={
+                  <NumericReadout
+                    key={key}
+                    display={fmt(key, v)}
+                    normalized={v}
+                    step={key === "exposure" ? 0.1 : 1}
+                    fromNormalized={(n) => (n - 0.5) * 2 * RANGES[key]}
+                    toNormalized={(real) => real / (2 * RANGES[key]) + 0.5}
+                    onCommit={(n) => setAt(i, n)}
+                  />
+                }
+              >
+                <Slider
+                  value={v}
+                  accent={Math.abs(v - 0.5) > 0.001}
+                  defaultValue={0.5}
+                  onChange={(next) => setAt(i, next)}
                 />
-              }
-            >
-              <Slider
-                value={v}
-                accent={Math.abs(v - 0.5) > 0.001}
-                defaultValue={0.5}
-                onChange={(next) => setAt(i, next)}
-              />
-            </PropRow>
-          );
-        })}
-      {showSliders && (
-        <button
-          type="button"
-          className="btn btn-secondary btn-xs mt-1 w-full justify-center"
-          onClick={reset}
-          disabled={!dirty}
-        >
-          <I.Refresh size={12} />
-          Reset
-        </button>
-      )}
+              </PropRow>
+            );
+          })}
+        {showSliders && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-xs mt-1 w-full justify-center"
+            onClick={reset}
+            disabled={!dirty}
+          >
+            <I.Refresh size={12} />
+            Reset
+          </button>
+        )}
+      </ScopeGate>
     </>
   );
 }

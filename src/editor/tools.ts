@@ -35,59 +35,74 @@ export interface Tool {
   name: string;
   icon: ComponentType<{ size?: number; stroke?: number }>;
   group: ToolGroup;
-  /** True when the tool exposes subject-aware scoping (Apply to:
-   *  Whole / Subject / Background) backed by the central U²-Net mask
-   *  service. The rail / mobile toolbar paint a small sparkle dot
-   *  on these tools so users know which ones can target subject vs
-   *  background. Detection itself is lazy — opening the tool doesn't
-   *  download the model; only the user picking a non-Whole scope
-   *  does. */
-  subjectAware?: boolean;
 }
 
-// Rail order follows the user's editing stages roughly left-to-right:
-// select → tone → mark → retouch → sampling → output → privacy.
-// Within each group the most-used tool sits first (Adjust before
-// Filters, Text before Shapes, Resize before Frame), so a brand-new
-// user finds the workhorse without scrolling. Advanced / niche tools
-// (Levels, HSL, Pen, Watermark) tail their group. Privacy (redact)
-// sits at the very end so it stays out of the way during normal
-// editing but is still reachable in one click.
+// Rail order follows the user's natural editing flow:
+//   select → tone → retouch → privacy → mark → sampling → output.
+//
+// The two big shifts versus a "tools-by-category" rail:
+//   • Retouch (Spot heal / Portrait blur / Remove BG) sits BEFORE
+//     Mark — users typically clean up the photo before they annotate
+//     it, not after.
+//   • Privacy (Redact) sits in the upper half rather than buried at
+//     the tail. Redact is a brand-defining tool for this app; making
+//     it reachable in two scrolls instead of last-in-rail matches the
+//     workflow a privacy-conscious user shows up with ("redact a
+//     screenshot, then export").
+//
+// Within each group the most-used tool sits first so a new user
+// finds the workhorse without scrolling. Niche / vector / power-user
+// tools (Levels, HSL, Pen, Place image) tail their group.
 export const ALL_TOOLS: Tool[] = [
-  // Select — work with the image as a whole.
+  // Select — orient and frame the image. Move is the always-available
+  // selection mode; Crop is the most-used edit on any photo; Perspective
+  // is the niche straighten-tilted-shot tool.
   { id: "move", name: "Move", icon: I.Move, group: "select" },
   { id: "crop", name: "Crop & rotate", icon: I.Crop, group: "select" },
   { id: "perspective", name: "Perspective", icon: I.Perspective, group: "select" },
 
   // Tone — colour and brightness. Adjust is the workhorse; Filters
   // is the one-click stylistic option; Levels and Selective colour
-  // are the advanced precision tools. All four expose subject-aware
-  // scoping so the user can apply changes to subject vs background.
-  { id: "adjust", name: "Adjust", icon: I.Sliders, group: "tone", subjectAware: true },
-  { id: "filter", name: "Filters", icon: I.Wand, group: "tone", subjectAware: true },
-  { id: "levels", name: "Levels", icon: I.Levels, group: "tone", subjectAware: true },
-  { id: "hsl", name: "Selective color", icon: I.Hsl, group: "tone", subjectAware: true },
+  // are the advanced precision tools. All four expose an
+  // "Apply to: Whole / Subject / Background" scope inside the panel,
+  // backed by the central subject-mask service.
+  { id: "adjust", name: "Adjust", icon: I.Sliders, group: "tone" },
+  { id: "filter", name: "Filters", icon: I.Wand, group: "tone" },
+  { id: "levels", name: "Levels", icon: I.Levels, group: "tone" },
+  { id: "hsl", name: "Selective color", icon: I.Hsl, group: "tone" },
 
-  // Mark — annotations and overlays. Text and Shapes lead since
-  // they're the screenshot-annotation core; freehand (Draw, Pen)
-  // sit in the middle; decorative / branding tools (Sticker, Place
-  // image, Watermark) tail.
+  // Retouch — clean up the photo. Comes BEFORE Mark because users
+  // fix imperfections / cut backgrounds before adding annotations on
+  // top. Spot heal first (cheap, no model); then Portrait blur and
+  // Remove BG which both consume the central subject-mask service.
+  { id: "spot", name: "Spot heal", icon: I.Eraser, group: "retouch" },
+  { id: "bgblur", name: "Portrait blur", icon: I.Focus, group: "retouch" },
+  { id: "bgrm", name: "Remove BG", icon: I.Layers, group: "retouch" },
+
+  // Privacy — Redact lives front-and-centre rather than at the rail
+  // tail. For this app it's a primary tool: many users open the
+  // editor *because* they want to redact a screenshot, and burying
+  // it at the bottom adds friction for the most brand-aligned use
+  // case.
+  { id: "redact", name: "Redact", icon: I.EyeOff, group: "privacy" },
+
+  // Mark — annotations and overlays, ordered by frequency:
+  //   • Text first (screenshots, captions — the screenshot-annotation
+  //     core).
+  //   • Shapes next (arrows + boxes are the second-most-used
+  //     screenshot tool).
+  //   • Draw (freehand highlight) before Sticker (decorative).
+  //   • Watermark / Pen / Place image tail because they're either
+  //     niche, vector-power-user, or compositing-power-user.
   { id: "text", name: "Text", icon: I.Type, group: "mark" },
   { id: "shapes", name: "Shapes", icon: I.Square, group: "mark" },
   { id: "draw", name: "Draw", icon: I.Brush, group: "mark" },
-  { id: "pen", name: "Pen", icon: I.Pen, group: "mark" },
   { id: "sticker", name: "Stickers", icon: I.Heart, group: "mark" },
-  { id: "image", name: "Place image", icon: I.FileImage, group: "mark" },
   { id: "mark", name: "Watermark", icon: I.Stamp, group: "mark" },
+  { id: "pen", name: "Pen", icon: I.Pen, group: "mark" },
+  { id: "image", name: "Place image", icon: I.FileImage, group: "mark" },
 
-  // Retouch — fix imperfections. Remove BG and Background blur both
-  // share the central subject-mask service, so they get the badge.
-  // Order: Spot heal first (cheap, no model), then the AI duo.
-  { id: "spot", name: "Spot heal", icon: I.Eraser, group: "retouch" },
-  { id: "bgblur", name: "Portrait blur", icon: I.Focus, group: "retouch", subjectAware: true },
-  { id: "bgrm", name: "Remove BG", icon: I.Layers, group: "retouch", subjectAware: true },
-
-  // Sampling — read pixel values.
+  // Sampling — read pixel values mid-edit.
   { id: "color", name: "Color picker", icon: I.Pipette, group: "color" },
 
   // Output — finishing work before export. Resize first (every
@@ -95,9 +110,6 @@ export const ALL_TOOLS: Tool[] = [
   { id: "resize", name: "Resize", icon: I.Resize, group: "output" },
   { id: "frame", name: "Frame", icon: I.Frame, group: "output" },
   { id: "border", name: "Border", icon: I.Border, group: "output" },
-
-  // Privacy.
-  { id: "redact", name: "Redact", icon: I.EyeOff, group: "privacy" },
 ];
 
 export function findTool(id: ToolId): Tool {

@@ -19,7 +19,9 @@ import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
+import { getSubjectBBox } from "../subjectMask";
 import type { ToolState } from "../toolState";
+import { useSubjectMask } from "../useSubjectMask";
 import { ASPECT_OPTIONS, initialRect, type Rect } from "./cropMath";
 
 const CROP_TAG = "cloak:cropOverlay";
@@ -320,6 +322,9 @@ export function applyCrop(
 
 export function CropPanel() {
   const { toolState, patchTool, doc, getFabricCanvas, commit, registerPendingApply } = useEditor();
+  const subjectMask = useSubjectMask();
+  const [smartBusy, setSmartBusy] = useState(false);
+  const [smartError, setSmartError] = useState<string | null>(null);
   const aspect = ASPECT_OPTIONS[toolState.cropAspect]?.ratio ?? null;
   // Total rotation = quarter turns from the 90° button + fine slider.
   // Normalised to [0, 360) for display so 90° presses don't grow the
@@ -385,6 +390,77 @@ export function CropPanel() {
     commit("Crop");
   }, [aspect, commit, doc, getFabricCanvas, patchTool, toolState]);
 
+  // Smart Crop — read the subject bbox from the cached mask (or wait
+  // for detection to finish), then snap the Fabric crop overlay to
+  // that rect. Aspect-locked? The bbox is centred inside the locked
+  // ratio so users can pick "1:1" first and still get a tight crop
+  // around the subject. The user still has to tap the existing
+  // commit affordance (Enter / tool-switch) to bake — Smart Crop only
+  // *positions* the rect, it doesn't apply the crop unilaterally.
+  const smartCrop = useCallback(async () => {
+    const fc = getFabricCanvas();
+    if (!fc || !doc) return;
+    const rectObj = findCropRect(fc);
+    if (!rectObj) return;
+    setSmartError(null);
+    setSmartBusy(true);
+    try {
+      const mask = subjectMask.peek() ?? (await subjectMask.request());
+      const bbox = getSubjectBBox(mask, 0.06);
+      if (!bbox) {
+        setSmartError("Couldn't find a clear subject in this photo.");
+        return;
+      }
+      let { x, y, w, h } = bbox;
+      // Honour the locked aspect: expand the shorter axis of the
+      // bbox until it matches the target ratio, centred on the
+      // bbox's centre, then clamp inside the image. This keeps the
+      // subject centred when the user has e.g. a 1:1 lock active.
+      if (aspect != null && aspect > 0) {
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+        const currentRatio = w / h;
+        if (currentRatio < aspect) {
+          // Bbox is too tall — widen.
+          w = h * aspect;
+        } else if (currentRatio > aspect) {
+          // Bbox is too wide — heighten.
+          h = w / aspect;
+        }
+        x = cx - w / 2;
+        y = cy - h / 2;
+        // Clamp inside the image. If clamping breaks the ratio,
+        // we'd rather lose a sliver of the subject than warp the
+        // aspect — accept the clamp.
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x + w > doc.width) x = doc.width - w;
+        if (y + h > doc.height) y = doc.height - h;
+        if (x < 0 || y < 0) {
+          // Still doesn't fit — fall back to the unconstrained bbox.
+          x = bbox.x;
+          y = bbox.y;
+          w = bbox.w;
+          h = bbox.h;
+        }
+      }
+      rectObj.set({
+        left: Math.round(x),
+        top: Math.round(y),
+        width: Math.round(w),
+        height: Math.round(h),
+        scaleX: 1,
+        scaleY: 1,
+      });
+      rectObj.setCoords();
+      fc.requestRenderAll();
+    } catch (err) {
+      setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");
+    } finally {
+      setSmartBusy(false);
+    }
+  }, [aspect, doc, getFabricCanvas, subjectMask]);
+
   const reset = useCallback(() => {
     const fc = getFabricCanvas();
     if (!fc || !doc) return;
@@ -447,6 +523,13 @@ export function CropPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registerPendingApply]);
 
+  const subjectStatus = subjectMask.state.status;
+  const smartLabel = smartBusy
+    ? subjectStatus === "loading"
+      ? "Detecting…"
+      : "Cropping…"
+    : "Crop to subject";
+
   return (
     <>
       <PropRow label="Aspect ratio">
@@ -456,6 +539,25 @@ export function CropPanel() {
           onChange={(i) => patchTool("cropAspect", i)}
         />
       </PropRow>
+      {/* Smart Crop — sized like the secondary buttons in the
+          Flip / 90° row so the panel keeps a single visual rhythm.
+          Sparkles badge marks it as the AI-powered affordance, same
+          convention as the rail. */}
+      <button
+        type="button"
+        onClick={() => void smartCrop()}
+        disabled={smartBusy}
+        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+        style={{ opacity: smartBusy ? 0.7 : 1 }}
+      >
+        <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+        {smartLabel}
+      </button>
+      {smartError && (
+        <div className="rounded-md border border-coral-300 bg-coral-50 px-2.5 py-1.5 text-[11px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
+          {smartError}
+        </div>
+      )}
       <CropDimensions />
       <PropRow label="Rotation" value={rotationLabel}>
         <Slider value={rotationSlider} accent defaultValue={0.5} onChange={setRotation} />

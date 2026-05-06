@@ -8,18 +8,20 @@ import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
+import { previewLongEdge } from "./previewSize";
 import { useBgBlurPreview } from "./useBgBlurPreview";
 
 export function BgBlurTool() {
   const { toolState, doc } = useEditor();
   const subjectMask = useSubjectMask();
-  // Only thread the mask through once it's actually ready — otherwise
-  // the preview hook would blur indiscriminately while detection is
-  // still running, then re-bake when the mask lands. Falling back to
-  // null means the preview shows whole-image blur until the mask is
-  // ready, which lines up visually with what the user is asking for
-  // in scope=Whole anyway.
-  const mask = subjectMask.state.status === "ready" ? subjectMask.peek() : null;
+  // Pre-sized mask matches the preview surface; the per-rAF bake's
+  // `applyMaskScope` then composes mask × downsample at 1:1 instead
+  // of asking the browser to scale a 24 MP cut on every frame. Mask
+  // is only threaded when status="ready" — the preview hook's scope
+  // gate will short-circuit and show `doc.working` while detection
+  // is in flight (matching the gated panel controls above).
+  const mask =
+    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
   const scope = (toolState.bgBlurScope as MaskScope) ?? 2;
   const preview = useBgBlurPreview(doc?.working ?? null, toolState.bgBlurAmount, scope, mask);
   useStageProps({ previewCanvas: preview });

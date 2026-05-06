@@ -14,6 +14,7 @@ import { type MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { bakeBgBlur, blurAmountToPx, isBgBlurIdentity } from "./bgBlur";
 import { MaskScopeRow } from "./MaskScopeRow";
+import { ScopeGate } from "./ScopeGate";
 
 export function BgBlurPanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
@@ -64,6 +65,12 @@ export function BgBlurPanel() {
   }, [dirty, registerPendingApply]);
 
   const radiusPx = Math.round(blurAmountToPx(amount));
+  // Gate the blur strength slider while a non-Whole scope is picked
+  // and the mask isn't ready. Without this, dragging during detection
+  // would show whole-image blur (the bake's mask=null fallback) and
+  // read as "Subject scope is broken" — exactly the regression this
+  // gate prevents.
+  const gated = scope !== 0 && subjectMask.state.status !== "ready";
 
   return (
     <>
@@ -73,32 +80,34 @@ export function BgBlurPanel() {
         onScope={(i) => patchTool("bgBlurScope", i)}
       />
 
-      <PropRow label="Strength" value={`${radiusPx} px`}>
-        <Slider
-          value={amount}
-          accent={amount > 0.001}
-          defaultValue={0.4}
-          onChange={(v) => patchTool("bgBlurAmount", v)}
-        />
-      </PropRow>
+      <ScopeGate disabled={gated}>
+        <PropRow label="Strength" value={`${radiusPx} px`}>
+          <Slider
+            value={amount}
+            accent={amount > 0.001}
+            defaultValue={0.4}
+            onChange={(v) => patchTool("bgBlurAmount", v)}
+          />
+        </PropRow>
 
-      <button
-        type="button"
-        className="btn btn-secondary btn-xs mt-1 w-full justify-center"
-        onClick={reset}
-        disabled={amount === 0.4 && scope === 2}
-      >
-        <I.Refresh size={12} />
-        Reset
-      </button>
+        <button
+          type="button"
+          className="btn btn-secondary btn-xs mt-1 w-full justify-center"
+          onClick={reset}
+          disabled={amount === 0.4 && scope === 2}
+        >
+          <I.Refresh size={12} />
+          Reset
+        </button>
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-        {scope === 2
-          ? "Subject stays sharp; the background gets a phone-portrait gaussian blur."
-          : scope === 1
-            ? "Background stays sharp; the subject gets blurred — useful for stylised covers or anonymising a face."
-            : "The whole image is gaussian-blurred. Pick Subject or Background to keep one side crisp."}
-      </div>
+        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          {scope === 2
+            ? "Subject stays sharp; the background gets a phone-portrait gaussian blur."
+            : scope === 1
+              ? "Background stays sharp; the subject gets blurred — useful for stylised covers or anonymising a face."
+              : "The whole image is gaussian-blurred. Pick Subject or Background to keep one side crisp."}
+        </div>
+      </ScopeGate>
     </>
   );
 }

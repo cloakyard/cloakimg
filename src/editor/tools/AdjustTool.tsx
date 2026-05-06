@@ -8,17 +8,20 @@ import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
+import { previewLongEdge } from "./previewSize";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function AdjustTool() {
   const { toolState, doc } = useEditor();
   const subjectMask = useSubjectMask();
-  // Identity peek — when the user picks Subject / Background scope,
-  // MaskScopeRow auto-triggers detection and the cached cut becomes
-  // available here once status flips to "ready". Until then, mask is
-  // null and the preview falls back to whole-image until detection
-  // lands; the next render then re-bakes with the mask in place.
-  const mask = subjectMask.state.status === "ready" ? subjectMask.peek() : null;
+  // Pull a mask sized to match the preview surface so each per-rAF
+  // composite skips a full-res scaled drawImage (the cut can be 24
+  // MP — scaling that on every preview tick is the pre-cache bottleneck
+  // on phones). The downsample is built lazily by the service the
+  // first time anything asks for it, then reused across every scoped
+  // tool.
+  const mask =
+    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
   const scope = (toolState.adjustScope as MaskScope) ?? 0;
   const preview = useAdjustPreview(
     doc?.working ?? null,

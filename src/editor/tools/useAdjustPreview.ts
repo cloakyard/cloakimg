@@ -24,17 +24,7 @@ import { createCanvas, releaseCanvas } from "../doc";
 import { applyMaskScope, type MaskScope } from "../subjectMask";
 import { type CurvePoint, isCurveIdentity } from "../toolState";
 import { bakeAdjust, isIdentity } from "./adjustments";
-
-const PREVIEW_LONG_EDGE_MOBILE = 720;
-const PREVIEW_LONG_EDGE_DESKTOP = 1440;
-const MOBILE_BREAKPOINT_PX = 768;
-
-function previewLongEdge(): number {
-  if (typeof window === "undefined") return PREVIEW_LONG_EDGE_DESKTOP;
-  return window.innerWidth < MOBILE_BREAKPOINT_PX
-    ? PREVIEW_LONG_EDGE_MOBILE
-    : PREVIEW_LONG_EDGE_DESKTOP;
-}
+import { previewLongEdge } from "./previewSize";
 
 export function useAdjustPreview(
   source: HTMLCanvasElement | null,
@@ -97,6 +87,19 @@ export function useAdjustPreview(
     }
     const curveActive = !!curve && !isCurveIdentity(curve);
     if (isIdentity(sliders) && grain === 0 && !monochrome && !curveActive) {
+      setPreview((prev) => {
+        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
+        return null;
+      });
+      return;
+    }
+    // Scope gating: when the user has picked Subject / Background but
+    // the mask hasn't loaded yet, suppress the preview entirely so
+    // the canvas keeps showing `doc.working`. Without this we'd bake
+    // a misleading whole-image preview during detection (the
+    // mask=null fallback below) — exactly the "controls drift while
+    // AI is loading" UX the gating was added to prevent.
+    if (scope !== 0 && !mask) {
       setPreview((prev) => {
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;

@@ -9,12 +9,14 @@ import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import type { LevelsParams } from "./levels";
+import { previewLongEdge } from "./previewSize";
 import { useLevelsPreview } from "./useLevelsPreview";
 
 export function LevelsTool() {
   const { toolState, doc } = useEditor();
   const subjectMask = useSubjectMask();
-  const mask = subjectMask.state.status === "ready" ? subjectMask.peek() : null;
+  const mask =
+    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
   const scope = (toolState.levelsScope as MaskScope) ?? 0;
   const params = useMemo<LevelsParams>(
     () => ({

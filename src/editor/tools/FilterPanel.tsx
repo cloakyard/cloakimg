@@ -16,6 +16,7 @@ import { useSubjectMask } from "../useSubjectMask";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 import { MaskScopeRow } from "./MaskScopeRow";
+import { ScopeGate } from "./ScopeGate";
 
 const THUMB_PX = 96;
 
@@ -113,71 +114,84 @@ export function FilterPanel() {
     return () => registerPendingApply(null);
   }, [dirty, registerPendingApply]);
 
+  // Gate the preset grid + sliders while a non-Whole scope is picked
+  // and the mask is still loading; otherwise tapping a preset would
+  // bake whole-image (mask=null fallback) and the result wouldn't
+  // match the user's "Subject" / "Background" intent.
+  const gated = scope !== 0 && subjectMask.state.status !== "ready";
+
   return (
     <>
       <MaskScopeRow scope={toolState.filterScope} onScope={(i) => patchTool("filterScope", i)} />
-      <PropRow label="Preset">
-        {/* On mobile the presets reflow into a single horizontally
-            scrolling row so the panel stays short and the canvas above
-            keeps its height. Desktop keeps the 3-up grid where vertical
-            space is plentiful. */}
-        <div
-          className={
-            isMobile
-              ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-              : "grid grid-cols-3 gap-1.5"
-          }
-        >
-          {FILTER_PRESETS_RECIPES.map((preset, i) => {
-            const active = i === toolState.filterPreset;
-            const thumbUrl = presetThumbUrls?.[i];
-            return (
-              <button
-                key={preset.name}
-                type="button"
-                onClick={() => patchTool("filterPreset", i)}
-                aria-pressed={active}
-                className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 dark:bg-dark-page-bg ${
-                  isMobile ? "w-18 shrink-0" : ""
-                } ${
-                  active
-                    ? "border-2 border-coral-500"
-                    : "border border-border dark:border-dark-border"
-                }`}
-              >
-                {thumbUrl ? (
-                  <img
-                    src={thumbUrl}
-                    alt={preset.name}
-                    className="block aspect-square w-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="aspect-square w-full"
-                    style={{
-                      background: "linear-gradient(135deg, var(--page-bg) 0%, var(--surface) 100%)",
-                    }}
-                  />
-                )}
-                <div className="px-1 py-0.75 text-center text-[10px] font-semibold">
-                  {preset.name}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </PropRow>
-      <PropRow label="Intensity" value={`${Math.round(toolState.filterIntensity * 100)}%`}>
-        <Slider
-          value={toolState.filterIntensity}
-          accent
-          defaultValue={0.65}
-          onChange={(v) => patchTool("filterIntensity", v)}
-        />
-      </PropRow>
-      <PropRow label="Grain" value={`${Math.round(toolState.grain * 100)}%`}>
-        <Slider value={toolState.grain} defaultValue={0} onChange={(v) => patchTool("grain", v)} />
-      </PropRow>
+      <ScopeGate disabled={gated}>
+        <PropRow label="Preset">
+          {/* On mobile the presets reflow into a single horizontally
+              scrolling row so the panel stays short and the canvas above
+              keeps its height. Desktop keeps the 3-up grid where vertical
+              space is plentiful. */}
+          <div
+            className={
+              isMobile
+                ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+                : "grid grid-cols-3 gap-1.5"
+            }
+          >
+            {FILTER_PRESETS_RECIPES.map((preset, i) => {
+              const active = i === toolState.filterPreset;
+              const thumbUrl = presetThumbUrls?.[i];
+              return (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() => patchTool("filterPreset", i)}
+                  aria-pressed={active}
+                  className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 dark:bg-dark-page-bg ${
+                    isMobile ? "w-18 shrink-0" : ""
+                  } ${
+                    active
+                      ? "border-2 border-coral-500"
+                      : "border border-border dark:border-dark-border"
+                  }`}
+                >
+                  {thumbUrl ? (
+                    <img
+                      src={thumbUrl}
+                      alt={preset.name}
+                      className="block aspect-square w-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="aspect-square w-full"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, var(--page-bg) 0%, var(--surface) 100%)",
+                      }}
+                    />
+                  )}
+                  <div className="px-1 py-0.75 text-center text-[10px] font-semibold">
+                    {preset.name}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </PropRow>
+        <PropRow label="Intensity" value={`${Math.round(toolState.filterIntensity * 100)}%`}>
+          <Slider
+            value={toolState.filterIntensity}
+            accent
+            defaultValue={0.65}
+            onChange={(v) => patchTool("filterIntensity", v)}
+          />
+        </PropRow>
+        <PropRow label="Grain" value={`${Math.round(toolState.grain * 100)}%`}>
+          <Slider
+            value={toolState.grain}
+            defaultValue={0}
+            onChange={(v) => patchTool("grain", v)}
+          />
+        </PropRow>
+      </ScopeGate>
     </>
   );
 }

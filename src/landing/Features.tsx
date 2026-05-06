@@ -50,18 +50,13 @@ const FEATURES: Feature[] = [
     icon: <I.Smartphone size={20} />,
     title: "Mobile, tablet & desktop",
     description:
-      "Every tool adapts fluidly across screen sizes — edit on the go, finalise at your desk.",
+      "Every tool adapts fluidly across screen sizes and follows your system's light or dark theme — edit on the go, finalise at your desk.",
   },
   {
     icon: <I.Layers size={20} />,
     title: "All-in-one canvas",
     description:
       "Crop, retouch, redact, adjust, filter, frame, shapes, text — one workspace for every photo chore.",
-  },
-  {
-    icon: <I.Laptop size={20} />,
-    title: "Light & dark mode",
-    description: "Thoughtful theming that follows your system preference automatically.",
   },
   {
     icon: <I.GitFork size={20} />,

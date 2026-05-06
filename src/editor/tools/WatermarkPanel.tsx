@@ -4,12 +4,14 @@
 // matching layer (creating it on first use).
 
 import { FabricImage, IText } from "fabric";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
 import type { WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
 import { PropRow, Segment, Slider } from "../atoms";
 import { I } from "../../components/icons";
+import { regionCoverage } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 
 /** Fabric `cloakKind` tags. Used to find the singleton on re-apply
  *  and so future code can route layer ops to the right kind. */
@@ -31,7 +33,61 @@ const POSITIONS: { id: WatermarkAnchor; label: string }[] = [
 
 export function WatermarkPanel() {
   const { toolState, patchTool, layers, commit, doc, getFabricCanvas } = useEditor();
+  const subjectMask = useSubjectMask();
+  const [smartBusy, setSmartBusy] = useState(false);
+  const [smartError, setSmartError] = useState<string | null>(null);
   const isImage = toolState.watermarkMode === 1;
+
+  // Smart placement — score each of the 6 anchor regions by subject
+  // coverage and pick the emptiest. A watermark in TL on a portrait
+  // photo with a face top-left would clobber the subject; this puts
+  // it diagonally opposite the busiest area instead. Each anchor is
+  // scored against the SAME region size (~22 % of the short edge)
+  // regardless of where the user has the size slider, so the ranking
+  // is purely about subject overlap.
+  const smartPlace = useCallback(async () => {
+    if (!doc) return;
+    setSmartError(null);
+    setSmartBusy(true);
+    try {
+      const mask = subjectMask.peek() ?? (await subjectMask.request());
+      // Region footprint: ~22 % of the short edge in each dimension.
+      // That covers a generous corner / edge area — bigger than the
+      // typical text watermark, so the score reflects "is this side
+      // of the image clear?" rather than "is the exact pixel under
+      // the watermark clear?".
+      const short = Math.min(mask.width, mask.height);
+      const rw = Math.round(short * 0.22);
+      const rh = Math.round(short * 0.22);
+      const W = mask.width;
+      const H = mask.height;
+      const cx = (W - rw) / 2;
+      const regions = [
+        { x: 0, y: 0, w: rw, h: rh }, // 0 TL
+        { x: cx, y: 0, w: rw, h: rh }, // 1 TC
+        { x: W - rw, y: 0, w: rw, h: rh }, // 2 TR
+        { x: 0, y: H - rh, w: rw, h: rh }, // 3 BL
+        { x: cx, y: H - rh, w: rw, h: rh }, // 4 BC
+        { x: W - rw, y: H - rh, w: rw, h: rh }, // 5 BR
+      ];
+      let bestIndex = 5;
+      let bestScore = Infinity;
+      for (let i = 0; i < regions.length; i++) {
+        const region = regions[i];
+        if (!region) continue;
+        const score = regionCoverage(mask, region);
+        if (score < bestScore) {
+          bestScore = score;
+          bestIndex = i;
+        }
+      }
+      patchTool("watermarkPosition", bestIndex);
+    } catch (err) {
+      setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");
+    } finally {
+      setSmartBusy(false);
+    }
+  }, [doc, patchTool, subjectMask]);
 
   const applyText = useCallback(() => {
     const fc = getFabricCanvas();
@@ -201,6 +257,25 @@ export function WatermarkPanel() {
         </PropRow>
       )}
       <PropRow label="Position">
+        {/* Smart Place picks the corner with the least subject
+            overlap, so the watermark lands diagonally opposite the
+            face / centre of attention. The 6-tile manual grid below
+            stays for users who want a specific corner regardless. */}
+        <button
+          type="button"
+          onClick={() => void smartPlace()}
+          disabled={smartBusy}
+          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+          style={{ opacity: smartBusy ? 0.7 : 1 }}
+        >
+          <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+          {smartBusy ? "Finding empty corner…" : "Place away from subject"}
+        </button>
+        {smartError && (
+          <div className="mb-1.5 rounded-md border border-coral-300 bg-coral-50 px-2.5 py-1.5 text-[11px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
+            {smartError}
+          </div>
+        )}
         <div className="grid grid-cols-3 gap-1">
           {POSITIONS.map((p, i) => {
             const active = i === toolState.watermarkPosition;

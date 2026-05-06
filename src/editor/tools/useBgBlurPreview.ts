@@ -8,17 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
 import { type MaskScope } from "../subjectMask";
 import { bakeBgBlur, isBgBlurIdentity } from "./bgBlur";
-
-const PREVIEW_LONG_EDGE_MOBILE = 720;
-const PREVIEW_LONG_EDGE_DESKTOP = 1440;
-const MOBILE_BREAKPOINT_PX = 768;
-
-function previewLongEdge(): number {
-  if (typeof window === "undefined") return PREVIEW_LONG_EDGE_DESKTOP;
-  return window.innerWidth < MOBILE_BREAKPOINT_PX
-    ? PREVIEW_LONG_EDGE_MOBILE
-    : PREVIEW_LONG_EDGE_DESKTOP;
-}
+import { previewLongEdge } from "./previewSize";
 
 export function useBgBlurPreview(
   source: HTMLCanvasElement | null,
@@ -49,6 +39,19 @@ export function useBgBlurPreview(
       return;
     }
     if (isBgBlurIdentity(amount)) {
+      setPreview((prev) => {
+        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
+        return null;
+      });
+      return;
+    }
+    // Scope gating: see useAdjustPreview for the full reasoning —
+    // skip baking while the user has Subject / Background selected
+    // and the mask isn't ready, so the canvas shows the original
+    // until detection lands. Without this, picking "Subject" on a
+    // cold doc would briefly blur the whole image (the bake's
+    // mask=null fallback) and read as "subject blur is broken".
+    if (scope !== 0 && !mask) {
       setPreview((prev) => {
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;

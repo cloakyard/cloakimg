@@ -11,6 +11,7 @@ import {
   getMaskState,
   invalidateSubjectMask,
   type MaskState,
+  peekMaskDownsample,
   peekSubjectMask,
   subscribeMaskState,
 } from "./subjectMask";
@@ -23,6 +24,13 @@ export interface UseSubjectMask {
   /** Returns the cached cut canvas if it matches the current doc.
    *  Sync — does not trigger a load. */
   peek: () => HTMLCanvasElement | null;
+  /** Returns a cached downsampled copy of the mask at `longEdge` px
+   *  on the long side, falling back to the full-res cut when the
+   *  source is already small. Use this from preview hooks where the
+   *  baked surface is itself downsampled — pre-sizing the mask once
+   *  is much cheaper than asking the browser to scale the full-res
+   *  cut on every preview rAF. */
+  peekDownsample: (longEdge: number) => HTMLCanvasElement | null;
   /** Trigger detection if needed. Returns the cut canvas on success.
    *  Concurrent callers share the same in-flight promise. */
   request: () => Promise<HTMLCanvasElement>;
@@ -45,6 +53,14 @@ export function useSubjectMask(): UseSubjectMask {
     return peekSubjectMask(doc.working);
   }, [doc]);
 
+  const peekDownsample = useCallback(
+    (longEdge: number) => {
+      if (!doc) return null;
+      return peekMaskDownsample(doc.working, longEdge);
+    },
+    [doc],
+  );
+
   const request = useCallback(async (): Promise<HTMLCanvasElement> => {
     if (!doc) throw new Error("No document open");
     return ensureSubjectMask(doc.working, QUALITY_KEYS[bgQuality] ?? "small");
@@ -54,5 +70,8 @@ export function useSubjectMask(): UseSubjectMask {
     invalidateSubjectMask();
   }, []);
 
-  return useMemo(() => ({ state, peek, request, invalidate }), [invalidate, peek, request, state]);
+  return useMemo(
+    () => ({ state, peek, peekDownsample, request, invalidate }),
+    [invalidate, peek, peekDownsample, request, state],
+  );
 }

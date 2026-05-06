@@ -52,7 +52,11 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
     [I.FileImage, "Format", format],
     [I.Maximize, "Dimensions", `${doc.width} × ${doc.height} px`],
     [I.Ratio, "Aspect ratio", aspect],
-    [I.Sparkles, "Megapixels", `${((doc.width * doc.height) / 1_000_000).toFixed(2)} MP`],
+    // I.Aperture (photography aperture rings) reads as "image
+    // resolution / pixel count" without overloading the Sparkles
+    // glyph that the rest of the app reserves for on-device AI
+    // surfaces.
+    [I.Aperture, "Megapixels", `${((doc.width * doc.height) / 1_000_000).toFixed(2)} MP`],
   ];
   if (sourceBytes > 0) {
     rows.push([I.HardDrive, "Source size", formatBytes(sourceBytes)]);

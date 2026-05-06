@@ -51,9 +51,7 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
             key={tool.id}
             type="button"
             onClick={() => onSelect(tool.id)}
-            title={
-              tool.subjectAware ? `${tool.name} — supports subject / background scoping` : tool.name
-            }
+            title={tool.name}
             aria-label={tool.name}
             aria-pressed={active}
             className={`relative mx-auto my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-none p-0 ${
@@ -63,19 +61,6 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
             }`}
           >
             <Ic size={17} />
-            {tool.subjectAware && (
-              // Tiny sparkle in the upper-right corner, sized to read
-              // clearly without crowding the icon. The light backdrop
-              // disc keeps the badge legible against any tool icon
-              // underneath (some icons have lines that crossed the
-              // badge area at the previous size=8 with no backdrop).
-              <span
-                aria-hidden
-                className="absolute -top-px -right-px flex h-3.5 w-3.5 items-center justify-center rounded-full bg-coral-500 text-white shadow-[0_0_0_1.5px_var(--surface)] dark:bg-coral-400 dark:text-coral-950 dark:shadow-[0_0_0_1.5px_var(--dark-surface)]"
-              >
-                <I.Sparkles size={9} stroke={2.5} />
-              </span>
-            )}
             {active && (
               <span className="absolute top-[20%] -left-2 bottom-[20%] w-0.5 rounded-sm bg-coral-500" />
             )}
@@ -160,14 +145,6 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
               }`}
             >
               <Ic size={18} />
-              {tool.subjectAware && (
-                <span
-                  aria-hidden
-                  className="absolute top-1 right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-coral-500 text-white shadow-[0_0_0_1.5px_var(--surface)] dark:bg-coral-400 dark:text-coral-950 dark:shadow-[0_0_0_1.5px_var(--dark-surface)]"
-                >
-                  <I.Sparkles size={9} stroke={2.5} />
-                </span>
-              )}
               <span className="text-[10px] leading-tight font-semibold">{tool.name}</span>
             </button>
           );

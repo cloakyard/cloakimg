@@ -9,12 +9,14 @@ import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
+import { previewLongEdge } from "./previewSize";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function FilterTool() {
   const { toolState, doc } = useEditor();
   const subjectMask = useSubjectMask();
-  const mask = subjectMask.state.status === "ready" ? subjectMask.peek() : null;
+  const mask =
+    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
   const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
   // Memoise the composed slider vector against its true inputs.
   // applyPresetVector returns a fresh array via .slice(), so without

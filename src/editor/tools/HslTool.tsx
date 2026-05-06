@@ -8,12 +8,14 @@ import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { type HslParams } from "./hsl";
+import { previewLongEdge } from "./previewSize";
 import { useHslPreview } from "./useHslPreview";
 
 export function HslTool() {
   const { toolState, doc } = useEditor();
   const subjectMask = useSubjectMask();
-  const mask = subjectMask.state.status === "ready" ? subjectMask.peek() : null;
+  const mask =
+    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
   const scope = (toolState.hslScope as MaskScope) ?? 0;
   const params = useMemo<HslParams>(
     () => ({
