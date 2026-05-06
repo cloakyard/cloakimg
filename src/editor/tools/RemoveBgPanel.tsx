@@ -23,6 +23,7 @@ import { I } from "../../components/icons";
 import { PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { MaskConsentError } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { DetectionProgressCard } from "./DetectionStatus";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
@@ -151,6 +152,10 @@ export function RemoveBgPanel() {
       patchTool("bgPickActive", false);
       commit("Remove BG");
     } catch (err) {
+      // Consent flow surfaces via the host dialog, not as an error
+      // chip. Swallow MaskConsentError silently — the user already
+      // sees the modal asking permission.
+      if (err instanceof MaskConsentError) return;
       setBgError(err instanceof Error ? err.message : "Couldn't remove background");
     } finally {
       setApplying(false);

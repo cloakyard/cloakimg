@@ -19,7 +19,7 @@ import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
-import { getSubjectBBox } from "../subjectMask";
+import { getSubjectBBox, MaskConsentError } from "../subjectMask";
 import type { ToolState } from "../toolState";
 import { useSubjectMask } from "../useSubjectMask";
 import { ASPECT_OPTIONS, initialRect, type Rect } from "./cropMath";
@@ -455,6 +455,10 @@ export function CropPanel() {
       rectObj.setCoords();
       fc.requestRenderAll();
     } catch (err) {
+      // Consent dialog renders via the central host; this inline
+      // chip is reserved for real detection failures (network drop,
+      // worker crash, bad mask).
+      if (err instanceof MaskConsentError) return;
       setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");
     } finally {
       setSmartBusy(false);

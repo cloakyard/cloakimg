@@ -21,7 +21,7 @@ import { I } from "../../components/icons";
 import { PropRow, Segment, Slider } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { applyMaskScope, MaskConsentError, type MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { applyRedaction, type RedactStyle } from "./redact";
 
@@ -71,6 +71,10 @@ export function RedactPanel() {
         releaseCanvas(full);
         commit(scope === 1 ? "Anonymize subject" : "Anonymize scene");
       } catch (err) {
+        // Consent dialog handles the "user hasn't agreed yet" path —
+        // don't double up by showing a coral error chip below the
+        // smart buttons.
+        if (err instanceof MaskConsentError) return;
         setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");
       } finally {
         setSmartBusy(null);

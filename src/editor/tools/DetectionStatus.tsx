@@ -161,3 +161,33 @@ function formatMb(bytes: number): string {
   if (mb < 10) return `${mb.toFixed(1)} MB`;
   return `${Math.round(mb)} MB`;
 }
+
+interface PausedProps {
+  /** Tap handler — clears the deny latch and re-fires detection (which
+   *  re-opens the consent dialog via the central host). */
+  onResume: () => void;
+}
+
+/** Inline affordance shown when the user previously dismissed the
+ *  consent dialog. Without this, denying leaves the panel in a stuck
+ *  state — controls gated, no obvious way to opt back in. */
+export function DetectionPausedChip({ onResume }: PausedProps) {
+  return (
+    <div
+      role="status"
+      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px] dark:border-dark-border-soft dark:bg-dark-page-bg"
+    >
+      <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
+      <span className="min-w-0 flex-1 text-text-muted dark:text-dark-text-muted">
+        Detection paused.
+      </span>
+      <button
+        type="button"
+        onClick={onResume}
+        className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[11.5px] font-semibold text-coral-700 underline dark:text-coral-300"
+      >
+        Enable AI
+      </button>
+    </div>
+  );
+}

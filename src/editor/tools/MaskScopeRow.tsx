@@ -24,7 +24,12 @@ import { useCallback, useEffect } from "react";
 import { I } from "../../components/icons";
 import { PropRow, Segment } from "../atoms";
 import { useSubjectMask } from "../useSubjectMask";
-import { DetectionErrorCard, DetectionProgressCard, DetectionReadyChip } from "./DetectionStatus";
+import {
+  DetectionErrorCard,
+  DetectionPausedChip,
+  DetectionProgressCard,
+  DetectionReadyChip,
+} from "./DetectionStatus";
 
 const SCOPE_OPTIONS = ["Whole", "Subject", "Background"] as const;
 
@@ -36,20 +41,22 @@ interface Props {
 }
 
 export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
-  const { state, request } = useSubjectMask();
+  const { state, request, resumeAfterDeny } = useSubjectMask();
   const wantsMask = scope !== 0;
 
   // Auto-trigger detection the moment the user picks a scoped option
   // and the mask isn't ready. We don't trigger if status is already
   // "loading", "error" or "needs-consent" (avoid hammering retries;
   // the error card owns the retry button, the consent dialog owns the
-  // accept tap). Idle status is the "first time after pick" case —
-  // kick it off without making the user hunt for a button. The
-  // request may bounce off the consent gate (MaskConsentError) — the
-  // mask state then reads "needs-consent" and the host dialog
-  // surfaces; we treat that as a quiet path, not a thrown failure.
+  // accept tap), and we don't trigger when the user has explicitly
+  // denied — re-firing then would just re-pop the dialog, defeating
+  // the dismiss. The DetectionPausedChip surfaces the explicit
+  // re-opt-in path. The request itself may still bounce off the
+  // consent gate (MaskConsentError) — the host dialog renders via
+  // state, not via this throw.
   useEffect(() => {
     if (!wantsMask) return;
+    if (state.userDenied) return;
     if (
       state.status === "ready" ||
       state.status === "loading" ||
@@ -63,7 +70,7 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
       // dialog through state.status === "needs-consent"). Either way
       // the user is told via state, not an exception.
     });
-  }, [request, state.status, wantsMask]);
+  }, [request, state.status, state.userDenied, wantsMask]);
 
   const handleScope = useCallback(
     (i: number) => {
@@ -89,6 +96,10 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
       {wantsMask && state.status === "ready" && <DetectionReadyChip />}
 
       {wantsMask && state.status === "needs-consent" && <DetectionConsentChip />}
+
+      {wantsMask && state.status === "idle" && state.userDenied && (
+        <DetectionPausedChip onResume={() => void resumeAfterDeny()} />
+      )}
 
       {wantsMask && state.status === "error" && (
         <DetectionErrorCard msg={state.error} onRetry={handleRetry} />

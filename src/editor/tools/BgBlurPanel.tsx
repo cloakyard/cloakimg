@@ -29,7 +29,12 @@ import {
   LENS_KIND_LABELS,
   type LensKind,
 } from "./bgBlur";
-import { DetectionErrorCard, DetectionProgressCard, DetectionReadyChip } from "./DetectionStatus";
+import {
+  DetectionErrorCard,
+  DetectionPausedChip,
+  DetectionProgressCard,
+  DetectionReadyChip,
+} from "./DetectionStatus";
 import { ScopeGate } from "./ScopeGate";
 
 const TARGETS = ["Background only", "Whole image"] as const;
@@ -96,9 +101,13 @@ export function BgBlurPanel() {
   // own auto-trigger but happens at the panel level since the row UI
   // is now custom (Background-only / Whole-image, not Whole / Subject /
   // Background). State mid-flight: do nothing — the inline progress
-  // card below already reads "Detecting subject…".
+  // card below already reads "Detecting subject…". When the user has
+  // explicitly dismissed the consent dialog this session, we leave
+  // the panel paused and surface DetectionPausedChip instead — the
+  // alternative is an immediate re-pop loop the user can't escape.
   useEffect(() => {
     if (scope === 0) return;
+    if (subjectMask.state.userDenied) return;
     const status = subjectMask.state.status;
     if (status === "ready" || status === "loading" || status === "error") return;
     if (status === "needs-consent") return;
@@ -151,6 +160,9 @@ export function BgBlurPanel() {
       )}
       {scope !== 0 && subjectMask.state.status === "ready" && (
         <DetectionReadyChip message="Subject locked in — adjust the blur below." />
+      )}
+      {scope !== 0 && subjectMask.state.status === "idle" && subjectMask.state.userDenied && (
+        <DetectionPausedChip onResume={() => void subjectMask.resumeAfterDeny()} />
       )}
       {scope !== 0 && subjectMask.state.status === "error" && (
         <DetectionErrorCard msg={subjectMask.state.error} onRetry={handleRetry} />

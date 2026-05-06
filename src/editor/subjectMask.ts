@@ -49,6 +49,12 @@ export interface MaskState {
   /** When status === "needs-consent", which quality the user is being
    *  asked to download. Lets the dialog render the right MB / label. */
   pendingQuality: BgQuality | null;
+  /** True after the user has dismissed the consent dialog at least
+   *  once this session. Auto-triggers from panel/scope effects then
+   *  no-op so the dialog doesn't re-pop on every status change.
+   *  Cleared by an explicit user action (clearMaskDeny — wired to
+   *  the panels' "Detection paused — Enable" chip). */
+  userDenied: boolean;
 }
 
 interface CacheEntry {
@@ -86,6 +92,7 @@ let state: MaskState = {
   warm: false,
   modelCached: false,
   pendingQuality: null,
+  userDenied: false,
 };
 
 const listeners = new Set<(s: MaskState) => void>();
@@ -201,18 +208,31 @@ export async function probeModelCache(quality: BgQuality): Promise<boolean> {
  *  call to `ensureSubjectMask` proceeds straight to the lib. */
 export function grantMaskConsent() {
   consentGranted = true;
-  if (state.status === "needs-consent") {
-    setState({ status: "idle", pendingQuality: null });
+  if (state.status === "needs-consent" || state.userDenied) {
+    setState({ status: "idle", pendingQuality: null, userDenied: false });
   }
 }
 
-/** User dismissed the consent dialog. Clear the pending state so the
- *  panel UI returns to its idle shape — the user can pick a different
- *  scope or quality and the dialog will reappear. */
+/** User dismissed the consent dialog. Latch `userDenied` so panel
+ *  auto-trigger effects don't immediately re-pop the dialog the next
+ *  time their `state.version`-driven dep array fires. The flag stays
+ *  set until `clearMaskDeny()` is called from an explicit user action
+ *  (e.g. tapping a "Detection paused — Enable" chip). */
 export function denyMaskConsent() {
   if (state.status === "needs-consent") {
-    setState({ status: "idle", pendingQuality: null });
+    setState({ status: "idle", pendingQuality: null, userDenied: true });
+  } else if (!state.userDenied) {
+    setState({ userDenied: true });
   }
+}
+
+/** Reset the deny latch. Called from explicit user actions that
+ *  re-opt-into the AI flow ("Enable AI" chip, switching scope from
+ *  Whole to non-Whole after a deny, retrying Smart Crop / Smart
+ *  Anonymize / Watermark Smart Place). The next `ensureSubjectMask`
+ *  call after this re-pops the consent dialog. */
+export function clearMaskDeny() {
+  if (state.userDenied) setState({ userDenied: false });
 }
 
 /** True iff the user (or a prior session) has already authorised
@@ -243,6 +263,14 @@ export async function ensureSubjectMask(
   if (inflight) return inflight;
 
   if (!consentGranted) {
+    // If the user already denied this session, throw silently without
+    // re-flipping state — that prevents the auto-trigger loop where
+    // dismissing the dialog instantly re-pops it via the panels'
+    // useEffect deps. The state-version is unchanged, so subscribers
+    // don't re-run their effects from this branch.
+    if (state.userDenied) {
+      throw new MaskConsentError(quality);
+    }
     // Probe the on-disk cache one more time before blocking — a model
     // already downloaded in a prior session counts as implicit
     // consent. This is the *transparent* opt-in: we ask the user

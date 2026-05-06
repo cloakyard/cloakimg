@@ -10,7 +10,7 @@ import type { WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
 import { PropRow, Segment, Slider } from "../atoms";
 import { I } from "../../components/icons";
-import { regionCoverage } from "../subjectMask";
+import { MaskConsentError, regionCoverage } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 
 /** Fabric `cloakKind` tags. Used to find the singleton on re-apply
@@ -83,6 +83,9 @@ export function WatermarkPanel() {
       }
       patchTool("watermarkPosition", bestIndex);
     } catch (err) {
+      // Consent dialog renders via the central host; the inline
+      // smart-error chip below is for real detection failures only.
+      if (err instanceof MaskConsentError) return;
       setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");
     } finally {
       setSmartBusy(false);

@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useEditorReadOnly, useToolState } from "./EditorContext";
 import {
+  clearMaskDeny,
   denyMaskConsent,
   ensureSubjectMask,
   getMaskState,
@@ -48,8 +49,14 @@ export interface UseSubjectMask {
    *  and lets a follow-up `request()` proceed. */
   grantConsent: () => void;
   /** User dismissed the consent dialog. Returns to idle without
-   *  starting a download. */
+   *  starting a download, and latches `userDenied` so panel
+   *  auto-trigger effects don't immediately re-pop the dialog. */
   denyConsent: () => void;
+  /** Explicit user re-opt-in after a previous dismiss. Clears the
+   *  deny latch AND fires detection so the dialog reopens (or, for an
+   *  already-cached model, runs detection straight away). Wired to
+   *  the panels' "Detection paused — Enable" chip. */
+  resumeAfterDeny: () => Promise<void>;
   /** Drop the cached mask + reset state to idle. */
   invalidate: () => void;
 }
@@ -100,6 +107,19 @@ export function useSubjectMask(): UseSubjectMask {
     denyMaskConsent();
   }, []);
 
+  const resumeAfterDeny = useCallback(async (): Promise<void> => {
+    if (!doc) return;
+    clearMaskDeny();
+    try {
+      await ensureSubjectMask(doc.working, quality);
+    } catch {
+      // Either bounces to the consent dialog (state.status flips to
+      // needs-consent — the host renders it) or surfaces a real error
+      // (state.error → DetectionErrorCard). Either way the panel
+      // sees the result via subscription, not via this throw.
+    }
+  }, [doc, quality]);
+
   const invalidate = useCallback(() => {
     invalidateSubjectMask();
   }, []);
@@ -113,8 +133,19 @@ export function useSubjectMask(): UseSubjectMask {
       request,
       grantConsent,
       denyConsent,
+      resumeAfterDeny,
       invalidate,
     }),
-    [denyConsent, grantConsent, invalidate, peek, peekDownsample, quality, request, state],
+    [
+      denyConsent,
+      grantConsent,
+      invalidate,
+      peek,
+      peekDownsample,
+      quality,
+      request,
+      resumeAfterDeny,
+      state,
+    ],
   );
 }

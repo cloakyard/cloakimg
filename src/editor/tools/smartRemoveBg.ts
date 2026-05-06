@@ -208,6 +208,15 @@ export async function isModelCached(quality: BgQuality): Promise<boolean> {
   if (typeof caches === "undefined") return false;
   try {
     const modelId = qualityToModelId(quality);
+    // The model ids are nested substrings: `isnet` ⊂ `isnet_fp16` ⊂
+    // `isnet_quint8`. A naive `req.url.includes(modelId)` would
+    // return true for "large" (isnet) when only "small" (isnet_quint8)
+    // is cached — false-positive on the dialog's "Already downloaded"
+    // badge. Match on the file boundary instead: the lib publishes
+    // each weight as `…/<modelId>.onnx` (and a paired `.onnx.json`
+    // metadata file), so requiring `<modelId>.onnx` rules out the
+    // substring overlap.
+    const needle = `${modelId}.onnx`;
     const keys = await caches.keys();
     for (const key of keys) {
       // Filter to imgly-related caches so we don't iterate every
@@ -216,7 +225,7 @@ export async function isModelCached(quality: BgQuality): Promise<boolean> {
       const c = await caches.open(key);
       const entries = await c.keys();
       for (const req of entries) {
-        if (req.url.includes(modelId)) return true;
+        if (req.url.includes(needle)) return true;
       }
     }
   } catch {
