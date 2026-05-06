@@ -156,13 +156,76 @@ function gaussianSolve(A: number[][], n: number): number[] {
 /** Warp `src` so that `srcCorners` (TL, TR, BR, BL) ends up at the
  *  four corners of a rectangle of size (outW × outH). Bilinear
  *  sampling; out-of-bounds reads return transparent black so the
- *  output canvas is well-defined even for extreme quads. */
+ *  output canvas is well-defined even for extreme quads.
+ *
+ *  Synchronous variant — blocks the main thread for the duration of
+ *  the warp. For a 4K rectified output that's roughly 0.5–1 s on a
+ *  modern laptop, multiple seconds on a phone. Prefer
+ *  `warpPerspectiveAsync` from any UI path; this signature is kept
+ *  for callers that already run inside a worker or off-thread. */
 export function warpPerspective(
   src: HTMLCanvasElement,
   srcCorners: Quad,
   outW: number,
   outH: number,
 ): HTMLCanvasElement {
+  const { ctx, out, sd, sw, sh, outImg, od, H } = preparePerspectiveWarp(
+    src,
+    srcCorners,
+    outW,
+    outH,
+  );
+  if (!ctx) return out;
+  warpRows(0, outH, outW, outH, sd, sw, sh, od, H);
+  ctx.putImageData(outImg, 0, 0);
+  return out;
+}
+
+/** Async, chunked version of `warpPerspective`. Same per-pixel
+ *  pipeline, but yields to the event loop every `CHUNK_ROWS` so the
+ *  busy-spinner overlay keeps animating during a high-resolution
+ *  bake. The yield overhead is single-digit-percent on the total
+ *  warp time — same trade-off as `bakeAdjustAsync`. */
+export async function warpPerspectiveAsync(
+  src: HTMLCanvasElement,
+  srcCorners: Quad,
+  outW: number,
+  outH: number,
+): Promise<HTMLCanvasElement> {
+  const { ctx, out, sd, sw, sh, outImg, od, H } = preparePerspectiveWarp(
+    src,
+    srcCorners,
+    outW,
+    outH,
+  );
+  if (!ctx) return out;
+  const CHUNK_ROWS = 64;
+  for (let y = 0; y < outH; y += CHUNK_ROWS) {
+    const yEnd = Math.min(y + CHUNK_ROWS, outH);
+    warpRows(y, yEnd, outW, outH, sd, sw, sh, od, H);
+    if (yEnd < outH) await yieldToEventLoop();
+  }
+  ctx.putImageData(outImg, 0, 0);
+  return out;
+}
+
+interface WarpPrep {
+  ctx: CanvasRenderingContext2D | null;
+  out: HTMLCanvasElement;
+  sd: Uint8ClampedArray;
+  sw: number;
+  sh: number;
+  outImg: ImageData;
+  od: Uint8ClampedArray;
+  H: number[];
+}
+
+function preparePerspectiveWarp(
+  src: HTMLCanvasElement,
+  srcCorners: Quad,
+  outW: number,
+  outH: number,
+): WarpPrep {
   const dstCorners: Quad = [
     [0, 0],
     [outW, 0],
@@ -174,15 +237,44 @@ export function warpPerspective(
   const H = solveHomography(dstCorners, srcCorners);
   const out = createCanvas(outW, outH);
   const ctx = out.getContext("2d");
-  if (!ctx) return out;
   const srcCtx = src.getContext("2d");
-  if (!srcCtx) return out;
+  if (!ctx || !srcCtx) {
+    return {
+      ctx: null,
+      out,
+      sd: new Uint8ClampedArray(0),
+      sw: 0,
+      sh: 0,
+      outImg: new ImageData(1, 1),
+      od: new Uint8ClampedArray(0),
+      H,
+    };
+  }
   const srcImg = srcCtx.getImageData(0, 0, src.width, src.height);
-  const sd = srcImg.data;
-  const sw = src.width;
-  const sh = src.height;
   const outImg = ctx.createImageData(outW, outH);
-  const od = outImg.data;
+  return {
+    ctx,
+    out,
+    sd: srcImg.data,
+    sw: src.width,
+    sh: src.height,
+    outImg,
+    od: outImg.data,
+    H,
+  };
+}
+
+function warpRows(
+  yStart: number,
+  yEnd: number,
+  outW: number,
+  _outH: number,
+  sd: Uint8ClampedArray,
+  sw: number,
+  sh: number,
+  od: Uint8ClampedArray,
+  H: number[],
+) {
   const h11 = H[0] ?? 1;
   const h12 = H[1] ?? 0;
   const h13 = H[2] ?? 0;
@@ -191,14 +283,13 @@ export function warpPerspective(
   const h23 = H[5] ?? 0;
   const h31 = H[6] ?? 0;
   const h32 = H[7] ?? 0;
-  for (let y = 0; y < outH; y++) {
+  for (let y = yStart; y < yEnd; y++) {
     for (let x = 0; x < outW; x++) {
       const w = h31 * x + h32 * y + 1;
       if (Math.abs(w) < 1e-9) continue;
       const sx = (h11 * x + h12 * y + h13) / w;
       const sy = (h21 * x + h22 * y + h23) / w;
       const i = (y * outW + x) * 4;
-      // Bilinear sample. Edge pixels fall back to nearest-edge.
       const x0 = Math.floor(sx);
       const y0 = Math.floor(sy);
       if (x0 < 0 || y0 < 0 || x0 >= sw || y0 >= sh) {
@@ -229,6 +320,8 @@ export function warpPerspective(
       }
     }
   }
-  ctx.putImageData(outImg, 0, 0);
-  return out;
+}
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise<void>((r) => setTimeout(r, 0));
 }

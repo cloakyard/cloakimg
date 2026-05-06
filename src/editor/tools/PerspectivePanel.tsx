@@ -5,15 +5,15 @@
 
 import { useCallback } from "react";
 import { I } from "../../components/icons";
+import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { copyInto } from "../doc";
 import {
   defaultQuad,
   isPersIdentity,
   isQuadDegenerate,
-  recommendedOutputSize,
-  warpPerspective,
   type Quad,
+  recommendedOutputSize,
+  warpPerspectiveAsync,
 } from "./perspective";
 
 export function PerspectivePanel() {
@@ -35,12 +35,19 @@ export function PerspectivePanel() {
 
   const apply = useCallback(async () => {
     if (!doc || !corners || !dirty || degenerate) return;
-    await runBusy("Rectifying…", () => {
+    await runBusy("Rectifying…", async () => {
       const size = recommendedOutputSize(corners);
-      const out = warpPerspective(doc.working, corners, size.w, size.h);
+      // Async chunked warp keeps the busy-spinner animating during a
+      // multi-second bake at full resolution. The output canvas is a
+      // fresh allocation (perspective.ts uses createCanvas), but we
+      // still hand it back to the pool via releaseCanvas after
+      // copyInto so a second rectification can reuse the buffer
+      // instead of growing the heap.
+      const out = await warpPerspectiveAsync(doc.working, corners, size.w, size.h);
       copyInto(doc.working, out);
       doc.width = out.width;
       doc.height = out.height;
+      releaseCanvas(out);
       // Fabric layer positions don't translate cleanly through a
       // homography, and silently leaving them where they are creates
       // worse-feeling drift than just clearing them. Drop everything

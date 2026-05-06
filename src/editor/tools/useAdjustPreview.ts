@@ -61,8 +61,13 @@ export function useAdjustPreview(
   const debounceRef = useRef<number | null>(null);
 
   // Rebuild the downsample only when the source canvas itself changes.
+  // Return the previous downsample to the pool before replacing the ref —
+  // `makeDownsampled` returns the source itself when the image is
+  // already under the cap, so guard against releasing the live canvas.
   useEffect(() => {
     if (source !== sourceRef.current) {
+      const prev = downsampledRef.current;
+      if (prev && prev !== sourceRef.current) releaseCanvas(prev);
       sourceRef.current = source;
       downsampledRef.current = source ? makeDownsampled(source) : null;
     }
@@ -137,14 +142,20 @@ export function useAdjustPreview(
     };
   }, [debounceMs, grain, monochrome, sliders, source, curve]);
 
-  // Drop the last preview when the hook unmounts so a tool swap
-  // doesn't leak its final scratch canvas.
+  // Drop the last preview AND the cached downsample when the hook
+  // unmounts so a tool swap doesn't leak either. The downsample is
+  // ~3 MB for a 4K source — worth returning to the pool so the next
+  // tool's downsample can reuse the buffer.
   useEffect(() => {
     return () => {
       setPreview((prev) => {
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;
       });
+      const ds = downsampledRef.current;
+      if (ds && ds !== sourceRef.current) releaseCanvas(ds);
+      downsampledRef.current = null;
+      sourceRef.current = null;
     };
   }, []);
 

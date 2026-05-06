@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
-import { copyInto } from "../doc";
+import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
@@ -78,6 +78,10 @@ export function AdjustPanel() {
     // browser frames to paint the rotation.
     const out = await bakeAdjustAsync(doc.working, toolState.adjust, 0, toolState.curveRGB);
     copyInto(doc.working, out);
+    // bakeAdjustAsync acquires from the canvas pool; copyInto already
+    // duplicated the pixels into doc.working, so the bake canvas can
+    // go back for reuse instead of waiting on GC.
+    releaseCanvas(out);
     reset();
     commit("Adjust");
   }, [commit, doc, reset, toolState.adjust, toolState.curveRGB]);

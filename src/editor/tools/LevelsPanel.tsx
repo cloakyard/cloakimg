@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
-import { copyInto } from "../doc";
+import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { bakeLevels, isLevelsIdentity, LEVELS_DEFAULT, type LevelsParams } from "./levels";
 
@@ -43,6 +43,10 @@ export function LevelsPanel() {
     if (!doc || !dirty) return;
     const out = bakeLevels(doc.working, params);
     copyInto(doc.working, out);
+    // bakeLevels pulls from the canvas pool; once copyInto has
+    // mirrored the pixels we can hand the bake canvas back instead
+    // of waiting on GC.
+    releaseCanvas(out);
     reset();
     commit("Levels");
   }, [commit, dirty, doc, params, reset]);

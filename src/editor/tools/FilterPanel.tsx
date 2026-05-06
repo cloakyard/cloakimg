@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
-import { copyInto, createCanvas } from "../doc";
+import { copyInto, createCanvas, releaseCanvas } from "../doc";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 
@@ -65,6 +65,10 @@ export function FilterPanel() {
     let out = await bakeAdjustAsync(doc.working, final, toolState.grain);
     if (preset.monochrome) out = monochrome(out);
     copyInto(doc.working, out);
+    // bakeAdjustAsync acquires from the canvas pool; once copyInto has
+    // mirrored the pixels into doc.working we can hand the bake canvas
+    // back so the next preset apply reuses the same buffer.
+    releaseCanvas(out);
     patchTool("filterPreset", 0);
     patchTool("filterIntensity", 0.65);
     patchTool("grain", 0);

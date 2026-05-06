@@ -91,11 +91,18 @@ export function StickerTool() {
       commit("Add sticker");
     };
 
-    fc.on("mouse:down", (opt) => {
+    // Wrap the async onMouseDown in a named handler so the listener
+    // cleanup can match by reference. Calling `fc.off("mouse:down")`
+    // without a handler doesn't reliably remove the listener in
+    // Fabric 6 — leaks one handler per tool entry, which over a
+    // session means every prior sticker handler still fires on each
+    // canvas tap.
+    const handler = (opt: TPointerEventInfo) => {
       void onMouseDown(opt);
-    });
+    };
+    fc.on("mouse:down", handler);
     return () => {
-      fc.off("mouse:down");
+      fc.off("mouse:down", handler);
     };
   }, [commit, doc, getFabricCanvas, toolState.customStickerId, toolState.stickerKind]);
 

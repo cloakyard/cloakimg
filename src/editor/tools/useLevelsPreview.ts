@@ -30,6 +30,12 @@ export function useLevelsPreview(
 
   useEffect(() => {
     if (source !== sourceRef.current) {
+      // Return the previous downsample canvas to the pool before
+      // overwriting the ref. `makeDownsampled` returns the source
+      // itself when the image is already under the cap, so guard
+      // against releasing a canvas the editor still owns.
+      const prev = downsampledRef.current;
+      if (prev && prev !== sourceRef.current) releaseCanvas(prev);
       sourceRef.current = source;
       downsampledRef.current = source ? makeDownsampled(source) : null;
     }
@@ -76,6 +82,12 @@ export function useLevelsPreview(
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;
       });
+      // Release the downsample too — at unmount the source is
+      // staying around, but our scratch is no longer needed.
+      const ds = downsampledRef.current;
+      if (ds && ds !== sourceRef.current) releaseCanvas(ds);
+      downsampledRef.current = null;
+      sourceRef.current = null;
     };
   }, []);
 

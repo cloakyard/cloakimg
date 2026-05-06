@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
-import { copyInto } from "../doc";
+import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import {
   bakeHsl,
@@ -56,6 +56,9 @@ export function HslPanel() {
     if (!doc || !dirty) return;
     const out = bakeHsl(doc.working, params);
     copyInto(doc.working, out);
+    // bakeHsl pulls from the canvas pool; once copyInto has mirrored
+    // the pixels we can return the bake canvas for reuse.
+    releaseCanvas(out);
     reset();
     commit("Selective colour");
   }, [commit, dirty, doc, params, reset]);
