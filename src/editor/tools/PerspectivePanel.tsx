@@ -10,6 +10,7 @@ import { copyInto } from "../doc";
 import {
   defaultQuad,
   isPersIdentity,
+  isQuadDegenerate,
   recommendedOutputSize,
   warpPerspective,
   type Quad,
@@ -22,6 +23,10 @@ export function PerspectivePanel() {
   const docW = doc?.width ?? 0;
   const docH = doc?.height ?? 0;
   const dirty = !!doc && !isPersIdentity(corners, docW, docH);
+  // Quads collapsed onto a single point or a thin line make the
+  // homography solve return NaN — the bake would silently blank the
+  // canvas. Block Apply (and surface a hint) when that happens.
+  const degenerate = !!doc && !!corners && isQuadDegenerate(corners, docW, docH);
 
   const reset = useCallback(() => {
     if (!doc) return;
@@ -29,7 +34,7 @@ export function PerspectivePanel() {
   }, [doc, patchTool]);
 
   const apply = useCallback(async () => {
-    if (!doc || !corners || !dirty) return;
+    if (!doc || !corners || !dirty || degenerate) return;
     await runBusy("Rectifying…", () => {
       const size = recommendedOutputSize(corners);
       const out = warpPerspective(doc.working, corners, size.w, size.h);
@@ -49,7 +54,7 @@ export function PerspectivePanel() {
       patchTool("persCorners", defaultQuad(out.width, out.height));
       commit("Perspective");
     });
-  }, [commit, corners, dirty, doc, getFabricCanvas, patchTool, runBusy]);
+  }, [commit, corners, degenerate, dirty, doc, getFabricCanvas, patchTool, runBusy]);
 
   const recommended = corners ? recommendedOutputSize(corners) : null;
 
@@ -60,9 +65,18 @@ export function PerspectivePanel() {
         document, screen, or painting — then Apply to flatten it.
       </div>
 
-      {recommended && (
+      {recommended && !degenerate && (
         <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
           Output size: {recommended.w} × {recommended.h}
+        </div>
+      )}
+      {degenerate && (
+        <div
+          role="alert"
+          className="text-[11.5px] leading-relaxed text-coral-700 dark:text-coral-300"
+        >
+          The four corners are too close together to rectify. Spread them apart to mark the
+          subject's actual edges.
         </div>
       )}
 
@@ -80,7 +94,7 @@ export function PerspectivePanel() {
           type="button"
           className="btn btn-primary btn-xs flex-1 justify-center"
           onClick={() => void apply()}
-          disabled={!dirty}
+          disabled={!dirty || degenerate}
         >
           <I.Check size={12} />
           Apply

@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Segment, Slider } from "../atoms";
+import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
 import { ColorPicker } from "../ColorPicker";
 import { copyInto } from "../doc";
 import { useEditor } from "../EditorContext";
@@ -99,9 +99,25 @@ export function BorderPanel() {
       </PropRow>
 
       {toolState.borderMode === 0 ? (
-        <PropRow label="Thickness" value={`${toolState.borderThickness} px`}>
+        <PropRow
+          label="Thickness"
+          valueInput={
+            <NumericReadout
+              display={`${toolState.borderThickness}`}
+              normalized={maxSolid > 0 ? Math.min(1, toolState.borderThickness / maxSolid) : 0}
+              fromNormalized={(n) => Math.round(n * maxSolid)}
+              toNormalized={(real) => (maxSolid > 0 ? real / maxSolid : 0)}
+              onCommit={(n) =>
+                patchTool(
+                  "borderThickness",
+                  Math.max(0, Math.min(maxSolid, Math.round(n * maxSolid))),
+                )
+              }
+            />
+          }
+        >
           <Slider
-            value={Math.min(1, toolState.borderThickness / maxSolid)}
+            value={maxSolid > 0 ? Math.min(1, toolState.borderThickness / maxSolid) : 0}
             accent={toolState.borderThickness > 0}
             defaultValue={0}
             onChange={(v) => patchTool("borderThickness", Math.round(v * maxSolid))}

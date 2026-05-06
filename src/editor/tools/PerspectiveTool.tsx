@@ -20,20 +20,24 @@ export function PerspectiveTool() {
   const draggingRef = useRef<number | null>(null);
 
   // Seed the quad to the image corners the first time the tool opens
-  // on a fresh doc. Re-seeded whenever the working canvas dimensions
-  // change (open / undo / replaceWithFile / Crop).
-  const seedRef = useRef<HTMLCanvasElement | null>(null);
+  // on a fresh doc. Re-seeded when the working canvas dimensions
+  // change — Crop mutates `doc.working` *in place* (same canvas
+  // reference, new width/height), so identity-comparing the canvas
+  // alone misses the re-seed and leaves stale corners pointing
+  // outside the new image bounds.
+  const seedRef = useRef<{ canvas: HTMLCanvasElement; w: number; h: number } | null>(null);
   useEffect(() => {
     if (!doc) {
       seedRef.current = null;
       return;
     }
-    if (seedRef.current === doc.working) return;
-    seedRef.current = doc.working;
-    if (!toolState.persCorners) {
-      patchTool("persCorners", defaultQuad(doc.width, doc.height));
-    }
-  }, [doc, patchTool, toolState.persCorners]);
+    const seen = seedRef.current;
+    const sameSurface =
+      seen && seen.canvas === doc.working && seen.w === doc.width && seen.h === doc.height;
+    if (sameSurface && toolState.persCorners) return;
+    seedRef.current = { canvas: doc.working, w: doc.width, h: doc.height };
+    patchTool("persCorners", defaultQuad(doc.width, doc.height));
+  }, [doc, doc?.width, doc?.height, patchTool, toolState.persCorners]);
 
   const corners: Quad | null = toolState.persCorners as Quad | null;
   const cornersRef = useRef<Quad | null>(corners);

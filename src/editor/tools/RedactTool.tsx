@@ -95,7 +95,7 @@ export function RedactTool() {
           },
         );
       }
-      commit("Brush redact");
+      commit("Redact");
       return;
     }
     const start = startRef.current;

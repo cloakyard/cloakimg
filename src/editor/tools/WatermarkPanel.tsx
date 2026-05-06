@@ -232,6 +232,7 @@ export function WatermarkPanel() {
         <Slider
           value={Math.min(1, toolState.watermarkSize / 120)}
           accent
+          defaultValue={24 / 120}
           onChange={(v) => patchTool("watermarkSize", Math.max(8, v * 120))}
         />
       </PropRow>
@@ -239,6 +240,7 @@ export function WatermarkPanel() {
         <Slider
           value={toolState.watermarkOpacity}
           accent
+          defaultValue={0.55}
           onChange={(v) => patchTool("watermarkOpacity", v)}
         />
       </PropRow>

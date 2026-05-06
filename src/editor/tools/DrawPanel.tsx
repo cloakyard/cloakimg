@@ -28,6 +28,7 @@ export function DrawPanel() {
         <Slider
           value={Math.min(1, toolState.drawSize / 64)}
           accent
+          defaultValue={8 / 64}
           onChange={(v) => patchTool("drawSize", Math.max(1, v * 64))}
         />
       </PropRow>

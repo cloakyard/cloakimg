@@ -86,6 +86,7 @@ export function ShapesPanel() {
         <Slider
           value={Math.min(1, toolState.shapeStrokeWidth / 32)}
           accent
+          defaultValue={2 / 32}
           onChange={(v) => patchTool("shapeStrokeWidth", Math.max(0, v * 32))}
         />
       </PropRow>
@@ -93,6 +94,7 @@ export function ShapesPanel() {
         <Slider
           value={toolState.shapeOpacity}
           accent
+          defaultValue={1}
           onChange={(v) => patchTool("shapeOpacity", v)}
         />
       </PropRow>
@@ -111,6 +113,7 @@ export function ShapesPanel() {
           <Slider
             value={Math.min(1, toolState.shapeCornerRadius / 80)}
             accent
+            defaultValue={12 / 80}
             onChange={(v) => patchTool("shapeCornerRadius", Math.max(0, v * 80))}
           />
         </PropRow>
@@ -121,6 +124,7 @@ export function ShapesPanel() {
           <Slider
             value={(toolState.shapeSides - 3) / 9}
             accent
+            defaultValue={(6 - 3) / 9}
             onChange={(v) =>
               patchTool("shapeSides", Math.max(3, Math.min(12, Math.round(3 + v * 9))))
             }
@@ -133,6 +137,7 @@ export function ShapesPanel() {
           <Slider
             value={(toolState.shapeStarPoints - 4) / 8}
             accent
+            defaultValue={(5 - 4) / 8}
             onChange={(v) =>
               patchTool("shapeStarPoints", Math.max(4, Math.min(12, Math.round(4 + v * 8))))
             }

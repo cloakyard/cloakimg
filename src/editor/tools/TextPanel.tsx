@@ -178,6 +178,7 @@ export function TextPanel() {
         <Slider
           value={Math.min(1, (selected?.fontSize ?? toolState.textSize) / 256)}
           accent
+          defaultValue={64 / 256}
           onChange={(v) => {
             const next = Math.max(8, v * 256);
             if (selected) setOnSelected("fontSize", next);
@@ -223,6 +224,7 @@ export function TextPanel() {
         <Slider
           value={Math.min(1, ((selected?.charSpacing ?? toolState.textCharSpacing) + 200) / 1200)}
           accent={(selected?.charSpacing ?? toolState.textCharSpacing) !== 0}
+          defaultValue={200 / 1200}
           onChange={(v) => {
             const next = Math.round(v * 1200 - 200);
             if (selected) setOnSelected("charSpacing", next);
@@ -237,6 +239,7 @@ export function TextPanel() {
         <Slider
           value={((selected ? readCurveAmount(selected) : toolState.textCurve) + 1) / 2}
           accent={Math.abs(selected ? readCurveAmount(selected) : toolState.textCurve) > 0.02}
+          defaultValue={0.5}
           onChange={(v) => {
             const next = Math.round((v * 2 - 1) * 100) / 100;
             patchTool("textCurve", next);
@@ -251,6 +254,7 @@ export function TextPanel() {
         <Slider
           value={Math.min(1, (selected?.strokeWidth ?? toolState.textStrokeWidth) / 12)}
           accent={(selected?.strokeWidth ?? toolState.textStrokeWidth) > 0}
+          defaultValue={0}
           onChange={(v) => {
             const next = Math.round(v * 12 * 10) / 10;
             if (selected) setOnSelected("strokeWidth", next);

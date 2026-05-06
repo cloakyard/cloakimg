@@ -270,6 +270,7 @@ export function FramePanel() {
         <Slider
           value={maxFramePx > 0 ? Math.min(1, w / maxFramePx) : 0}
           accent={w > 0}
+          defaultValue={0}
           onChange={(v) => patchTool("frameWidth", Math.round(v * maxFramePx))}
         />
       </PropRow>

@@ -40,6 +40,32 @@ export function isPersIdentity(corners: Quad | null, w: number, h: number): bool
   return true;
 }
 
+/** Shoelace area of a quad. We use this to detect collapsed inputs
+ *  before running the warp — a near-zero area means the four corners
+ *  are colinear (or two share a position), in which case the
+ *  homography solve produces NaN / Inf and the bake silently
+ *  blanks the canvas. */
+export function quadArea(q: Quad): number {
+  let sum = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = q[i];
+    const b = q[(i + 1) % 4];
+    sum += (a?.[0] ?? 0) * (b?.[1] ?? 0) - (b?.[0] ?? 0) * (a?.[1] ?? 0);
+  }
+  return Math.abs(sum) / 2;
+}
+
+/** True when the user's quad is too thin / collapsed to warp safely.
+ *  Threshold is 0.05 % of the source image area — generous enough
+ *  that a deliberately tilted real subject still applies, strict
+ *  enough that an accidental triple-tap on a single point doesn't
+ *  blank the canvas. */
+export function isQuadDegenerate(corners: Quad, srcW: number, srcH: number): boolean {
+  const area = quadArea(corners);
+  const minArea = Math.max(64, srcW * srcH * 0.0005);
+  return area < minArea;
+}
+
 /** Recommended output dimensions for the rectified result. Width is
  *  the average of the top + bottom edge lengths; height is the
  *  average of the left + right edge lengths. Rounded to integers and

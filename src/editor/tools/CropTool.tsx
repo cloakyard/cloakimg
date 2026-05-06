@@ -458,7 +458,7 @@ export function CropPanel() {
       </PropRow>
       <CropDimensions />
       <PropRow label="Rotation" value={rotationLabel}>
-        <Slider value={rotationSlider} accent onChange={setRotation} />
+        <Slider value={rotationSlider} accent defaultValue={0.5} onChange={setRotation} />
       </PropRow>
       <PropRow label="Flip / rotate 90°">
         <div className="flex flex-wrap gap-1.5">
