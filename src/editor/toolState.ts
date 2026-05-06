@@ -215,6 +215,17 @@ export interface ToolState {
    *    2 = large  (~176 MB fp32 model, best quality, slow on phones) */
   bgQuality: number;
 
+  // Portrait blur — gaussian blur applied to one side of the subject
+  // mask. Defaults to "background" because that's the recognisable
+  // phone-portrait look; "subject" is provided for stylistic effects
+  // (anonymising a face while keeping the scene readable, etc.).
+  /** 0 = Whole, 1 = Subject (blur subject, keep bg sharp), 2 =
+   *  Background (blur bg, keep subject sharp). Default 2. */
+  bgBlurScope: number;
+  /** Blur strength 0..1; mapped to 0..40 px gaussian radius at the
+   *  bake. 0 means no blur. */
+  bgBlurAmount: number;
+
   // Levels — input black/white/midtone gamma + output black/white.
   levelsBlackIn: number; // 0..255
   levelsWhiteIn: number; // 0..255
@@ -347,6 +358,14 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   bgPickActive: false,
   bgMode: 0,
   bgQuality: 0,
+
+  // Default to Background scope so picking the tool gives the
+  // recognisable phone-portrait result without further ceremony.
+  // Default amount = 0.4 (16 px gaussian) — visible blur without
+  // looking artificial; the slider goes to 1.0 (40 px) for stylised
+  // looks.
+  bgBlurScope: 2,
+  bgBlurAmount: 0.4,
 
   levelsBlackIn: LEVELS_DEFAULT.blackIn,
   levelsWhiteIn: LEVELS_DEFAULT.whiteIn,

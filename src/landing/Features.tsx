@@ -29,10 +29,16 @@ const FEATURES: Feature[] = [
     description: "Every byte stays in your browser. Nothing is ever uploaded to any server.",
   },
   {
+    icon: <I.Sparkles size={20} />,
+    title: "On-device AI",
+    description:
+      "Subject detection, scoped tone edits, portrait blur, and one-click background removal — every model runs in your browser. No cloud calls, no telemetry.",
+  },
+  {
     icon: <I.WifiOff size={20} />,
     title: "Works offline",
     description:
-      "Once cached, keep editing and exporting without a connection — flights, trains, anywhere.",
+      "Once cached, keep editing and exporting without a connection — even AI tools work after the model has been downloaded once.",
   },
   {
     icon: <I.Rocket size={20} />,
@@ -47,7 +53,7 @@ const FEATURES: Feature[] = [
       "Every tool adapts fluidly across screen sizes — edit on the go, finalise at your desk.",
   },
   {
-    icon: <I.Sparkles size={20} />,
+    icon: <I.Layers size={20} />,
     title: "All-in-one canvas",
     description:
       "Crop, retouch, redact, adjust, filter, frame, shapes, text — one workspace for every photo chore.",

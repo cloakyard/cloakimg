@@ -18,9 +18,19 @@ export function PropertiesPanel({ collapsed = false }: Props) {
   const Ic = tool.icon;
 
   return (
+    // Sidebar widths (tablet vs desktop) were originally 240 / 280 px.
+    // Once subject-aware tools landed, several panels gained an extra
+    // "Apply to: Whole / Subject / Background" segmented row plus
+    // optional progress / status cards — at 240 px those Segments
+    // wrapped onto two lines and the panel started feeling cramped.
+    // Bumped to 288 / 328 px: still leaves >440 px of canvas at the
+    // narrowest tablet breakpoint (760 px viewport − 72 px tool rail),
+    // and gives every panel enough horizontal room to lay out cleanly
+    // including the new subject scope row, the byte-readout progress
+    // card, and the Selective-colour 8-band swatch grid.
     <div
       className={`editor-paper flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface dark:border-dark-border dark:bg-dark-surface ${
-        collapsed ? "w-60" : "w-70"
+        collapsed ? "w-72" : "w-82"
       }`}
     >
       <div className="flex shrink-0 items-center gap-2.5 border-b border-border-soft px-4 py-3.5 dark:border-dark-border-soft">

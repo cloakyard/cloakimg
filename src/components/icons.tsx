@@ -462,6 +462,15 @@ export const I = {
       <path d="m16.62 12-5.74 9.94" />
     </Icon>
   ),
+  /** Background-blur / portrait depth-of-field. Sharp inner circle for
+   *  the subject, dashed outer ring suggests the soft falloff of the
+   *  blurred surround. Reads cleanly even at the 17 px tool-rail size. */
+  Focus: (p: P) => (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="3.5" />
+      <circle cx="12" cy="12" r="9" strokeDasharray="2 2.5" />
+    </Icon>
+  ),
   Calendar: (p: P) => (
     <Icon {...p}>
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />

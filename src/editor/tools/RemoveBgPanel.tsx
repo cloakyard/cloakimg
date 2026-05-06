@@ -24,6 +24,7 @@ import { PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { useSubjectMask } from "../useSubjectMask";
+import { DetectionProgressCard } from "./DetectionStatus";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
 import type { SmartRemoveProgress } from "./smartRemoveBg";
 
@@ -257,9 +258,6 @@ function AutoPanel({
   warm,
   onApply,
 }: AutoProps) {
-  const isDownload = progress?.phase === "download";
-  const isInference = progress?.phase === "inference" || progress?.phase === "decode";
-  const downloadPct = isDownload ? Math.round((progress?.ratio ?? 0) * 100) : null;
   return (
     <>
       <PropRow label="Quality">
@@ -294,9 +292,7 @@ function AutoPanel({
         )}
       </button>
 
-      {busy && progress && (
-        <ProgressCard progress={progress} downloadPct={downloadPct} isInference={isInference} />
-      )}
+      {busy && <DetectionProgressCard progress={progress} warm={warm} fallbackLabel="Removing…" />}
 
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         {alreadyRemoved
@@ -309,80 +305,8 @@ function AutoPanel({
   );
 }
 
-// ── Progress card ──────────────────────────────────────────────────
-// Visible during the Auto run. Two modes:
-//   • Download — determinate bar, real-byte readout (e.g. "23 / 44 MB"),
-//     percentage on the right. This is the dominant phase on first
-//     run, so we make it as honest as possible.
-//   • Inference — indeterminate sliding-stripe animation. The lib
-//     doesn't surface inference progress, so we show motion instead
-//     of a fake percentage; the byte readout is hidden.
-
-interface ProgressCardProps {
-  progress: SmartRemoveProgress;
-  downloadPct: number | null;
-  isInference: boolean;
-}
-
-function ProgressCard({ progress, downloadPct, isInference }: ProgressCardProps) {
-  const widthPct = isInference ? 100 : Math.max(2, Math.round((progress.ratio ?? 0) * 100));
-  const bytes = progress.bytesDownloaded ?? 0;
-  const total = progress.bytesTotal ?? 0;
-  return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
-      <div className="flex items-center justify-between gap-2 text-[12px] font-medium text-text dark:text-dark-text">
-        <span>{progress.label}</span>
-        {downloadPct !== null && (
-          <span className="t-mono text-coral-700 dark:text-coral-300">{downloadPct}%</span>
-        )}
-      </div>
-      <div
-        className="relative h-2 w-full overflow-hidden rounded-full bg-surface dark:bg-dark-surface"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={isInference ? undefined : (downloadPct ?? 0)}
-        aria-label={progress.label}
-      >
-        <div
-          className={`h-full rounded-full bg-coral-500 ${
-            isInference ? "" : "transition-[width] duration-200"
-          }`}
-          style={{
-            width: `${widthPct}%`,
-            // Inference is indeterminate — fill the whole track and
-            // slide a brighter highlight across it so the user sees
-            // motion. Download phase gets a real width-driven bar
-            // (the % readout is the truth).
-            ...(isInference
-              ? {
-                  backgroundImage:
-                    "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)",
-                  backgroundSize: "40% 100%",
-                  backgroundRepeat: "no-repeat",
-                  animation: "ci-bg-shimmer 1.4s linear infinite",
-                }
-              : {}),
-          }}
-        />
-      </div>
-      {total > 0 && !isInference && (
-        <div className="flex items-center justify-between text-[10.5px] text-text-muted dark:text-dark-text-muted">
-          <span className="t-mono">
-            {formatMb(bytes)} / {formatMb(total)}
-          </span>
-          <span>One-time · cached after</span>
-        </div>
-      )}
-      {isInference && (
-        <div className="text-[10.5px] text-text-muted dark:text-dark-text-muted">
-          Running on this device. The image never leaves your browser.
-        </div>
-      )}
-    </div>
-  );
-}
-
+// 13 px circular spinner used inline in the Apply button label. Sits
+// next to 12.5 px button text so the size pairing reads correctly.
 function InlineSpinner() {
   return (
     <svg
@@ -414,12 +338,6 @@ function InlineSpinner() {
   );
 }
 
-function formatMb(bytes: number): string {
-  const mb = bytes / (1024 * 1024);
-  if (mb < 10) return `${mb.toFixed(1)} MB`;
-  return `${Math.round(mb)} MB`;
-}
-
 // ── Capability hints ───────────────────────────────────────────────
 // Two-column "Works well / Less reliable" so users have realistic
 // expectations before they hit Remove. Visible by default in Auto
@@ -428,16 +346,16 @@ function formatMb(bytes: number): string {
 
 function CapabilityHints() {
   return (
-    <div className="rounded-lg border border-border-soft bg-page-bg px-2.5 py-2 dark:border-dark-border-soft dark:bg-dark-page-bg">
-      <div className="mb-1.5 flex items-center gap-1 text-[10px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
-        <I.Info size={11} /> What it detects
+    <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+        <I.Info size={12} /> What it detects
       </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] leading-snug">
-        <div className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
-          <I.Check size={11} stroke={2.5} /> Works well
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11.5px] leading-snug">
+        <div className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
+          <I.Check size={13} stroke={2.5} /> Works well
         </div>
-        <div className="flex items-center gap-1 font-semibold text-coral-700 dark:text-coral-300">
-          <I.X size={11} stroke={2.5} /> Less reliable
+        <div className="flex items-center gap-1.5 font-semibold text-coral-700 dark:text-coral-300">
+          <I.X size={13} stroke={2.5} /> Less reliable
         </div>
         <ul className="list-none space-y-0.5 text-text-muted dark:text-dark-text-muted">
           <li>People, portraits</li>

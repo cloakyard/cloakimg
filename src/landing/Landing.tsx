@@ -55,8 +55,9 @@ export function Landing({ onStart, onIntent }: Props) {
           <h1 className="t-hero mx-auto mb-4.5 max-w-205">
             A minimal photo editor that <em>respects your photos.</em>
           </h1>
-          <p className="t-subtitle mx-auto mb-7 max-w-145 dark:text-dark-text-muted">
-            Crop, retouch, redact, convert and export — all in one canvas. Files never leave your
+          <p className="t-subtitle mx-auto mb-7 max-w-150 dark:text-dark-text-muted">
+            Crop, retouch, redact, convert, export — plus subject-aware adjustments and AI
+            background removal that <em>run entirely on your device</em>. Files never leave your
             browser.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -73,15 +74,19 @@ export function Landing({ onStart, onIntent }: Props) {
               <I.ArrowRight size={16} /> Open editor
             </button>
           </div>
-          <div className="mt-5.5 flex flex-wrap justify-center gap-x-4.5 gap-y-2 text-[12.5px] text-text-muted dark:text-dark-text-muted">
+          <div className="mt-5.5 flex flex-wrap justify-center gap-x-4.5 gap-y-2 text-[12.5px] font-medium text-text-muted dark:text-dark-text-muted">
             <span className="flex items-center gap-1.5">
-              <I.Lock size={12} /> 100% on-device
+              <I.Lock size={13} /> 100% on-device
             </span>
             <span className="flex items-center gap-1.5">
-              <I.Refresh size={12} /> Works offline
+              <I.Sparkles size={13} className="text-coral-500 dark:text-coral-400" /> Local AI
+              models
             </span>
             <span className="flex items-center gap-1.5">
-              <I.Check size={12} /> No sign-in
+              <I.Refresh size={13} /> Works offline
+            </span>
+            <span className="flex items-center gap-1.5">
+              <I.Check size={13} /> No sign-in
             </span>
           </div>
         </section>

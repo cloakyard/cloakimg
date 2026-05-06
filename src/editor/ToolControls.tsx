@@ -4,6 +4,7 @@
 
 import { useEditor } from "./EditorContext";
 import { AdjustPanel } from "./tools/AdjustPanel";
+import { BgBlurPanel } from "./tools/BgBlurPanel";
 import { BorderPanel } from "./tools/BorderPanel";
 import { CropPanel } from "./tools/CropTool";
 import { DefaultPanel } from "./tools/DefaultPanel";
@@ -69,6 +70,8 @@ export function ToolControls() {
       return <ColorPickerPanel />;
     case "spot":
       return <SpotHealPanel />;
+    case "bgblur":
+      return <BgBlurPanel />;
     case "bgrm":
       return <RemoveBgPanel />;
     default:

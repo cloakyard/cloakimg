@@ -277,7 +277,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <div
       className={`editor-paper scroll-thin flex shrink-0 flex-col overflow-y-auto border-l border-border bg-surface dark:border-dark-border dark:bg-dark-surface ${
-        collapsed ? "w-65" : "w-75"
+        collapsed ? "w-72" : "w-82"
       }`}
     >
       <div className="border-b border-border-soft px-4 py-3.5 dark:border-dark-border-soft">

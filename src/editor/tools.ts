@@ -15,6 +15,7 @@ export type ToolId =
   | "redact"
   | "spot"
   | "bgrm"
+  | "bgblur"
   | "draw"
   | "pen"
   | "text"
@@ -79,9 +80,11 @@ export const ALL_TOOLS: Tool[] = [
   { id: "image", name: "Place image", icon: I.FileImage, group: "mark" },
   { id: "mark", name: "Watermark", icon: I.Stamp, group: "mark" },
 
-  // Retouch — fix imperfections. Remove BG runs the same model the
-  // tone group's subject scopes use, so it shares the badge.
+  // Retouch — fix imperfections. Remove BG and Background blur both
+  // share the central subject-mask service, so they get the badge.
+  // Order: Spot heal first (cheap, no model), then the AI duo.
   { id: "spot", name: "Spot heal", icon: I.Eraser, group: "retouch" },
+  { id: "bgblur", name: "Portrait blur", icon: I.Focus, group: "retouch", subjectAware: true },
   { id: "bgrm", name: "Remove BG", icon: I.Layers, group: "retouch", subjectAware: true },
 
   // Sampling — read pixel values.

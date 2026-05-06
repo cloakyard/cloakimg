@@ -35,7 +35,7 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
             Privacy Policy
           </h2>
           <p className="mt-0.5 text-[12.5px] text-text-muted dark:text-dark-text-muted">
-            Last updated: April 30, 2026
+            Last updated: May 6, 2026
           </p>
         </div>
         <ModalCloseButton onClose={onClose} label="Close privacy policy" />
@@ -53,6 +53,35 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
           export, every operation — is performed locally in your browser. Your photos are{" "}
           <strong className="text-text dark:text-dark-text">never uploaded</strong> to any server.
           No image content, metadata, or document data is transmitted over the network.
+        </Section>
+
+        <Section title="On-Device AI &mdash; Your Images Never See the Cloud">
+          <p>
+            Some tools (background removal, subject-aware Adjust / Filters / Levels / Selective
+            colour, portrait blur) use a neural network to detect the subject in your photo. Those
+            models run{" "}
+            <strong className="text-text dark:text-dark-text">
+              entirely inside your browser, on your device
+            </strong>{" "}
+            &mdash; via WebAssembly + the ONNX Runtime web build. We do not send your image to a
+            cloud inference API or to anyone else&rsquo;s server.
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 marker:text-text-muted/60">
+            <li>
+              The model files (~44&ndash;176&nbsp;MB depending on the quality you pick) are
+              downloaded once on first use and then cached by the Service Worker for offline reuse.
+              You can verify in your browser&rsquo;s DevTools Network panel that no image bytes are
+              ever uploaded.
+            </li>
+            <li>
+              The model itself ships as static weights. Inference is deterministic and read-only
+              &mdash; nothing about your photo is sent back to us, the model author, or anyone else.
+            </li>
+            <li>
+              If you stay offline after the first download, every AI feature continues to work
+              without network access.
+            </li>
+          </ul>
         </Section>
 
         <Section title="No Personal Data Collected">

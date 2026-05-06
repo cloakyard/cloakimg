@@ -8,6 +8,7 @@
 import { useEditor } from "./EditorContext";
 import { useStageProps } from "./StageHost";
 import { AdjustTool } from "./tools/AdjustTool";
+import { BgBlurTool } from "./tools/BgBlurTool";
 import { BorderTool } from "./tools/BorderTool";
 import { ColorPickerTool } from "./tools/ColorPickerTool";
 import { CropTool } from "./tools/CropTool";
@@ -53,6 +54,8 @@ export function ToolStage() {
       return <ColorPickerTool />;
     case "spot":
       return <SpotHealTool />;
+    case "bgblur":
+      return <BgBlurTool />;
     case "shapes":
       return <ShapesTool />;
     case "pen":
