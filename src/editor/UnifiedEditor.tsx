@@ -5,6 +5,7 @@
 // context so individual tools can focus on their own concerns.
 
 import { useCallback, useEffect, useState } from "react";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { Grainient } from "../components/Grainient";
 import { I } from "../components/icons";
 import { GRAINIENT_DARK, GRAINIENT_LIGHT, GRAINIENT_MOTION } from "../constants/grainient";
@@ -13,14 +14,12 @@ import { usePrefersDark } from "../utils/usePrefersDark";
 import { Spinner } from "./atoms";
 import { BatchCanvas, BatchPanel } from "./BatchView";
 import { EditorProvider, useEditor } from "./EditorContext";
-import { EditorErrorBoundary } from "./EditorErrorBoundary";
 // Side-effect import: mutates Fabric's static ownDefaults to apply the
 // coral brand colour to every selectable object's border / handles /
 // IText cursor. Must be imported before any Fabric Canvas is created.
 import "./fabricDefaults";
 import { ExportModal, type ExportSettings } from "./ExportModal";
 import { FilePropertiesModal } from "./FilePropertiesModal";
-import { AiErrorBoundary } from "./ai/ui/AiErrorBoundary";
 import { MaskConsentHost } from "./ai/ui/MaskConsentHost";
 import { MobileSheet } from "./MobileSheet";
 import { PropertiesPanel } from "./PropertiesPanel";
@@ -36,23 +35,30 @@ interface Props {
 }
 
 export function UnifiedEditor({ initialDoc, onExit }: Props) {
-  // EditorErrorBoundary sits *above* EditorProvider so a render failure
-  // inside the editor subtree (a fabric internal, an AI worker
-  // callback that arrives mid-render, the rare consent-flow race that
-  // the user reported on first model download) recovers in place
-  // rather than tripping the global ErrorBoundary's "Go to home"
-  // route. The boundary's onExit prop calls the same callback the
-  // TopBar uses, so the user lands on the landing page if they
-  // explicitly choose to bail — but they're never bounced there
-  // automatically by an editor crash.
+  // The card-variant ErrorBoundary sits *above* EditorProvider so a
+  // render failure inside the editor subtree (a fabric internal, an
+  // AI worker callback that arrives mid-render, the rare consent-flow
+  // race that the user reported on first model download) recovers in
+  // place rather than tripping the app-level modal boundary's "Go to
+  // home" route. Default primary action is "Try again" (key-bump
+  // remount); the secondary "Back to start" calls onExit so the user
+  // chooses landing only if they explicitly want to bail.
   return (
-    <EditorErrorBoundary onExit={onExit}>
+    <ErrorBoundary
+      variant="card"
+      subsystem="panel"
+      secondaryAction={{
+        label: "Back to start",
+        onClick: onExit,
+        icon: <I.ArrowRight size={14} style={{ transform: "scaleX(-1)" }} />,
+      }}
+    >
       <EditorProvider initialDoc={initialDoc} onExit={onExit}>
         <StageProvider>
           <EditorShell />
         </StageProvider>
       </EditorProvider>
-    </EditorErrorBoundary>
+    </ErrorBoundary>
   );
 }
 
@@ -246,9 +252,13 @@ function EditorShell() {
         <FilePropertiesModal layout={layout} onClose={() => setFilePropsOpen(false)} />
       )}
 
-      <AiErrorBoundary>
+      {/* Silent boundary — a render failure in the AI consent subtree
+          (model download race, worker crash, etc.) blanks just this
+          host. The next user-driven AI interaction remounts it with
+          fresh state. Editor remains fully usable around it. */}
+      <ErrorBoundary variant="silent" subsystem="consent">
         <MaskConsentHost />
-      </AiErrorBoundary>
+      </ErrorBoundary>
     </main>
   );
 }
