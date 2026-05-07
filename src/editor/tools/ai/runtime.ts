@@ -26,6 +26,11 @@ interface PendingCall {
   resolve: (r: AiResultResponse) => void;
   reject: (err: unknown) => void;
   onProgress?: (p: AiProgress) => void;
+  /** Cleanup hook — removes the abort listener attached to this
+   *  call's signal (if any). Called from every settle path so a
+   *  long-lived signal that supervises many calls doesn't accumulate
+   *  listeners. */
+  cleanup: () => void;
 }
 
 const pending = new Map<string, PendingCall>();
@@ -49,6 +54,7 @@ function getWorker(): Worker {
       return;
     }
     pending.delete(msg.id);
+    call.cleanup();
     if (msg.type === "result") {
       call.resolve(msg);
       return;
@@ -60,60 +66,95 @@ function getWorker(): Worker {
     // Reject every in-flight call and drop the singleton so the next
     // attempt spins a fresh worker.
     const message = e.message || "AI worker crashed";
-    for (const call of pending.values()) call.reject(new Error(message));
-    pending.clear();
+    rejectAllPending(new Error(message));
     terminate();
   };
   return worker;
 }
 
-/** Tear down the worker and reject all in-flight calls. Used by abort
- *  paths and by the worker-level error handler. */
+/** Tear down the worker. Caller is responsible for handling pending
+ *  rejections — `rejectAllPending` exists for that, called from the
+ *  abort and worker-error paths. */
 function terminate() {
   if (!worker) return;
   worker.terminate();
   worker = null;
 }
 
+/** Reject every in-flight call with the given error and clear the
+ *  table. Used when the worker dies (terminate from abort, onerror)
+ *  so concurrent callers don't hang on the dead worker. */
+function rejectAllPending(err: unknown) {
+  for (const call of pending.values()) {
+    call.cleanup();
+    call.reject(err);
+  }
+  pending.clear();
+}
+
 interface DispatchOptions {
   signal?: AbortSignal;
   onProgress?: PendingCall["onProgress"];
+  /** Transferables to hand off to the worker (zero-copy). Defaults
+   *  to whatever transferable fields the caller knows about — e.g.
+   *  segment requests pass [bitmap]. */
+  transfer?: Transferable[];
 }
 
 /** Dispatch a single AI request. Resolves with the raw result message
- *  from the worker (PNG bytes + dims + device); rejects with
- *  `AiAbortError` on abort, or a generic Error on inference failure. */
+ *  from the worker (bitmap + dims + device); rejects with
+ *  `AiAbortError` on abort, or a generic Error on inference failure.
+ *
+ *  Aborting one call terminates the worker, which by extension rejects
+ *  every other call in flight (worker is dead — no honest way to keep
+ *  serving them). The next call re-spawns. */
 export function runAi(
   req: Omit<AiRequest, "id">,
   opts: DispatchOptions = {},
 ): Promise<AiResultResponse> {
-  const { signal, onProgress } = opts;
+  const { signal, onProgress, transfer } = opts;
   if (signal?.aborted) return Promise.reject(new AiAbortError());
 
   const id = `req-${++nextId}`;
   const w = getWorker();
 
   return new Promise<AiResultResponse>((resolve, reject) => {
-    const call: PendingCall = { resolve, reject, onProgress };
+    let onAbort: (() => void) | null = null;
+
+    const cleanup = () => {
+      if (onAbort && signal) {
+        signal.removeEventListener("abort", onAbort);
+        onAbort = null;
+      }
+    };
+
+    const call: PendingCall = { resolve, reject, onProgress, cleanup };
     pending.set(id, call);
 
-    const onAbort = () => {
+    onAbort = () => {
+      // Pull this id out *before* terminating, so the rejectAll loop
+      // below doesn't double-reject this call (we want our own
+      // AiAbortError, not a generic "worker terminated").
       pending.delete(id);
+      cleanup();
       // Terminating is the only honest way to stop a running ONNX
-      // inference — the runtime has no graceful interrupt. The next
-      // dispatch will spin a fresh worker; pipeline weights stay in
-      // CacheStorage so the warm-up is just an import + tiny config
-      // fetch, not a re-download.
+      // inference — the runtime has no graceful interrupt. Any other
+      // calls in flight die with the worker; we reject them so they
+      // don't hang. The next dispatch re-spawns; pipeline weights
+      // stay in CacheStorage so warm-up is fast.
+      const orphaned = Array.from(pending.values());
+      pending.clear();
       terminate();
       reject(new AiAbortError());
+      for (const other of orphaned) {
+        other.cleanup();
+        other.reject(new AiAbortError());
+      }
     };
     if (signal) signal.addEventListener("abort", onAbort, { once: true });
 
-    // Transfer the source blob's underlying buffer if the caller
-    // already owns an ArrayBuffer; for now blobs go by value (cheap
-    // structured-clone of a refcounted blob, not the bytes).
-    const message: AiRequest = { ...req, id };
-    w.postMessage(message);
+    const message: AiRequest = { ...req, id } as AiRequest;
+    w.postMessage(message, transfer ?? []);
   });
 }
 
@@ -121,8 +162,6 @@ export function runAi(
  *  not needed in normal operation since browsers reclaim the worker
  *  on tab close. */
 export function shutdownAiWorker() {
-  // Reject any pending calls so callers don't hang.
-  for (const call of pending.values()) call.reject(new AiAbortError());
-  pending.clear();
+  rejectAllPending(new AiAbortError());
   terminate();
 }

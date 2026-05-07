@@ -41,9 +41,12 @@ export interface AiSegmentRequest {
    *  in parallel) don't cross wires. */
   id: string;
   kind: "segment";
-  /** Source image as a PNG blob. Smaller wire format than ImageData;
-   *  the worker decodes via createImageBitmap which is off-thread. */
-  blob: Blob;
+  /** Source pixels as a transferable ImageBitmap. Cheaper than a PNG
+   *  blob in both directions: main builds it from the canvas in ~5ms
+   *  (no encode), the worker paints it to OffscreenCanvas + reads
+   *  pixels in ~20ms (no decode). The bitmap is transferred — caller
+   *  loses access to it after postMessage. */
+  bitmap: ImageBitmap;
   /** HF repo id for the segmentation model. Allows the facade to pin
    *  a specific model + revision rather than hard-coding it inside
    *  the worker. */
@@ -72,11 +75,15 @@ export interface AiProgressResponse {
 export interface AiResultResponse {
   id: string;
   type: "result";
-  /** Alpha-keyed PNG bytes. Transferable so the postMessage hop is
-   *  zero-copy on browsers that honour it. */
-  pngBytes: ArrayBuffer;
-  /** Output dimensions — saves the main thread from decoding the PNG
-   *  just to size the destination canvas. */
+  /** Alpha-keyed result as a transferable ImageBitmap. Skips a full
+   *  PNG round-trip (encode in worker, decode on main) — the worker
+   *  paints into an OffscreenCanvas and `transferToImageBitmap()`s
+   *  the result, so the main thread only has to drawImage it. */
+  bitmap: ImageBitmap;
+  /** Output dimensions duplicated here so the main thread can size
+   *  the destination canvas without touching the bitmap (and so the
+   *  receiver doesn't have to re-read width/height after the
+   *  detached-on-transfer dance). */
   width: number;
   height: number;
   /** Backend the inference actually ran on. Surfaced in mask state
