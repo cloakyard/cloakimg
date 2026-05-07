@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
 import { type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { bakeBgBlur, isBgBlurIdentity, type LensKind } from "./bgBlur";
+import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";
 import { previewLongEdge } from "./previewSize";
 
 export function useBgBlurPreview(
@@ -25,11 +26,14 @@ export function useBgBlurPreview(
    *  downsample picks up the new pixels even when source identity
    *  is unchanged. See useAdjustPreview for the full rationale. */
   invalidationKey: unknown = null,
-): HTMLCanvasElement | null {
+): PreviewResult {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const versionRef = useRef<unknown>(null);
-  const [preview, setPreview] = useState<HTMLCanvasElement | null>(null);
+  // See useAdjustPreview for why the preview is wrapped with a
+  // monotonic version — pool reuse means the canvas-element identity
+  // can repeat across consecutive bakes.
+  const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -46,17 +50,11 @@ export function useBgBlurPreview(
 
   useEffect(() => {
     if (!source) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       return;
     }
     if (isBgBlurIdentity(amount)) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       return;
     }
     // Scope gating: see useAdjustPreview for the full reasoning —
@@ -66,10 +64,7 @@ export function useBgBlurPreview(
     // cold doc would briefly blur the whole image (the bake's
     // mask=null fallback) and read as "subject blur is broken".
     if (scope !== 0 && !maskReady) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       return;
     }
     if (!downsampledRef.current) downsampledRef.current = makeDownsampled(source);
@@ -92,16 +87,15 @@ export function useBgBlurPreview(
         baked = bakeBgBlur(ds, liveMask, scope, { amount, lens, progressive });
       } catch (err) {
         console.error("[useBgBlurPreview] bake failed", err);
-        setPreview((prev) => {
-          if (prev && prev !== ds) releaseCanvas(prev);
-          return null;
-        });
+        setPreview((prev) => clearPreview(prev, ds));
         return;
       }
       const result = baked;
       setPreview((prev) => {
-        if (prev && prev !== ds) releaseCanvas(prev);
-        return result;
+        if (prev.canvas && prev.canvas !== ds && prev.canvas !== result) {
+          releaseCanvas(prev.canvas);
+        }
+        return { canvas: result, version: prev.version + 1 };
       });
     });
     return () => {
@@ -114,10 +108,7 @@ export function useBgBlurPreview(
 
   useEffect(() => {
     return () => {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       const ds = downsampledRef.current;
       if (ds && ds !== sourceRef.current) releaseCanvas(ds);
       downsampledRef.current = null;
@@ -126,6 +117,13 @@ export function useBgBlurPreview(
   }, []);
 
   return preview;
+}
+
+/** See useAdjustPreview for the rationale. */
+function clearPreview(prev: PreviewResult, ds: HTMLCanvasElement | null): PreviewResult {
+  if (prev.canvas === null) return prev;
+  if (prev.canvas !== ds) releaseCanvas(prev.canvas);
+  return { canvas: null, version: prev.version + 1 };
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {

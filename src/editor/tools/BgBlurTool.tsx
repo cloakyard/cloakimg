@@ -34,6 +34,6 @@ export function BgBlurTool() {
     maskReady,
     historyVersion,
   );
-  useStageProps({ previewCanvas: preview });
+  useStageProps({ previewCanvas: preview.canvas, previewVersion: preview.version });
   return null;
 }

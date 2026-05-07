@@ -33,6 +33,15 @@ import type {
 // explicit.
 env.allowLocalModels = false;
 env.useBrowserCache = true;
+// Quiet the ORT WASM session-init warnings about node assignments
+// (`VerifyEachNodeIsAssignedToAnEp`). They're informational — ORT
+// reports which graph nodes fell back from WebGPU to CPU — but
+// Chrome elevates the level so they look like real errors in the
+// console. logLevel=3 is "error and above" in ORT, which suppresses
+// the warning chatter without hiding genuine failures.
+type WasmEnv = { logLevel?: number | string };
+const wasmEnv = (env.backends?.onnx as { wasm?: WasmEnv } | undefined)?.wasm;
+if (wasmEnv) wasmEnv.logLevel = 3;
 
 type SegmenterFn = (input: RawImage | Blob | string) => Promise<RawImage[]>;
 

@@ -66,6 +66,14 @@ interface Props {
   /** Optional non-destructive preview source. When provided, the canvas
    *  draws this instead of `doc.working`. */
   previewCanvas?: HTMLCanvasElement | null;
+  /** Bumps on every successful preview bake. The bake's output canvas
+   *  comes from a small LIFO pool, so consecutive bakes can hand back
+   *  the same element with different pixels — without a version, our
+   *  `previewCanvas`-keyed effect would shallow-bail and Fabric would
+   *  keep showing the cached rasterisation of the previous frame.
+   *  This counter forces the effect to refire even when the canvas
+   *  reference aliases the previous one. */
+  previewVersion?: number;
   /** Set to true while a tool wants Fabric to handle pointer events
    *  natively (selection / IText editing / free transform). Flips
    *  Fabric's `selection` flag on and lets the host div forward
@@ -104,6 +112,7 @@ export function ImageCanvas({
   hideHints,
   cssFilter,
   previewCanvas,
+  previewVersion,
   fabricInteractive,
 }: Props) {
   const {
@@ -556,7 +565,15 @@ export function ImageCanvas({
     const ctx = fc.lowerCanvasEl.getContext("2d");
     if (ctx) ctx.imageSmoothingQuality = "high";
     fc.requestRenderAll();
-  }, [doc, compareActive, previewCanvas, baseCanvas]);
+    // `previewVersion` is read here purely so the linter sees it as
+    // used — its real job is to force this effect to re-fire when
+    // the preview hook bumps it. Pool reuse can hand the same canvas
+    // reference back to two consecutive bakes; without the version
+    // dep, this effect would shallow-bail and Fabric would paint the
+    // cached rasterisation of the *previous* bake's pixels, which
+    // read as "preview frozen after a few changes".
+    void previewVersion;
+  }, [doc, compareActive, previewCanvas, previewVersion, baseCanvas]);
 
   // Drop the cached bg when this ImageCanvas mount is torn down
   // (StageHost remount on layout changes, doc replace, etc.). The next

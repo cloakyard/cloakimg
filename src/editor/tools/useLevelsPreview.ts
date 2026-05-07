@@ -6,37 +6,28 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { bakeLevels, isLevelsIdentity, type LevelsParams } from "./levels";
+import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";
 import { previewLongEdge } from "./previewSize";
 
 export function useLevelsPreview(
   source: HTMLCanvasElement | null,
   params: LevelsParams,
-  scope: MaskScope = 0,
-  /** True iff the central subject-mask service has a detected cut.
-   *  The bake reads the canvas directly inside its rAF — see
-   *  useAdjustPreview for the full rationale. */
-  maskReady: boolean = false,
   /** Bumps on undo / redo / reset / replaceWithFile so the cached
    *  downsample picks up the new pixels even when source identity
    *  is unchanged. See useAdjustPreview for the full rationale. */
   invalidationKey: unknown = null,
-): HTMLCanvasElement | null {
+): PreviewResult {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const versionRef = useRef<unknown>(null);
-  const [preview, setPreview] = useState<HTMLCanvasElement | null>(null);
+  const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const sourceChanged = source !== sourceRef.current;
     const versionChanged = invalidationKey !== versionRef.current;
     if (sourceChanged || versionChanged) {
-      // Return the previous downsample canvas to the pool before
-      // overwriting the ref. `makeDownsampled` returns the source
-      // itself when the image is already under the cap, so guard
-      // against releasing a canvas the editor still owns.
       const prev = downsampledRef.current;
       if (prev && prev !== sourceRef.current) releaseCanvas(prev);
       sourceRef.current = source;
@@ -47,28 +38,11 @@ export function useLevelsPreview(
 
   useEffect(() => {
     if (!source) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       return;
     }
     if (isLevelsIdentity(params)) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
-      return;
-    }
-    // Scope gating: see useAdjustPreview for the full reasoning —
-    // skip baking while the user has Subject / Background selected
-    // and the mask isn't ready, so the canvas shows the original
-    // until detection lands.
-    if (scope !== 0 && !maskReady) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       return;
     }
     if (!downsampledRef.current) downsampledRef.current = makeDownsampled(source);
@@ -77,39 +51,21 @@ export function useLevelsPreview(
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
-      // Bake guard: see useAdjustPreview for the rationale. Mobile
-      // devices can throw on OOM or getContext failure mid-bake; we
-      // release any intermediate canvas and clear the preview so the
-      // canvas falls back to doc.working instead of leaking.
       let baked: HTMLCanvasElement | null = null;
       try {
         baked = bakeLevels(ds, params);
-        if (scope !== 0) {
-          // Read the freshest mask directly from the service —
-          // bypasses any stale React-tree references. See
-          // useAdjustPreview for the full rationale.
-          const liveMask = peekMaskDownsample(source, previewLongEdge());
-          if (liveMask) {
-            const scoped = applyMaskScope(ds, baked, liveMask, scope);
-            if (scoped !== baked) {
-              releaseCanvas(baked);
-              baked = scoped;
-            }
-          }
-        }
       } catch (err) {
         console.error("[useLevelsPreview] bake failed", err);
         if (baked && baked !== ds) releaseCanvas(baked);
-        setPreview((prev) => {
-          if (prev && prev !== ds) releaseCanvas(prev);
-          return null;
-        });
+        setPreview((prev) => clearPreview(prev, ds));
         return;
       }
       const result = baked;
       setPreview((prev) => {
-        if (prev && prev !== ds) releaseCanvas(prev);
-        return result;
+        if (prev.canvas && prev.canvas !== ds && prev.canvas !== result) {
+          releaseCanvas(prev.canvas);
+        }
+        return { canvas: result, version: prev.version + 1 };
       });
     });
     return () => {
@@ -118,16 +74,11 @@ export function useLevelsPreview(
         rafRef.current = null;
       }
     };
-  }, [params, source, scope, maskReady]);
+  }, [params, source]);
 
   useEffect(() => {
     return () => {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
-      // Release the downsample too — at unmount the source is
-      // staying around, but our scratch is no longer needed.
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       const ds = downsampledRef.current;
       if (ds && ds !== sourceRef.current) releaseCanvas(ds);
       downsampledRef.current = null;
@@ -136,6 +87,13 @@ export function useLevelsPreview(
   }, []);
 
   return preview;
+}
+
+/** See useAdjustPreview for the rationale. */
+function clearPreview(prev: PreviewResult, ds: HTMLCanvasElement | null): PreviewResult {
+  if (prev.canvas === null) return prev;
+  if (prev.canvas !== ds) releaseCanvas(prev.canvas);
+  return { canvas: null, version: prev.version + 1 };
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {

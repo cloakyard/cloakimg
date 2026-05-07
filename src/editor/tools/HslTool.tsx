@@ -5,19 +5,11 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
-import type { MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
 import type { HslParams } from "./hsl";
 import { useHslPreview } from "./useHslPreview";
 
 export function HslTool() {
   const { toolState, doc, historyVersion } = useEditor();
-  const subjectMask = useSubjectMask();
-  // Readiness flag only — see useAdjustPreview for why the bake now
-  // reads the mask directly from the service inside its rAF rather
-  // than threading the canvas through React.
-  const maskReady = subjectMask.state.status === "ready";
-  const scope = (toolState.hslScope as MaskScope) ?? 0;
   const params = useMemo<HslParams>(
     () => ({
       hue: toolState.hslHue,
@@ -30,7 +22,7 @@ export function HslTool() {
   // downsample after every commit / undo / redo / reset (the doc
   // ref alone misses intra-tool commits because commit() doesn't
   // setDoc).
-  const preview = useHslPreview(doc?.working ?? null, params, scope, maskReady, historyVersion);
-  useStageProps({ previewCanvas: preview });
+  const preview = useHslPreview(doc?.working ?? null, params, historyVersion);
+  useStageProps({ previewCanvas: preview.canvas, previewVersion: preview.version });
   return null;
 }

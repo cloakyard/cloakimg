@@ -6,18 +6,11 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
-import type { MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function FilterTool() {
   const { toolState, doc, historyVersion } = useEditor();
-  const subjectMask = useSubjectMask();
-  // Pass a readiness flag rather than the mask canvas. The bake
-  // peeks the cached downsample inside its rAF — see useAdjustPreview
-  // for why we no longer thread the canvas through React.
-  const maskReady = subjectMask.state.status === "ready";
   const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
   // Memoise the composed slider vector against its true inputs.
   // applyPresetVector returns a fresh array via .slice(), so without
@@ -29,7 +22,6 @@ export function FilterTool() {
     () => applyPresetVector(adjust, filterPreset, filterIntensity),
     [adjust, filterPreset, filterIntensity],
   );
-  const scope = (toolState.filterScope as MaskScope) ?? 0;
   // No timer-based debounce. The previous build added an 80 ms
   // trailing window so a tap-tap-tap of presets coalesced into a
   // single bake — but the trailing semantics meant *no preview*
@@ -52,11 +44,9 @@ export function FilterTool() {
     preset?.monochrome ?? false,
     0,
     undefined,
-    scope,
-    maskReady,
     historyVersion,
   );
-  useStageProps({ previewCanvas: preview });
+  useStageProps({ previewCanvas: preview.canvas, previewVersion: preview.version });
   return null;
 }
 

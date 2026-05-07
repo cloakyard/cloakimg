@@ -40,6 +40,14 @@ export interface StageProps {
   hideHints?: boolean;
   cssFilter?: string;
   previewCanvas?: HTMLCanvasElement | null;
+  /** Monotonic counter the preview hooks bump on every successful
+   *  bake. Forces ImageCanvas's bg-image effect to re-fire even when
+   *  `previewCanvas` happens to alias the previous one — the canvas
+   *  pool's LIFO can hand back the same element across consecutive
+   *  bakes, and Fabric's bg-cache won't notice that the *pixels*
+   *  changed unless something tells it to. Comparing the version
+   *  forces the effect to fire and call `bg.dirty = true` again. */
+  previewVersion?: number;
   fabricInteractive?: boolean;
 }
 
@@ -97,6 +105,7 @@ function shallowEqualStageProps(a: StageProps, b: StageProps): boolean {
     a.hideHints === b.hideHints &&
     a.cssFilter === b.cssFilter &&
     a.previewCanvas === b.previewCanvas &&
+    a.previewVersion === b.previewVersion &&
     a.fabricInteractive === b.fabricInteractive
   );
 }

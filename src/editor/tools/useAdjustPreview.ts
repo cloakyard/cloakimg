@@ -21,9 +21,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { type CurvePoint, isCurveIdentity } from "../toolState";
 import { bakeAdjust, isIdentity } from "./adjustments";
+import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";
 import { previewLongEdge } from "./previewSize";
 
 export function useAdjustPreview(
@@ -44,22 +44,6 @@ export function useAdjustPreview(
    *  skipped at bake time. Filter / preview consumers without a
    *  user-facing curve simply leave this undefined. */
   curve?: CurvePoint[],
-  /** Mask-aware scope for the bake: 0 (whole), 1 (subject), 2 (bg).
-   *  When scope is non-zero AND the subject-mask service reports
-   *  `ready`, the bake reads the cached downsample directly from
-   *  the service inside its rAF (`peekMaskDownsample` is sync, O(1),
-   *  always returns the freshest cached canvas). When scope is
-   *  non-zero but the mask isn't ready, we suppress the preview so
-   *  the canvas keeps showing `doc.working`. */
-  scope: MaskScope = 0,
-  /** True iff the central subject-mask service has a detected cut
-   *  for the current source. Replaces the old `mask` canvas prop —
-   *  passing the canvas through React was causing the bake to chase
-   *  a stale reference after a few rapid re-renders, which read as
-   *  "previews stop working after 1–2 changes". The hook now reads
-   *  the canvas directly from the service the moment it bakes, so
-   *  any reference drift in the React tree is irrelevant. */
-  maskReady: boolean = false,
   /** Bumps whenever doc.working pixels may have changed without
    *  changing canvas identity (undo, redo, reset, replaceWithFile,
    *  another tool baked into history). The caller passes the doc
@@ -68,11 +52,15 @@ export function useAdjustPreview(
    *  Without this, the cached downsample holds the pre-mutation
    *  pixels and the preview ghost-survives the undo. */
   invalidationKey: unknown = null,
-): HTMLCanvasElement | null {
+): PreviewResult {
   const downsampledRef = useRef<HTMLCanvasElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const versionRef = useRef<unknown>(null);
-  const [preview, setPreview] = useState<HTMLCanvasElement | null>(null);
+  // Wrap the preview canvas + a monotonic version number. Each
+  // successful bake bumps the version, so consumers (StageHost +
+  // ImageCanvas) detect the change even when the canvas-pool LIFO
+  // hands back the same element across consecutive bakes.
+  const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
   const rafRef = useRef<number | null>(null);
   const debounceRef = useRef<number | null>(null);
 
@@ -99,31 +87,12 @@ export function useAdjustPreview(
   // don't allocate per change.
   useEffect(() => {
     if (!source) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       return;
     }
     const curveActive = !!curve && !isCurveIdentity(curve);
     if (isIdentity(sliders) && grain === 0 && !monochrome && !curveActive) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
-      return;
-    }
-    // Scope gating: when the user has picked Subject / Background
-    // but the mask isn't ready, suppress the preview entirely so the
-    // canvas keeps showing `doc.working`. Without this we'd bake a
-    // misleading whole-image preview during detection — exactly the
-    // "controls drift while AI is loading" UX the gating was added
-    // to prevent.
-    if (scope !== 0 && !maskReady) {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       return;
     }
     if (!downsampledRef.current) {
@@ -145,43 +114,19 @@ export function useAdjustPreview(
     const runBake = () => {
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
-        // Defend against bake / compositing throws (OOM, getContext
-        // failures on memory-pressured mobile). Without this guard a
-        // single failing frame leaks the intermediate `baked` canvas
-        // *and* leaves the previous preview painted, so the user sees
-        // stale pixels until they touch a slider again.
+        // Defend against bake throws (OOM, getContext failures on
+        // memory-pressured mobile). Without this guard a single failing
+        // frame leaks the intermediate `baked` canvas *and* leaves the
+        // previous preview painted, so the user sees stale pixels until
+        // they touch a slider again.
         let baked: HTMLCanvasElement | null = null;
         try {
           baked = bakeAdjust(ds, sliders, grain, curve);
           if (monochrome) toMonochrome(baked);
-          if (scope !== 0 && source) {
-            // Read the freshest mask from the service at the moment
-            // we bake — bypasses any stale React-tree references.
-            // peekMaskDownsample is O(1) (cache lookup + dim check),
-            // so the per-rAF cost is negligible. If the cache was
-            // invalidated between effect run and this rAF (e.g. an
-            // undo bumped historyVersion mid-flight), null is fine —
-            // we fall through to the whole-image bake rather than
-            // leaving the canvas frozen. The `maskReady` gate above
-            // already filtered out the "user is waiting on detection"
-            // case, so this branch only runs when status was ready
-            // a moment ago.
-            const liveMask = peekMaskDownsample(source, previewLongEdge());
-            if (liveMask) {
-              const scoped = applyMaskScope(ds, baked, liveMask, scope);
-              if (scoped !== baked) {
-                releaseCanvas(baked);
-                baked = scoped;
-              }
-            }
-          }
         } catch (err) {
           console.error("[useAdjustPreview] bake failed", err);
           if (baked && baked !== ds) releaseCanvas(baked);
-          setPreview((prev) => {
-            if (prev && prev !== ds) releaseCanvas(prev);
-            return null;
-          });
+          setPreview((prev) => clearPreview(prev, ds));
           return;
         }
         const result = baked;
@@ -189,8 +134,10 @@ export function useAdjustPreview(
           // Don't release the downsampled cache by accident — it
           // lives across renders and bakeAdjust may return it
           // directly when the source is already small.
-          if (prev && prev !== ds) releaseCanvas(prev);
-          return result;
+          if (prev.canvas && prev.canvas !== ds && prev.canvas !== result) {
+            releaseCanvas(prev.canvas);
+          }
+          return { canvas: result, version: prev.version + 1 };
         });
       });
     };
@@ -212,7 +159,7 @@ export function useAdjustPreview(
         rafRef.current = null;
       }
     };
-  }, [debounceMs, grain, monochrome, sliders, source, curve, scope, maskReady]);
+  }, [debounceMs, grain, monochrome, sliders, source, curve]);
 
   // Drop the last preview AND the cached downsample when the hook
   // unmounts so a tool swap doesn't leak either. The downsample is
@@ -220,10 +167,7 @@ export function useAdjustPreview(
   // tool's downsample can reuse the buffer.
   useEffect(() => {
     return () => {
-      setPreview((prev) => {
-        if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
-        return null;
-      });
+      setPreview((prev) => clearPreview(prev, downsampledRef.current));
       const ds = downsampledRef.current;
       if (ds && ds !== sourceRef.current) releaseCanvas(ds);
       downsampledRef.current = null;
@@ -232,6 +176,18 @@ export function useAdjustPreview(
   }, []);
 
   return preview;
+}
+
+/** Settle the preview into the empty state, releasing the prior
+ *  canvas if it isn't the live downsample (which the hook owns
+ *  separately and can't return to the pool here). Bumps the version
+ *  *only* when the canvas actually transitions to null — repeatedly
+ *  setting null on an already-null state would otherwise spam
+ *  Fabric with no-op setElement calls. */
+function clearPreview(prev: PreviewResult, ds: HTMLCanvasElement | null): PreviewResult {
+  if (prev.canvas === null) return prev;
+  if (prev.canvas !== ds) releaseCanvas(prev.canvas);
+  return { canvas: null, version: prev.version + 1 };
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {

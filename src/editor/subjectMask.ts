@@ -228,13 +228,15 @@ export function invalidateSubjectMask() {
     cache = null;
   }
   if (inflight) {
-    // Now that we own the AI worker, an invalidate (doc swap, reset)
-    // can actually terminate the inference rather than letting bytes
-    // continue churning in the background — saves battery and avoids
-    // a late "ready" tick from the superseded detection. The
-    // generation bump still guards against any in-flight result that
-    // races the abort handler.
-    inflightAbort?.abort();
+    // Bump generation so any landing result is discarded as
+    // superseded. We DO NOT abort the inflight signal here —
+    // aborting cascades through the runtime to a `worker.terminate()`,
+    // which kills the warm pipeline cache and forces transformers.js
+    // to reload the ONNX model on the next detection (~100–300 ms +
+    // the visible ORT warning logs). The inflight detection's
+    // bytes were already paid for; let it finish in the background
+    // and toss the result. User-initiated cancellation routes
+    // through `cancelMaskDetection` and DOES terminate.
     inflightGeneration += 1;
     inflight = null;
     inflightSource = null;
