@@ -27,6 +27,13 @@ interface ProgressProps {
   /** Override the leading title in the card. Defaults to the lib's
    *  own progress label, falling back to "Detecting subject…". */
   fallbackLabel?: string;
+  /** Expected total download bytes for the chosen quality tier.
+   *  Used as a fallback for the bytes readout when the actual
+   *  `progress.bytesTotal` hasn't arrived yet — without this the
+   *  dialog spends its first 1–3 seconds (worker spawn + model
+   *  fetch handshake) showing only "Preparing…" and a tiny stub bar,
+   *  which reads as "nothing is happening". */
+  expectedTotal?: number;
   /** When provided, renders a Cancel affordance that calls this on
    *  tap. Now that the AI worker can be terminated mid-inference, an
    *  honest cancel exists — passing `onCancel` opts the panel into
@@ -46,14 +53,36 @@ interface ProgressProps {
  *  Labels read generically — "Detecting subject…" — so the same card
  *  is honest whether triggered by Adjust scope, Portrait blur, Smart
  *  Crop, or Remove BG itself. */
-export function DetectionProgressCard({ progress, warm, fallbackLabel, onCancel }: ProgressProps) {
+export function DetectionProgressCard({
+  progress,
+  warm,
+  fallbackLabel,
+  expectedTotal,
+  onCancel,
+}: ProgressProps) {
   const isDownload = progress?.phase === "download";
   const isInference = progress?.phase === "inference" || progress?.phase === "decode";
-  const downloadPct = isDownload ? Math.round((progress?.ratio ?? 0) * 100) : null;
-  const widthPct = isInference ? 100 : Math.max(2, Math.round((progress?.ratio ?? 0) * 100));
+  // "Indeterminate" means we know we're working but have no bytes
+  // yet — worker is spawning, transformers.js is initialising, or
+  // the model fetch hasn't returned its first chunk. Show the same
+  // sliding-stripe animation as inference so the dialog never sits
+  // looking dead.
+  const isIndeterminate = isDownload && !((progress?.bytesTotal ?? 0) > 0);
+  const animateStripe = isInference || isIndeterminate;
+  const downloadPct =
+    isDownload && !isIndeterminate ? Math.round((progress?.ratio ?? 0) * 100) : null;
+  const widthPct = animateStripe ? 100 : Math.max(2, Math.round((progress?.ratio ?? 0) * 100));
   const bytes = progress?.bytesDownloaded ?? 0;
-  const total = progress?.bytesTotal ?? 0;
-  const label = progress?.label ?? fallbackLabel ?? "Detecting subject…";
+  // Prefer the live `bytesTotal` once the lib reports it, otherwise
+  // fall back to the caller's pre-flight estimate so the user sees
+  // "0.0 MB / 88 MB" right away instead of a blank line.
+  const total =
+    progress?.bytesTotal && progress.bytesTotal > 0 ? progress.bytesTotal : (expectedTotal ?? 0);
+  // The lib emits "Preparing model…" before any bytes arrive — that
+  // copy reads as static. Swap to "Connecting…" while indeterminate
+  // so the user sees motion-language matching the animated stripe.
+  const rawLabel = progress?.label ?? fallbackLabel ?? "Detecting subject…";
+  const label = isIndeterminate && rawLabel === "Preparing model…" ? "Connecting…" : rawLabel;
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
       <div className="flex items-center justify-between gap-2 text-[12px] font-medium text-text dark:text-dark-text">
@@ -72,16 +101,16 @@ export function DetectionProgressCard({ progress, warm, fallbackLabel, onCancel 
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={isInference ? undefined : (downloadPct ?? 0)}
+        aria-valuenow={animateStripe ? undefined : (downloadPct ?? 0)}
         aria-label={label}
       >
         <div
           className={`h-full rounded-full bg-coral-500 ${
-            isInference ? "" : "transition-[width] duration-200"
+            animateStripe ? "" : "transition-[width] duration-200"
           }`}
           style={{
             width: `${widthPct}%`,
-            ...(isInference
+            ...(animateStripe
               ? {
                   backgroundImage:
                     "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)",
@@ -104,6 +133,15 @@ export function DetectionProgressCard({ progress, warm, fallbackLabel, onCancel 
       {(warm || isInference) && (
         <div className="text-[10.75px] text-text-muted dark:text-dark-text-muted">
           Running on this device. The image never leaves your browser.
+        </div>
+      )}
+      {/* Reassurance line when we're indeterminate AND don't already
+          have a privacy / bytes line — without it the dialog had a
+          single muted bar and nothing else, which is what the user
+          flagged as "nothing happens". */}
+      {isIndeterminate && !warm && total === 0 && (
+        <div className="text-[10.75px] text-text-muted dark:text-dark-text-muted">
+          Spinning up the on-device model. This is a one-time download — cached for next time.
         </div>
       )}
       {onCancel && (

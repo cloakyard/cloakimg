@@ -62,10 +62,14 @@ function getWorker(): Worker {
     call.reject(new Error(msg.message));
   };
   worker.onerror = (e) => {
-    // Worker-level error (e.g. failed to load transformers.js).
-    // Reject every in-flight call and drop the singleton so the next
-    // attempt spins a fresh worker.
-    const message = e.message || "AI worker crashed";
+    // Worker-level error (e.g. failed to load transformers.js, ORT
+    // WASM fetch blocked, etc.). Reject every in-flight call and
+    // drop the singleton so the next attempt spins a fresh worker.
+    // Logging the raw event surfaces filename + line so the cause
+    // is visible in the console — `e.message` alone is often empty
+    // for module-load errors.
+    console.error("[CloakIMG] AI worker error:", e.message, e.filename, e.lineno, e);
+    const message = e.message || "AI worker crashed (see browser console for details)";
     rejectAllPending(new Error(message));
     terminate();
   };

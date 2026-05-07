@@ -6,6 +6,9 @@
 //   • "needs-consent" → MaskConsentDialog (tier picker).
 //   • after grant, while "loading" → MaskDownloadDialog (live
 //     bytes-downloaded readout + inference shimmer).
+//   • after grant, when "error" → MaskDownloadDialog stays visible
+//     with the error pinned + a Try again affordance, so the user
+//     never sees the dialog vanish silently on a worker crash.
 //   • everything else → nothing (the panel that triggered the
 //     detection owns the inline progress card / ready chip / error).
 //
@@ -22,11 +25,11 @@
 // the panel's own inline progress card handles the UI — we don't
 // want a full-screen modal popping for every scope toggle.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorReadOnly } from "../EditorContext";
 import { cancelMaskDetection, ensureSubjectMask, grantMaskConsent } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
-import type { BgQuality } from "./ai/segment";
+import { type BgQuality, QUALITY_BYTE_ESTIMATES } from "./ai/segment";
 import { MaskConsentDialog } from "./MaskConsentDialog";
 import { MaskDownloadDialog } from "./MaskDownloadDialog";
 
@@ -34,10 +37,19 @@ export function MaskConsentHost() {
   const subjectMask = useSubjectMask();
   const { doc } = useEditorReadOnly();
   // True from the moment the user accepts in the consent dialog
-  // until detection settles (ready / error / idle). While set, we
-  // keep a download-progress modal visible so they don't stare at a
-  // blank screen wondering whether their tap registered.
+  // until detection settles to "ready" (or the user dismisses /
+  // cancels). On "error" we keep this true so the dialog can pin
+  // the failure and offer Try again — silently vanishing on error
+  // was a bug that made worker crashes look like "nothing happened".
   const [showDownload, setShowDownload] = useState(false);
+  // Remember which quality the user picked so:
+  //   1. The progress card can show "0 / 88 MB" before the lib's
+  //      first byte arrives (DetectionProgressCard's expectedTotal).
+  //   2. Try again can rerun detection at the same tier without
+  //      the user having to re-pick from the consent dialog.
+  // Using a ref because nothing else in the render branches on it,
+  // so a re-render isn't needed when it changes.
+  const requestedQualityRef = useRef<BgQuality | null>(null);
 
   // Note: we call `ensureSubjectMask` directly with the user's chosen
   // quality rather than going through `subjectMask.request()`. The
@@ -46,27 +58,36 @@ export function MaskConsentHost() {
   // state by the time `onAccept` fires — so going via the hook
   // would still kick off detection at the *previous* quality. Routing
   // around the hook keeps the chosen tier honest.
-  const onAccept = useCallback(
+  const startDetection = useCallback(
     (quality: BgQuality) => {
-      grantMaskConsent();
       if (!doc) return;
+      requestedQualityRef.current = quality;
       setShowDownload(true);
-      void ensureSubjectMask(doc.working, quality).catch(() => {
+      void ensureSubjectMask(doc.working, quality).catch((err) => {
         // Errors land in mask state — the download dialog reads
-        // state.error and surfaces an error message inline rather
-        // than us showing a separate toast.
+        // state.error and pins it inline. Surfacing through console
+        // too so the underlying cause (worker crash, model fetch
+        // failure, CSP, etc.) is visible to anyone debugging.
+        console.error("[CloakIMG] Subject detection failed:", err);
       });
     },
     [doc],
   );
 
-  // Auto-clear the progress modal once detection settles. We treat
-  // ready / error / idle alike — in all three cases the download
-  // dialog has nothing left to show. Errors propagate to the
-  // triggering panel's inline error card.
+  const onAccept = useCallback(
+    (quality: BgQuality) => {
+      grantMaskConsent();
+      startDetection(quality);
+    },
+    [startDetection],
+  );
+
+  // Auto-clear the progress modal when detection succeeds or the
+  // service goes idle. We deliberately do NOT clear on "error" — the
+  // dialog stays up so the user sees what went wrong and can retry.
   useEffect(() => {
     const status = subjectMask.state.status;
-    if (status === "ready" || status === "error" || status === "idle") {
+    if (status === "ready" || status === "idle") {
       setShowDownload(false);
     }
   }, [subjectMask.state.status]);
@@ -87,6 +108,16 @@ export function MaskConsentHost() {
     setShowDownload(false);
   }, []);
 
+  const onRetryDownload = useCallback(() => {
+    // Same quality, fresh attempt. cancelMaskDetection clears state
+    // → idle and bumps inflight generation; startDetection then
+    // flips back to "loading" with progress reset.
+    cancelMaskDetection();
+    const quality = requestedQualityRef.current;
+    if (!quality) return;
+    startDetection(quality);
+  }, [startDetection]);
+
   if (subjectMask.state.status === "needs-consent") {
     return (
       <MaskConsentDialog
@@ -96,15 +127,26 @@ export function MaskConsentHost() {
       />
     );
   }
-  if (showDownload && subjectMask.state.status === "loading") {
-    return (
-      <MaskDownloadDialog
-        progress={subjectMask.state.progress}
-        warm={subjectMask.state.warm}
-        onDismiss={onDismissDownload}
-        onCancel={onCancelDownload}
-      />
-    );
+  if (showDownload) {
+    const quality = requestedQualityRef.current;
+    const expectedTotal = quality ? QUALITY_BYTE_ESTIMATES[quality] : undefined;
+    const status = subjectMask.state.status;
+    // Render the dialog while we're loading, OR pinned after an
+    // error so the user sees what failed. "ready" / "idle" are
+    // already handled by the auto-clear effect above.
+    if (status === "loading" || status === "error") {
+      return (
+        <MaskDownloadDialog
+          progress={subjectMask.state.progress}
+          warm={subjectMask.state.warm}
+          expectedTotal={expectedTotal}
+          error={status === "error" ? subjectMask.state.error : null}
+          onDismiss={onDismissDownload}
+          onCancel={onCancelDownload}
+          onRetry={onRetryDownload}
+        />
+      );
+    }
   }
   return null;
 }

@@ -108,6 +108,11 @@ async function handleSegment(req: AiSegmentRequest) {
       return;
     } catch (err) {
       lastErr = err;
+      // Log per-device failure so the browser console captures the
+      // root cause (WebGPU shader compile, WASM fetch failure, model
+      // 404, etc.) — without this every error is swallowed inside
+      // the worker and the main thread only sees the final message.
+      console.error(`[CloakIMG worker] segmentation failed on ${device}:`, err);
       // Drop the failing pipeline so the retry actually reloads with
       // the next device. Without this, a WebGPU shader compile
       // failure would be re-served from cache on every call.
