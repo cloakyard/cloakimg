@@ -44,14 +44,21 @@ import type {
 // intent explicit.
 env.allowLocalModels = false;
 env.useBrowserCache = true;
-// `useWasmCache` (new in v4) caches the ONNX Runtime WASM binaries +
-// loader factory in CacheStorage. After the first visit the runtime
-// itself loads from cache, which means CloakIMG can spin up the AI
-// worker fully offline — not just the model bytes but the
-// transformers.js/ORT runtime too. Defaults to true when cache is
-// available; setting it explicitly pins the contract for our
-// offline-first stance.
-env.useWasmCache = true;
+// `useWasmCache` (new in v4) preloads the ONNX Runtime WASM factory
+// (.mjs) cross-origin from jsdelivr, converts it to a blob URL, and
+// then has ORT dynamic-import from that blob. In our PWA + module-
+// worker context this path is fragile: a cross-origin blob import
+// can fail with an opaque ErrorEvent (no message, no filename) that
+// the worker's self.onerror can't intercept, and the user sees the
+// generic "AI module failed to start" fallback even though the
+// upstream model bytes are reachable.
+//
+// Disabling the preload reverts to v3's behaviour: ORT fetches the
+// WASM directly via its built-in loader on first inference. The
+// runtime files are small (~few hundred KB) and `useBrowserCache`
+// still caches the *model* (44–176 MB) which is the part actually
+// worth caching for offline use.
+env.useWasmCache = false;
 // Suppress transformers.js + ONNX Runtime info / warning chatter.
 // v4 unified the verbosity controls: `env.logLevel` propagates down
 // to ORT via `env.backends.onnx.setLogLevel`, replacing the

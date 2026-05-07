@@ -18,7 +18,7 @@
 //     error state. Re-runs the detection at the same quality.
 
 import { I } from "../../../components/icons";
-import { ModalFrame } from "../../../components/ModalFrame";
+import { ModalCloseButton, ModalFrame } from "../../../components/ModalFrame";
 import { useEditorReadOnly } from "../../EditorContext";
 import type { SmartRemoveProgress } from "../runtime/segment";
 import { DetectionProgressCard } from "./DetectionStatus";
@@ -62,40 +62,51 @@ export function MaskDownloadDialog({
   // network failures.
   const errorKind = error ? classifyError(error) : null;
 
+  // Single close handler for the X / backdrop. Errors send to onCancel
+  // (terminate the worker so a stale broken pipeline isn't reused);
+  // active downloads send to onDismiss (let the detection finish in
+  // the background — the cached cut becomes available to the next
+  // tool that asks for it).
+  const onClose = error ? onCancel : onDismiss;
+
   return (
     <ModalFrame
-      onClose={error ? onCancel : onDismiss}
+      onClose={onClose}
       bottomSheet={isMobile}
       position="absolute"
-      maxWidth="max-w-100"
+      maxWidth="max-w-130"
       labelledBy="cloak-mask-download-title"
     >
-      <div className="flex flex-1 flex-col gap-4 px-5 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5">
-        <div className="flex items-start gap-3">
-          <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+      {/* Sticky header — same icon-+-title-+-close-X pattern as
+          ConfirmDialog, FilePropertiesModal, and the consent dialog.
+          The icon swatch swaps from Sparkles (active download) to a
+          coral Triangle (error) so the visual state is clear at a
+          glance, and the subtitle moved into the body so the header
+          stays a single fixed-height row. */}
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
               error
                 ? "bg-coral-500/15 text-coral-600 dark:bg-coral-400/15 dark:text-coral-300"
-                : "bg-coral-100 text-coral-700 dark:bg-coral-900/40 dark:text-coral-300"
+                : "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
             }`}
           >
             {error ? <I.Triangle size={16} stroke={2} /> : <I.Sparkles size={16} />}
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2
-              id="cloak-mask-download-title"
-              className="text-[15px] font-semibold text-text dark:text-dark-text"
-            >
-              {error ? errorTitle(errorKind) : "Setting up subject detection"}
-            </h2>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-              {error
-                ? errorBody(errorKind)
-                : "The model downloads once and is cached for future visits. Your image stays on this device."}
-            </p>
+          </div>
+          <div id="cloak-mask-download-title" className="t-headline truncate text-base">
+            {error ? errorTitle(errorKind) : "Setting up subject detection"}
           </div>
         </div>
+        <ModalCloseButton onClose={onClose} iconSize={14} />
+      </div>
 
+      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
+        <p className="text-[13px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          {error
+            ? errorBody(errorKind)
+            : "The model downloads once and is cached for future visits. Your image stays on this device."}
+        </p>
         {error ? (
           <ErrorBody message={error} suggestion={errorSuggestion(errorKind)} />
         ) : (
@@ -103,7 +114,16 @@ export function MaskDownloadDialog({
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-border-soft px-5 pt-3 pb-5 sm:px-6 dark:border-dark-border-soft">
+      {/* Sticky footer — bordered top + safe-area padding on mobile,
+          matching ConfirmDialog. The action set differs by state but
+          the row layout / button sizes / spacing are identical so
+          the modal feels like a single component animating between
+          download → error states, not two different dialogs. */}
+      <div
+        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft dark:border-dark-border-soft ${
+          isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
+        }`}
+      >
         {error ? (
           <>
             <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>

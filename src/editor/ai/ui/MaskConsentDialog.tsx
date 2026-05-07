@@ -24,7 +24,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { I } from "../../../components/icons";
-import { ModalFrame } from "../../../components/ModalFrame";
+import { ModalCloseButton, ModalFrame } from "../../../components/ModalFrame";
 import { useEditorActions, useEditorReadOnly } from "../../EditorContext";
 import type { Layout } from "../../types";
 import { type BgQuality, isModelCached } from "../runtime/segment";
@@ -160,28 +160,31 @@ export function MaskConsentDialog({
       onClose={onDismiss}
       bottomSheet={isMobile}
       position="absolute"
-      maxWidth="max-w-120"
+      maxWidth="max-w-130"
       labelledBy="cloak-mask-consent-title"
     >
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5">
-        <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral-100 text-coral-700 dark:bg-coral-900/40 dark:text-coral-300">
+      {/* Sticky header — same icon-+-title-+-close-X pattern that
+          ConfirmDialog / FilePropertiesModal / ExportModal use. The
+          subtitle moved into the body so the header stays a single
+          fixed-height row that lines up across modals. */}
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
             <I.Sparkles size={16} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2
-              id="cloak-mask-consent-title"
-              className="text-[15px] font-semibold text-text dark:text-dark-text"
-            >
-              {switchMode ? "Choose a model size" : "Download the on-device AI model?"}
-            </h2>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-              {switchMode
-                ? "Switch between the three tiers below. Sizes you've already used in this browser run instantly — others download once and cache for next time."
-                : "Subject-aware tools (smart crop, scoped adjustments, portrait blur, smart redact) need a segmentation model. It runs entirely on this device — your image is never uploaded."}
-            </p>
+          </div>
+          <div id="cloak-mask-consent-title" className="t-headline truncate text-base">
+            {switchMode ? "Choose a model size" : "Download the AI model"}
           </div>
         </div>
+        <ModalCloseButton onClose={onDismiss} iconSize={14} />
+      </div>
+
+      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
+        <p className="text-[13px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          {switchMode
+            ? "Switch between the three tiers below. Sizes you've already used in this browser run instantly — others download once and cache for next time."
+            : "Subject-aware tools (smart crop, scoped adjustments, portrait blur, smart redact) need a segmentation model. It runs entirely on this device — your image is never uploaded."}
+        </p>
 
         <div className="flex flex-col gap-1.5">
           <div className="text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
@@ -255,14 +258,19 @@ export function MaskConsentDialog({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-border-soft px-5 pt-3 pb-5 sm:px-6 dark:border-dark-border-soft">
-        {/* Dismissive action uses the same `btn-ghost btn-sm` style
-            as Cancel in StartModal / ConfirmDialog — keeps every
-            "back out" button reading the same way across the app. */}
+      {/* Sticky footer — bordered top + safe-area padding on mobile,
+          matching ConfirmDialog. Same `btn-ghost btn-sm` for the
+          dismissive action so every "back out" button across the app
+          reads the same. */}
+      <div
+        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft dark:border-dark-border-soft ${
+          isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
+        }`}
+      >
         <button type="button" className="btn btn-ghost btn-sm" onClick={onDismiss}>
           {switchMode ? "Cancel" : "Not now"}
         </button>
-        <button type="button" className="btn btn-primary" onClick={accept}>
+        <button type="button" className="btn btn-primary btn-sm" onClick={accept}>
           {/* When switching tiers and the picked size is already on
               disk, omit the download glyph — the action is "use this
               model", not "download". Avoids the misleading visual
@@ -270,9 +278,7 @@ export function MaskConsentDialog({
           {!(switchMode && cachedTiers.has(picked)) && <I.Download size={13} />}
           {switchMode && cachedTiers.has(picked)
             ? `Use ${pickedSize(picked)} MB model`
-            : switchMode
-              ? `Download ${pickedSize(picked)} MB`
-              : `Download ${pickedSize(picked)} MB`}
+            : `Download ${pickedSize(picked)} MB`}
         </button>
       </div>
     </ModalFrame>
