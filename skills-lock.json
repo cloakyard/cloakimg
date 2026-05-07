@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "docs-react": {
+      "source": "imgly/agent-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/cesdk/skills/docs-react/SKILL.md",
+      "computedHash": "3154568c190e560a1dbd78ed33f9b0eb58637b5b0ba41bda4c21d163433603d5"
+    },
+    "explain": {
+      "source": "imgly/agent-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/cesdk/skills/explain/SKILL.md",
+      "computedHash": "74d61231265cd68500656142ae4bb25a4591acfc64120e1851b1b5751ed4309c"
+    },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
