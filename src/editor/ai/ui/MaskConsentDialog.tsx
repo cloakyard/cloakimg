@@ -27,6 +27,7 @@ import { I } from "../../../components/icons";
 import { ModalCloseButton, ModalFrame } from "../../../components/ModalFrame";
 import { useEditorActions, useEditorReadOnly } from "../../EditorContext";
 import type { Layout } from "../../types";
+import { savePreferredQuality } from "../runtime/preferredQuality";
 import { type BgQuality, isModelCached } from "../runtime/segment";
 
 interface Tier {
@@ -144,6 +145,12 @@ export function MaskConsentDialog({
   const accept = useCallback(() => {
     const idx = TIERS.find((t) => t.id === picked)?.index ?? 0;
     patchTool("bgQuality", idx);
+    // Remember the choice across sessions so the editor boots into
+    // this tier next visit instead of always defaulting to Fast. The
+    // restore path in EditorContext validates the bytes are still on
+    // disk before honouring this — clearing the browser cache resets
+    // the default the same way it always did.
+    savePreferredQuality(picked);
     onAccept(picked);
   }, [onAccept, patchTool, picked]);
 

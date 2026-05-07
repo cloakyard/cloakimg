@@ -38,6 +38,7 @@ import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
 import { History, restoreCanvas } from "./history";
+import { indexFor, resolvePreferredQuality } from "./ai/runtime/preferredQuality";
 import { shutdownAiWorker } from "./ai/runtime/runtime";
 import { invalidateSubjectMask } from "./ai/subjectMask";
 import { snapshotPersistentObjects } from "./tools/penPath";
@@ -287,6 +288,30 @@ export function EditorProvider({
   useEffect(() => {
     return () => {
       shutdownAiWorker();
+    };
+  }, []);
+
+  // Restore the user's last-accepted bgQuality tier on mount. Without
+  // this every session boots into Fast even after the user explicitly
+  // chose (and downloaded) Better or Best in a prior visit, which the
+  // user flagged as surprising — they expected "I downloaded the
+  // bigger model, why does the editor default to the smaller one?".
+  // The async probe also validates the bytes are still on disk; if
+  // the user cleared their browser cache between sessions we fall
+  // back to the toolState default rather than restore a stale
+  // preference that would re-trigger the consent download dialog.
+  useEffect(() => {
+    let cancelled = false;
+    void resolvePreferredQuality().then((quality) => {
+      if (cancelled || !quality) return;
+      setToolState((prev) => {
+        const next = indexFor(quality);
+        if (prev.bgQuality === next) return prev;
+        return { ...prev, bgQuality: next };
+      });
+    });
+    return () => {
+      cancelled = true;
     };
   }, []);
 
