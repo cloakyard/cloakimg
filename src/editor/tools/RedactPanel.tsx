@@ -42,29 +42,46 @@ export function RedactPanel() {
       if (scope === 0) return;
       setSmartError(null);
       setSmartBusy(scope === 1 ? "subject" : "background");
+      // Track the canvases we acquire here so the `finally` block can
+      // release them on every exit path (success, throw, or silent
+      // abort on mid-bake invalidation). Without this, an early
+      // return from the abort path leaks pooled canvases.
+      let full: HTMLCanvasElement | null = null;
+      let composed: HTMLCanvasElement | null = null;
+      // Yield to the browser's render cycle. Each call gives the
+      // browser a frame to paint and to fire any queued events. We
+      // sprinkle these between the bake's heavy phases so the spinner
+      // animates and pinch-zoom / scroll stays responsive on mobile
+      // instead of the whole sequence being one big main-thread
+      // freeze.
+      const yieldFrame = () =>
+        new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       try {
         // Smart anonymize is user-initiated; clear any prior dismiss
         // latch via requestExplicit so the consent dialog re-opens
-        // instead of the button silently no-op'ing.
-        const mask = subjectMask.peek() ?? (await subjectMask.requestExplicit());
-        // Yield to the browser's render cycle before starting the
-        // synchronous bake. Without this, on the warm-cache path the
-        // spinner state we just set never paints — React schedules
-        // the render, then we immediately monopolise the main thread
-        // for 200–500 ms of full-res redaction + compositing. The
-        // user sees a frozen button and the image suddenly changes
-        // at the end. A single rAF break is enough for the spinner
-        // to render before we start blocking.
-        await new Promise<void>((r) => requestAnimationFrame(() => r()));
-        // Build a fully-redacted copy of the working canvas, then
-        // composite it back through the subject mask. We re-use the
-        // existing per-style redaction (pixelate / blur / solid) to
-        // ensure visual parity with manual redact rects — same block
-        // size, same blur radius, same average-fill colour.
-        const full = acquireCanvas(doc.working.width, doc.working.height);
+        // instead of the button silently no-op'ing. We don't use the
+        // returned mask directly — we re-peek after the yields below
+        // so a mid-bake invalidation (replaceWithFile, quality
+        // change) is observed before we composite.
+        if (!subjectMask.peek()) await subjectMask.requestExplicit();
+        // First yield: lets the spinner state we just set paint
+        // before we start the synchronous bake. On the warm-cache
+        // path there's no `await` above to break us out of the click
+        // microtask, so without this the spinner only appears AFTER
+        // the bake.
+        await yieldFrame();
+
+        // Stage 1: snapshot the working canvas into our own buffer.
+        full = acquireCanvas(doc.working.width, doc.working.height);
         const ctx = full.getContext("2d");
         if (!ctx) throw new Error("Couldn't get 2D context for redaction");
         ctx.drawImage(doc.working, 0, 0);
+        await yieldFrame();
+
+        // Stage 2: apply the chosen redaction style to the snapshot.
+        // This is the slowest single phase (100–300 ms on a 24 MP
+        // photo). Yielding before / after ensures the freeze is
+        // bracketed by paint opportunities.
         applyRedaction(
           full,
           { x: 0, y: 0, w: full.width, h: full.height },
@@ -77,10 +94,23 @@ export function RedactPanel() {
             feather: 0,
           },
         );
-        const composed = applyMaskScope(doc.working, full, mask, scope);
+        await yieldFrame();
+
+        // Stage 3: mask-scope composite. Critical: re-peek the mask
+        // here. During the yields above the central cache could have
+        // been invalidated (replaceWithFile, resetToOriginal, or a
+        // quality-tier change). A stale reference would point to a
+        // canvas that's been released back to the pool and possibly
+        // reallocated to another caller — compositing against it
+        // would produce a corrupt result. Aborting silently is the
+        // correct response to the user's explicit invalidation.
+        const liveMask = subjectMask.peek();
+        if (!liveMask) return;
+        composed = applyMaskScope(doc.working, full, liveMask, scope);
+        await yieldFrame();
+
+        // Stage 4: bake into doc.working and commit.
         copyInto(doc.working, composed);
-        if (composed !== full) releaseCanvas(composed);
-        releaseCanvas(full);
         commit(scope === 1 ? "Anonymize subject" : "Anonymize scene");
       } catch (err) {
         // Consent dialog handles the "user hasn't agreed yet" path —
@@ -89,6 +119,8 @@ export function RedactPanel() {
         if (err instanceof MaskConsentError) return;
         setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");
       } finally {
+        if (composed && composed !== full) releaseCanvas(composed);
+        if (full) releaseCanvas(full);
         setSmartBusy(null);
       }
     },

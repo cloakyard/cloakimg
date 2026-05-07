@@ -6,7 +6,7 @@
 import { FabricImage, IText } from "fabric";
 import { useCallback, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
-import type { WatermarkAnchor } from "../doc";
+import { acquireCanvas, releaseCanvas, type WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { I } from "../../components/icons";
@@ -49,21 +49,54 @@ export function WatermarkPanel() {
     if (!doc) return;
     setSmartError(null);
     setSmartBusy(true);
+    let proxy: HTMLCanvasElement | null = null;
     try {
       // Smart Place is user-initiated; requestExplicit clears the
       // dismiss latch so a prior "Not now" doesn't silently break
       // future taps.
       const mask = subjectMask.peek() ?? (await subjectMask.requestExplicit());
+      // Score against a downsampled proxy of the mask. `regionCoverage`
+      // calls `getImageData(x, y, w, h)` for each region; on a 24 MP
+      // mask with 22 % short-edge regions that allocates ~12 MB per
+      // call × 6 calls. A 256 px proxy collapses that to <100 KB total
+      // and the score (average alpha) is dimension-invariant. We use
+      // the pool so the proxy canvas comes back for reuse instead of
+      // allocating fresh each click.
+      const PROXY_LONG_EDGE = 256;
+      const long = Math.max(mask.width, mask.height);
+      let scanCanvas: HTMLCanvasElement;
+      if (long > PROXY_LONG_EDGE) {
+        const ratio = PROXY_LONG_EDGE / long;
+        const pw = Math.max(1, Math.round(mask.width * ratio));
+        const ph = Math.max(1, Math.round(mask.height * ratio));
+        proxy = acquireCanvas(pw, ph);
+        const pctx = proxy.getContext("2d");
+        if (!pctx) {
+          // 2D context is unavailable — fall back to the full-res
+          // mask so we at least produce a result. Release the canvas
+          // we acquired so we don't leak.
+          releaseCanvas(proxy);
+          proxy = null;
+          scanCanvas = mask;
+        } else {
+          pctx.imageSmoothingQuality = "low";
+          pctx.drawImage(mask, 0, 0, pw, ph);
+          scanCanvas = proxy;
+        }
+      } else {
+        scanCanvas = mask;
+      }
       // Region footprint: ~22 % of the short edge in each dimension.
       // That covers a generous corner / edge area — bigger than the
       // typical text watermark, so the score reflects "is this side
       // of the image clear?" rather than "is the exact pixel under
-      // the watermark clear?".
-      const short = Math.min(mask.width, mask.height);
-      const rw = Math.round(short * 0.22);
-      const rh = Math.round(short * 0.22);
-      const W = mask.width;
-      const H = mask.height;
+      // the watermark clear?". Scaled to whichever surface we end up
+      // scanning (proxy or original).
+      const W = scanCanvas.width;
+      const H = scanCanvas.height;
+      const short = Math.min(W, H);
+      const rw = Math.max(1, Math.round(short * 0.22));
+      const rh = Math.max(1, Math.round(short * 0.22));
       const cx = (W - rw) / 2;
       const regions = [
         { x: 0, y: 0, w: rw, h: rh }, // 0 TL
@@ -78,7 +111,7 @@ export function WatermarkPanel() {
       for (let i = 0; i < regions.length; i++) {
         const region = regions[i];
         if (!region) continue;
-        const score = regionCoverage(mask, region);
+        const score = regionCoverage(scanCanvas, region);
         if (score < bestScore) {
           bestScore = score;
           bestIndex = i;
@@ -91,6 +124,7 @@ export function WatermarkPanel() {
       if (err instanceof MaskConsentError) return;
       setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");
     } finally {
+      if (proxy) releaseCanvas(proxy);
       setSmartBusy(false);
     }
   }, [doc, patchTool, subjectMask]);

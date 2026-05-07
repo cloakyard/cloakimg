@@ -15,8 +15,16 @@ import { useAdjustPreview } from "./useAdjustPreview";
 export function FilterTool() {
   const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
-  const mask =
-    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
+  // Memoise the mask peek so the Map lookup doesn't repeat at 60 Hz
+  // during preset taps. `state` gets a fresh identity on every
+  // version bump (invalidate / replace / new detection), keeping the
+  // memo correctly invalidated when the central cache changes.
+  const maskState = subjectMask.state;
+  const peekDownsample = subjectMask.peekDownsample;
+  const mask = useMemo(
+    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
+    [maskState, peekDownsample],
+  );
   const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
   // Memoise the composed slider vector against its true inputs.
   // applyPresetVector returns a fresh array via .slice(), so without

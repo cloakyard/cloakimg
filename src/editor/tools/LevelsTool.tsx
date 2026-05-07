@@ -15,8 +15,16 @@ import { useLevelsPreview } from "./useLevelsPreview";
 export function LevelsTool() {
   const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
-  const mask =
-    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
+  // Memoise the mask peek so the Map lookup doesn't repeat at 60 Hz
+  // during slider drags. `state` gets a fresh identity on every
+  // version bump (invalidate / replace / new detection), keeping the
+  // memo correctly invalidated when the central cache changes.
+  const maskState = subjectMask.state;
+  const peekDownsample = subjectMask.peekDownsample;
+  const mask = useMemo(
+    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
+    [maskState, peekDownsample],
+  );
   const scope = (toolState.levelsScope as MaskScope) ?? 0;
   const params = useMemo<LevelsParams>(
     () => ({

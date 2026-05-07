@@ -171,7 +171,13 @@ export function peekMaskDownsample(
   const ds = acquireCanvas(w, h);
   const ctx = ds.getContext("2d");
   if (!ctx) return cut;
-  ctx.imageSmoothingQuality = "high";
+  // "medium" instead of "high": the downsample is an alpha mask used
+  // by `applyMaskScope` at the preview surface (≤1440 px on the long
+  // edge). The visual difference between medium and high smoothing
+  // on a binary-ish mask isn't perceptible at that scale, but
+  // medium runs ~10–30 % faster on mobile drawImage scaling — a real
+  // win when this is rebuilt per detection.
+  ctx.imageSmoothingQuality = "medium";
   ctx.drawImage(cut, 0, 0, w, h);
   cache.downsamples.set(longEdge, ds);
   return ds;

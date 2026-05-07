@@ -14,8 +14,18 @@ import { useHslPreview } from "./useHslPreview";
 export function HslTool() {
   const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
-  const mask =
-    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
+  // Memoise the mask peek across renders at the same cache generation
+  // — the tool re-renders on every slider tick, and peek does a Map
+  // lookup we don't need to repeat at 60 Hz. We depend on the whole
+  // `state` object: it gets a fresh identity on every version bump
+  // (invalidate / replace / new detection), so the memo stays
+  // correctly invalidated whenever the central cache changes.
+  const maskState = subjectMask.state;
+  const peekDownsample = subjectMask.peekDownsample;
+  const mask = useMemo(
+    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
+    [maskState, peekDownsample],
+  );
   const scope = (toolState.hslScope as MaskScope) ?? 0;
   const params = useMemo<HslParams>(
     () => ({

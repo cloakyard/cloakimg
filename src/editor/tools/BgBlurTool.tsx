@@ -4,6 +4,7 @@
 // preview hook. The hook hands back a downsampled blur preview which
 // StageHost paints over doc.working.
 
+import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
@@ -20,8 +21,16 @@ export function BgBlurTool() {
   // is only threaded when status="ready" — the preview hook's scope
   // gate will short-circuit and show `doc.working` while detection
   // is in flight (matching the gated panel controls above).
-  const mask =
-    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
+  // Memoised on `state`: identity flips on every version bump
+  // (invalidate / replace / new detection), so the memo stays
+  // correctly invalidated when the cache changes — and we elide the
+  // Map lookup during slider-drag bursts.
+  const maskState = subjectMask.state;
+  const peekDownsample = subjectMask.peekDownsample;
+  const mask = useMemo(
+    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
+    [maskState, peekDownsample],
+  );
   // Coerce stale Subject scope (1) from older sessions to Background
   // (2) — the panel UI no longer offers Subject mode.
   const rawScope = (toolState.bgBlurScope as MaskScope) ?? 2;

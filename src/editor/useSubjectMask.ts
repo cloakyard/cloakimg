@@ -4,7 +4,7 @@
 // is threaded in here so consumers don't have to re-import it
 // everywhere.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditorReadOnly, useToolState } from "./EditorContext";
 import {
   clearMaskDeny,
@@ -91,7 +91,20 @@ export function useSubjectMask(): UseSubjectMask {
   // whether the user actually faces a fresh download. Probing is
   // cheap (low-thousands of cache keys at worst) and the result is
   // memoised on the mask state.
+  //
+  // ALSO: if the user actively switches tiers after a mask has
+  // already been detected, drop the cached cut so a follow-up
+  // request runs detection at the new quality. Without this the
+  // cache key is `source + dims` and the existing (lower-quality)
+  // mask gets reused, silently negating the upgrade. We track the
+  // *previous* quality in a ref so the first mount (where prev ===
+  // current) doesn't invalidate — only real transitions do.
+  const prevQualityRef = useRef(quality);
   useEffect(() => {
+    if (prevQualityRef.current !== quality) {
+      invalidateSubjectMask();
+      prevQualityRef.current = quality;
+    }
     void probeModelCache(quality);
   }, [quality]);
 

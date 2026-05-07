@@ -87,8 +87,41 @@ function blur(off: HTMLCanvasElement, strength: number) {
 function solid(off: HTMLCanvasElement) {
   const ctx = off.getContext("2d");
   if (!ctx) return;
-  // Average color of the region, then fill.
-  const sample = ctx.getImageData(0, 0, off.width, off.height).data;
+  // Average color is dimension-invariant, so we sample from a small
+  // proxy when the redaction region is large. On a full-res Smart
+  // Anonymize bake this drops the `getImageData` allocation from up
+  // to ~96 MB on a 24 MP region to ~256 KB on a 256 px proxy — a
+  // measurable phone-perf win for the same fill colour.
+  const PROBE_LONG_EDGE = 256;
+  const long = Math.max(off.width, off.height);
+  let probe: HTMLCanvasElement;
+  let probeCtx: CanvasRenderingContext2D | null;
+  let ownsProbe = false;
+  if (long > PROBE_LONG_EDGE) {
+    const ratio = PROBE_LONG_EDGE / long;
+    const pw = Math.max(1, Math.round(off.width * ratio));
+    const ph = Math.max(1, Math.round(off.height * ratio));
+    probe = document.createElement("canvas");
+    probe.width = pw;
+    probe.height = ph;
+    probeCtx = probe.getContext("2d");
+    if (probeCtx) {
+      probeCtx.imageSmoothingQuality = "low";
+      probeCtx.drawImage(off, 0, 0, pw, ph);
+      ownsProbe = true;
+    } else {
+      // Couldn't allocate a context — fall back to the full-res
+      // sample so we at least produce a color.
+      probe = off;
+      probeCtx = ctx;
+    }
+  } else {
+    probe = off;
+    probeCtx = ctx;
+  }
+  void ownsProbe; // probe is plain DOM, GC'd when it falls out of scope
+  // Average color of the (possibly proxied) region, then fill.
+  const sample = probeCtx.getImageData(0, 0, probe.width, probe.height).data;
   let r = 0,
     g = 0,
     b = 0,

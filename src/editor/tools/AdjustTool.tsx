@@ -4,6 +4,7 @@
 // / whites / blacks / vibrance — controls the CSS-filter approximation
 // can't faithfully reproduce.
 
+import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
@@ -19,9 +20,18 @@ export function AdjustTool() {
   // MP — scaling that on every preview tick is the pre-cache bottleneck
   // on phones). The downsample is built lazily by the service the
   // first time anything asks for it, then reused across every scoped
-  // tool.
-  const mask =
-    subjectMask.state.status === "ready" ? subjectMask.peekDownsample(previewLongEdge()) : null;
+  // tool. Memoised on the whole `state` object: it gets a fresh
+  // identity on every version bump (invalidate / replace / new
+  // detection), so the memo stays correctly invalidated whenever the
+  // central cache changes — and we elide the Map lookup during
+  // slider-drag bursts (the tool re-renders on every toolState
+  // change).
+  const maskState = subjectMask.state;
+  const peekDownsample = subjectMask.peekDownsample;
+  const mask = useMemo(
+    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
+    [maskState, peekDownsample],
+  );
   const scope = (toolState.adjustScope as MaskScope) ?? 0;
   // historyVersion bumps on every history mutation — commit (Adjust /
   // Filter / etc bake into history), undo, redo, resetToOriginal,
