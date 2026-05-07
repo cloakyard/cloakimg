@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import type { MaskScope } from "../subjectMask";
+import { type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { bakeBgBlur, isBgBlurIdentity, type LensKind } from "./bgBlur";
 import { previewLongEdge } from "./previewSize";
 
@@ -16,7 +16,11 @@ export function useBgBlurPreview(
   lens: LensKind,
   progressive: boolean,
   scope: MaskScope,
-  mask: HTMLCanvasElement | null,
+  /** True iff the central subject-mask service has a detected cut
+   *  for the current source. The bake reads the cached canvas
+   *  directly inside its rAF — passing the canvas through React was
+   *  racing with cache lifecycle. See useAdjustPreview for context. */
+  maskReady: boolean,
   /** Bumps on undo / redo / reset / replaceWithFile so the cached
    *  downsample picks up the new pixels even when source identity
    *  is unchanged. See useAdjustPreview for the full rationale. */
@@ -61,7 +65,7 @@ export function useBgBlurPreview(
     // until detection lands. Without this, picking "Subject" on a
     // cold doc would briefly blur the whole image (the bake's
     // mask=null fallback) and read as "subject blur is broken".
-    if (scope !== 0 && !mask) {
+    if (scope !== 0 && !maskReady) {
       setPreview((prev) => {
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;
@@ -80,7 +84,12 @@ export function useBgBlurPreview(
       // instead of holding a half-built preview canvas.
       let baked: HTMLCanvasElement | null = null;
       try {
-        baked = bakeBgBlur(ds, mask, scope, { amount, lens, progressive });
+        // Read the freshest mask from the service — see the
+        // useAdjustPreview comment block for why we don't trust a
+        // mask reference threaded through React. peekMaskDownsample
+        // is O(1) so the per-rAF cost is negligible.
+        const liveMask = scope !== 0 ? peekMaskDownsample(source, previewLongEdge()) : null;
+        baked = bakeBgBlur(ds, liveMask, scope, { amount, lens, progressive });
       } catch (err) {
         console.error("[useBgBlurPreview] bake failed", err);
         setPreview((prev) => {
@@ -101,7 +110,7 @@ export function useBgBlurPreview(
         rafRef.current = null;
       }
     };
-  }, [amount, lens, progressive, mask, scope, source]);
+  }, [amount, lens, progressive, maskReady, scope, source]);
 
   useEffect(() => {
     return () => {

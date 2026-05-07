@@ -4,33 +4,19 @@
 // preview hook. The hook hands back a downsampled blur preview which
 // StageHost paints over doc.working.
 
-import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
-import { previewLongEdge } from "./previewSize";
 import { useBgBlurPreview } from "./useBgBlurPreview";
 
 export function BgBlurTool() {
   const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
-  // Pre-sized mask matches the preview surface; the per-rAF bake's
-  // `applyMaskScope` then composes mask × downsample at 1:1 instead
-  // of asking the browser to scale a 24 MP cut on every frame. Mask
-  // is only threaded when status="ready" — the preview hook's scope
-  // gate will short-circuit and show `doc.working` while detection
-  // is in flight (matching the gated panel controls above).
-  // Memoised on `state`: identity flips on every version bump
-  // (invalidate / replace / new detection), so the memo stays
-  // correctly invalidated when the cache changes — and we elide the
-  // Map lookup during slider-drag bursts.
-  const maskState = subjectMask.state;
-  const peekDownsample = subjectMask.peekDownsample;
-  const mask = useMemo(
-    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
-    [maskState, peekDownsample],
-  );
+  // Readiness flag only — the bake reads the cached downsample
+  // directly from the service inside its rAF. See useAdjustPreview
+  // for the full rationale.
+  const maskReady = subjectMask.state.status === "ready";
   // Coerce stale Subject scope (1) from older sessions to Background
   // (2) — the panel UI no longer offers Subject mode.
   const rawScope = (toolState.bgBlurScope as MaskScope) ?? 2;
@@ -45,7 +31,7 @@ export function BgBlurTool() {
     toolState.bgBlurLens,
     toolState.bgBlurProgressive,
     scope,
-    mask,
+    maskReady,
     historyVersion,
   );
   useStageProps({ previewCanvas: preview });

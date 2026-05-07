@@ -7,25 +7,16 @@ import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
-import { type HslParams } from "./hsl";
-import { previewLongEdge } from "./previewSize";
+import type { HslParams } from "./hsl";
 import { useHslPreview } from "./useHslPreview";
 
 export function HslTool() {
   const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
-  // Memoise the mask peek across renders at the same cache generation
-  // — the tool re-renders on every slider tick, and peek does a Map
-  // lookup we don't need to repeat at 60 Hz. We depend on the whole
-  // `state` object: it gets a fresh identity on every version bump
-  // (invalidate / replace / new detection), so the memo stays
-  // correctly invalidated whenever the central cache changes.
-  const maskState = subjectMask.state;
-  const peekDownsample = subjectMask.peekDownsample;
-  const mask = useMemo(
-    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
-    [maskState, peekDownsample],
-  );
+  // Readiness flag only — see useAdjustPreview for why the bake now
+  // reads the mask directly from the service inside its rAF rather
+  // than threading the canvas through React.
+  const maskReady = subjectMask.state.status === "ready";
   const scope = (toolState.hslScope as MaskScope) ?? 0;
   const params = useMemo<HslParams>(
     () => ({
@@ -39,7 +30,7 @@ export function HslTool() {
   // downsample after every commit / undo / redo / reset (the doc
   // ref alone misses intra-tool commits because commit() doesn't
   // setDoc).
-  const preview = useHslPreview(doc?.working ?? null, params, scope, mask, historyVersion);
+  const preview = useHslPreview(doc?.working ?? null, params, scope, maskReady, historyVersion);
   useStageProps({ previewCanvas: preview });
   return null;
 }

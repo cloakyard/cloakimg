@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { bakeHsl, type HslParams, isHslIdentity } from "./hsl";
 import { previewLongEdge } from "./previewSize";
 
@@ -13,7 +13,10 @@ export function useHslPreview(
   source: HTMLCanvasElement | null,
   params: HslParams,
   scope: MaskScope = 0,
-  mask: HTMLCanvasElement | null = null,
+  /** True iff the central subject-mask service has a detected cut.
+   *  The bake reads the canvas directly inside its rAF — see
+   *  useAdjustPreview for the full rationale. */
+  maskReady: boolean = false,
   /** Bumps on undo / redo / reset / replaceWithFile so the cached
    *  downsample picks up the new pixels even when source identity
    *  is unchanged. See useAdjustPreview for the full rationale. */
@@ -60,7 +63,7 @@ export function useHslPreview(
     // skip baking while the user has Subject / Background selected
     // and the mask isn't ready, so the canvas shows the original
     // until detection lands.
-    if (scope !== 0 && !mask) {
+    if (scope !== 0 && !maskReady) {
       setPreview((prev) => {
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;
@@ -80,11 +83,17 @@ export function useHslPreview(
       let baked: HTMLCanvasElement | null = null;
       try {
         baked = bakeHsl(ds, params);
-        if (scope !== 0 && mask) {
-          const scoped = applyMaskScope(ds, baked, mask, scope);
-          if (scoped !== baked) {
-            releaseCanvas(baked);
-            baked = scoped;
+        if (scope !== 0) {
+          // Read the freshest mask directly from the service —
+          // bypasses any stale React-tree references. See
+          // useAdjustPreview for the full rationale.
+          const liveMask = peekMaskDownsample(source, previewLongEdge());
+          if (liveMask) {
+            const scoped = applyMaskScope(ds, baked, liveMask, scope);
+            if (scoped !== baked) {
+              releaseCanvas(baked);
+              baked = scoped;
+            }
           }
         }
       } catch (err) {
@@ -108,7 +117,7 @@ export function useHslPreview(
         rafRef.current = null;
       }
     };
-  }, [params, source, scope, mask]);
+  }, [params, source, scope, maskReady]);
 
   useEffect(() => {
     return () => {

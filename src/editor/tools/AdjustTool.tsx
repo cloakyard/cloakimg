@@ -4,34 +4,23 @@
 // / whites / blacks / vibrance — controls the CSS-filter approximation
 // can't faithfully reproduce.
 
-import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
-import { previewLongEdge } from "./previewSize";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function AdjustTool() {
   const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
-  // Pull a mask sized to match the preview surface so each per-rAF
-  // composite skips a full-res scaled drawImage (the cut can be 24
-  // MP — scaling that on every preview tick is the pre-cache bottleneck
-  // on phones). The downsample is built lazily by the service the
-  // first time anything asks for it, then reused across every scoped
-  // tool. Memoised on the whole `state` object: it gets a fresh
-  // identity on every version bump (invalidate / replace / new
-  // detection), so the memo stays correctly invalidated whenever the
-  // central cache changes — and we elide the Map lookup during
-  // slider-drag bursts (the tool re-renders on every toolState
-  // change).
-  const maskState = subjectMask.state;
-  const peekDownsample = subjectMask.peekDownsample;
-  const mask = useMemo(
-    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
-    [maskState, peekDownsample],
-  );
+  // Pass a readiness flag rather than the mask canvas itself. The
+  // bake reads the cached downsample directly from the service the
+  // moment it runs (peekMaskDownsample inside the rAF). Threading
+  // the canvas through React was racing with the cache lifecycle —
+  // a useMemo on `maskState` could end up holding a stale reference
+  // for a few renders, which read as "previews stop working after
+  // 1–2 changes".
+  const maskReady = subjectMask.state.status === "ready";
   const scope = (toolState.adjustScope as MaskScope) ?? 0;
   // historyVersion bumps on every history mutation — commit (Adjust /
   // Filter / etc bake into history), undo, redo, resetToOriginal,
@@ -48,7 +37,7 @@ export function AdjustTool() {
     0,
     toolState.curveRGB,
     scope,
-    mask,
+    maskReady,
     historyVersion,
   );
   useStageProps({ previewCanvas: preview });

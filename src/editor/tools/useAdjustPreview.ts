@@ -21,7 +21,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { type CurvePoint, isCurveIdentity } from "../toolState";
 import { bakeAdjust, isIdentity } from "./adjustments";
 import { previewLongEdge } from "./previewSize";
@@ -45,15 +45,21 @@ export function useAdjustPreview(
    *  user-facing curve simply leave this undefined. */
   curve?: CurvePoint[],
   /** Mask-aware scope for the bake: 0 (whole), 1 (subject), 2 (bg).
-   *  When scope is non-zero AND `mask` is provided, the preview
-   *  composites the bake with the downsampled source so the
-   *  modifications visibly land only in the chosen region. When
-   *  scope is non-zero but the mask hasn't loaded yet, we render
-   *  the un-scoped preview — the user sees the bake on the whole
-   *  image until detection lands, at which point the next render
-   *  re-bakes with the mask. */
+   *  When scope is non-zero AND the subject-mask service reports
+   *  `ready`, the bake reads the cached downsample directly from
+   *  the service inside its rAF (`peekMaskDownsample` is sync, O(1),
+   *  always returns the freshest cached canvas). When scope is
+   *  non-zero but the mask isn't ready, we suppress the preview so
+   *  the canvas keeps showing `doc.working`. */
   scope: MaskScope = 0,
-  mask: HTMLCanvasElement | null = null,
+  /** True iff the central subject-mask service has a detected cut
+   *  for the current source. Replaces the old `mask` canvas prop —
+   *  passing the canvas through React was causing the bake to chase
+   *  a stale reference after a few rapid re-renders, which read as
+   *  "previews stop working after 1–2 changes". The hook now reads
+   *  the canvas directly from the service the moment it bakes, so
+   *  any reference drift in the React tree is irrelevant. */
+  maskReady: boolean = false,
   /** Bumps whenever doc.working pixels may have changed without
    *  changing canvas identity (undo, redo, reset, replaceWithFile,
    *  another tool baked into history). The caller passes the doc
@@ -107,13 +113,13 @@ export function useAdjustPreview(
       });
       return;
     }
-    // Scope gating: when the user has picked Subject / Background but
-    // the mask hasn't loaded yet, suppress the preview entirely so
-    // the canvas keeps showing `doc.working`. Without this we'd bake
-    // a misleading whole-image preview during detection (the
-    // mask=null fallback below) — exactly the "controls drift while
-    // AI is loading" UX the gating was added to prevent.
-    if (scope !== 0 && !mask) {
+    // Scope gating: when the user has picked Subject / Background
+    // but the mask isn't ready, suppress the preview entirely so the
+    // canvas keeps showing `doc.working`. Without this we'd bake a
+    // misleading whole-image preview during detection — exactly the
+    // "controls drift while AI is loading" UX the gating was added
+    // to prevent.
+    if (scope !== 0 && !maskReady) {
       setPreview((prev) => {
         if (prev && prev !== downsampledRef.current) releaseCanvas(prev);
         return null;
@@ -148,11 +154,25 @@ export function useAdjustPreview(
         try {
           baked = bakeAdjust(ds, sliders, grain, curve);
           if (monochrome) toMonochrome(baked);
-          if (scope !== 0 && mask) {
-            const scoped = applyMaskScope(ds, baked, mask, scope);
-            if (scoped !== baked) {
-              releaseCanvas(baked);
-              baked = scoped;
+          if (scope !== 0 && source) {
+            // Read the freshest mask from the service at the moment
+            // we bake — bypasses any stale React-tree references.
+            // peekMaskDownsample is O(1) (cache lookup + dim check),
+            // so the per-rAF cost is negligible. If the cache was
+            // invalidated between effect run and this rAF (e.g. an
+            // undo bumped historyVersion mid-flight), null is fine —
+            // we fall through to the whole-image bake rather than
+            // leaving the canvas frozen. The `maskReady` gate above
+            // already filtered out the "user is waiting on detection"
+            // case, so this branch only runs when status was ready
+            // a moment ago.
+            const liveMask = peekMaskDownsample(source, previewLongEdge());
+            if (liveMask) {
+              const scoped = applyMaskScope(ds, baked, liveMask, scope);
+              if (scoped !== baked) {
+                releaseCanvas(baked);
+                baked = scoped;
+              }
             }
           }
         } catch (err) {
@@ -192,7 +212,7 @@ export function useAdjustPreview(
         rafRef.current = null;
       }
     };
-  }, [debounceMs, grain, monochrome, sliders, source, curve, scope, mask]);
+  }, [debounceMs, grain, monochrome, sliders, source, curve, scope, maskReady]);
 
   // Drop the last preview AND the cached downsample when the hook
   // unmounts so a tool swap doesn't leak either. The downsample is

@@ -9,22 +9,15 @@ import { useStageProps } from "../StageHost";
 import type { MaskScope } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import type { LevelsParams } from "./levels";
-import { previewLongEdge } from "./previewSize";
 import { useLevelsPreview } from "./useLevelsPreview";
 
 export function LevelsTool() {
   const { toolState, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
-  // Memoise the mask peek so the Map lookup doesn't repeat at 60 Hz
-  // during slider drags. `state` gets a fresh identity on every
-  // version bump (invalidate / replace / new detection), keeping the
-  // memo correctly invalidated when the central cache changes.
-  const maskState = subjectMask.state;
-  const peekDownsample = subjectMask.peekDownsample;
-  const mask = useMemo(
-    () => (maskState.status === "ready" ? peekDownsample(previewLongEdge()) : null),
-    [maskState, peekDownsample],
-  );
+  // Readiness flag only — the bake reads the cached downsample
+  // directly from the service inside its rAF. See useAdjustPreview
+  // for the full rationale.
+  const maskReady = subjectMask.state.status === "ready";
   const scope = (toolState.levelsScope as MaskScope) ?? 0;
   const params = useMemo<LevelsParams>(
     () => ({
@@ -46,7 +39,7 @@ export function LevelsTool() {
   // downsample after every commit / undo / redo / reset (the doc
   // ref alone misses intra-tool commits because commit() doesn't
   // setDoc).
-  const preview = useLevelsPreview(doc?.working ?? null, params, scope, mask, historyVersion);
+  const preview = useLevelsPreview(doc?.working ?? null, params, scope, maskReady, historyVersion);
   useStageProps({ previewCanvas: preview });
   return null;
 }
