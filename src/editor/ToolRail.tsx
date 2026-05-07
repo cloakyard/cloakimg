@@ -123,7 +123,14 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
   }, [hasOverflowRight]);
 
   return (
-    <div className="editor-paper relative shrink-0 border-t border-border-soft dark:border-dark-border-soft">
+    <div
+      // Glassmorphism on the bottom toolbar — the canvas peeks
+      // through as the user scrolls the tool rail. backdrop-blur-xl
+      // matches the TopBar's chrome so the editor reads as a single
+      // floating-chrome surface around the photo. Falls back to
+      // opaque `bg-surface` on browsers without backdrop-filter.
+      className="editor-paper relative shrink-0 border-t border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface/85"
+    >
       <div
         ref={scrollerRef}
         className="no-scrollbar flex gap-1 overflow-x-auto px-2 py-2 pb-[max(env(safe-area-inset-bottom),8px)]"
@@ -131,6 +138,10 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
         {ALL_TOOLS.map((tool) => {
           const Ic = tool.icon;
           const active = tool.id === activeTool;
+          // Active tab — filled coral pill with white icon/label
+          // (was an outlined coral-50 box). Reads as a current
+          // selection rather than a passive tab; matches the modern
+          // iOS / Material 3 affordance.
           return (
             <button
               key={tool.id}
@@ -138,9 +149,9 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
               onClick={() => onSelect(tool.id)}
               aria-label={tool.name}
               aria-pressed={active}
-              className={`relative flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 ${
+              className={`relative flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 transition-colors ${
                 active
-                  ? "bg-coral-50 text-coral-700 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30 dark:text-coral-300"
+                  ? "bg-coral-500 text-white shadow-[0_4px_10px_-4px_rgba(245,97,58,0.55)] dark:bg-coral-500 dark:text-white"
                   : "bg-transparent text-text-muted dark:text-dark-text-muted"
               }`}
             >
@@ -163,7 +174,7 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
         }`}
         style={{
           background:
-            "linear-gradient(to right, var(--surface) 30%, color-mix(in srgb, var(--surface) 70%, transparent) 70%, transparent 100%)",
+            "linear-gradient(to right, color-mix(in srgb, var(--surface) 85%, transparent) 30%, color-mix(in srgb, var(--surface) 50%, transparent) 70%, transparent 100%)",
         }}
       >
         <I.ChevronLeft
@@ -180,7 +191,7 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
         }`}
         style={{
           background:
-            "linear-gradient(to left, var(--surface) 30%, color-mix(in srgb, var(--surface) 70%, transparent) 70%, transparent 100%)",
+            "linear-gradient(to left, color-mix(in srgb, var(--surface) 85%, transparent) 30%, color-mix(in srgb, var(--surface) 50%, transparent) 70%, transparent 100%)",
         }}
       >
         <I.ChevronRight

@@ -195,15 +195,18 @@ export function AdjustPanel() {
               </PropRow>
             );
           })}
-        {showSliders && (
+        {/* Reset is destructive — wipes every slider + the curve. Only
+            surface it when there's something *to* reset, so the panel
+            stays calm in its idle state. Ghost styling keeps the
+            primary visual weight on the sliders themselves. */}
+        {showSliders && dirty && (
           <button
             type="button"
-            className="btn btn-secondary btn-xs mt-1 w-full justify-center"
+            className="btn btn-ghost btn-xs mt-1 w-full justify-center text-coral-700 dark:text-coral-300"
             onClick={reset}
-            disabled={!dirty}
           >
             <I.Refresh size={12} />
-            Reset
+            Reset all adjustments
           </button>
         )}
       </ScopeGate>

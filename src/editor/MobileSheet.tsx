@@ -4,11 +4,20 @@
 // The sheet sits *in flow* between the canvas and the toolbar so that
 // opening it pushes the canvas up — the image stays fully visible
 // while the user is editing instead of disappearing under an overlay.
-// Closed state floats a coral chevron-up FAB above the toolbar; the
-// open drawer puts a matching coral chevron-down FAB at its top edge
-// (dual purpose: tap to close, drag down to dismiss). A short
-// slide-up / slide-down animation drives the transition between the
-// two states. Switching tools auto-pops the drawer back open.
+//
+// Open state: a thin drag-handle pill sits centred at the top of the
+// drawer (iOS-style). Tap toggles open/closed; drag down past a
+// threshold dismisses. No big coral FAB — the handle reads as
+// "draggable surface" and stays visually quiet so the user's eye
+// goes to the controls below.
+//
+// Closed state: a slim re-open chip floats above the toolbar with a
+// chevron-up icon and the active tool's name. That's the only place
+// the tool name lives now (the previous header inside the open
+// drawer was redundant with the bottom toolbar's active tab).
+//
+// A short slide-up / slide-down animation drives the open/closed
+// transition. Switching tools auto-pops the drawer back open.
 
 import {
   type CSSProperties,
@@ -125,19 +134,24 @@ export function MobileSheet() {
   }, [startClose]);
 
   if (phase === "closed") {
+    // Slim re-open chip — far less visually loud than the previous
+    // 44 px coral disc. Tool name lives here (the only place it's
+    // shown when the drawer is closed) so the user can confirm what
+    // panel they'd be opening before they tap.
     return (
       <div ref={wrapRef} className="contents">
         <button
           type="button"
           onClick={openNow}
-          aria-label="Open tool controls"
-          className="absolute bottom-22 left-1/2 z-10 flex h-11 w-11 -translate-x-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-coral-500 p-0 text-white active:bg-coral-600"
+          aria-label={`Open ${findTool(toolState.activeTool).name} controls`}
+          className="absolute bottom-22 left-1/2 z-10 flex -translate-x-1/2 cursor-pointer items-center gap-1.5 rounded-full border border-border-soft bg-surface/85 px-3 py-1.5 text-[12px] font-semibold text-text backdrop-blur-md backdrop-saturate-150 active:scale-[0.97] dark:border-dark-border dark:bg-dark-surface/85 dark:text-dark-text"
           style={{
             animation: "ci-fab-in 200ms ease-out both",
-            boxShadow: "0 10px 24px -8px rgba(245,97,58,0.55), 0 4px 10px -2px rgba(0,0,0,0.22)",
+            boxShadow: "0 8px 20px -8px rgba(0,0,0,0.18), 0 2px 6px -2px rgba(0,0,0,0.10)",
           }}
         >
-          <I.ChevronUp size={18} stroke={2.5} />
+          <I.ChevronUp size={13} stroke={2.5} className="text-coral-600 dark:text-coral-300" />
+          {findTool(toolState.activeTool).name}
         </button>
       </div>
     );
@@ -151,35 +165,32 @@ export function MobileSheet() {
   };
 
   return (
-    <div ref={wrapRef} className="relative mt-1.5 shrink-0">
-      {/* Chevron lives in the outer wrapper so the inner panel can clip
-          its content to the animated height without clipping the FAB
-          that sits above the drawer's top edge. */}
-      <button
-        type="button"
-        onClick={startClose}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        aria-label="Close panel"
-        className="absolute -top-5 left-1/2 z-10 flex h-10 w-10 -translate-x-1/2 cursor-pointer touch-none items-center justify-center rounded-full border-none bg-coral-500 p-0 text-white active:bg-coral-600"
-        style={{
-          boxShadow: "0 10px 24px -8px rgba(245,97,58,0.55), 0 4px 10px -2px rgba(0,0,0,0.22)",
-        }}
-      >
-        <I.ChevronDown size={17} stroke={2.5} />
-      </button>
+    <div ref={wrapRef} className="relative shrink-0">
       <div
         ref={sheetRef}
         className="editor-paper flex flex-col overflow-hidden rounded-t-2xl border-t border-border-soft bg-page-bg dark:border-dark-border dark:bg-dark-page-bg"
         style={sheetStyle}
       >
-        <div className="flex shrink-0 items-center gap-2.5 px-4 pt-6 pb-2">
-          <span className="text-[13.5px] font-semibold text-coral-700 dark:text-coral-300">
-            {findTool(toolState.activeTool).name}
-          </span>
-        </div>
-        <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-5">
+        {/* Drag-handle pill — iOS-style affordance. Tap toggles
+            closed; drag-down past DRAG_DISMISS_PX dismisses. The
+            wrapping button gives the touch target ~44 px tall while
+            the visible pill stays a thin 4 px line — keeps the
+            drawer chrome quiet. */}
+        <button
+          type="button"
+          onClick={startClose}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          aria-label="Close panel — drag down to dismiss"
+          className="group flex h-7 shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
+        >
+          <span
+            aria-hidden
+            className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:bg-dark-border dark:group-active:bg-dark-text-muted"
+          />
+        </button>
+        <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-1.5 pb-5">
           <ToolControls />
         </div>
         <LayersList />

@@ -848,6 +848,17 @@ export function ImageCanvas({
           isMobile={isMobile}
           zoom={view.zoom}
           fitScale={transform.scale / Math.max(view.zoom, 0.0001)}
+          onZoomChange={(next) =>
+            setView((prev) => ({
+              ...prev,
+              zoom: next,
+              // Snap pan back to centre when the user picks Fit, so a
+              // previously panned canvas re-centres rather than
+              // zooming around an off-screen pivot. Other zoom paths
+              // keep the existing pan.
+              ...(next === 1 ? { panX: 0, panY: 0 } : {}),
+            }))
+          }
         />
       )}
     </div>
@@ -858,33 +869,17 @@ function CanvasHints({
   isMobile,
   zoom,
   fitScale,
+  onZoomChange,
 }: {
   isMobile: boolean;
   zoom: number;
   fitScale: number;
+  onZoomChange: (next: number) => void;
 }) {
   const displayZoom = Math.round(zoom * fitScale * 100);
   return (
     <>
-      {isMobile && (
-        <div
-          className="t-mono"
-          style={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            background: "rgba(0,0,0,0.55)",
-            color: "white",
-            padding: "4px 10px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: 600,
-            pointerEvents: "none",
-          }}
-        >
-          {displayZoom}%
-        </div>
-      )}
+      {isMobile && <MobileZoomControl displayZoom={displayZoom} onZoomChange={onZoomChange} />}
       {!isMobile && (
         <div
           style={{
@@ -913,6 +908,106 @@ function CanvasHints({
         </div>
       )}
     </>
+  );
+}
+
+/** Tappable zoom pill for mobile. Tap opens a compact popover with
+ *  −/+ steppers, the live percentage, and a "Fit" preset that
+ *  re-centres. Replaces the previous read-only `t-mono` badge — the
+ *  user gets a real zoom control without us having to add another
+ *  fixed UI affordance. */
+function MobileZoomControl({
+  displayZoom,
+  onZoomChange,
+}: {
+  displayZoom: number;
+  onZoomChange: (next: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Auto-dismiss on outside tap. We listen on `pointerdown` rather
+  // than click because the canvas swallows pointer events for
+  // pan/pinch and would otherwise prevent the popover from closing
+  // when the user goes back to editing.
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      const wrap = wrapRef.current;
+      if (wrap && e.target instanceof Node && wrap.contains(e.target)) return;
+      setOpen(false);
+    };
+    window.addEventListener("pointerdown", onDown, true);
+    return () => window.removeEventListener("pointerdown", onDown, true);
+  }, [open]);
+
+  const stepOut = () => onZoomChange(Math.max(0.05, (displayZoom / 100) * (1 / 1.25)));
+  const stepIn = () => onZoomChange(Math.min(8, (displayZoom / 100) * 1.25));
+  const fit = () => {
+    onZoomChange(1);
+    setOpen(false);
+  };
+
+  return (
+    <div
+      ref={wrapRef}
+      style={{ position: "absolute", top: 12, right: 12, zIndex: 5 }}
+      className="t-mono"
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={`Zoom ${displayZoom}% · tap for controls`}
+        aria-expanded={open}
+        className="cursor-pointer rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white active:scale-[0.96]"
+        style={{
+          background: open ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          transition: "background 150ms",
+        }}
+      >
+        {displayZoom}%
+      </button>
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Zoom controls"
+          className="absolute right-0 mt-1.5 flex items-center gap-0.5 rounded-full border border-white/10 p-0.5"
+          style={{
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            animation: "ci-fab-in 160ms ease-out both",
+          }}
+        >
+          <button
+            type="button"
+            onClick={stepOut}
+            aria-label="Zoom out"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-white active:bg-white/15"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            onClick={fit}
+            aria-label="Fit to screen"
+            className="cursor-pointer rounded-full border-none bg-transparent px-2 py-0.5 text-[11px] font-semibold text-white active:bg-white/15"
+          >
+            Fit
+          </button>
+          <button
+            type="button"
+            onClick={stepIn}
+            aria-label="Zoom in"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-white active:bg-white/15"
+          >
+            +
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -44,7 +44,11 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   return (
     <>
       <div
-        className={`editor-paper flex h-16 shrink-0 items-center border-b border-border bg-surface py-3 dark:border-dark-border dark:bg-dark-surface ${
+        // Glassmorphism — translucent surface + backdrop-blur so the
+        // canvas / grainient backdrop tints the bar slightly. Matches
+        // the bottom MobileToolbar so chrome reads as a single
+        // floating layer around the photo.
+        className={`editor-paper flex h-16 shrink-0 items-center border-b border-border bg-surface/85 py-3 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border dark:bg-dark-surface/85 ${
           isMobile ? "gap-1.5 px-2.5" : "gap-3 px-4"
         }`}
       >

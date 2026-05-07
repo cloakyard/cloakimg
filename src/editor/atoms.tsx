@@ -21,16 +21,21 @@ interface PropRowProps {
 }
 
 export function PropRow({ label, value, valueInput, children }: PropRowProps) {
+  // Typography hierarchy: label sits as semibold body-muted, value
+  // pairs with it in mono so the eye latches on to the number first.
+  // The `tracking-[-0.005em]` mirrors the rest of the editor's
+  // labels; without it, semibold at 12 px looks ever-so-slightly
+  // wider than the surrounding chrome.
   return (
     <div>
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-[11.5px] font-medium text-text-muted dark:text-dark-text-muted">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <span className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted dark:text-dark-text-muted">
           {label}
         </span>
         {valueInput
           ? valueInput
           : value && (
-              <span className="t-mono text-[11px] font-semibold text-text dark:text-dark-text">
+              <span className="t-mono text-[11.5px] font-semibold text-text dark:text-dark-text">
                 {value}
               </span>
             )}
@@ -320,11 +325,30 @@ interface SegmentProps {
 }
 
 export function Segment({ options, active, onChange, style }: SegmentProps) {
+  // Sliding indicator: a single absolutely-positioned pill animates
+  // between options instead of the active background discretely
+  // jumping. Width = 100/N % per slot; transform: translateX picks
+  // the slot. Transition is on `transform`, so the indicator slides
+  // smoothly between taps without forcing a repaint of the buttons.
+  // Falls back gracefully when N === 0 (renders nothing).
+  const n = options.length;
+  const slotPct = n > 0 ? 100 / n : 0;
   return (
     <div
-      className="flex rounded-md border border-border-soft bg-page-bg p-0.5 pointer-coarse:p-1 dark:border-dark-border-soft dark:bg-dark-page-bg"
+      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 pointer-coarse:p-1 dark:border-dark-border-soft dark:bg-dark-page-bg"
       style={style}
     >
+      {n > 0 && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 rounded bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.06)] pointer-coarse:top-1 pointer-coarse:right-1 pointer-coarse:bottom-1 pointer-coarse:left-1 dark:bg-dark-surface"
+          style={{
+            width: `calc(${slotPct}% - 4px)`,
+            transform: `translateX(calc(${active * 100}% + ${active * 4}px))`,
+            transition: "transform 200ms cubic-bezier(0.32, 0.72, 0, 1)",
+          }}
+        />
+      )}
       {options.map((o, i) => {
         const isActive = i === active;
         return (
@@ -334,10 +358,14 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             onClick={() => onChange?.(i)}
             // Touch devices get larger padding + slightly bigger label
             // so each segment clears the ~44 pt minimum tap target.
-            className={`flex-1 cursor-pointer rounded border-none px-2 py-1 text-center font-[inherit] text-[11px] font-semibold pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+            // The button itself stays transparent — the sliding pill
+            // above provides the active background. We toggle text
+            // colour on `isActive` so the active label snaps to the
+            // foreground colour while the pill animates underneath.
+            className={`relative z-1 flex-1 cursor-pointer rounded border-none bg-transparent px-2 py-1 text-center font-[inherit] text-[11px] font-semibold transition-colors pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
               isActive
-                ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-dark-surface dark:text-dark-text"
-                : "bg-transparent text-text-muted dark:text-dark-text-muted"
+                ? "text-text dark:text-dark-text"
+                : "text-text-muted dark:text-dark-text-muted"
             }`}
           >
             {o}
