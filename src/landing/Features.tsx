@@ -32,7 +32,7 @@ const FEATURES: Feature[] = [
     icon: <I.Sparkles size={20} />,
     title: "On-device AI",
     description:
-      "Background removal, smart crop, portrait blur, and subject-scoped tone edits all run in-browser via WebGPU. The model loads once with your explicit consent — three sizes from 6 MB to 25 MB so you choose speed vs. fidelity.",
+      "Background removal, smart crop, portrait blur, and subject-scoped tone edits all run in-browser via WebGPU. The model loads once with your explicit consent — three sizes from 42 MB to 168 MB so you choose speed vs. fidelity.",
   },
   {
     icon: <I.WifiOff size={20} />,

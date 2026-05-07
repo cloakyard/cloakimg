@@ -38,9 +38,9 @@ const MODES = ["Auto", "Chroma"] as const;
 // three buttons, the dialog showed three more, and it wasn't obvious
 // they referred to the same model.
 const QUALITY_META: Record<BgQuality, { label: string; mb: number }> = {
-  small: { label: "Fast", mb: 6 },
-  medium: { label: "Better", mb: 12 },
-  large: { label: "Best", mb: 25 },
+  small: { label: "Fast", mb: 42 },
+  medium: { label: "Better", mb: 84 },
+  large: { label: "Best", mb: 168 },
 };
 
 export function RemoveBgPanel() {

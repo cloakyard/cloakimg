@@ -9,11 +9,11 @@
 //   • No surprise downloads. The dialog states the size, the model
 //     name, and what the model does before any bytes hit the wire.
 //   • Quality choice is part of the same tap, not a separate panel.
-//     All three tiers fit any device — the heaviest is ~25 MB, well
-//     within phone storage budgets — so we no longer hide a tier on
-//     mobile (we used to gate the 176 MB briaai/RMBG-1.4 large tier
-//     to tablet+ before the migration to Xenova/modnet shrank the
-//     spread to 6–25 MB).
+//     The "Best" tier (~168 MB ISNet fp32) is hidden on phones — too
+//     heavy for typical mobile storage budgets and the fp16 tier is
+//     visually indistinguishable on phone-class screens. Tablets keep
+//     the option (iPad-class RAM + storage handle 168 MB fine); only
+//     the small-screen mobile layout hides it.
 //   • Privacy: the panel reiterates that the model + image stay on
 //     this device, since "do you want to download an AI model" reads
 //     scarier than "do you want me to call an API" otherwise.
@@ -48,6 +48,10 @@ interface Tier {
    *  below it is noticeable, the step up to "Best" mostly matters for
    *  hair / glass edges. */
   recommended?: boolean;
+  /** When true, this tier only appears on tablet/desktop. The 168 MB
+   *  ISNet fp32 dump is heavy for phone storage budgets — Fast / Better
+   *  are the right defaults there. */
+  desktopAndTabletOnly?: boolean;
 }
 
 const TIERS: Tier[] = [
@@ -55,7 +59,7 @@ const TIERS: Tier[] = [
     id: "small",
     index: 0,
     label: "Fast",
-    mb: 6,
+    mb: 42,
     strength: "Quickest to download and run — fits any device.",
     tradeoff: "Softer around hair, fur, and glass edges.",
   },
@@ -63,7 +67,7 @@ const TIERS: Tier[] = [
     id: "medium",
     index: 1,
     label: "Better",
-    mb: 12,
+    mb: 84,
     strength: "Sharper edges around hair and fine detail.",
     tradeoff: "Roughly 2× the first-run download.",
     recommended: true,
@@ -72,13 +76,15 @@ const TIERS: Tier[] = [
     id: "large",
     index: 2,
     label: "Best",
-    mb: 25,
+    mb: 168,
     strength: "Highest fidelity for hair, fur, and glass.",
-    tradeoff: "Slightly heavier; still under 30 MB.",
+    tradeoff: "Heaviest tier; best on a fast connection.",
+    desktopAndTabletOnly: true,
   },
 ];
 
-function tiersForLayout(_layout: Layout): Tier[] {
+function tiersForLayout(layout: Layout): Tier[] {
+  if (layout === "mobile") return TIERS.filter((t) => !t.desktopAndTabletOnly);
   return TIERS;
 }
 

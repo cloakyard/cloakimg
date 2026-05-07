@@ -255,13 +255,13 @@ function errorSuggestion(kind: ErrorKind | null): string | null {
   switch (kind) {
     case "stalled":
     case "timeout":
-      return "Tip: a smaller tier (Fast ~6 MB) downloads in a fraction of the time on slow connections.";
+      return "Tip: a smaller tier (Fast ~42 MB) downloads in a fraction of the time on slow connections.";
     case "interrupted":
       return "Tip: keep CloakIMG in the foreground while the model downloads — mobile browsers pause background tabs aggressively.";
     case "quota":
       return "Tip: clear cached site data for sites you don't actively use. CloakIMG itself only caches the model on first use.";
     case "memory":
-      return "Tip: switch to the Fast (~6 MB) tier from Change, or use the Chroma keyer (Mode → Chroma in Remove BG) — it's instant on flat studio backgrounds.";
+      return "Tip: switch to the Fast (~42 MB) tier from Change, or use the Chroma keyer (Mode → Chroma in Remove BG) — it's instant on flat studio backgrounds.";
     case "network":
       return "Tip: once cached, the model runs offline. Re-trying on a stable connection downloads it once.";
     case "module":

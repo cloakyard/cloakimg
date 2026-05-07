@@ -45,7 +45,7 @@ interface ProgressProps {
 
 /** Shared download / inference progress card. Two phases:
  *    • Download — determinate bar driven by ratio + a real MB readout
- *      (e.g. "8 / 12 MB"). Visible once on first-ever AI use.
+ *      (e.g. "23 / 84 MB"). Visible once on first-ever AI use.
  *    • Inference — indeterminate sliding-stripe; the lib doesn't
  *      surface inference progress, so we show motion instead of a
  *      fake percentage.
@@ -75,7 +75,7 @@ export function DetectionProgressCard({
   const bytes = progress?.bytesDownloaded ?? 0;
   // Prefer the live `bytesTotal` once the lib reports it, otherwise
   // fall back to the caller's pre-flight estimate so the user sees
-  // "0.0 MB / 12 MB" right away instead of a blank line.
+  // "0.0 MB / 84 MB" right away instead of a blank line.
   const total =
     progress?.bytesTotal && progress.bytesTotal > 0 ? progress.bytesTotal : (expectedTotal ?? 0);
   // The lib emits "Preparing model…" before any bytes arrive — that

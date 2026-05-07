@@ -50,7 +50,7 @@ export function MaskConsentHost() {
   // was a bug that made worker crashes look like "nothing happened".
   const [showDownload, setShowDownload] = useState(false);
   // Remember which quality the user picked so:
-  //   1. The progress card can show "0 / 12 MB" before the lib's
+  //   1. The progress card can show "0 / 84 MB" before the lib's
   //      first byte arrives (DetectionProgressCard's expectedTotal).
   //   2. Try again can rerun detection at the same tier without
   //      the user having to re-pick from the consent dialog.

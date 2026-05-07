@@ -10,25 +10,33 @@
 // back the same way (no PNG decode either) — a typical detection
 // shaves ~130 ms of round-trip overhead vs. the Blob path.
 //
-// Model is `Xenova/modnet` across all three tiers, varying by ONNX
-// dtype:
+// Model is `onnx-community/ISNet-ONNX` across all three tiers,
+// varying by ONNX dtype:
 //
-//   small  → q8   (~6 MB)   uint8 quantization, fastest, all devices
-//   medium → fp16 (~12 MB)  half precision, sharper edges
-//   large  → fp32 (~25 MB)  full precision, best fidelity
+//   small  → q8   (~42 MB)  uint8 quantization, fastest, all devices
+//   medium → fp16 (~84 MB)  half precision, recommended balance
+//   large  → fp32 (~168 MB) full precision, best fidelity
 //
-// We had been using `briaai/RMBG-1.4` (Segformer-based) but
-// transformers.js v4 narrowed which model architectures the
-// `background-removal` pipeline accepts. Briaai's config.json reports
-// `model_type: "SegformerForSemanticSegmentation"` (a class name) where
-// v4 expects the lowercase identifier `"segformer"`, so v4's
-// candidate-class probe ("None of the candidate model classes support
-// this type") rejects every dispatch. modnet ships in v4's
-// CUSTOM_ARCHITECTURES_MAPPING and works out of the box; the trade-off
-// is much smaller first-run downloads (6–25 MB vs 44–176 MB) but the
-// edge quality is comparable for portrait / product photos which are
-// the dominant use case. To swap to BiRefNet later, change
-// MODEL_REGISTRY — the cache probe and dispatch are model-agnostic.
+// We previously shipped Xenova/modnet, but a head-to-head bake-off
+// against ISNet on three subject types (curly-hair portrait, dog with
+// fur, product on white) showed modnet returns an *empty mask* for
+// non-human subjects — modnet's training set is portraits-only.
+// Users segmenting pets, products, or any non-portrait subject saw
+// "no subject detected" or, worse, a fully transparent cut. ISNet is
+// general-purpose (DIS dataset) and produces clean masks across all
+// three categories at every dtype. The size budget tripled (6→42 MB
+// for the Fast tier) but the bytes are real value, not size for size's
+// sake — modnet's smaller weights couldn't generalise.
+//
+// History: we briefly used `briaai/RMBG-1.4` (Segformer-based) but
+// transformers.js v4 rejects it because briaai's config.json reports
+// `model_type: "SegformerForSemanticSegmentation"` (the class name)
+// where v4 expects the lowercase identifier `"segformer"`. ISNet is
+// in v4's CUSTOM_ARCHITECTURES_MAPPING and loads cleanly. To swap to
+// BiRefNet or BEN2 later, change MODEL_REGISTRY — the cache probe
+// and dispatch are model-agnostic. (Note: BiRefNet_lite was tested
+// and trips a WebGPU shader storage-buffer limit on common Chrome
+// configs, so it's not a viable swap today.)
 
 import { acquireCanvas } from "../../doc";
 import { aiLog } from "../log";
@@ -52,18 +60,18 @@ interface ModelTier {
 }
 
 const MODEL_REGISTRY: Record<BgQuality, ModelTier> = {
-  small: { repo: "Xenova/modnet", dtype: "q8" },
-  medium: { repo: "Xenova/modnet", dtype: "fp16" },
-  large: { repo: "Xenova/modnet", dtype: "fp32" },
+  small: { repo: "onnx-community/ISNet-ONNX", dtype: "q8" },
+  medium: { repo: "onnx-community/ISNet-ONNX", dtype: "fp16" },
+  large: { repo: "onnx-community/ISNet-ONNX", dtype: "fp32" },
 };
 
 /** Best-effort byte-size hint shown in the consent dialog. The real
  *  size only resolves once the network responds; these are stable
- *  estimates for the Xenova/modnet ONNX dump. */
+ *  estimates for the ISNet ONNX dump. */
 export const QUALITY_BYTE_ESTIMATES: Record<BgQuality, number> = {
-  small: 6 * 1024 * 1024,
-  medium: 12 * 1024 * 1024,
-  large: 25 * 1024 * 1024,
+  small: 42 * 1024 * 1024,
+  medium: 84 * 1024 * 1024,
+  large: 168 * 1024 * 1024,
 };
 
 interface RemoveOptions {
@@ -99,14 +107,13 @@ export async function smartRemoveBackground(
     src: `${src.width}x${src.height}`,
   });
 
-  // 1. Pick an inference size. The Xenova/modnet preprocessor resizes
-  //    every input to `shortest_edge: 512` internally — so feeding
-  //    24 MP raw pixels just inflates worker memory pressure with no
-  //    quality benefit. We cap the long edge at INFERENCE_LONG_EDGE
-  //    before transferring; the model still sees plenty of detail
-  //    (~1024 long-edge dwarfs the 512 it'll downsize to anyway), and
-  //    the worker's bitmap → RawImage → OffscreenCanvas round trip
-  //    drops from ~300 MB to under 50 MB.
+  // 1. Pick an inference size. ISNet's preprocessor resizes every
+  //    input to 1024×1024 internally — feeding 24 MP raw pixels just
+  //    inflates worker memory pressure with no quality benefit. We cap
+  //    the long edge at INFERENCE_LONG_EDGE before transferring so the
+  //    bitmap arrives at the worker already at the model's working
+  //    resolution. The worker's bitmap → RawImage → OffscreenCanvas
+  //    round trip drops from ~300 MB to under 50 MB.
   //
   //    The mask we get back is at the inference size — we then bilinear-
   //    upscale its alpha onto the original full-res source on the main
@@ -225,11 +232,10 @@ export async function smartRemoveBackground(
   return out;
 }
 
-/** Largest dimension we'll feed the segmentation model. modnet
- *  resizes to 512px shortest-edge internally, so anything above ~1024
- *  long-edge is wasted memory in the worker. Picked to leave plenty
- *  of headroom over the model's intrinsic resolution while keeping
- *  the bitmap → RawImage round trip under 20 MB even for portraits. */
+/** Largest dimension we'll feed the segmentation model. ISNet
+ *  preprocesses to 1024×1024 internally, so this is the natural
+ *  ceiling — anything bigger is just memory pressure with no extra
+ *  signal for the model to consume. */
 const INFERENCE_LONG_EDGE = 1024;
 
 /** Whether a given quality tier's model bytes are already on disk
