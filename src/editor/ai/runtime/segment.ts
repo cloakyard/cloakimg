@@ -10,15 +10,25 @@
 // back the same way (no PNG decode either) — a typical detection
 // shaves ~130 ms of round-trip overhead vs. the Blob path.
 //
-// Model is `briaai/RMBG-1.4` across all three tiers, varying by ONNX
+// Model is `Xenova/modnet` across all three tiers, varying by ONNX
 // dtype:
 //
-//   small  → q8   (~44 MB)  best for portraits and most photos
-//   medium → fp16 (~88 MB)  sharper edges, slower first-run
-//   large  → fp32 (~176 MB) highest fidelity, heavy download
+//   small  → q8   (~6 MB)   uint8 quantization, fastest, all devices
+//   medium → fp16 (~12 MB)  half precision, sharper edges
+//   large  → fp32 (~25 MB)  full precision, best fidelity
 //
-// To upgrade to BiRefNet later, swap MODEL_REGISTRY's `repo`. The
-// cache probe and dispatch are already model-agnostic.
+// We had been using `briaai/RMBG-1.4` (Segformer-based) but
+// transformers.js v4 narrowed which model architectures the
+// `background-removal` pipeline accepts. Briaai's config.json reports
+// `model_type: "SegformerForSemanticSegmentation"` (a class name) where
+// v4 expects the lowercase identifier `"segformer"`, so v4's
+// candidate-class probe ("None of the candidate model classes support
+// this type") rejects every dispatch. modnet ships in v4's
+// CUSTOM_ARCHITECTURES_MAPPING and works out of the box; the trade-off
+// is much smaller first-run downloads (6–25 MB vs 44–176 MB) but the
+// edge quality is comparable for portrait / product photos which are
+// the dominant use case. To swap to BiRefNet later, change
+// MODEL_REGISTRY — the cache probe and dispatch are model-agnostic.
 
 import { acquireCanvas } from "../../doc";
 import { aiLog } from "../log";
@@ -42,18 +52,18 @@ interface ModelTier {
 }
 
 const MODEL_REGISTRY: Record<BgQuality, ModelTier> = {
-  small: { repo: "briaai/RMBG-1.4", dtype: "q8" },
-  medium: { repo: "briaai/RMBG-1.4", dtype: "fp16" },
-  large: { repo: "briaai/RMBG-1.4", dtype: "fp32" },
+  small: { repo: "Xenova/modnet", dtype: "q8" },
+  medium: { repo: "Xenova/modnet", dtype: "fp16" },
+  large: { repo: "Xenova/modnet", dtype: "fp32" },
 };
 
 /** Best-effort byte-size hint shown in the consent dialog. The real
  *  size only resolves once the network responds; these are stable
- *  estimates for the briaai/RMBG-1.4 ONNX dump. */
+ *  estimates for the Xenova/modnet ONNX dump. */
 export const QUALITY_BYTE_ESTIMATES: Record<BgQuality, number> = {
-  small: 44 * 1024 * 1024,
-  medium: 88 * 1024 * 1024,
-  large: 176 * 1024 * 1024,
+  small: 6 * 1024 * 1024,
+  medium: 12 * 1024 * 1024,
+  large: 25 * 1024 * 1024,
 };
 
 interface RemoveOptions {
@@ -89,15 +99,47 @@ export async function smartRemoveBackground(
     src: `${src.width}x${src.height}`,
   });
 
-  // 1. Snapshot the source as a transferable ImageBitmap. ~5 ms vs.
-  //    ~50–200 ms for canvas.toBlob('image/png') on large photos —
-  //    keeps the editor's main thread responsive during Apply.
+  // 1. Pick an inference size. The Xenova/modnet preprocessor resizes
+  //    every input to `shortest_edge: 512` internally — so feeding
+  //    24 MP raw pixels just inflates worker memory pressure with no
+  //    quality benefit. We cap the long edge at INFERENCE_LONG_EDGE
+  //    before transferring; the model still sees plenty of detail
+  //    (~1024 long-edge dwarfs the 512 it'll downsize to anyway), and
+  //    the worker's bitmap → RawImage → OffscreenCanvas round trip
+  //    drops from ~300 MB to under 50 MB.
+  //
+  //    The mask we get back is at the inference size — we then bilinear-
+  //    upscale its alpha onto the original full-res source on the main
+  //    thread (step 4) so callers still get a cut at source dimensions.
+  //    Quality of an upscaled soft alpha mask is indistinguishable from
+  //    one regenerated at full resolution for the kind of edges modnet
+  //    produces (it's a probability map, not a hard binary).
+  const longEdge = Math.max(src.width, src.height);
+  const scale = longEdge > INFERENCE_LONG_EDGE ? INFERENCE_LONG_EDGE / longEdge : 1;
+  const infW = Math.max(1, Math.round(src.width * scale));
+  const infH = Math.max(1, Math.round(src.height * scale));
+
   let inputBitmap: ImageBitmap;
   try {
-    inputBitmap = await createImageBitmap(src);
+    if (scale < 1) {
+      // Build a downscaled snapshot via OffscreenCanvas — much cheaper
+      // than handing the worker the full-res bitmap and doing the
+      // resize inside the model preprocessor (where it would have
+      // already paid the 300 MB memory tax we're trying to avoid).
+      const off = new OffscreenCanvas(infW, infH);
+      const offCtx = off.getContext("2d", { willReadFrequently: false });
+      if (!offCtx) throw new Error("OffscreenCanvas 2D context unavailable for downscale");
+      offCtx.imageSmoothingEnabled = true;
+      offCtx.imageSmoothingQuality = "high";
+      offCtx.drawImage(src, 0, 0, infW, infH);
+      inputBitmap = await createImageBitmap(off);
+    } else {
+      inputBitmap = await createImageBitmap(src);
+    }
   } catch (err) {
     aiLog.error("segment", "createImageBitmap failed", err, {
       src: `${src.width}x${src.height}`,
+      inference: `${infW}x${infH}`,
     });
     throw err;
   }
@@ -134,6 +176,7 @@ export async function smartRemoveBackground(
       aiLog.error("segment", "worker dispatch failed", err, {
         quality,
         model: tier.repo,
+        inference: `${infW}x${infH}`,
         elapsedMs: Math.round(performance.now() - startedAt),
       });
     }
@@ -142,31 +185,52 @@ export async function smartRemoveBackground(
 
   onProgress?.({ phase: "decode", ratio: 0.95, label: "Finalising…" });
 
-  // 3. Paint the result bitmap into a pooled canvas the editor can
-  //    copyInto. drawImage from a transferred ImageBitmap is
-  //    GPU-direct on every backend we ship — no PNG decode.
-  const out = acquireCanvas(result.width, result.height);
+  // 3. Composite the small cut's alpha back onto the full-res source.
+  //    drawImage with the {dx, dy, dw, dh} signature does a bilinear
+  //    upscale — visually identical to running the model at full res
+  //    for the soft alpha modnet produces, but at a fraction of the
+  //    memory cost. The destination canvas matches `src` dimensions
+  //    so the cache layer's "cut.width === source.width" invariant
+  //    stays intact.
+  const out = acquireCanvas(src.width, src.height);
   const ctx = out.getContext("2d");
   if (!ctx) {
     result.bitmap.close();
     aiLog.error("segment", "acquireCanvas getContext returned null", null, {
-      size: `${result.width}x${result.height}`,
+      size: `${src.width}x${src.height}`,
     });
     throw new Error("Could not acquire canvas context");
   }
   ctx.clearRect(0, 0, out.width, out.height);
-  ctx.drawImage(result.bitmap, 0, 0);
+  // Lay down full-res RGB from the original source first.
+  ctx.drawImage(src, 0, 0);
+  // Then mask with the upscaled alpha. `destination-in` keeps existing
+  // pixels weighted by the second image's alpha — exactly the cut we
+  // want without an extra getImageData round-trip.
+  ctx.globalCompositeOperation = "destination-in";
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(result.bitmap, 0, 0, src.width, src.height);
+  ctx.globalCompositeOperation = "source-over";
   result.bitmap.close();
 
   aiLog.info("segment", "smartRemoveBackground done", {
     quality,
     device: result.device,
-    out: `${result.width}x${result.height}`,
+    out: `${src.width}x${src.height}`,
+    inference: `${infW}x${infH}`,
     elapsedMs: Math.round(performance.now() - startedAt),
   });
   onProgress?.({ phase: "decode", ratio: 1, label: "Done" });
   return out;
 }
+
+/** Largest dimension we'll feed the segmentation model. modnet
+ *  resizes to 512px shortest-edge internally, so anything above ~1024
+ *  long-edge is wasted memory in the worker. Picked to leave plenty
+ *  of headroom over the model's intrinsic resolution while keeping
+ *  the bitmap → RawImage round trip under 20 MB even for portraits. */
+const INFERENCE_LONG_EDGE = 1024;
 
 /** Whether a given quality tier's model bytes are already on disk
  *  from a previous session. Used by the consent dialog to render the

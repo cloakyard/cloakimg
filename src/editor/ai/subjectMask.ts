@@ -457,7 +457,7 @@ export async function ensureSubjectMask(
         status: "error",
         progress: null,
         error:
-          "Download stalled. This is usually a slow connection — try again, or pick the Fast (~44 MB) tier from Change.",
+          "Download stalled. This is usually a slow connection — try again, or pick the Fast (~6 MB) tier from Change.",
       });
       myAbort.abort();
     }, STALL_TIMEOUT_MS);

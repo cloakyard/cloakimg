@@ -56,8 +56,8 @@ env.useBrowserCache = true;
 // Disabling the preload reverts to v3's behaviour: ORT fetches the
 // WASM directly via its built-in loader on first inference. The
 // runtime files are small (~few hundred KB) and `useBrowserCache`
-// still caches the *model* (44–176 MB) which is the part actually
-// worth caching for offline use.
+// still caches the *model* (6–25 MB Xenova/modnet ONNX) which is the
+// part actually worth caching for offline use.
 env.useWasmCache = false;
 // Suppress transformers.js + ONNX Runtime info / warning chatter.
 // v4 unified the verbosity controls: `env.logLevel` propagates down
@@ -418,8 +418,8 @@ function friendlyErrorMessage(raw: string): string {
   ) {
     return "Couldn't reach the model server. Check your connection and try again.";
   }
-  // OOM / allocation failure — common on mid-tier phones for the
-  // 88 MB / 176 MB tiers.
+  // OOM / allocation failure — rare with the modnet tiers (under
+  // 30 MB) but still possible on memory-starved devices.
   if (
     lower.includes("out of memory") ||
     lower.includes("oom") ||
@@ -427,7 +427,7 @@ function friendlyErrorMessage(raw: string): string {
     lower.includes("rangeerror") ||
     lower.includes("array buffer allocation failed")
   ) {
-    return "This device ran out of memory loading the model. Try the Fast (~44 MB) tier, or switch to the Chroma keyer for flat backgrounds.";
+    return "This device ran out of memory loading the model. Try the Fast (~6 MB) tier, or switch to the Chroma keyer for flat backgrounds.";
   }
   // WebAssembly compile errors — usually a browser without WASM SIMD
   // / threads, or a corrupt cache entry.

@@ -209,10 +209,10 @@ export interface ToolState {
    *  sampling). Auto is the default; chroma stays available for
    *  flat studio backdrops where it's faster + needs no model load. */
   bgMode: number;
-  /** Auto-mode quality / size trade-off:
-   *    0 = small  (~44 MB int8 model, fastest, fine for ~1 MP photos)
-   *    1 = medium (~88 MB fp16 model, sharper edges)
-   *    2 = large  (~176 MB fp32 model, best quality, slow on phones) */
+  /** Auto-mode quality / size trade-off (Xenova/modnet ONNX dump):
+   *    0 = small  (~6 MB q8 model, fastest, fits any device)
+   *    1 = medium (~12 MB fp16 model, sharper edges)
+   *    2 = large  (~25 MB fp32 model, highest fidelity) */
   bgQuality: number;
 
   // Portrait blur — gaussian / lens / tilt-shift blur applied to the
