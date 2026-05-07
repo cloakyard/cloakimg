@@ -17,7 +17,7 @@
 //     swatch.
 
 import { I } from "../../components/icons";
-import type { SmartRemoveProgress } from "./smartRemoveBg";
+import type { SmartRemoveProgress } from "./ai/segment";
 
 interface ProgressProps {
   progress: SmartRemoveProgress | null;
@@ -27,6 +27,13 @@ interface ProgressProps {
   /** Override the leading title in the card. Defaults to the lib's
    *  own progress label, falling back to "Detecting subject…". */
   fallbackLabel?: string;
+  /** When provided, renders a Cancel affordance that calls this on
+   *  tap. Now that the AI worker can be terminated mid-inference, an
+   *  honest cancel exists — passing `onCancel` opts the panel into
+   *  surfacing it. Omit on surfaces where cancellation isn't safe
+   *  (no current callers, but the flexibility avoids forcing every
+   *  consumer to handle it). */
+  onCancel?: () => void;
 }
 
 /** Shared download / inference progress card. Two phases:
@@ -39,7 +46,7 @@ interface ProgressProps {
  *  Labels read generically — "Detecting subject…" — so the same card
  *  is honest whether triggered by Adjust scope, Portrait blur, Smart
  *  Crop, or Remove BG itself. */
-export function DetectionProgressCard({ progress, warm, fallbackLabel }: ProgressProps) {
+export function DetectionProgressCard({ progress, warm, fallbackLabel, onCancel }: ProgressProps) {
   const isDownload = progress?.phase === "download";
   const isInference = progress?.phase === "inference" || progress?.phase === "decode";
   const downloadPct = isDownload ? Math.round((progress?.ratio ?? 0) * 100) : null;
@@ -87,16 +94,27 @@ export function DetectionProgressCard({ progress, warm, fallbackLabel }: Progres
         />
       </div>
       {!warm && total > 0 && !isInference && (
-        <div className="flex items-center justify-between text-[10.75px] text-text-muted dark:text-dark-text-muted">
+        <div className="flex items-center justify-between gap-2 text-[10.75px] text-text-muted dark:text-dark-text-muted">
           <span className="t-mono">
             {formatMb(bytes)} / {formatMb(total)}
           </span>
-          <span>One-time · cached after</span>
+          <span className="truncate">One-time · cached after</span>
         </div>
       )}
       {(warm || isInference) && (
         <div className="text-[10.75px] text-text-muted dark:text-dark-text-muted">
           Running on this device. The image never leaves your browser.
+        </div>
+      )}
+      {onCancel && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[11px] font-semibold text-coral-700 underline dark:text-coral-300"
+          >
+            Cancel
+          </button>
         </div>
       )}
     </div>

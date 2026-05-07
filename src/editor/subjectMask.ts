@@ -21,11 +21,12 @@
 
 import { acquireCanvas, releaseCanvas } from "./doc";
 import {
+  AiAbortError,
   type BgQuality,
   isModelCached,
   smartRemoveBackground,
   type SmartRemoveProgress,
-} from "./tools/smartRemoveBg";
+} from "./tools/ai/segment";
 
 export type MaskStatus = "idle" | "loading" | "ready" | "error" | "needs-consent";
 
@@ -87,9 +88,14 @@ let inflightSource: HTMLCanvasElement | null = null;
  *  `invalidateSubjectMask` (and at the start of every fresh detection)
  *  so a detection that started on doc A but finishes after a
  *  `replaceWithFile` to doc B can detect the supersession and skip
- *  writing its stale cut to the cache. The lib's underlying fetch /
- *  inference can't actually be cancelled, but we can refuse its result. */
+ *  writing its stale cut to the cache. */
 let inflightGeneration = 0;
+/** AbortController for the active detection. Wired through the AI
+ *  worker so an explicit cancel actually terminates the inference
+ *  thread (the only honest way to stop a running ONNX run). The
+ *  controller is rebuilt per detection — aborting one cannot stomp
+ *  on a fresh follow-up. */
+let inflightAbort: AbortController | null = null;
 /** Per-session consent flag. The first time a tool needs the model
  *  (download not already on disk), the UI flips status to
  *  "needs-consent" and the user has to confirm. After they confirm
@@ -191,6 +197,20 @@ function releaseCacheEntry(entry: CacheEntry) {
   entry.downsamples.clear();
 }
 
+/** Cancel an in-flight detection. Aborts the AI worker (which
+ *  terminates the inference thread — there's no graceful interrupt
+ *  for ONNX) and resets state to idle so the panels' inline progress
+ *  cards clear. No-op when nothing is in flight. */
+export function cancelMaskDetection() {
+  if (!inflight || !inflightAbort) return;
+  inflightAbort.abort();
+  inflightGeneration += 1;
+  inflight = null;
+  inflightSource = null;
+  inflightAbort = null;
+  setState({ status: "idle", progress: null, error: null });
+}
+
 /** Drop the cached mask. Called by EditorContext when the doc swaps
  *  out (replaceWithFile, resetToOriginal) so the next session starts
  *  clean. `peekSubjectMask` also auto-invalidates on dimension drift,
@@ -208,9 +228,17 @@ export function invalidateSubjectMask() {
     cache = null;
   }
   if (inflight) {
+    // Now that we own the AI worker, an invalidate (doc swap, reset)
+    // can actually terminate the inference rather than letting bytes
+    // continue churning in the background — saves battery and avoids
+    // a late "ready" tick from the superseded detection. The
+    // generation bump still guards against any in-flight result that
+    // races the abort handler.
+    inflightAbort?.abort();
     inflightGeneration += 1;
     inflight = null;
     inflightSource = null;
+    inflightAbort = null;
   }
   if (!hadCache && !hadInflight) return;
   // Don't reset `warm` — the model's still loaded in memory, future
@@ -343,10 +371,16 @@ export async function ensureSubjectMask(
   inflightGeneration += 1;
   const myGeneration = inflightGeneration;
   inflightSource = source;
+  // Fresh AbortController per detection. Cancelling one mid-flight
+  // doesn't affect a later detection that the user kicks off after
+  // hitting Cancel.
+  inflightAbort = new AbortController();
+  const myAbort = inflightAbort;
   inflight = (async () => {
     try {
       const cut = await smartRemoveBackground(source, {
         quality,
+        signal: myAbort.signal,
         onProgress: (p) => {
           // Don't push progress updates for a superseded detection —
           // the UI may have already returned to idle for a new doc and
@@ -398,6 +432,10 @@ export async function ensureSubjectMask(
       // Superseded errors are silent — they're a cooperative signal
       // from our own generation guard, not a user-visible failure.
       if (myGeneration !== inflightGeneration) throw err;
+      // User-initiated cancel: drop back to idle without surfacing an
+      // error card. cancelMaskDetection() flips status itself, so all
+      // we have to do here is rethrow without touching state.
+      if (err instanceof AiAbortError) throw err;
       const msg = err instanceof Error ? err.message : String(err);
       // Don't double-write state for the "no subject" branch — that
       // branch already set its own user-friendly error.
@@ -411,6 +449,7 @@ export async function ensureSubjectMask(
       if (myGeneration === inflightGeneration) {
         inflight = null;
         inflightSource = null;
+        inflightAbort = null;
       }
     }
   })();

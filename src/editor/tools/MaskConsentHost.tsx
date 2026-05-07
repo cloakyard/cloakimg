@@ -24,11 +24,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useEditorReadOnly } from "../EditorContext";
-import { ensureSubjectMask, grantMaskConsent } from "../subjectMask";
+import { cancelMaskDetection, ensureSubjectMask, grantMaskConsent } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
+import type { BgQuality } from "./ai/segment";
 import { MaskConsentDialog } from "./MaskConsentDialog";
 import { MaskDownloadDialog } from "./MaskDownloadDialog";
-import type { BgQuality } from "./smartRemoveBg";
 
 export function MaskConsentHost() {
   const subjectMask = useSubjectMask();
@@ -72,10 +72,18 @@ export function MaskConsentHost() {
   }, [subjectMask.state.status]);
 
   const onDismissDownload = useCallback(() => {
-    // The lib's network fetch can't actually be cancelled mid-flight,
-    // so dismissing just hides the dialog — detection finishes in the
-    // background and the cached cut is there for the next tool that
-    // needs it. Better than a "Cancel" that doesn't cancel.
+    // "Continue in background" — hide the modal, let detection
+    // finish. The cached cut is there for the next tool that asks.
+    setShowDownload(false);
+  }, []);
+
+  const onCancelDownload = useCallback(() => {
+    // "Cancel" — terminate the worker outright. We own the worker now
+    // (see ai/runtime.ts) so cancellation is honest: the inference
+    // thread dies, the modal closes, mask state goes back to idle.
+    // The bytes already in CacheStorage stick around so a follow-up
+    // tap doesn't re-download from scratch.
+    cancelMaskDetection();
     setShowDownload(false);
   }, []);
 
@@ -94,6 +102,7 @@ export function MaskConsentHost() {
         progress={subjectMask.state.progress}
         warm={subjectMask.state.warm}
         onDismiss={onDismissDownload}
+        onCancel={onCancelDownload}
       />
     );
   }

@@ -21,7 +21,7 @@ import {
   subscribeMaskState,
   waitForMaskResolution,
 } from "./subjectMask";
-import type { BgQuality } from "./tools/smartRemoveBg";
+import type { BgQuality } from "./tools/ai/segment";
 
 const QUALITY_KEYS: BgQuality[] = ["small", "medium", "large"];
 

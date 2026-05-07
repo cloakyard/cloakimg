@@ -27,17 +27,29 @@ import { I } from "../../components/icons";
 import { ModalFrame } from "../../components/ModalFrame";
 import { useEditorActions, useEditorReadOnly } from "../EditorContext";
 import type { Layout } from "../types";
-import { type BgQuality, isModelCached } from "./smartRemoveBg";
+import { type BgQuality, isModelCached } from "./ai/segment";
 
 interface Tier {
   id: BgQuality;
   index: number;
   label: string;
   mb: number;
-  hint: string;
+  /** One-line description of what this tier is good at — what makes
+   *  this option the right pick for the user. Renders as the primary
+   *  hint line, so it should answer "why pick this?". */
+  strength: string;
+  /** One-line description of the trade-off — what the user gives up
+   *  to get the strength. Renders muted underneath. Honest about the
+   *  cost so the user can choose with eyes open. */
+  tradeoff: string;
+  /** When true, the dialog tags this tier with a "Recommended" pill.
+   *  Set on the tier that delivers the best balance for typical
+   *  desktop users — quality fall-off below it is noticeable, the
+   *  step up to "Best" mostly matters for hair / glass edges. */
+  recommended?: boolean;
   /** When true, this tier only appears on tablet/desktop. The 176 MB
-   *  model is heavy for phone storage budgets and most phone use
-   *  cases — Fast/Better are the right defaults there. */
+   *  model is heavy for phone storage budgets — Fast / Better are
+   *  the right defaults there. */
   desktopAndTabletOnly?: boolean;
 }
 
@@ -47,21 +59,25 @@ const TIERS: Tier[] = [
     index: 0,
     label: "Fast",
     mb: 44,
-    hint: "Best for portraits and most photos. Recommended.",
+    strength: "Quickest to download and run — fits any device.",
+    tradeoff: "Softer around hair, fur, and glass edges.",
   },
   {
     id: "medium",
     index: 1,
     label: "Better",
     mb: 88,
-    hint: "Sharper edges, slower on first run.",
+    strength: "Sharper edges around hair and fine detail.",
+    tradeoff: "Roughly 2× the first-run download.",
+    recommended: true,
   },
   {
     id: "large",
     index: 2,
     label: "Best",
     mb: 176,
-    hint: "Highest fidelity, heaviest download.",
+    strength: "Highest fidelity for hair, fur, and glass.",
+    tradeoff: "Heavy download; best on a fast connection.",
     desktopAndTabletOnly: true,
   },
 ];
@@ -184,21 +200,29 @@ export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props
                   {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="text-[12.5px] font-semibold text-text dark:text-dark-text">
                       {tier.label}
                     </span>
                     <span className="t-mono text-[11px] text-text-muted dark:text-dark-text-muted">
                       ~{tier.mb} MB
                     </span>
+                    {tier.recommended && !cached && (
+                      <span className="rounded-full border border-coral-300/70 bg-coral-50 px-1.5 py-px text-[10px] font-semibold text-coral-700 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
+                        Recommended
+                      </span>
+                    )}
                     {cached && (
                       <span className="rounded-full border border-emerald-300/70 bg-emerald-50 px-1.5 py-px text-[10px] font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
                         Already downloaded
                       </span>
                     )}
                   </span>
-                  <span className="mt-0.5 block text-[11.5px] leading-snug text-text-muted dark:text-dark-text-muted">
-                    {tier.hint}
+                  <span className="mt-1 block text-[11.5px] leading-snug text-text dark:text-dark-text">
+                    {tier.strength}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] leading-snug text-text-muted dark:text-dark-text-muted">
+                    {tier.tradeoff}
                   </span>
                 </span>
               </button>

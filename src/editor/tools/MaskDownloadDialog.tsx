@@ -5,30 +5,31 @@
 // Auto-closes when detection settles (ready / error) — the host
 // handles the lifecycle.
 //
-// The body delegates to DetectionProgressCard so the visual rhythm
-// matches every other download / inference surface in the app
-// (Remove BG, scope-aware tools' inline cards). Only the dismiss
-// affordance lives here, with the same `btn-ghost btn-sm` styling
-// as every other dismissive button.
-//
-// Dismissing while the download is mid-flight: we can't actually
-// cancel the lib's fetch, so the host just hides the modal and lets
-// detection finish in the background. The cached cut becomes
-// available to the next tool that asks for it.
+// Two ways out:
+//   • "Continue in background" hides the modal but lets detection
+//     finish; the cached cut becomes available to the next tool that
+//     asks for it. Same UX we shipped under imgly.
+//   • "Cancel" terminates the AI worker outright. The transformers.js
+//     + ONNX migration gave us an honest cancel — we surface it here
+//     so a user who taps Download by accident isn't stuck waiting
+//     for a 176 MB fetch they don't actually want.
 
 import { I } from "../../components/icons";
 import { ModalFrame } from "../../components/ModalFrame";
 import { useEditorReadOnly } from "../EditorContext";
 import { DetectionProgressCard } from "./DetectionStatus";
-import type { SmartRemoveProgress } from "./smartRemoveBg";
+import type { SmartRemoveProgress } from "./ai/segment";
 
 interface Props {
   progress: SmartRemoveProgress | null;
   warm: boolean;
+  /** "Continue in background" — hide the modal, let detection finish. */
   onDismiss: () => void;
+  /** "Cancel" — terminate the worker and reset state to idle. */
+  onCancel: () => void;
 }
 
-export function MaskDownloadDialog({ progress, warm, onDismiss }: Props) {
+export function MaskDownloadDialog({ progress, warm, onDismiss, onCancel }: Props) {
   const { layout } = useEditorReadOnly();
   const isMobile = layout === "mobile";
 
@@ -63,6 +64,9 @@ export function MaskDownloadDialog({ progress, warm, onDismiss }: Props) {
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-border-soft px-5 pt-3 pb-5 sm:px-6 dark:border-dark-border-soft">
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+          Cancel
+        </button>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onDismiss}>
           Continue in background
         </button>

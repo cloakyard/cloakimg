@@ -13,7 +13,7 @@
   "dependencies": {
     "@fontsource/instrument-serif": "^5.2.8",
     "@fontsource/inter": "^5.2.8",
-    "@imgly/background-removal": "^1.7.0",
+    "@huggingface/transformers": "^3.7.6",
     "fabric": "^7.3.1",
     "libheif-js": "^1.19.8",
     "ogl": "^1.0.11",

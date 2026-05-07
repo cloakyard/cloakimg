@@ -23,11 +23,11 @@ import { I } from "../../components/icons";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { MaskConsentError } from "../subjectMask";
+import { cancelMaskDetection, MaskConsentError } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { DetectionProgressCard } from "./DetectionStatus";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
-import type { SmartRemoveProgress } from "./smartRemoveBg";
+import type { SmartRemoveProgress } from "./ai/segment";
 
 const MODES = ["Auto", "Chroma"] as const;
 const QUALITY_LABELS = ["Fast", "Better", "Best"] as const;
@@ -208,6 +208,13 @@ export function RemoveBgPanel() {
           progress={subjectMask.state.progress}
           warm={subjectMask.state.warm}
           modelCached={subjectMask.state.modelCached}
+          // Only offer Cancel while the *central* detection is
+          // running. The applying-to-canvas window after detection
+          // resolves isn't cancellable in any honest sense — the
+          // mask is already in memory, the commit is synchronous-ish.
+          onCancel={
+            subjectMask.state.status === "loading" ? () => cancelMaskDetection() : undefined
+          }
           onApply={() => void applyAuto()}
         />
       ) : (
@@ -264,6 +271,11 @@ interface AutoProps {
    *  a prior session? Distinct from `warm` — `modelCached` survives
    *  page reloads, `warm` only survives within this tab. */
   modelCached: boolean;
+  /** Honest cancel. When defined, the inline progress card renders a
+   *  Cancel link that terminates the AI worker and returns the panel
+   *  to idle. Undefined while the panel is just compositing the cut
+   *  into doc.working — that step isn't cancellable. */
+  onCancel?: () => void;
   onApply: () => void;
 }
 
@@ -275,6 +287,7 @@ function AutoPanel({
   progress,
   warm,
   modelCached,
+  onCancel,
   onApply,
 }: AutoProps) {
   // Three distinct surfaces, no concatenation:
@@ -325,7 +338,12 @@ function AutoPanel({
       </button>
 
       {busy && (
-        <DetectionProgressCard progress={progress} warm={warm} fallbackLabel="Detecting subject…" />
+        <DetectionProgressCard
+          progress={progress}
+          warm={warm}
+          fallbackLabel="Detecting subject…"
+          onCancel={onCancel}
+        />
       )}
 
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
