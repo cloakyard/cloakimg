@@ -21,6 +21,10 @@ export function useHslPreview(
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const versionRef = useRef<unknown>(null);
   const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
+  // See useAdjustPreview for why the release lives outside the
+  // setPreview updater.
+  const publishedCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const versionCounterRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -36,12 +40,21 @@ export function useHslPreview(
   }, [source, invalidationKey]);
 
   useEffect(() => {
+    const clearPublished = () => {
+      const pub = publishedCanvasRef.current;
+      if (pub === null) return;
+      if (pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
+      versionCounterRef.current += 1;
+      setPreview({ canvas: null, version: versionCounterRef.current });
+    };
+
     if (!source) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     if (isHslIdentity(params)) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     if (!downsampledRef.current) downsampledRef.current = makeDownsampled(source);
@@ -56,16 +69,15 @@ export function useHslPreview(
       } catch (err) {
         console.error("[useHslPreview] bake failed", err);
         if (baked && baked !== ds) releaseCanvas(baked);
-        setPreview((prev) => clearPreview(prev, ds));
+        clearPublished();
         return;
       }
       const result = baked;
-      setPreview((prev) => {
-        if (prev.canvas && prev.canvas !== ds && prev.canvas !== result) {
-          releaseCanvas(prev.canvas);
-        }
-        return { canvas: result, version: prev.version + 1 };
-      });
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== ds && pub !== result) releaseCanvas(pub);
+      publishedCanvasRef.current = result;
+      versionCounterRef.current += 1;
+      setPreview({ canvas: result, version: versionCounterRef.current });
     });
     return () => {
       if (rafRef.current !== null) {
@@ -77,7 +89,9 @@ export function useHslPreview(
 
   useEffect(() => {
     return () => {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
       const ds = downsampledRef.current;
       if (ds && ds !== sourceRef.current) releaseCanvas(ds);
       downsampledRef.current = null;
@@ -86,13 +100,6 @@ export function useHslPreview(
   }, []);
 
   return preview;
-}
-
-/** See useAdjustPreview for the rationale. */
-function clearPreview(prev: PreviewResult, ds: HTMLCanvasElement | null): PreviewResult {
-  if (prev.canvas === null) return prev;
-  if (prev.canvas !== ds) releaseCanvas(prev.canvas);
-  return { canvas: null, version: prev.version + 1 };
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {

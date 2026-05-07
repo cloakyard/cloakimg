@@ -61,6 +61,15 @@ export function useAdjustPreview(
   // ImageCanvas) detect the change even when the canvas-pool LIFO
   // hands back the same element across consecutive bakes.
   const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
+  // Track the published canvas in a ref so the release-back-to-pool
+  // happens BEFORE setPreview, not inside its updater. React StrictMode
+  // double-invokes useState updaters in dev to flag impurity; if
+  // releaseCanvas lives inside the updater, the same canvas gets
+  // pushed onto the pool twice and the next two acquires hand back
+  // duplicate references — bake outputs collide and the preview
+  // appears to "freeze" after a few slider changes.
+  const publishedCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const versionCounterRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const debounceRef = useRef<number | null>(null);
 
@@ -86,13 +95,26 @@ export function useAdjustPreview(
   // to the canvas pool right before the new one replaces it, so we
   // don't allocate per change.
   useEffect(() => {
+    // Release the previously-published canvas back to the pool, then
+    // publish a clear preview. The release lives OUTSIDE the setState
+    // updater (StrictMode double-invokes updaters; impure releases
+    // would push the same canvas onto the pool twice).
+    const clearPublished = () => {
+      const pub = publishedCanvasRef.current;
+      if (pub === null) return;
+      if (pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
+      versionCounterRef.current += 1;
+      setPreview({ canvas: null, version: versionCounterRef.current });
+    };
+
     if (!source) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     const curveActive = !!curve && !isCurveIdentity(curve);
     if (isIdentity(sliders) && grain === 0 && !monochrome && !curveActive) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     if (!downsampledRef.current) {
@@ -126,19 +148,19 @@ export function useAdjustPreview(
         } catch (err) {
           console.error("[useAdjustPreview] bake failed", err);
           if (baked && baked !== ds) releaseCanvas(baked);
-          setPreview((prev) => clearPreview(prev, ds));
+          clearPublished();
           return;
         }
         const result = baked;
-        setPreview((prev) => {
-          // Don't release the downsampled cache by accident — it
-          // lives across renders and bakeAdjust may return it
-          // directly when the source is already small.
-          if (prev.canvas && prev.canvas !== ds && prev.canvas !== result) {
-            releaseCanvas(prev.canvas);
-          }
-          return { canvas: result, version: prev.version + 1 };
-        });
+        // Release the previously-published canvas BEFORE setPreview so
+        // the side effect doesn't live inside an updater. ds is owned
+        // by the hook (not pool) and bakeAdjust may return it directly
+        // when the source is already small — guard against releasing.
+        const pub = publishedCanvasRef.current;
+        if (pub && pub !== ds && pub !== result) releaseCanvas(pub);
+        publishedCanvasRef.current = result;
+        versionCounterRef.current += 1;
+        setPreview({ canvas: result, version: versionCounterRef.current });
       });
     };
     if (debounceMs > 0) {
@@ -167,7 +189,9 @@ export function useAdjustPreview(
   // tool's downsample can reuse the buffer.
   useEffect(() => {
     return () => {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
       const ds = downsampledRef.current;
       if (ds && ds !== sourceRef.current) releaseCanvas(ds);
       downsampledRef.current = null;
@@ -176,18 +200,6 @@ export function useAdjustPreview(
   }, []);
 
   return preview;
-}
-
-/** Settle the preview into the empty state, releasing the prior
- *  canvas if it isn't the live downsample (which the hook owns
- *  separately and can't return to the pool here). Bumps the version
- *  *only* when the canvas actually transitions to null — repeatedly
- *  setting null on an already-null state would otherwise spam
- *  Fabric with no-op setElement calls. */
-function clearPreview(prev: PreviewResult, ds: HTMLCanvasElement | null): PreviewResult {
-  if (prev.canvas === null) return prev;
-  if (prev.canvas !== ds) releaseCanvas(prev.canvas);
-  return { canvas: null, version: prev.version + 1 };
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {

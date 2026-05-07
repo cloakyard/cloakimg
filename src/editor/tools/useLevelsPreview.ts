@@ -22,6 +22,12 @@ export function useLevelsPreview(
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const versionRef = useRef<unknown>(null);
   const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
+  // Track the published canvas in a ref so the release-back-to-pool
+  // happens BEFORE setPreview, not inside its updater. StrictMode
+  // double-invokes useState updaters; impure releases would push the
+  // same canvas onto the pool twice.
+  const publishedCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const versionCounterRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -37,12 +43,21 @@ export function useLevelsPreview(
   }, [source, invalidationKey]);
 
   useEffect(() => {
+    const clearPublished = () => {
+      const pub = publishedCanvasRef.current;
+      if (pub === null) return;
+      if (pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
+      versionCounterRef.current += 1;
+      setPreview({ canvas: null, version: versionCounterRef.current });
+    };
+
     if (!source) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     if (isLevelsIdentity(params)) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     if (!downsampledRef.current) downsampledRef.current = makeDownsampled(source);
@@ -57,16 +72,15 @@ export function useLevelsPreview(
       } catch (err) {
         console.error("[useLevelsPreview] bake failed", err);
         if (baked && baked !== ds) releaseCanvas(baked);
-        setPreview((prev) => clearPreview(prev, ds));
+        clearPublished();
         return;
       }
       const result = baked;
-      setPreview((prev) => {
-        if (prev.canvas && prev.canvas !== ds && prev.canvas !== result) {
-          releaseCanvas(prev.canvas);
-        }
-        return { canvas: result, version: prev.version + 1 };
-      });
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== ds && pub !== result) releaseCanvas(pub);
+      publishedCanvasRef.current = result;
+      versionCounterRef.current += 1;
+      setPreview({ canvas: result, version: versionCounterRef.current });
     });
     return () => {
       if (rafRef.current !== null) {
@@ -78,7 +92,9 @@ export function useLevelsPreview(
 
   useEffect(() => {
     return () => {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
       const ds = downsampledRef.current;
       if (ds && ds !== sourceRef.current) releaseCanvas(ds);
       downsampledRef.current = null;
@@ -87,13 +103,6 @@ export function useLevelsPreview(
   }, []);
 
   return preview;
-}
-
-/** See useAdjustPreview for the rationale. */
-function clearPreview(prev: PreviewResult, ds: HTMLCanvasElement | null): PreviewResult {
-  if (prev.canvas === null) return prev;
-  if (prev.canvas !== ds) releaseCanvas(prev.canvas);
-  return { canvas: null, version: prev.version + 1 };
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {

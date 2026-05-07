@@ -34,6 +34,17 @@ export function useBgBlurPreview(
   // monotonic version — pool reuse means the canvas-element identity
   // can repeat across consecutive bakes.
   const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
+  // Track the currently-published preview canvas in a ref so we can
+  // release it BEFORE calling setPreview. React StrictMode double-
+  // invokes useState updater functions to flag impurity; if the
+  // releaseCanvas call lives inside the updater it runs twice,
+  // pushing the SAME canvas onto the pool twice. The next two
+  // acquireCanvas calls then hand out the same element — bakeGaussian
+  // and applyMaskScope step on each other and the preview "freezes"
+  // after the pool starts handing out duplicates. Releasing outside
+  // the updater fixes the impurity.
+  const publishedCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const versionCounterRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -49,22 +60,28 @@ export function useBgBlurPreview(
   }, [source, invalidationKey]);
 
   useEffect(() => {
+    // Helper: clear the published preview, releasing its canvas back
+    // to the pool. The release lives OUTSIDE the setState updater —
+    // see the comment on publishedCanvasRef for why.
+    const clearPublished = () => {
+      const pub = publishedCanvasRef.current;
+      if (pub === null) return;
+      if (pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
+      versionCounterRef.current += 1;
+      setPreview({ canvas: null, version: versionCounterRef.current });
+    };
+
     if (!source) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     if (isBgBlurIdentity(amount)) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
-    // Scope gating: see useAdjustPreview for the full reasoning —
-    // skip baking while the user has Subject / Background selected
-    // and the mask isn't ready, so the canvas shows the original
-    // until detection lands. Without this, picking "Subject" on a
-    // cold doc would briefly blur the whole image (the bake's
-    // mask=null fallback) and read as "subject blur is broken".
     if (scope !== 0 && !maskReady) {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      clearPublished();
       return;
     }
     if (!downsampledRef.current) downsampledRef.current = makeDownsampled(source);
@@ -73,10 +90,6 @@ export function useBgBlurPreview(
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
-      // Bake guard: bakeBgBlur composes 4+ pooled canvases on
-      // progressive mode. A throw mid-compose would orphan whichever
-      // canvases were still in flight; bail back to doc.working
-      // instead of holding a half-built preview canvas.
       let baked: HTMLCanvasElement | null = null;
       try {
         // Read the freshest mask from the service — see the
@@ -87,16 +100,20 @@ export function useBgBlurPreview(
         baked = bakeBgBlur(ds, liveMask, scope, { amount, lens, progressive });
       } catch (err) {
         console.error("[useBgBlurPreview] bake failed", err);
-        setPreview((prev) => clearPreview(prev, ds));
+        if (baked && baked !== ds) releaseCanvas(baked);
+        clearPublished();
         return;
       }
       const result = baked;
-      setPreview((prev) => {
-        if (prev.canvas && prev.canvas !== ds && prev.canvas !== result) {
-          releaseCanvas(prev.canvas);
-        }
-        return { canvas: result, version: prev.version + 1 };
-      });
+      // Release the previously-published canvas BEFORE setPreview so
+      // the side effect doesn't live inside the updater. Pure updaters
+      // are required for StrictMode safety — see the publishedCanvasRef
+      // declaration for the full rationale.
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== ds && pub !== result) releaseCanvas(pub);
+      publishedCanvasRef.current = result;
+      versionCounterRef.current += 1;
+      setPreview({ canvas: result, version: versionCounterRef.current });
     });
     return () => {
       if (rafRef.current !== null) {
@@ -108,7 +125,9 @@ export function useBgBlurPreview(
 
   useEffect(() => {
     return () => {
-      setPreview((prev) => clearPreview(prev, downsampledRef.current));
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== downsampledRef.current) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
       const ds = downsampledRef.current;
       if (ds && ds !== sourceRef.current) releaseCanvas(ds);
       downsampledRef.current = null;
@@ -117,13 +136,6 @@ export function useBgBlurPreview(
   }, []);
 
   return preview;
-}
-
-/** See useAdjustPreview for the rationale. */
-function clearPreview(prev: PreviewResult, ds: HTMLCanvasElement | null): PreviewResult {
-  if (prev.canvas === null) return prev;
-  if (prev.canvas !== ds) releaseCanvas(prev.canvas);
-  return { canvas: null, version: prev.version + 1 };
 }
 
 function makeDownsampled(src: HTMLCanvasElement): HTMLCanvasElement {
