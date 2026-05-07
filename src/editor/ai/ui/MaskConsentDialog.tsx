@@ -96,9 +96,21 @@ interface Props {
   onAccept: (quality: BgQuality) => void;
   /** User dismissed the dialog. */
   onDismiss: () => void;
+  /** True when the dialog was opened from "Change model size" rather
+   *  than as the first-time consent prompt. The dialog re-uses the
+   *  same picker UI, but adapts copy so it reads as a switch
+   *  ("Choose a model size" + "Use {N} MB") rather than a fresh
+   *  download solicitation. The user has already granted consent —
+   *  they just want to pick a different tier. */
+  switchMode?: boolean;
 }
 
-export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props) {
+export function MaskConsentDialog({
+  initialQuality,
+  onAccept,
+  onDismiss,
+  switchMode = false,
+}: Props) {
   const { layout } = useEditorReadOnly();
   const { patchTool } = useEditorActions();
   const visibleTiers = tiersForLayout(layout);
@@ -161,11 +173,12 @@ export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props
               id="cloak-mask-consent-title"
               className="text-[15px] font-semibold text-text dark:text-dark-text"
             >
-              Download the on-device AI model?
+              {switchMode ? "Choose a model size" : "Download the on-device AI model?"}
             </h2>
             <p className="mt-1 text-[12.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-              Subject-aware tools (smart crop, scoped adjustments, portrait blur, smart redact) need
-              a segmentation model. It runs entirely on this device — your image is never uploaded.
+              {switchMode
+                ? "Switch between the three tiers below. Sizes you've already used in this browser run instantly — others download once and cache for next time."
+                : "Subject-aware tools (smart crop, scoped adjustments, portrait blur, smart redact) need a segmentation model. It runs entirely on this device — your image is never uploaded."}
             </p>
           </div>
         </div>
@@ -247,11 +260,19 @@ export function MaskConsentDialog({ initialQuality, onAccept, onDismiss }: Props
             as Cancel in StartModal / ConfirmDialog — keeps every
             "back out" button reading the same way across the app. */}
         <button type="button" className="btn btn-ghost btn-sm" onClick={onDismiss}>
-          Not now
+          {switchMode ? "Cancel" : "Not now"}
         </button>
         <button type="button" className="btn btn-primary" onClick={accept}>
-          <I.Download size={13} />
-          Download {pickedSize(picked)} MB
+          {/* When switching tiers and the picked size is already on
+              disk, omit the download glyph — the action is "use this
+              model", not "download". Avoids the misleading visual
+              that suggests a fresh download will start. */}
+          {!(switchMode && cachedTiers.has(picked)) && <I.Download size={13} />}
+          {switchMode && cachedTiers.has(picked)
+            ? `Use ${pickedSize(picked)} MB model`
+            : switchMode
+              ? `Download ${pickedSize(picked)} MB`
+              : `Download ${pickedSize(picked)} MB`}
         </button>
       </div>
     </ModalFrame>

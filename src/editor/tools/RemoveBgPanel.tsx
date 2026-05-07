@@ -23,25 +23,25 @@ import { I } from "../../components/icons";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { cancelMaskDetection, MaskConsentError } from "../ai/subjectMask";
+import { cancelMaskDetection, MaskConsentError, requestModelPicker } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { DetectionProgressCard } from "../ai/ui/DetectionStatus";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
-import type { SmartRemoveProgress } from "../ai/runtime/segment";
+import type { BgQuality, SmartRemoveProgress } from "../ai/runtime/segment";
 
 const MODES = ["Auto", "Chroma"] as const;
-const QUALITY_LABELS = ["Fast", "Better", "Best"] as const;
-// Short hint shown under the Apply button when the model is *not*
-// already cached. Once the bytes are local the panel switches to a
-// dedicated "ready, instant" line so we don't double up the size
-// reminder (the previous build accidentally concatenated the two and
-// produced "…heavy downloadModel already loaded — detection is
-// instant.").
-const QUALITY_HINTS = [
-  "~44 MB · best for portraits and most photos",
-  "~88 MB · sharper edges, slower on first run",
-  "~176 MB · highest fidelity, heavy download",
-] as const;
+// Per-tier label + size, used for the inline "Model: …" readout that
+// replaces the in-panel Quality picker. The picker itself lives in
+// MaskConsentDialog (single source of truth — opened from the
+// "Change" link below). Keeping the same three tiers in two places
+// was the source of UX confusion the user flagged: the panel showed
+// three buttons, the dialog showed three more, and it wasn't obvious
+// they referred to the same model.
+const QUALITY_META: Record<BgQuality, { label: string; mb: number }> = {
+  small: { label: "Fast", mb: 44 },
+  medium: { label: "Better", mb: 88 },
+  large: { label: "Best", mb: 176 },
+};
 
 export function RemoveBgPanel() {
   const { toolState, patchTool, doc, commit, runBusy } = useEditor();
@@ -195,8 +195,7 @@ export function RemoveBgPanel() {
 
       {isAuto ? (
         <AutoPanel
-          quality={toolState.bgQuality}
-          onQuality={(q) => patchTool("bgQuality", q)}
+          quality={subjectMask.quality}
           alreadyRemoved={alreadyRemoved}
           // The "busy" flag spans both the central detection (driven
           // by another scoped tool or this very Apply click) AND this
@@ -215,6 +214,7 @@ export function RemoveBgPanel() {
           onCancel={
             subjectMask.state.status === "loading" ? () => cancelMaskDetection() : undefined
           }
+          onChangeModel={() => requestModelPicker(subjectMask.quality)}
           onApply={() => void applyAuto()}
         />
       ) : (
@@ -258,8 +258,11 @@ export function RemoveBgPanel() {
 // ── Auto mode ──────────────────────────────────────────────────────
 
 interface AutoProps {
-  quality: number;
-  onQuality: (q: number) => void;
+  /** Friendly key (small / medium / large), driven by the central
+   *  subject-mask service so the row reflects whatever the user
+   *  actually picked in the consent / switch dialog — not whatever
+   *  toolState happens to be. */
+  quality: BgQuality;
   alreadyRemoved: boolean;
   busy: boolean;
   progress: SmartRemoveProgress | null;
@@ -276,18 +279,22 @@ interface AutoProps {
    *  to idle. Undefined while the panel is just compositing the cut
    *  into doc.working — that step isn't cancellable. */
   onCancel?: () => void;
+  /** Open the consent / model-picker dialog so the user can switch
+   *  tiers. Single source of truth for tier selection — the panel
+   *  no longer carries its own three-way Segment. */
+  onChangeModel: () => void;
   onApply: () => void;
 }
 
 function AutoPanel({
   quality,
-  onQuality,
   alreadyRemoved,
   busy,
   progress,
   warm,
   modelCached,
   onCancel,
+  onChangeModel,
   onApply,
 }: AutoProps) {
   // Three distinct surfaces, no concatenation:
@@ -299,14 +306,41 @@ function AutoPanel({
   // already loaded" run-on; this split avoids that class of bug
   // entirely.
   const readyForInstant = warm || modelCached;
+  const meta = QUALITY_META[quality];
   return (
     <>
       <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
         <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
         On-device AI
       </div>
-      <PropRow label="Quality">
-        <Segment options={QUALITY_LABELS} active={quality} onChange={onQuality} />
+      {/* Model readout. Single source of truth for the tier picker
+          lives in MaskConsentDialog — the "Change" link re-opens it
+          so the user picks their tier in exactly one place. Disabled
+          mid-detection because invalidating the in-flight cache to
+          switch tiers would cancel the worker and confuse the user. */}
+      <PropRow label="Model">
+        <div className="flex flex-1 items-center justify-between gap-2 text-[12.5px] text-text dark:text-dark-text">
+          <span className="flex items-center gap-1.5">
+            <span className="font-semibold">{meta.label}</span>
+            <span className="t-mono text-[11px] text-text-muted dark:text-dark-text-muted">
+              ~{meta.mb} MB
+            </span>
+            {modelCached && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/70 bg-emerald-50 px-1.5 py-px text-[10px] font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
+                <I.Check size={9} stroke={2.5} /> Cached
+              </span>
+            )}
+          </span>
+          <button
+            type="button"
+            onClick={onChangeModel}
+            disabled={busy}
+            className="cursor-pointer rounded-md border-none bg-transparent p-0 text-[12px] font-semibold text-coral-600 hover:text-coral-700 disabled:opacity-50 dark:text-coral-300 dark:hover:text-coral-200"
+            style={{ opacity: busy ? 0.5 : 1 }}
+          >
+            Change
+          </button>
+        </div>
       </PropRow>
 
       {!alreadyRemoved && !busy && <CapabilityHints />}
@@ -350,8 +384,8 @@ function AutoPanel({
         {alreadyRemoved
           ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
           : readyForInstant
-            ? `Model is loaded on this device — detection is instant. (${QUALITY_HINTS[quality] ?? ""})`
-            : `${QUALITY_HINTS[quality] ?? ""}. Downloads once on apply, then runs offline.`}
+            ? `${meta.label} model is loaded on this device — detection is instant. Switch tiers anytime via Change.`
+            : `Downloads ~${meta.mb} MB on first apply, then runs offline. Pick a different size via Change.`}
       </div>
     </>
   );

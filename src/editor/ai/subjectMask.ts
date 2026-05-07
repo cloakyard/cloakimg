@@ -316,6 +316,28 @@ export function hasMaskConsent(): boolean {
   return consentGranted;
 }
 
+/** Force the consent / model-picker dialog open from a UI affordance
+ *  ("Change model size" link in the Remove BG panel). Re-uses the
+ *  existing `needs-consent` status so MaskConsentHost renders the
+ *  same picker dialog — no second component to maintain.
+ *
+ *  Distinguished from a fresh first-time consent by the host: when
+ *  `hasMaskConsent()` is already true, the dialog adapts its copy
+ *  ("Switch model size" instead of "Download the on-device AI model")
+ *  and labels the action button "Use {N} MB" instead of "Download".
+ *
+ *  Clears the `userDenied` latch as a side-effect — opening the
+ *  picker by hand is itself the explicit re-opt-in. */
+export function requestModelPicker(currentQuality: BgQuality): void {
+  if (state.userDenied) setState({ userDenied: false });
+  setState({
+    status: "needs-consent",
+    progress: null,
+    error: null,
+    pendingQuality: currentQuality,
+  });
+}
+
 /** Lazily detect (or return cached). Concurrent callers share a
  *  single in-flight promise so kicking off two scoped tools in quick
  *  succession only runs one inference.

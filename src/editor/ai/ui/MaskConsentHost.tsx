@@ -28,8 +28,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorReadOnly } from "../../EditorContext";
 import { aiLog } from "../log";
-import { type BgQuality, QUALITY_BYTE_ESTIMATES } from "../runtime/segment";
-import { cancelMaskDetection, ensureSubjectMask, grantMaskConsent } from "../subjectMask";
+import { type BgQuality, isModelCached, QUALITY_BYTE_ESTIMATES } from "../runtime/segment";
+import {
+  cancelMaskDetection,
+  denyMaskConsent,
+  ensureSubjectMask,
+  grantMaskConsent,
+  hasMaskConsent,
+} from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
 import { MaskConsentDialog } from "./MaskConsentDialog";
 import { MaskDownloadDialog } from "./MaskDownloadDialog";
@@ -91,13 +97,48 @@ export function MaskConsentHost() {
   );
 
   const onAccept = useCallback(
-    (quality: BgQuality) => {
-      aiLog.info("consent", "user granted consent", { quality });
+    async (quality: BgQuality) => {
+      const wasConsented = hasMaskConsent();
+      aiLog.info("consent", wasConsented ? "user switched model tier" : "user granted consent", {
+        quality,
+      });
       grantMaskConsent();
+      // Switch path: if the user re-opened the picker just to confirm
+      // the same tier they already had, and that tier is on disk,
+      // there's nothing to do. Bumping detection would invalidate the
+      // existing cache and re-run inference for no visible benefit.
+      // The mask service already invalidates on a real tier change
+      // via useSubjectMask's prevQualityRef effect — so a different
+      // pick reaches startDetection through the patchTool side-effect
+      // without us having to invalidate manually here.
+      if (wasConsented && quality === subjectMask.quality) {
+        const cached = await isModelCached(quality);
+        if (cached) {
+          aiLog.info("consent", "switch picker resolved with no-op (same tier, cached)", {
+            quality,
+          });
+          return;
+        }
+      }
       startDetection(quality);
     },
-    [startDetection],
+    [startDetection, subjectMask.quality],
   );
+
+  // Dismiss handler differs by intent. Initial consent → latch
+  // userDenied so panel auto-triggers don't immediately re-pop the
+  // dialog. Switch picker → just close; the user already consented and
+  // is keeping the existing tier.
+  const onDismissPicker = useCallback(() => {
+    if (hasMaskConsent()) {
+      // Re-uses the same setState plumbing as denyMaskConsent but
+      // skips the userDenied latch — the user has already opted in;
+      // they're just dismissing the tier picker.
+      grantMaskConsent();
+      return;
+    }
+    denyMaskConsent();
+  }, []);
 
   // Auto-clear the progress modal when detection succeeds or the
   // service goes idle. We deliberately do NOT clear on "error" — the
@@ -141,8 +182,9 @@ export function MaskConsentHost() {
     return (
       <MaskConsentDialog
         initialQuality={subjectMask.state.pendingQuality ?? subjectMask.quality}
-        onAccept={onAccept}
-        onDismiss={subjectMask.denyConsent}
+        switchMode={hasMaskConsent()}
+        onAccept={(q) => void onAccept(q)}
+        onDismiss={onDismissPicker}
       />
     );
   }

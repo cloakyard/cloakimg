@@ -50,12 +50,32 @@ export const PREFERRED_COLOR_SPACE: PredefinedColorSpace = isDisplayP3Supported(
   ? "display-p3"
   : "srgb";
 
+interface Get2DOptions {
+  /** Hint that this canvas will be a heavy `getImageData` consumer
+   *  (preview bakes, pixel-loop adjustments, etc.). Browsers fall back
+   *  to a CPU-side backing store, which makes readbacks ~10× faster
+   *  but slightly slower for `drawImage` / compositing. Only set this
+   *  on scratch canvases that fully round-trip through ImageData —
+   *  not on display canvases. */
+  willReadFrequently?: boolean;
+}
+
 /**
  * Get a 2D context with the editor's preferred colorSpace. Calling
  * `canvas.getContext("2d")` again after this returns the same
  * (already-bound) context, so consumers that don't know about
  * colorSpace continue to work without code changes.
+ *
+ * Context attributes are bound on the *first* call to `getContext` for
+ * a given canvas — pass `willReadFrequently: true` here, before any
+ * other code calls `canvas.getContext("2d")`.
  */
-export function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
-  return canvas.getContext("2d", { colorSpace: PREFERRED_COLOR_SPACE });
+export function get2DContext(
+  canvas: HTMLCanvasElement,
+  opts?: Get2DOptions,
+): CanvasRenderingContext2D | null {
+  return canvas.getContext("2d", {
+    colorSpace: PREFERRED_COLOR_SPACE,
+    willReadFrequently: opts?.willReadFrequently ?? false,
+  });
 }

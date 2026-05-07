@@ -13,6 +13,7 @@ import { usePrefersDark } from "../utils/usePrefersDark";
 import { Spinner } from "./atoms";
 import { BatchCanvas, BatchPanel } from "./BatchView";
 import { EditorProvider, useEditor } from "./EditorContext";
+import { EditorErrorBoundary } from "./EditorErrorBoundary";
 // Side-effect import: mutates Fabric's static ownDefaults to apply the
 // coral brand colour to every selectable object's border / handles /
 // IText cursor. Must be imported before any Fabric Canvas is created.
@@ -35,12 +36,23 @@ interface Props {
 }
 
 export function UnifiedEditor({ initialDoc, onExit }: Props) {
+  // EditorErrorBoundary sits *above* EditorProvider so a render failure
+  // inside the editor subtree (a fabric internal, an AI worker
+  // callback that arrives mid-render, the rare consent-flow race that
+  // the user reported on first model download) recovers in place
+  // rather than tripping the global ErrorBoundary's "Go to home"
+  // route. The boundary's onExit prop calls the same callback the
+  // TopBar uses, so the user lands on the landing page if they
+  // explicitly choose to bail — but they're never bounced there
+  // automatically by an editor crash.
   return (
-    <EditorProvider initialDoc={initialDoc} onExit={onExit}>
-      <StageProvider>
-        <EditorShell />
-      </StageProvider>
-    </EditorProvider>
+    <EditorErrorBoundary onExit={onExit}>
+      <EditorProvider initialDoc={initialDoc} onExit={onExit}>
+        <StageProvider>
+          <EditorShell />
+        </StageProvider>
+      </EditorProvider>
+    </EditorErrorBoundary>
   );
 }
 

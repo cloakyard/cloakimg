@@ -34,15 +34,28 @@ import type {
 // explicit.
 env.allowLocalModels = false;
 env.useBrowserCache = true;
-// Quiet the ORT WASM session-init warnings about node assignments
+// Quiet the ORT session-init warnings about node assignments
 // (`VerifyEachNodeIsAssignedToAnEp`). They're informational — ORT
-// reports which graph nodes fell back from WebGPU to CPU — but
-// Chrome elevates the level so they look like real errors in the
-// console. logLevel=3 is "error and above" in ORT, which suppresses
-// the warning chatter without hiding genuine failures.
-type WasmEnv = { logLevel?: number | string };
-const wasmEnv = (env.backends?.onnx as { wasm?: WasmEnv } | undefined)?.wasm;
-if (wasmEnv) wasmEnv.logLevel = 3;
+// reports which graph nodes fell back from WebGPU to CPU (shape ops
+// are explicitly assigned to CPU for performance) — but Chrome
+// surfaces them at console.warn so they look like real errors.
+//
+// ORT JS reads log severity from two places:
+//   • `env.logLevel` — global default for every InferenceSession.
+//   • `env.backends.onnx.wasm.logLevel` — WASM-thread fallback path.
+//
+// Set both to "error" so warnings drop out of the console without
+// hiding genuine failures. Passing "error" rather than a number
+// matches the type signature published by onnxruntime-common.
+type OrtLogEnv = {
+  logLevel?: "verbose" | "info" | "warning" | "error" | "fatal";
+  wasm?: { logLevel?: "verbose" | "info" | "warning" | "error" | "fatal" };
+};
+const ortEnv = env.backends?.onnx as OrtLogEnv | undefined;
+if (ortEnv) {
+  ortEnv.logLevel = "error";
+  if (ortEnv.wasm) ortEnv.wasm.logLevel = "error";
+}
 
 type SegmenterFn = (input: RawImage | Blob | string) => Promise<RawImage[]>;
 

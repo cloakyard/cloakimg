@@ -94,7 +94,11 @@ export interface EditorDoc {
   layers: Layer[];
 }
 
-export function createCanvas(w: number, h: number): HTMLCanvasElement {
+export function createCanvas(
+  w: number,
+  h: number,
+  opts?: { willReadFrequently?: boolean },
+): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
@@ -102,7 +106,12 @@ export function createCanvas(w: number, h: number): HTMLCanvasElement {
   // creation so subsequent `getContext("2d")` calls return the same
   // wide-gamut context. drawImage handles sRGB→P3 conversion for sRGB
   // sources, so this is gain-only.
-  get2DContext(c);
+  //
+  // `willReadFrequently` is bound here too — it can only be set on the
+  // first getContext call, so callers that round-trip through
+  // getImageData (preview bakes, pixel-loop adjustments) must opt in
+  // at creation time.
+  get2DContext(c, { willReadFrequently: opts?.willReadFrequently });
   return c;
 }
 
@@ -127,7 +136,13 @@ function poolKey(w: number, h: number): string {
 /** Pull a same-sized scratch canvas from the pool, or create one. The
  *  canvas is cleared before being returned, so callers can treat it as
  *  fresh. Don't use this for canvases that need to outlive a single
- *  rAF — only for short-lived scratch like preview bakes. */
+ *  rAF — only for short-lived scratch like preview bakes.
+ *
+ *  Pool canvases are always created with `willReadFrequently: true`
+ *  because every consumer (Adjust / Filter / Levels / HSL / Bg blur
+ *  bakes) round-trips through `getImageData` + pixel loops. The CPU
+ *  backing store cuts the per-frame readback cost dramatically and
+ *  silences the browser's "Multiple readback operations" warning. */
 export function acquireCanvas(w: number, h: number): HTMLCanvasElement {
   const stack = pool.get(poolKey(w, h));
   const c = stack?.pop();
@@ -136,7 +151,7 @@ export function acquireCanvas(w: number, h: number): HTMLCanvasElement {
     if (ctx) ctx.clearRect(0, 0, w, h);
     return c;
   }
-  return createCanvas(w, h);
+  return createCanvas(w, h, { willReadFrequently: true });
 }
 
 /** Return a canvas to the pool. Caller must drop all references
