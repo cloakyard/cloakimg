@@ -57,11 +57,34 @@ function getWorker(): Promise<Worker> {
   // a separate worker chunk — keeps transformers.js out of the main
   // bundle. `type: "module"` lets the worker use the same ESM imports
   // as the main code.
+  //
+  // Wrap the constructor in try/catch — `new Worker(url, {type:
+  // "module"})` throws synchronously on browsers that don't support
+  // module workers (older Safari, some embedded WebViews). Without
+  // the try/catch, the throw propagates out of every call site (e.g.
+  // a panel's auto-trigger useEffect, the Apply button's click
+  // handler) and the user sees a hard React error instead of the
+  // friendly "AI runtime didn't start" copy.
   aiLog.debug("runtime", "spawning AI worker (cold pipeline cache)");
-  const w = new Worker(new URL("./worker.ts", import.meta.url), {
-    type: "module",
-    name: "cloakimg-ai-worker",
-  });
+  let w: Worker;
+  try {
+    w = new Worker(new URL("./worker.ts", import.meta.url), {
+      type: "module",
+      name: "cloakimg-ai-worker",
+    });
+  } catch (err) {
+    aiLog.error("runtime", "worker constructor threw", err);
+    const friendly = new Error(
+      "AI runtime couldn't start in this browser. Module workers may not be supported — try a recent Chrome / Safari, or use the Chroma keyer.",
+    );
+    workerReady = Promise.reject(friendly);
+    // Swallow the unhandled-rejection by attaching an empty catch.
+    // Callers see this rejection through their own awaits in
+    // `runAi`; we don't need the global "Uncaught (in promise)"
+    // logging on top of our aiLog.error above.
+    workerReady.catch(() => undefined);
+    return workerReady;
+  }
   worker = w;
   workerReady = new Promise<Worker>((resolveReady, rejectReady) => {
     let settled = false;

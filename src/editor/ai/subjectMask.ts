@@ -97,6 +97,22 @@ let inflightGeneration = 0;
  *  controller is rebuilt per detection — aborting one cannot stomp
  *  on a fresh follow-up. */
 let inflightAbort: AbortController | null = null;
+/** Watchdog timer that aborts the detection if the download bytes
+ *  counter doesn't advance for `STALL_TIMEOUT_MS`. Mid-tier mobile
+ *  networks can leave a fetch hanging at e.g. 23 % indefinitely;
+ *  without this, the dialog sits forever. Re-set on every progress
+ *  event; cleared on settle, cancel, or invalidate. Module-scoped so
+ *  the cancel / invalidate paths can clear it without threading a
+ *  closure through. */
+let stallTimer: number | null = null;
+const STALL_TIMEOUT_MS = 30000;
+
+function clearStallTimer() {
+  if (stallTimer !== null) {
+    window.clearTimeout(stallTimer);
+    stallTimer = null;
+  }
+}
 /** Per-session consent flag. The first time a tool needs the model
  *  (download not already on disk), the UI flips status to
  *  "needs-consent" and the user has to confirm. After they confirm
@@ -220,6 +236,7 @@ export function cancelMaskDetection() {
   inflight = null;
   inflightSource = null;
   inflightAbort = null;
+  clearStallTimer();
   setState({ status: "idle", progress: null, error: null });
 }
 
@@ -253,6 +270,10 @@ export function invalidateSubjectMask() {
     inflight = null;
     inflightSource = null;
     inflightAbort = null;
+    // The watchdog was scoped to the now-orphaned generation. Clear
+    // it so a stalled-out timer doesn't fire after invalidate and
+    // stomp the next detection's "loading" with a phantom error.
+    clearStallTimer();
   }
   if (!hadCache && !hadInflight) return;
   // Don't reset `warm` — the model's still loaded in memory, future
@@ -412,6 +433,36 @@ export async function ensureSubjectMask(
   // hitting Cancel.
   inflightAbort = new AbortController();
   const myAbort = inflightAbort;
+  // Watchdog: surface a stall after STALL_TIMEOUT_MS without progress.
+  // Slow networks can leave the model fetch hanging mid-download (23 %
+  // forever) without ever erroring on the lib's side; the watchdog
+  // converts that indefinite wait into a user-visible "stalled" error
+  // with the standard Try Again affordance.
+  const armStallTimer = () => {
+    if (stallTimer !== null) window.clearTimeout(stallTimer);
+    stallTimer = window.setTimeout(() => {
+      // Only stall the *current* detection. A respawn that started
+      // after our timer was queued would otherwise inherit our abort.
+      if (myGeneration !== inflightGeneration) return;
+      aiLog.warn("subjectMask", "detection stalled — no progress for STALL_TIMEOUT_MS", {
+        quality,
+        source: `${source.width}x${source.height}`,
+        timeoutMs: STALL_TIMEOUT_MS,
+      });
+      // Set state explicitly BEFORE aborting so the catch below
+      // doesn't overwrite the friendly stall copy with a generic
+      // AbortError message. The abort still tears down the worker
+      // (the only honest way to stop the lib's fetch).
+      setState({
+        status: "error",
+        progress: null,
+        error:
+          "Download stalled. This is usually a slow connection — try again, or pick the Fast (~44 MB) tier from Change.",
+      });
+      myAbort.abort();
+    }, STALL_TIMEOUT_MS);
+  };
+  armStallTimer();
   inflight = (async () => {
     try {
       const cut = await smartRemoveBackground(source, {
@@ -421,7 +472,13 @@ export async function ensureSubjectMask(
           // Don't push progress updates for a superseded detection —
           // the UI may have already returned to idle for a new doc and
           // a late "Detecting subject…" tick would re-flip status.
-          if (myGeneration === inflightGeneration) setState({ progress: p });
+          if (myGeneration === inflightGeneration) {
+            setState({ progress: p });
+            // Re-arm the stall watchdog on every progress tick. A
+            // genuinely-slow-but-progressing download keeps refreshing
+            // the timer and never trips the stall path.
+            armStallTimer();
+          }
         },
       });
       if (myGeneration !== inflightGeneration) {
@@ -504,6 +561,10 @@ export async function ensureSubjectMask(
         inflight = null;
         inflightSource = null;
         inflightAbort = null;
+        // Stop the watchdog. Leaving it running would let a stale
+        // timer fire after a successful detection and stomp the
+        // "ready" state with a phantom "Download stalled" error.
+        clearStallTimer();
       }
     }
   })();

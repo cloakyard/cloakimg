@@ -153,7 +153,16 @@ function ErrorBody({ message, suggestion }: { message: string; suggestion: strin
   );
 }
 
-type ErrorKind = "network" | "memory" | "module" | "wasm" | "timeout" | "generic";
+type ErrorKind =
+  | "network"
+  | "memory"
+  | "module"
+  | "wasm"
+  | "timeout"
+  | "stalled"
+  | "interrupted"
+  | "quota"
+  | "generic";
 
 /** Pattern-match the (already-friendly) error message back to a
  *  category so the dialog title + body can adapt. The worker's
@@ -162,6 +171,14 @@ type ErrorKind = "network" | "memory" | "module" | "wasm" | "timeout" | "generic
  *  Falls back to "generic" so a new error class never breaks the UI. */
 function classifyError(msg: string): ErrorKind {
   const lower = msg.toLowerCase();
+  // Stall watchdog (set inside subjectMask.ts) — match before
+  // "network" because the message includes "slow connection".
+  if (lower.includes("download stalled") || lower.includes("stalled")) return "stalled";
+  // Browser-initiated abort (tab suspended, OS killed the fetch).
+  // Match before "network" because the friendly text says "interrupted".
+  if (lower.includes("interrupted") || lower.includes("long pause")) return "interrupted";
+  // Storage quota exhausted — different remediation from OOM.
+  if (lower.includes("storage is full") || lower.includes("quota")) return "quota";
   if (lower.includes("connection") || lower.includes("server")) return "network";
   if (lower.includes("memory")) return "memory";
   if (lower.includes("module failed") || lower.includes("didn't finish loading")) return "module";
@@ -172,6 +189,12 @@ function classifyError(msg: string): ErrorKind {
 
 function errorTitle(kind: ErrorKind | null): string {
   switch (kind) {
+    case "stalled":
+      return "Download stalled";
+    case "interrupted":
+      return "Download was interrupted";
+    case "quota":
+      return "Browser storage is full";
     case "network":
       return "Couldn't reach the model server";
     case "memory":
@@ -188,6 +211,12 @@ function errorTitle(kind: ErrorKind | null): string {
 
 function errorBody(kind: ErrorKind | null): string {
   switch (kind) {
+    case "stalled":
+      return "The download stopped making progress. Usually a flaky connection — Try again resumes from where it left off, or pick a smaller tier from Change.";
+    case "interrupted":
+      return "The browser cancelled the download — typically after a long background pause on mobile. Try again to resume.";
+    case "quota":
+      return "There's not enough space in browser storage to cache the model. Free up space in your browser settings, or use a private tab to try without caching.";
     case "network":
       return "The model bytes never arrived. Check your network and try again — your image stayed on this device the whole time.";
     case "memory":
@@ -204,6 +233,13 @@ function errorBody(kind: ErrorKind | null): string {
 
 function errorSuggestion(kind: ErrorKind | null): string | null {
   switch (kind) {
+    case "stalled":
+    case "timeout":
+      return "Tip: a smaller tier (Fast ~44 MB) downloads in a fraction of the time on slow connections.";
+    case "interrupted":
+      return "Tip: keep CloakIMG in the foreground while the model downloads — mobile browsers pause background tabs aggressively.";
+    case "quota":
+      return "Tip: clear cached site data for sites you don't actively use. CloakIMG itself only caches the model on first use.";
     case "memory":
       return "Tip: switch to the Fast (~44 MB) tier from Change, or use the Chroma keyer (Mode → Chroma in Remove BG) — it's instant on flat studio backgrounds.";
     case "network":
@@ -211,8 +247,6 @@ function errorSuggestion(kind: ErrorKind | null): string | null {
     case "module":
     case "wasm":
       return "Tip: CloakIMG needs WebAssembly. Recent Chrome / Safari / Firefox all support it.";
-    case "timeout":
-      return "Tip: a smaller tier (Fast ~44 MB) downloads in a fraction of the time on slow connections.";
     default:
       return null;
   }

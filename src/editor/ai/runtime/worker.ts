@@ -368,6 +368,29 @@ function buildErrorMessage(message: string, filename?: string): string {
  *  fall back to the original message rather than swallow it. */
 function friendlyErrorMessage(raw: string): string {
   const lower = raw.toLowerCase();
+  // Storage quota — Cache API / IndexedDB ran out of space mid-write.
+  // Not the same as "OOM"; the user needs to clear browser storage,
+  // not pick a smaller model.
+  if (
+    lower.includes("quotaexceeded") ||
+    lower.includes("quota exceeded") ||
+    lower.includes("storage full") ||
+    lower.includes("disk is full")
+  ) {
+    return "Browser storage is full — the model bytes can't be cached. Clear some space in browser settings or use a private tab to try once without caching.";
+  }
+  // Browser-initiated abort — different from our explicit user
+  // cancel. Common on mobile when the OS suspends a backgrounded
+  // tab mid-fetch. We catch this BEFORE the generic "network"
+  // branch because AbortError messages often start with "fetch failed".
+  if (
+    lower.includes("aborterror") ||
+    lower.includes("the user aborted") ||
+    lower.includes("the operation was aborted") ||
+    lower.includes("request aborted")
+  ) {
+    return "Download was interrupted by the browser. This usually happens after a long pause — try again to resume.";
+  }
   // Network / fetch failures — the model bytes never arrived. Most
   // common cause for a first-download crash on flaky mobile networks.
   if (

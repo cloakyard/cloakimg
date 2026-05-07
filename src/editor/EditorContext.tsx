@@ -38,6 +38,7 @@ import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
 import { History, restoreCanvas } from "./history";
+import { shutdownAiWorker } from "./ai/runtime/runtime";
 import { invalidateSubjectMask } from "./ai/subjectMask";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import { DEFAULT_TOOL_STATE, type ToolState } from "./toolState";
@@ -272,6 +273,21 @@ export function EditorProvider({
     const onResize = () => setLayout(detectLayout(window.innerWidth));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Tear down the AI worker when the EditorProvider unmounts (user
+  // navigated back to the landing page or replaced the editor with
+  // a hard reload). Without this, a worker mid-download keeps
+  // burning bandwidth + GPU memory after the user has visibly left
+  // the editor — and on mobile the OS can't reclaim the tab's
+  // resources until the worker exits. `shutdownAiWorker` is safe
+  // when no worker is alive (no-op) and rejects every in-flight
+  // pending call with AiAbortError, which the subjectMask catch
+  // path silently swallows.
+  useEffect(() => {
+    return () => {
+      shutdownAiWorker();
+    };
   }, []);
 
   // History stack — kept in a ref so tool commits don't trigger re-renders.
