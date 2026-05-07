@@ -69,7 +69,11 @@ env.useWasmCache = false;
 // console focused on actual failures across browsers.
 env.logLevel = LogLevel.ERROR;
 
-type SegmenterFn = (input: RawImage | Blob | string) => Promise<RawImage[]>;
+// transformers.js v4's `BackgroundRemovalPipeline._call` returns the
+// post-processed image as a single `RawImage` when fed a single input,
+// or `RawImage[]` when fed an array. We always pass an array so the
+// return is unambiguous and array-indexing works for the caller.
+type SegmenterFn = (input: (RawImage | Blob | string)[]) => Promise<RawImage[]>;
 
 interface CachedPipeline {
   key: string;
@@ -165,7 +169,12 @@ async function handleSegment(req: AiSegmentRequest) {
         ratio: 0,
         label: "Detecting subject…",
       });
-      const outputs = await segmenter(inputImage);
+      // Wrap in an array so v4's pipeline always returns `RawImage[]`
+      // and the [0] index below is well-defined. Passing a bare
+      // RawImage made v4 return a single object — `outputs[0]` then
+      // landed on RawImage's missing numeric property and we threw
+      // "Segmenter returned no output image" on every device.
+      const outputs = await segmenter([inputImage]);
       const out = outputs[0];
       if (!out) throw new Error("Segmenter returned no output image");
       postProgress(req.id, { phase: "decode", ratio: 0.9, label: "Finalising…" });
