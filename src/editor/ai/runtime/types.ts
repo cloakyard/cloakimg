@@ -63,8 +63,37 @@ export interface AiSegmentRequest {
 
 /** Worker response variants. All carry the request id so the runtime
  *  can route them back to the right caller's promise / progress
- *  callback. */
-export type AiResponse = AiProgressResponse | AiResultResponse | AiErrorResponse;
+ *  callback.
+ *
+ *  `ready` is the one exception — it's not tied to a request, it's the
+ *  worker telling the main thread "module loaded, transformers.js +
+ *  ORT bindings imported successfully, you can start dispatching".
+ *  The main-thread runtime gates the first request on it so a
+ *  module-load failure (the most common cause of an opaque
+ *  ErrorEvent) surfaces as a real timeout error instead of an
+ *  empty `worker crashed` log line. */
+export type AiResponse =
+  | AiProgressResponse
+  | AiResultResponse
+  | AiErrorResponse
+  | AiReadyResponse
+  | AiSelfErrorResponse;
+
+export interface AiReadyResponse {
+  type: "ready";
+}
+
+/** Top-level error inside the worker (uncaught exception, unhandled
+ *  promise rejection). Distinct from `AiErrorResponse` which is tied
+ *  to a specific request id — this one tells the runtime to tear
+ *  down + reject every in-flight call, plus surfaces the actual
+ *  message + stack so the user-facing dialog can show something
+ *  better than "AI worker crashed (see browser console for details)". */
+export interface AiSelfErrorResponse {
+  type: "self-error";
+  message: string;
+  stack?: string;
+}
 
 export interface AiProgressResponse {
   id: string;

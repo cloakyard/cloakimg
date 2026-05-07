@@ -17,45 +17,50 @@
 // (face detection, OCR, depth) become new branches here and a new
 // variant in types.ts — the main-thread runtime is untouched.
 
-import { env, pipeline, RawImage } from "@huggingface/transformers";
+import {
+  type DataType,
+  type DeviceType,
+  env,
+  LogLevel,
+  pipeline,
+  type ProgressInfo,
+  RawImage,
+} from "@huggingface/transformers";
 import { aiLog } from "../log";
 import { createProgressAggregator } from "./progress";
 import type {
   AiErrorResponse,
   AiProgressResponse,
+  AiReadyResponse,
   AiRequest,
   AiResultResponse,
   AiSegmentRequest,
+  AiSelfErrorResponse,
 } from "./types";
 
 // Disable filesystem-backed local model loading — we ship the bytes
 // from the HF CDN and let the browser cache them. `useBrowserCache` is
-// already true by default in v3, but pinning it makes the intent
-// explicit.
+// true by default in browser environments, but pinning it makes the
+// intent explicit.
 env.allowLocalModels = false;
 env.useBrowserCache = true;
-// Quiet the ORT session-init warnings about node assignments
-// (`VerifyEachNodeIsAssignedToAnEp`). They're informational — ORT
-// reports which graph nodes fell back from WebGPU to CPU (shape ops
-// are explicitly assigned to CPU for performance) — but Chrome
-// surfaces them at console.warn so they look like real errors.
-//
-// ORT JS reads log severity from two places:
-//   • `env.logLevel` — global default for every InferenceSession.
-//   • `env.backends.onnx.wasm.logLevel` — WASM-thread fallback path.
-//
-// Set both to "error" so warnings drop out of the console without
-// hiding genuine failures. Passing "error" rather than a number
-// matches the type signature published by onnxruntime-common.
-type OrtLogEnv = {
-  logLevel?: "verbose" | "info" | "warning" | "error" | "fatal";
-  wasm?: { logLevel?: "verbose" | "info" | "warning" | "error" | "fatal" };
-};
-const ortEnv = env.backends?.onnx as OrtLogEnv | undefined;
-if (ortEnv) {
-  ortEnv.logLevel = "error";
-  if (ortEnv.wasm) ortEnv.wasm.logLevel = "error";
-}
+// `useWasmCache` (new in v4) caches the ONNX Runtime WASM binaries +
+// loader factory in CacheStorage. After the first visit the runtime
+// itself loads from cache, which means CloakIMG can spin up the AI
+// worker fully offline — not just the model bytes but the
+// transformers.js/ORT runtime too. Defaults to true when cache is
+// available; setting it explicitly pins the contract for our
+// offline-first stance.
+env.useWasmCache = true;
+// Suppress transformers.js + ONNX Runtime info / warning chatter.
+// v4 unified the verbosity controls: `env.logLevel` propagates down
+// to ORT via `env.backends.onnx.setLogLevel`, replacing the
+// `env.backends.onnx.{logLevel,wasm.logLevel}` knobs we had to set
+// by hand in v3. The v4 release also hides ORT's WebGPU node-
+// assignment warnings by default, so the bulk of the noise we used
+// to fight is now gone — but pinning `LogLevel.ERROR` keeps the
+// console focused on actual failures across browsers.
+env.logLevel = LogLevel.ERROR;
 
 type SegmenterFn = (input: RawImage | Blob | string) => Promise<RawImage[]>;
 
@@ -88,6 +93,38 @@ self.onmessage = (e: MessageEvent<AiRequest>) => {
     void _exhaustive;
   }
 };
+
+// Capture errors thrown OUTSIDE a request handler — top-level module
+// faults, an unhandled rejection from a stray promise, an error in a
+// callback we didn't await. Post them as `self-error` messages so the
+// main-thread runtime can render a real error to the user instead of
+// the opaque "AI worker crashed (see browser console for details)"
+// fallback that an empty ErrorEvent produces.
+self.onerror = (event) => {
+  // `event` is either an ErrorEvent (DOM workers) or a string + url +
+  // lineno tuple (older browsers). We normalise to a string message.
+  const message = typeof event === "string" ? event : (event.message ?? "Unknown worker error");
+  const filename = typeof event === "string" ? undefined : event.filename;
+  const errorObj =
+    typeof event === "string" ? undefined : event.error instanceof Error ? event.error : undefined;
+  postSelfError(buildErrorMessage(message, filename), errorObj?.stack);
+};
+self.onunhandledrejection = (event) => {
+  const reason = event.reason;
+  const message = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? reason.stack : undefined;
+  postSelfError(`Unhandled rejection: ${message}`, stack);
+};
+
+// Post the ready ping AFTER the imports above have evaluated. If the
+// transformers.js module itself fails to load (CORS, syntax error, a
+// browser without WebAssembly support, etc.), we never reach this
+// line — the main thread's getWorker() readiness promise rejects
+// with a clear "model runtime failed to initialize" instead of an
+// opaque ErrorEvent. The ping is `postMessage`, not `postProgress`,
+// so the ready handshake survives even when no request id is
+// outstanding.
+postReady();
 
 async function handleSegment(req: AiSegmentRequest) {
   const requested = req.device ?? "auto";
@@ -196,50 +233,31 @@ async function buildSegmenter(
   device: "webgpu" | "wasm",
 ): Promise<{ segmenter: SegmenterFn; device: "webgpu" | "wasm" }> {
   const aggregator = createProgressAggregator("Downloading model…");
-  // transformers.js' progress callback fires with several status
-  // shapes. We only care about per-file byte counts during the
-  // initial download — everything else maps to a phase change the
-  // worker emits explicitly (inference, decode).
-  const progress_callback = (data: unknown) => {
-    if (!isHfProgressEvent(data)) return;
-    const file = data.file ?? "model";
-    const loaded = data.loaded ?? 0;
-    const total = data.total ?? 0;
-    const next = aggregator.push(file, loaded, total);
+  // transformers.js v4 ships a proper `ProgressInfo` discriminated
+  // union — we narrow on `status === "progress"` (per-file byte
+  // tick) and ignore the lifecycle events ("initiate" / "download" /
+  // "done" / "ready" / "progress_total") that don't move our bar.
+  // The aggregator already merges per-file counts into a single
+  // monotonic ratio, so we don't need v4's new aggregated
+  // `progress_total` event.
+  const progress_callback = (data: ProgressInfo) => {
+    if (data.status !== "progress") return;
+    const next = aggregator.push(data.file ?? "model", data.loaded ?? 0, data.total ?? 0);
     if (next) postProgress(req.id, next);
   };
 
-  // The `as any` here is the narrowest concession to transformers.js'
-  // overloaded pipeline() typing — its `device` union accepts
-  // "webgpu" / "wasm" / "cpu" but the published .d.ts doesn't expose
-  // every combination cleanly. The runtime check is the actual
-  // contract.
+  // v4 publishes `DataType` and `DeviceType` as proper exports, so
+  // we can drop the `as any` escapes we needed in v3. `req.dtype`
+  // travels over postMessage as a plain string from the main thread,
+  // so we narrow it through the published `DataType` union here —
+  // the runtime check is still authoritative, but this lets the
+  // compiler catch typos at the request-construction site.
   const segmenter = (await pipeline("background-removal", req.model, {
-    // biome-ignore lint/suspicious/noExplicitAny: see comment above
-    device: device as any,
-    // biome-ignore lint/suspicious/noExplicitAny: dtype enum mismatch with .d.ts
-    dtype: req.dtype as any,
+    device: device as DeviceType,
+    dtype: req.dtype as DataType,
     progress_callback,
   })) as unknown as SegmenterFn;
   return { segmenter, device };
-}
-
-interface HfProgressEvent {
-  status: string;
-  file?: string;
-  loaded?: number;
-  total?: number;
-}
-
-function isHfProgressEvent(data: unknown): data is HfProgressEvent {
-  if (!data || typeof data !== "object") return false;
-  const d = data as { status?: unknown; loaded?: unknown; total?: unknown };
-  if (typeof d.status !== "string") return false;
-  // Accept the per-file download progress events. transformers.js
-  // also emits "initiate" / "download" / "done" / "ready" without
-  // bytes — those don't move the bar.
-  if (d.status !== "progress" && d.status !== "download") return false;
-  return typeof d.loaded === "number" && typeof d.total === "number";
 }
 
 /** Convert the incoming source bitmap to a RawImage transformers.js
@@ -315,7 +333,78 @@ function postProgress(id: string, progress: AiProgressResponse["progress"]) {
 }
 
 function postError(id: string, err: unknown, fatal: boolean) {
-  const message = err instanceof Error ? err.message : String(err);
+  const rawMessage = err instanceof Error ? err.message : String(err);
+  // Map common low-level errors to actionable user-facing copy. The
+  // raw message lands in the console log; this string is what shows
+  // up in the dialog. Order matters — we match the most specific
+  // patterns first.
+  const message = friendlyErrorMessage(rawMessage);
   const msg: AiErrorResponse = { id, type: "error", message, fatal };
   self.postMessage(msg);
+}
+
+function postReady() {
+  const msg: AiReadyResponse = { type: "ready" };
+  self.postMessage(msg);
+}
+
+function postSelfError(message: string, stack?: string) {
+  const msg: AiSelfErrorResponse = { type: "self-error", message, stack };
+  self.postMessage(msg);
+}
+
+function buildErrorMessage(message: string, filename?: string): string {
+  const friendly = friendlyErrorMessage(message);
+  // `filename` for ESM workers is usually a chunk URL — useful for
+  // debugging but noise for the user. Fold it into a parenthetical
+  // only when the error didn't get matched to a friendlier copy
+  // (i.e. when we're falling back to the raw runtime message).
+  if (friendly !== message || !filename) return friendly;
+  return `${friendly} (${filename})`;
+}
+
+/** Heuristic mapping of opaque transformer / ORT / fetch errors to
+ *  copy a user can act on. Keep this defensive — every branch must
+ *  fall back to the original message rather than swallow it. */
+function friendlyErrorMessage(raw: string): string {
+  const lower = raw.toLowerCase();
+  // Network / fetch failures — the model bytes never arrived. Most
+  // common cause for a first-download crash on flaky mobile networks.
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("err_") ||
+    lower.includes("network request failed") ||
+    lower.includes("load failed")
+  ) {
+    return "Couldn't reach the model server. Check your connection and try again.";
+  }
+  // OOM / allocation failure — common on mid-tier phones for the
+  // 88 MB / 176 MB tiers.
+  if (
+    lower.includes("out of memory") ||
+    lower.includes("oom") ||
+    lower.includes("allocation failed") ||
+    lower.includes("rangeerror") ||
+    lower.includes("array buffer allocation failed")
+  ) {
+    return "This device ran out of memory loading the model. Try the Fast (~44 MB) tier, or switch to the Chroma keyer for flat backgrounds.";
+  }
+  // WebAssembly compile errors — usually a browser without WASM SIMD
+  // / threads, or a corrupt cache entry.
+  if (lower.includes("webassembly") || lower.includes("wasm")) {
+    return "The on-device runtime didn't compile in this browser. Try a recent Chrome / Safari, or use the Chroma keyer.";
+  }
+  // 404 / 403 from the HF CDN — the model was retired or the user
+  // typed a bad model id (shouldn't happen for our pinned models, but
+  // surfaces as a real error rather than "AI worker crashed").
+  if (lower.includes("404") || lower.includes("not found")) {
+    return "The model files weren't found on the server. The CloakIMG team may have updated them — try reloading the page.";
+  }
+  // Worker module load — this comes from our own self.onerror when
+  // transformers.js itself failed to import inside the worker.
+  if (lower.includes("importscripts") || lower.includes("syntax")) {
+    return "AI module failed to load. Reload the page and try again.";
+  }
+  return raw || "AI worker hit an unexpected error.";
 }

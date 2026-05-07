@@ -99,14 +99,29 @@ export function useSubjectMask(): UseSubjectMask {
   // mask gets reused, silently negating the upgrade. We track the
   // *previous* quality in a ref so the first mount (where prev ===
   // current) doesn't invalidate — only real transitions do.
+  //
+  // CRITICAL: skip invalidation while a detection is already inflight
+  // for the new quality. The consent-dialog flow patches `bgQuality`
+  // and *then* fires `startDetection` synchronously in the same
+  // event handler, so by the time React commits and this effect
+  // runs, an inflight detection for the new quality already exists.
+  // Calling invalidateSubjectMask here would bump the generation
+  // counter and silently discard that detection's result on
+  // completion — exactly the "no progress shown, then nothing
+  // happens" symptom the user reported on first download. We only
+  // want to drop the cache when there's no in-flight detection to
+  // race; the consent flow's own invalidation is implicit (a fresh
+  // ensureSubjectMask call writes to the cache slot directly).
   const prevQualityRef = useRef(quality);
   useEffect(() => {
     if (prevQualityRef.current !== quality) {
-      invalidateSubjectMask();
+      if (state.status !== "loading") {
+        invalidateSubjectMask();
+      }
       prevQualityRef.current = quality;
     }
     void probeModelCache(quality);
-  }, [quality]);
+  }, [quality, state.status]);
 
   const peek = useCallback(() => {
     if (!doc) return null;
