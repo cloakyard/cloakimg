@@ -27,21 +27,10 @@ import { cancelMaskDetection, MaskConsentError, requestModelPicker } from "../ai
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { DetectionProgressCard } from "../ai/ui/DetectionStatus";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
-import type { BgQuality, SmartRemoveProgress } from "../ai/runtime/segment";
+import { type BgQuality, getTierById } from "../ai/runtime/bgModels";
+import type { SmartRemoveProgress } from "../ai/runtime/segment";
 
 const MODES = ["Auto", "Chroma"] as const;
-// Per-tier label + size, used for the inline "Model: …" readout that
-// replaces the in-panel Quality picker. The picker itself lives in
-// MaskConsentDialog (single source of truth — opened from the
-// "Change" link below). Keeping the same three tiers in two places
-// was the source of UX confusion the user flagged: the panel showed
-// three buttons, the dialog showed three more, and it wasn't obvious
-// they referred to the same model.
-const QUALITY_META: Record<BgQuality, { label: string; mb: number }> = {
-  small: { label: "Fast", mb: 42 },
-  medium: { label: "Better", mb: 84 },
-  large: { label: "Best", mb: 168 },
-};
 
 export function RemoveBgPanel() {
   const { toolState, patchTool, doc, commit, runBusy } = useEditor();
@@ -306,7 +295,7 @@ function AutoPanel({
   // already loaded" run-on; this split avoids that class of bug
   // entirely.
   const readyForInstant = warm || modelCached;
-  const meta = QUALITY_META[quality];
+  const meta = getTierById(quality);
   return (
     <>
       <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">

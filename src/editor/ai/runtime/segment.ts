@@ -4,75 +4,31 @@
 // callers (subjectMask service, hook, dialogs, panels) didn't have to
 // change shape — only their import paths moved.
 //
-// Internals are now transformers.js + ONNX, running in our own worker
+// Internals are transformers.js + ONNX, running in our own worker
 // (see ai/worker.ts). Source pixels travel as a transferable
 // ImageBitmap (no PNG encode on the main thread); the result comes
 // back the same way (no PNG decode either) — a typical detection
 // shaves ~130 ms of round-trip overhead vs. the Blob path.
 //
-// Model is `onnx-community/ISNet-ONNX` across all three tiers,
-// varying by ONNX dtype:
-//
-//   small  → q8   (~42 MB)  uint8 quantization, fastest, all devices
-//   medium → fp16 (~84 MB)  half precision, recommended balance
-//   large  → fp32 (~168 MB) full precision, best fidelity
-//
-// We previously shipped Xenova/modnet, but a head-to-head bake-off
-// against ISNet on three subject types (curly-hair portrait, dog with
-// fur, product on white) showed modnet returns an *empty mask* for
-// non-human subjects — modnet's training set is portraits-only.
-// Users segmenting pets, products, or any non-portrait subject saw
-// "no subject detected" or, worse, a fully transparent cut. ISNet is
-// general-purpose (DIS dataset) and produces clean masks across all
-// three categories at every dtype. The size budget tripled (6→42 MB
-// for the Fast tier) but the bytes are real value, not size for size's
-// sake — modnet's smaller weights couldn't generalise.
-//
-// History: we briefly used `briaai/RMBG-1.4` (Segformer-based) but
-// transformers.js v4 rejects it because briaai's config.json reports
-// `model_type: "SegformerForSemanticSegmentation"` (the class name)
-// where v4 expects the lowercase identifier `"segformer"`. ISNet is
-// in v4's CUSTOM_ARCHITECTURES_MAPPING and loads cleanly. To swap to
-// BiRefNet or BEN2 later, change MODEL_REGISTRY — the cache probe
-// and dispatch are model-agnostic. (Note: BiRefNet_lite was tested
-// and trips a WebGPU shader storage-buffer limit on common Chrome
-// configs, so it's not a viable swap today.)
+// Model selection lives in `bgModels.ts` — this file just consumes
+// the registry. To swap models, edit ACTIVE_FAMILY there; UI copy
+// + tier metadata follow automatically. (See bgModels.ts header for
+// migration history and the bake-off rationale behind the active
+// family choice.)
 
 import { acquireCanvas } from "../../doc";
 import { aiLog } from "../log";
+import { ACTIVE_FAMILY, type BgQuality, getInferenceLongEdge, getTierById } from "./bgModels";
 import { isHfModelCached } from "./cache";
 import { runAi } from "./runtime";
-import type { AiProgress, AiQuality } from "./types";
+import type { AiProgress } from "./types";
 
-/** Re-export the shared types under their old names so the seven
- *  call sites can update their import path with no further shape
- *  changes. New code should prefer importing from `./types` directly. */
-export type BgQuality = AiQuality;
+/** Re-export the shared types under their old names so existing call
+ *  sites don't need to update imports. New code should prefer pulling
+ *  from `./bgModels` for tier-shape concerns and `./types` for the
+ *  generic AI types. */
+export type { BgQuality } from "./bgModels";
 export type SmartRemoveProgress = AiProgress;
-
-interface ModelTier {
-  /** HF repo id passed to transformers.js' pipeline(). */
-  repo: string;
-  /** ONNX dtype variant — tells transformers.js which file under
-   *  `<repo>/onnx/` to fetch. Different dtypes are different files,
-   *  so switching tiers doesn't re-download what's on disk. */
-  dtype: string;
-}
-
-const MODEL_REGISTRY: Record<BgQuality, ModelTier> = {
-  small: { repo: "onnx-community/ISNet-ONNX", dtype: "q8" },
-  medium: { repo: "onnx-community/ISNet-ONNX", dtype: "fp16" },
-  large: { repo: "onnx-community/ISNet-ONNX", dtype: "fp32" },
-};
-
-/** Best-effort byte-size hint shown in the consent dialog. The real
- *  size only resolves once the network responds; these are stable
- *  estimates for the ISNet ONNX dump. */
-export const QUALITY_BYTE_ESTIMATES: Record<BgQuality, number> = {
-  small: 42 * 1024 * 1024,
-  medium: 84 * 1024 * 1024,
-  large: 168 * 1024 * 1024,
-};
 
 interface RemoveOptions {
   quality?: BgQuality;
@@ -98,31 +54,34 @@ export async function smartRemoveBackground(
   opts: RemoveOptions = {},
 ): Promise<HTMLCanvasElement> {
   const { quality = "small", onProgress, signal } = opts;
-  const tier = MODEL_REGISTRY[quality];
+  const tier = getTierById(quality);
   const startedAt = performance.now();
   aiLog.debug("segment", "smartRemoveBackground start", {
+    family: ACTIVE_FAMILY.id,
     quality,
     model: tier.repo,
     dtype: tier.dtype,
     src: `${src.width}x${src.height}`,
   });
 
-  // 1. Pick an inference size. ISNet's preprocessor resizes every
-  //    input to 1024×1024 internally — feeding 24 MP raw pixels just
-  //    inflates worker memory pressure with no quality benefit. We cap
-  //    the long edge at INFERENCE_LONG_EDGE before transferring so the
+  // 1. Pick an inference size. The active model family's preprocessor
+  //    resizes every input to its intrinsic working resolution
+  //    internally — feeding 24 MP raw pixels just inflates worker
+  //    memory pressure with no quality benefit. We cap the long edge
+  //    to the family's `inferenceLongEdge` before transferring so the
   //    bitmap arrives at the worker already at the model's working
   //    resolution. The worker's bitmap → RawImage → OffscreenCanvas
   //    round trip drops from ~300 MB to under 50 MB.
   //
   //    The mask we get back is at the inference size — we then bilinear-
   //    upscale its alpha onto the original full-res source on the main
-  //    thread (step 4) so callers still get a cut at source dimensions.
+  //    thread (step 3) so callers still get a cut at source dimensions.
   //    Quality of an upscaled soft alpha mask is indistinguishable from
-  //    one regenerated at full resolution for the kind of edges modnet
-  //    produces (it's a probability map, not a hard binary).
+  //    one regenerated at full resolution for soft probability masks
+  //    (which is what every modern bg-removal model produces).
+  const inferenceCap = getInferenceLongEdge();
   const longEdge = Math.max(src.width, src.height);
-  const scale = longEdge > INFERENCE_LONG_EDGE ? INFERENCE_LONG_EDGE / longEdge : 1;
+  const scale = longEdge > inferenceCap ? inferenceCap / longEdge : 1;
   const infW = Math.max(1, Math.round(src.width * scale));
   const infH = Math.max(1, Math.round(src.height * scale));
 
@@ -232,12 +191,6 @@ export async function smartRemoveBackground(
   return out;
 }
 
-/** Largest dimension we'll feed the segmentation model. ISNet
- *  preprocesses to 1024×1024 internally, so this is the natural
- *  ceiling — anything bigger is just memory pressure with no extra
- *  signal for the model to consume. */
-const INFERENCE_LONG_EDGE = 1024;
-
 /** Whether a given quality tier's model bytes are already on disk
  *  from a previous session. Used by the consent dialog to render the
  *  "Already downloaded" badge and by the mask service to suppress the
@@ -246,7 +199,7 @@ const INFERENCE_LONG_EDGE = 1024;
  *  The HF cache layer keys each dtype as a separate file under the
  *  repo's `/onnx/` path, so different tiers report independently. */
 export async function isModelCached(quality: BgQuality): Promise<boolean> {
-  const tier = MODEL_REGISTRY[quality];
+  const tier = getTierById(quality);
   return isHfModelCached(tier.repo, tier.dtype);
 }
 

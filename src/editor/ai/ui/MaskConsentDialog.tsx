@@ -26,67 +26,9 @@ import { useCallback, useEffect, useState } from "react";
 import { I } from "../../../components/icons";
 import { ModalCloseButton, ModalFrame } from "../../../components/ModalFrame";
 import { useEditorActions, useEditorReadOnly } from "../../EditorContext";
-import type { Layout } from "../../types";
+import { type BgQuality, getTierById, tiersForLayout } from "../runtime/bgModels";
 import { savePreferredQuality } from "../runtime/preferredQuality";
-import { type BgQuality, isModelCached } from "../runtime/segment";
-
-interface Tier {
-  id: BgQuality;
-  index: number;
-  label: string;
-  mb: number;
-  /** One-line description of what this tier is good at — what makes
-   *  this option the right pick for the user. Renders as the primary
-   *  hint line, so it should answer "why pick this?". */
-  strength: string;
-  /** One-line description of the trade-off — what the user gives up
-   *  to get the strength. Renders muted underneath. Honest about the
-   *  cost so the user can choose with eyes open. */
-  tradeoff: string;
-  /** When true, the dialog tags this tier with a "Recommended" pill.
-   *  Set on the tier that delivers the best balance — quality fall-off
-   *  below it is noticeable, the step up to "Best" mostly matters for
-   *  hair / glass edges. */
-  recommended?: boolean;
-  /** When true, this tier only appears on tablet/desktop. The 168 MB
-   *  ISNet fp32 dump is heavy for phone storage budgets — Fast / Better
-   *  are the right defaults there. */
-  desktopAndTabletOnly?: boolean;
-}
-
-const TIERS: Tier[] = [
-  {
-    id: "small",
-    index: 0,
-    label: "Fast",
-    mb: 42,
-    strength: "Quickest to download and run — fits any device.",
-    tradeoff: "Softer around hair, fur, and glass edges.",
-  },
-  {
-    id: "medium",
-    index: 1,
-    label: "Better",
-    mb: 84,
-    strength: "Sharper edges around hair and fine detail.",
-    tradeoff: "Roughly 2× the first-run download.",
-    recommended: true,
-  },
-  {
-    id: "large",
-    index: 2,
-    label: "Best",
-    mb: 168,
-    strength: "Highest fidelity for hair, fur, and glass.",
-    tradeoff: "Heaviest tier; best on a fast connection.",
-    desktopAndTabletOnly: true,
-  },
-];
-
-function tiersForLayout(layout: Layout): Tier[] {
-  if (layout === "mobile") return TIERS.filter((t) => !t.desktopAndTabletOnly);
-  return TIERS;
-}
+import { isModelCached } from "../runtime/segment";
 
 interface Props {
   /** Quality the caller initially asked for. The user can change it
@@ -149,7 +91,7 @@ export function MaskConsentDialog({
   }, [layout]);
 
   const accept = useCallback(() => {
-    const idx = TIERS.find((t) => t.id === picked)?.index ?? 0;
+    const idx = getTierById(picked).index;
     patchTool("bgQuality", idx);
     // Remember the choice across sessions so the editor boots into
     // this tier next visit instead of always defaulting to Fast. The
@@ -293,5 +235,5 @@ export function MaskConsentDialog({
 }
 
 function pickedSize(q: BgQuality): number {
-  return TIERS.find((t) => t.id === q)?.mb ?? 44;
+  return getTierById(q).mb;
 }

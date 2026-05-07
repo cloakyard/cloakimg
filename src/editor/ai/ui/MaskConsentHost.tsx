@@ -28,7 +28,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorReadOnly } from "../../EditorContext";
 import { aiLog } from "../log";
-import { type BgQuality, isModelCached, QUALITY_BYTE_ESTIMATES } from "../runtime/segment";
+import { type BgQuality, getTierById } from "../runtime/bgModels";
+import { isModelCached } from "../runtime/segment";
 import {
   cancelMaskDetection,
   denyMaskConsent,
@@ -190,7 +191,7 @@ export function MaskConsentHost() {
   }
   if (showDownload) {
     const quality = requestedQualityRef.current;
-    const expectedTotal = quality ? QUALITY_BYTE_ESTIMATES[quality] : undefined;
+    const expectedTotal = quality ? getTierById(quality).bytes : undefined;
     const status = subjectMask.state.status;
     // Render the dialog while we're loading, OR pinned after an
     // error so the user sees what failed. "ready" / "idle" are

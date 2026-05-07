@@ -5,11 +5,11 @@
 // (CacheStorage); this module only stores the *preference* in
 // localStorage and validates it against the cache before honouring it.
 
-import { type BgQuality, isModelCached } from "./segment";
+import { type BgQuality, indexForQuality, QUALITY_KEYS } from "./bgModels";
+import { isModelCached } from "./segment";
 
 const KEY = "cloakimg:bgQuality";
-const VALID = new Set<BgQuality>(["small", "medium", "large"]);
-const QUALITY_BY_INDEX: BgQuality[] = ["small", "medium", "large"];
+const VALID = new Set<BgQuality>(QUALITY_KEYS);
 
 /** Persist the user's chosen quality. Called from the consent dialog
  *  the moment the user taps Download (or "Use this model" when
@@ -40,18 +40,19 @@ export async function resolvePreferredQuality(): Promise<BgQuality | null> {
   if (stored && (await isModelCached(stored))) return stored;
   // Walk largest → smallest so a user who downloaded both "Better"
   // and "Best" in past sessions lands on "Best" by default.
-  for (let i = QUALITY_BY_INDEX.length - 1; i >= 0; i--) {
-    const q = QUALITY_BY_INDEX[i];
+  for (let i = QUALITY_KEYS.length - 1; i >= 0; i--) {
+    const q = QUALITY_KEYS[i];
     if (q && (await isModelCached(q))) return q;
   }
   return null;
 }
 
-/** Index in `QUALITY_BY_INDEX` (matches the numeric `bgQuality` field
- *  in toolState). Exported so the EditorContext restore path can
- *  patchTool without re-importing the order from useSubjectMask. */
+/** Index in `QUALITY_KEYS` (matches the numeric `bgQuality` field
+ *  in toolState). Re-exported under the original name so the
+ *  EditorContext restore path doesn't have to know about the
+ *  registry's helper name. */
 export function indexFor(q: BgQuality): number {
-  return Math.max(0, QUALITY_BY_INDEX.indexOf(q));
+  return Math.max(0, indexForQuality(q));
 }
 
 function readStored(): BgQuality | null {

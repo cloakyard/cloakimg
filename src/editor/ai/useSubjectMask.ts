@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditorReadOnly, useToolState } from "../EditorContext";
-import type { BgQuality } from "./runtime/segment";
+import { type BgQuality, getTierByIndex } from "./runtime/bgModels";
 import {
   clearMaskDeny,
   denyMaskConsent,
@@ -22,8 +22,6 @@ import {
   subscribeMaskState,
   waitForMaskResolution,
 } from "./subjectMask";
-
-const QUALITY_KEYS: BgQuality[] = ["small", "medium", "large"];
 
 export interface UseSubjectMask {
   state: MaskState;
@@ -78,7 +76,7 @@ export interface UseSubjectMask {
 export function useSubjectMask(): UseSubjectMask {
   const { doc } = useEditorReadOnly();
   const { bgQuality } = useToolState();
-  const quality = QUALITY_KEYS[bgQuality] ?? "small";
+  const quality = getTierByIndex(bgQuality).id;
   const [state, setState] = useState<MaskState>(() => getMaskState());
 
   useEffect(() => {
