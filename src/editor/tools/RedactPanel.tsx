@@ -18,7 +18,7 @@
 
 import { useCallback, useState } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, MaskConsentError, type MaskScope } from "../subjectMask";
@@ -47,6 +47,15 @@ export function RedactPanel() {
         // latch via requestExplicit so the consent dialog re-opens
         // instead of the button silently no-op'ing.
         const mask = subjectMask.peek() ?? (await subjectMask.requestExplicit());
+        // Yield to the browser's render cycle before starting the
+        // synchronous bake. Without this, on the warm-cache path the
+        // spinner state we just set never paints — React schedules
+        // the render, then we immediately monopolise the main thread
+        // for 200–500 ms of full-res redaction + compositing. The
+        // user sees a frozen button and the image suddenly changes
+        // at the end. A single rAF break is enough for the spinner
+        // to render before we start blocking.
+        await new Promise<void>((r) => requestAnimationFrame(() => r()));
         // Build a fully-redacted copy of the working canvas, then
         // composite it back through the subject mask. We re-use the
         // existing per-style redaction (pixelate / blur / solid) to
@@ -103,8 +112,15 @@ export function RedactPanel() {
             className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-2 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
             style={{ opacity: smartBusy ? 0.7 : 1 }}
           >
-            <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
-            {smartBusy === "subject" ? "Working…" : "Person"}
+            {smartBusy === "subject" ? (
+              <>
+                <InlineSpinner size={12} /> Working…
+              </>
+            ) : (
+              <>
+                <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" /> Person
+              </>
+            )}
           </button>
           <button
             type="button"
@@ -113,8 +129,15 @@ export function RedactPanel() {
             className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-2 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
             style={{ opacity: smartBusy ? 0.7 : 1 }}
           >
-            <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
-            {smartBusy === "background" ? "Working…" : "Scene"}
+            {smartBusy === "background" ? (
+              <>
+                <InlineSpinner size={12} /> Working…
+              </>
+            ) : (
+              <>
+                <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" /> Scene
+              </>
+            )}
           </button>
         </div>
       </PropRow>

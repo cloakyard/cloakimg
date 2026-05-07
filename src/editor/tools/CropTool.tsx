@@ -14,7 +14,7 @@
 import { type FabricObject, Rect as FabricRect } from "fabric";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
@@ -325,6 +325,12 @@ export function CropPanel() {
   const subjectMask = useSubjectMask();
   const [smartBusy, setSmartBusy] = useState(false);
   const [smartError, setSmartError] = useState<string | null>(null);
+  // Apply-crop busy state. The bake is synchronous (canvas drawImage
+  // with rotate / flip), but on a 24 MP photo it can block the main
+  // thread for 100–300 ms — long enough that the user sees a frozen
+  // button. We flip this on, yield to the browser so the spinner
+  // paints, then run the bake.
+  const [applying, setApplying] = useState(false);
   const aspect = ASPECT_OPTIONS[toolState.cropAspect]?.ratio ?? null;
   // Total rotation = quarter turns from the 90° button + fine slider.
   // Normalised to [0, 360) for display so 90° presses don't grow the
@@ -344,7 +350,7 @@ export function CropPanel() {
     [patchTool],
   );
 
-  const apply = useCallback(() => {
+  const apply = useCallback(async () => {
     const fc = getFabricCanvas();
     if (!fc || !doc) return;
     const rectObj = findCropRect(fc);
@@ -367,27 +373,37 @@ export function CropPanel() {
       Math.abs(r.w - init.w) < 1 &&
       Math.abs(r.h - init.h) < 1;
     if (noTransform && noCrop) return;
-    const totalDeg = toolState.cropQuarterTurns * 90 + toolState.rotationDeg;
-    const out = applyCrop(doc.working, r, totalDeg, toolState.flipH, toolState.flipV);
-    copyInto(doc.working, out);
-    doc.width = out.width;
-    doc.height = out.height;
-    // Reset the crop overlay to span the new doc and clear panel
-    // rotate/flip state.
-    rectObj.set({
-      left: 0,
-      top: 0,
-      width: out.width,
-      height: out.height,
-      scaleX: 1,
-      scaleY: 1,
-    });
-    fc.requestRenderAll();
-    patchTool("rotationDeg", 0);
-    patchTool("cropQuarterTurns", 0);
-    patchTool("flipH", false);
-    patchTool("flipV", false);
-    commit("Crop");
+    setApplying(true);
+    try {
+      // Yield to the browser so the busy state paints before we
+      // monopolise the main thread on the rotate/flip drawImage. On
+      // a 24 MP photo this is the difference between "instant" and
+      // "the button froze for 200 ms" on touch devices.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const totalDeg = toolState.cropQuarterTurns * 90 + toolState.rotationDeg;
+      const out = applyCrop(doc.working, r, totalDeg, toolState.flipH, toolState.flipV);
+      copyInto(doc.working, out);
+      doc.width = out.width;
+      doc.height = out.height;
+      // Reset the crop overlay to span the new doc and clear panel
+      // rotate/flip state.
+      rectObj.set({
+        left: 0,
+        top: 0,
+        width: out.width,
+        height: out.height,
+        scaleX: 1,
+        scaleY: 1,
+      });
+      fc.requestRenderAll();
+      patchTool("rotationDeg", 0);
+      patchTool("cropQuarterTurns", 0);
+      patchTool("flipH", false);
+      patchTool("flipV", false);
+      commit("Crop");
+    } finally {
+      setApplying(false);
+    }
   }, [aspect, commit, doc, getFabricCanvas, patchTool, toolState]);
 
   // Smart Crop — read the subject bbox from the cached mask (or wait
@@ -509,7 +525,7 @@ export function CropPanel() {
       }
       if (e.key === "Enter") {
         e.preventDefault();
-        apply();
+        void apply();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -557,7 +573,11 @@ export function CropPanel() {
         className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
         style={{ opacity: smartBusy ? 0.7 : 1 }}
       >
-        <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+        {smartBusy ? (
+          <InlineSpinner size={12} />
+        ) : (
+          <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+        )}
         {smartLabel}
       </button>
       {smartError && (
@@ -619,11 +639,19 @@ export function CropPanel() {
       <button
         type="button"
         className="btn btn-primary mt-1 w-full justify-center"
-        onClick={() => apply()}
-        style={{ fontSize: 12.5, padding: "9px" }}
+        onClick={() => void apply()}
+        disabled={applying}
+        style={{ fontSize: 12.5, padding: "9px", opacity: applying ? 0.7 : 1 }}
       >
-        <I.Check size={13} />
-        Apply crop
+        {applying ? (
+          <>
+            <InlineSpinner /> Applying…
+          </>
+        ) : (
+          <>
+            <I.Check size={13} /> Apply crop
+          </>
+        )}
       </button>
       <p className="text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
         Or press Enter / switch tools. Undo/Redo recover.

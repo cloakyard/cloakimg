@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { MaskConsentError } from "../subjectMask";
@@ -336,39 +336,6 @@ function AutoPanel({
             : `${QUALITY_HINTS[quality] ?? ""}. Downloads once on apply, then runs offline.`}
       </div>
     </>
-  );
-}
-
-// 13 px circular spinner used inline in the Apply button label. Sits
-// next to 12.5 px button text so the size pairing reads correctly.
-function InlineSpinner() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      style={{ animation: "ci-spin 0.9s linear infinite" }}
-      role="img"
-      aria-label="Working"
-    >
-      <title>Working</title>
-      <circle
-        cx="6.5"
-        cy="6.5"
-        r="5"
-        stroke="currentColor"
-        strokeOpacity="0.25"
-        strokeWidth="2"
-        fill="none"
-      />
-      <path
-        d="M 6.5 1.5 A 5 5 0 0 1 11.5 6.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
   );
 }
 

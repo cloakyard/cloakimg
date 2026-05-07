@@ -401,6 +401,46 @@ export function Spinner({ size = 36, label }: SpinnerProps) {
   );
 }
 
+/** Compact 13 px circular spinner sized for inline use next to a 12 –
+ *  12.5 px button label. Use this in panel buttons that flip into a
+ *  busy state while a synchronous post-detection bake or other tight
+ *  operation runs — pairing the label change with a visible spinner
+ *  is what tells the user "I'm working" instead of the button just
+ *  freezing. The full-overlay `<Spinner />` above is for modal /
+ *  full-screen waits; this one is for inline button affordances. */
+export function InlineSpinner({ size = 13 }: { size?: number } = {}) {
+  const r = (size - 3) / 2;
+  const c = size / 2;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ animation: "ci-spin 0.9s linear infinite" }}
+      role="img"
+      aria-label="Working"
+    >
+      <title>Working</title>
+      <circle
+        cx={c}
+        cy={c}
+        r={r}
+        stroke="currentColor"
+        strokeOpacity="0.25"
+        strokeWidth="2"
+        fill="none"
+      />
+      <path
+        d={`M ${c} ${1.5} A ${r} ${r} 0 0 1 ${size - 1.5} ${c}`}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
 interface ToggleProps {
   on: boolean;
   onChange?: (next: boolean) => void;

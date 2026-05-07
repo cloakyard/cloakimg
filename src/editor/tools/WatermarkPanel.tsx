@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
 import type { WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
-import { PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { I } from "../../components/icons";
 import { MaskConsentError, regionCoverage } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
@@ -274,8 +274,16 @@ export function WatermarkPanel() {
           className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
           style={{ opacity: smartBusy ? 0.7 : 1 }}
         >
-          <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
-          {smartBusy ? "Finding empty corner…" : "Place away from subject"}
+          {smartBusy ? (
+            <>
+              <InlineSpinner size={12} /> Finding empty corner…
+            </>
+          ) : (
+            <>
+              <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" /> Place away
+              from subject
+            </>
+          )}
         </button>
         {smartError && (
           <div className="mb-1.5 rounded-md border border-coral-300 bg-coral-50 px-2.5 py-1.5 text-[11px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
