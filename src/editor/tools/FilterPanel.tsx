@@ -11,13 +11,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
 import { copyInto, createCanvas, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
+import { applyMaskScope, type MaskScope } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
-import { AiSectionHeader } from "./AiSectionHeader";
+import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
-import { MaskScopeRow } from "./MaskScopeRow";
-import { ScopeGate } from "./ScopeGate";
+import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
+import { ScopeGate } from "../ai/ui/ScopeGate";
 
 const THUMB_PX = 96;
 

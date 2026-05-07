@@ -21,7 +21,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
+import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../ai/subjectMask";
 import { type CurvePoint, isCurveIdentity } from "../toolState";
 import { bakeAdjust, isIdentity } from "./adjustments";
 import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";

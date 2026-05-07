@@ -26,10 +26,11 @@
 // want a full-screen modal popping for every scope toggle.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useEditorReadOnly } from "../EditorContext";
+import { useEditorReadOnly } from "../../EditorContext";
+import { aiLog } from "../log";
+import { type BgQuality, QUALITY_BYTE_ESTIMATES } from "../runtime/segment";
 import { cancelMaskDetection, ensureSubjectMask, grantMaskConsent } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
-import { type BgQuality, QUALITY_BYTE_ESTIMATES } from "./ai/segment";
 import { MaskConsentDialog } from "./MaskConsentDialog";
 import { MaskDownloadDialog } from "./MaskDownloadDialog";
 
@@ -60,22 +61,38 @@ export function MaskConsentHost() {
   // around the hook keeps the chosen tier honest.
   const startDetection = useCallback(
     (quality: BgQuality) => {
-      if (!doc) return;
+      if (!doc) {
+        aiLog.warn("consent", "startDetection invoked with no doc — ignored");
+        return;
+      }
+      aiLog.info("consent", "starting detection from consent flow", {
+        quality,
+        source: `${doc.working.width}x${doc.working.height}`,
+      });
       requestedQualityRef.current = quality;
       setShowDownload(true);
-      void ensureSubjectMask(doc.working, quality).catch((err) => {
-        // Errors land in mask state — the download dialog reads
-        // state.error and pins it inline. Surfacing through console
-        // too so the underlying cause (worker crash, model fetch
-        // failure, CSP, etc.) is visible to anyone debugging.
-        console.error("[CloakIMG] Subject detection failed:", err);
-      });
+      // Errors land in mask state — the download dialog reads
+      // state.error and pins it inline. Logging here too so the
+      // underlying cause (worker crash, model fetch failure, CSP,
+      // CORS, etc.) is captured even if the dialog closes before the
+      // user sees the inline message. Wrapping in try/catch on top
+      // of the .catch keeps any synchronous throw from `ensureSubjectMask`
+      // out of the React render path.
+      try {
+        void ensureSubjectMask(doc.working, quality).catch((err) => {
+          if (err instanceof Error && err.name === "AiAbortError") return;
+          aiLog.error("consent", "subject detection promise rejected", err, { quality });
+        });
+      } catch (err) {
+        aiLog.error("consent", "ensureSubjectMask threw synchronously", err, { quality });
+      }
     },
     [doc],
   );
 
   const onAccept = useCallback(
     (quality: BgQuality) => {
+      aiLog.info("consent", "user granted consent", { quality });
       grantMaskConsent();
       startDetection(quality);
     },
@@ -104,6 +121,7 @@ export function MaskConsentHost() {
     // thread dies, the modal closes, mask state goes back to idle.
     // The bytes already in CacheStorage stick around so a follow-up
     // tap doesn't re-download from scratch.
+    aiLog.info("consent", "user cancelled download/detection");
     cancelMaskDetection();
     setShowDownload(false);
   }, []);
@@ -112,8 +130,9 @@ export function MaskConsentHost() {
     // Same quality, fresh attempt. cancelMaskDetection clears state
     // → idle and bumps inflight generation; startDetection then
     // flips back to "loading" with progress reset.
-    cancelMaskDetection();
     const quality = requestedQualityRef.current;
+    aiLog.info("consent", "user retrying detection", { quality });
+    cancelMaskDetection();
     if (!quality) return;
     startDetection(quality);
   }, [startDetection]);

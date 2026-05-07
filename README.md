@@ -70,10 +70,13 @@ CloakIMG includes a built-in subject-detection model ([RMBG-1.4](https://hugging
 
 - **No server inference.** The model is loaded as static `.onnx` weights and run in a Web Worker via [ONNX Runtime Web](https://onnxruntime.ai/) — WebGPU on supported devices, WebAssembly SIMD elsewhere. Inference is read-only — nothing about your photo is sent back over the network.
 - **No telemetry.** The image bytes never leave your browser tab. You can verify in DevTools → Network that the only traffic is the one-time model download from `huggingface.co`.
+- **Explicit, informed consent.** No bytes are fetched until you tap _Download_ in a dialog that names the model, lists every tier with strengths and trade-offs, shows an "Already downloaded" badge for tiers that won't re-fetch, and lets you back out with _Not now_.
 - **First run only.** The model files (~44 MB Fast / ~88 MB Better / ~176 MB Best — the same RMBG-1.4 weights at int8 / fp16 / fp32) download on first use and are then cached by the browser. After that, every AI feature works fully offline.
 - **Quality you control.** Pick the smallest dtype for fast detection on phones, or the largest for the cleanest edges — all three are real ONNX models, no quality-degrading client-side approximation.
 - **Lazy-loaded.** Opening a subject-aware tool doesn't pull in any AI code; only picking the _Subject_ or _Background_ scope (or hitting Apply on Remove BG) actually starts the download.
-- **Honest cancel.** Mid-detection Cancel actually terminates the worker thread — no graceful interrupt exists in ONNX runtime, so we own the worker outright. Pipeline weights stay cached for the next attempt.
+- **Honest cancel.** Mid-detection _Cancel_ actually terminates the worker thread — no graceful interrupt exists in ONNX runtime, so we own the worker outright. Pipeline weights stay cached for the next attempt.
+- **Localised error recovery.** AI render errors are caught by an `AiErrorBoundary` so a model load failure can never take down the rest of the editor; the user keeps their work-in-progress and can retry from the consent dialog.
+- **Verbose logs on demand.** Run `localStorage.ai_debug = "1"` in DevTools to surface every state transition (`runtime`, `worker`, `subjectMask`, `consent`) under a `[ai]` prefix when reproducing a bug.
 
 ### 🧭 Workspace
 
@@ -203,7 +206,26 @@ cloakimg/
 │       ├── EditorContext.tsx    # Document, history, layers, autosave
 │       ├── ImageCanvas.tsx      # Fabric-backed canvas + pan/zoom/transform
 │       ├── tools/               # One file per tool (Crop, Adjust, Filter, Redact, …)
-│       │   └── ai/               # Shared on-device AI runtime: worker, pipeline cache, segmentation facade, cache probe
+│       ├── ai/                  # All on-device AI code lives here:
+│       │   ├── subjectMask.ts     #   central mask service (singleton, shared across tools)
+│       │   ├── useSubjectMask.ts  #   React hook on top of the service
+│       │   ├── log.ts             #   structured logger (`[ai] runtime …` etc.)
+│       │   ├── runtime/           #   main-thread bridge to the AI Web Worker
+│       │   │   ├── runtime.ts       #     runAi() singleton + abort handling
+│       │   │   ├── worker.ts        #     Web Worker hosting transformers.js pipelines
+│       │   │   ├── segment.ts       #     smartRemoveBackground() facade + tier registry
+│       │   │   ├── types.ts         #     shared AiRequest / AiResponse / AiProgress types
+│       │   │   ├── cache.ts         #     CacheStorage probe (isHfModelCached)
+│       │   │   └── progress.ts      #     multi-file download progress aggregator
+│       │   └── ui/                #   AI surfaces (consent / progress / scope / error boundary)
+│       │       ├── MaskConsentDialog.tsx   #     tier picker before any byte is fetched
+│       │       ├── MaskConsentHost.tsx     #     listens to mask state, mounts the right modal
+│       │       ├── MaskDownloadDialog.tsx  #     live progress + cancel + retry
+│       │       ├── MaskScopeRow.tsx        #     "Apply to: Whole / Subject / Background" segment
+│       │       ├── DetectionStatus.tsx     #     inline progress / ready / error chips
+│       │       ├── AiSectionHeader.tsx     #     uppercase "Smart adjustments" eyebrow
+│       │       ├── ScopeGate.tsx           #     greys out controls while detection is loading
+│       │       └── AiErrorBoundary.tsx     #     local fallback so AI errors never crash the editor
 │       └── ExportModal.tsx      # Format, quality, EXIF, target size pipeline
 │
 ├── index.html                 # HTML entry point + meta/OG tags + CSP
@@ -230,7 +252,7 @@ CloakIMG is a single-page React app that keeps every photo entirely in memory an
 - **Live previews at 25%** — Adjust and Filter previews render through a downsampled (≤720px long-edge) copy of the working canvas, so slider drags stay buttery on multi-megapixel images. The full-resolution bake runs once when you switch tools.
 - **Wide-gamut path** — every off-screen canvas is bound to `display-p3` where supported, so colour-managed sources hold their punch on modern phones and laptops.
 - **HEIC** — iPhone photos are decoded via libheif-js (lazy-loaded WASM) so HEIC files open without converting upstream.
-- **Subject mask service** — a single `subjectMask` module-level cache holds the RMBG-1.4 cut for the active image; every subject-aware tool peeks first and only pays the inference cost when the cache misses (new image, dimensions changed). Detection runs in a dedicated Web Worker (under `src/editor/tools/ai/`) so the editor stays responsive on big photos. Source pixels travel as transferable `ImageBitmap`s in both directions — no PNG round-trip.
+- **Subject mask service** — a single `subjectMask` module-level cache holds the RMBG-1.4 cut for the active image; every subject-aware tool peeks first and only pays the inference cost when the cache misses (new image, dimensions changed). Detection runs in a dedicated Web Worker (under `src/editor/ai/runtime/`) so the editor stays responsive on big photos. Source pixels travel as transferable `ImageBitmap`s in both directions — no PNG round-trip.
 - **EXIF surgery** — JPEG exports rebuild the APP1 segment from the original bytes; per-export toggles let you keep the full metadata, or selectively scrub GPS, camera info, and timestamps before download.
 - **Recents + autosave** — the last 10 opened files (and an in-progress draft of your active edit) live in IndexedDB as `ArrayBuffer` payloads. Files round-trip reliably across sessions on every browser including iOS Safari.
 - **PWA** — an aggressive Workbox runtime cache lets the editor open instantly and run fully offline once installed.

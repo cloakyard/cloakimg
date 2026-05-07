@@ -18,6 +18,7 @@
 // variant in types.ts — the main-thread runtime is untouched.
 
 import { env, pipeline, RawImage } from "@huggingface/transformers";
+import { aiLog } from "../log";
 import { createProgressAggregator } from "./progress";
 import type {
   AiErrorResponse,
@@ -83,6 +84,14 @@ async function handleSegment(req: AiSegmentRequest) {
   const order: ("webgpu" | "wasm")[] =
     requested === "wasm" ? ["wasm"] : requested === "webgpu" ? ["webgpu"] : ["webgpu", "wasm"];
 
+  aiLog.debug("worker", "handleSegment", {
+    id: req.id,
+    model: req.model,
+    dtype: req.dtype,
+    deviceOrder: order,
+    bitmap: `${req.bitmap.width}x${req.bitmap.height}`,
+  });
+
   // Decode the input bitmap once. We reuse `inputImage` across
   // device retries so a WebGPU failure doesn't mean redoing the
   // pixel read. The bitmap is closed afterward — keeping it alive
@@ -112,24 +121,39 @@ async function handleSegment(req: AiSegmentRequest) {
         height: out.height,
         device: actualDevice,
       };
+      aiLog.debug("worker", "segmentation succeeded", {
+        id: req.id,
+        device: actualDevice,
+        out: `${out.width}x${out.height}`,
+      });
       // Transfer the bitmap — zero-copy back to the main thread.
       self.postMessage(result, [outputBitmap]);
       return;
     } catch (err) {
       lastErr = err;
-      // Log per-device failure so the browser console captures the
-      // root cause (WebGPU shader compile, WASM fetch failure, model
-      // 404, etc.) — without this every error is swallowed inside
-      // the worker and the main thread only sees the final message.
-      console.error(`[CloakIMG worker] segmentation failed on ${device}:`, err);
-      // Drop the failing pipeline so the retry actually reloads with
-      // the next device. Without this, a WebGPU shader compile
-      // failure would be re-served from cache on every call.
+      // Per-device failure: log root cause (WebGPU shader compile,
+      // WASM fetch failure, model 404, etc.) so the browser console
+      // captures it before we fall through to the next backend. Drop
+      // the failing pipeline so the retry actually reloads with the
+      // next device — otherwise a WebGPU shader compile failure would
+      // be re-served from cache on every call.
+      aiLog.warn("worker", `segmentation failed on ${device}`, {
+        id: req.id,
+        model: req.model,
+        dtype: req.dtype,
+        message: err instanceof Error ? err.message : String(err),
+      });
       const failingKey = pipelineKey(req.model, req.dtype, device);
       if (currentPipeline?.key === failingKey) currentPipeline = null;
       // Fall through to the next device in the order list.
     }
   }
+  aiLog.error("worker", "segmentation failed on all backends", lastErr, {
+    id: req.id,
+    model: req.model,
+    dtype: req.dtype,
+    triedDevices: order,
+  });
   postError(req.id, lastErr, true);
 }
 

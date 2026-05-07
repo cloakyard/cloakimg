@@ -9,7 +9,7 @@
 // CapabilityHints and DetectionStatus eyebrows so the panel reads as
 // one cohesive AI surface.
 
-import { I } from "../../components/icons";
+import { I } from "../../../components/icons";
 
 interface Props {
   label?: string;

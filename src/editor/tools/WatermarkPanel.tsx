@@ -10,8 +10,8 @@ import { acquireCanvas, releaseCanvas, type WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { I } from "../../components/icons";
-import { MaskConsentError, regionCoverage } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
+import { MaskConsentError, regionCoverage } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
 
 /** Fabric `cloakKind` tags. Used to find the singleton on re-apply
  *  and so future code can route layer ops to the right kind. */

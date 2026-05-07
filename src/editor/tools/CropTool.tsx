@@ -19,9 +19,9 @@ import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
-import { getSubjectBBox, MaskConsentError } from "../subjectMask";
+import { getSubjectBBox, MaskConsentError } from "../ai/subjectMask";
 import type { ToolState } from "../toolState";
-import { useSubjectMask } from "../useSubjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
 import { ASPECT_OPTIONS, initialRect, type Rect } from "./cropMath";
 
 const CROP_TAG = "cloak:cropOverlay";

@@ -11,6 +11,7 @@
 // fresh worker — the pipeline cache survives in CacheStorage so the
 // re-spawn is fast for any model the user has already touched.
 
+import { aiLog } from "../log";
 import {
   AiAbortError,
   type AiProgress,
@@ -41,6 +42,7 @@ function getWorker(): Worker {
   // a separate worker chunk — keeps transformers.js out of the main
   // bundle. `type: "module"` lets the worker use the same ESM imports
   // as the main code.
+  aiLog.debug("runtime", "spawning AI worker (cold pipeline cache)");
   worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
     name: "cloakimg-ai-worker",
@@ -59,16 +61,25 @@ function getWorker(): Worker {
       call.resolve(msg);
       return;
     }
+    aiLog.warn("runtime", "worker reported error result", {
+      id: msg.id,
+      message: msg.message,
+      fatal: msg.fatal,
+    });
     call.reject(new Error(msg.message));
   };
   worker.onerror = (e) => {
     // Worker-level error (e.g. failed to load transformers.js, ORT
     // WASM fetch blocked, etc.). Reject every in-flight call and
     // drop the singleton so the next attempt spins a fresh worker.
-    // Logging the raw event surfaces filename + line so the cause
-    // is visible in the console — `e.message` alone is often empty
-    // for module-load errors.
-    console.error("[CloakIMG] AI worker error:", e.message, e.filename, e.lineno, e);
+    // Surface filename + line so the cause is visible in the console
+    // — `e.message` alone is often empty for module-load errors.
+    aiLog.error("runtime", "worker crashed", e.error ?? e, {
+      message: e.message,
+      filename: e.filename,
+      lineno: e.lineno,
+      pendingCount: pending.size,
+    });
     const message = e.message || "AI worker crashed (see browser console for details)";
     rejectAllPending(new Error(message));
     terminate();
@@ -81,6 +92,7 @@ function getWorker(): Worker {
  *  abort and worker-error paths. */
 function terminate() {
   if (!worker) return;
+  aiLog.debug("runtime", "terminating AI worker", { pendingCount: pending.size });
   worker.terminate();
   worker = null;
 }

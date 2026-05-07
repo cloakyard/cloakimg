@@ -16,8 +16,8 @@
 //     pixel of stroke breathing room when the icon sits in a circular
 //     swatch.
 
-import { I } from "../../components/icons";
-import type { SmartRemoveProgress } from "./ai/segment";
+import { I } from "../../../components/icons";
+import type { SmartRemoveProgress } from "../runtime/segment";
 
 interface ProgressProps {
   progress: SmartRemoveProgress | null;

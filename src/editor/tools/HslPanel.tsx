@@ -8,9 +8,9 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
-import { AiSectionHeader } from "./AiSectionHeader";
+import { applyMaskScope, type MaskScope } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
+import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
 import {
   bakeHsl,
   HSL_BAND_CENTERS,
@@ -20,8 +20,8 @@ import {
   type HslParams,
   isHslIdentity,
 } from "./hsl";
-import { MaskScopeRow } from "./MaskScopeRow";
-import { ScopeGate } from "./ScopeGate";
+import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
+import { ScopeGate } from "../ai/ui/ScopeGate";
 
 export function HslPanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();

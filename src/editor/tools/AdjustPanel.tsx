@@ -8,14 +8,14 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { applyMaskScope, type MaskScope } from "../ai/subjectMask";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
-import { useSubjectMask } from "../useSubjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
-import { AiSectionHeader } from "./AiSectionHeader";
+import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
 import { CurveEditor } from "./CurveEditor";
-import { MaskScopeRow } from "./MaskScopeRow";
-import { ScopeGate } from "./ScopeGate";
+import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
+import { ScopeGate } from "../ai/ui/ScopeGate";
 
 const TABS = ["Histogram", "Adjust"] as const;
 

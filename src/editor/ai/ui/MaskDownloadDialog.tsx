@@ -17,10 +17,10 @@
 //   • "Try again" only appears when detection has settled into an
 //     error state. Re-runs the detection at the same quality.
 
-import { I } from "../../components/icons";
-import { ModalFrame } from "../../components/ModalFrame";
-import { useEditorReadOnly } from "../EditorContext";
-import type { SmartRemoveProgress } from "./ai/segment";
+import { I } from "../../../components/icons";
+import { ModalFrame } from "../../../components/ModalFrame";
+import { useEditorReadOnly } from "../../EditorContext";
+import type { SmartRemoveProgress } from "../runtime/segment";
 import { DetectionProgressCard } from "./DetectionStatus";
 
 interface Props {

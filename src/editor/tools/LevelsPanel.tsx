@@ -7,12 +7,12 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
-import { AiSectionHeader } from "./AiSectionHeader";
+import { applyMaskScope, type MaskScope } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
+import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
 import { bakeLevels, isLevelsIdentity, LEVELS_DEFAULT, type LevelsParams } from "./levels";
-import { MaskScopeRow } from "./MaskScopeRow";
-import { ScopeGate } from "./ScopeGate";
+import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
+import { ScopeGate } from "../ai/ui/ScopeGate";
 
 export function LevelsPanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();

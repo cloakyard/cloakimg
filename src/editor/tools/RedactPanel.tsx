@@ -21,8 +21,8 @@ import { I } from "../../components/icons";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { applyMaskScope, MaskConsentError, type MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
+import { applyMaskScope, MaskConsentError, type MaskScope } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
 import { applyRedaction, type RedactStyle } from "./redact";
 
 const STYLE_LABELS = ["Pixelate", "Blur", "Solid"] as const;

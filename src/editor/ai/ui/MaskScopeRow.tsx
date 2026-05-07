@@ -21,8 +21,8 @@
 // subject-aware tool.
 
 import { useCallback, useEffect } from "react";
-import { I } from "../../components/icons";
-import { PropRow, Segment } from "../atoms";
+import { I } from "../../../components/icons";
+import { PropRow, Segment } from "../../atoms";
 import { useSubjectMask } from "../useSubjectMask";
 import {
   DetectionErrorCard,

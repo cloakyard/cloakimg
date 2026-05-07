@@ -23,11 +23,11 @@ import { I } from "../../components/icons";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { cancelMaskDetection, MaskConsentError } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
-import { DetectionProgressCard } from "./DetectionStatus";
+import { cancelMaskDetection, MaskConsentError } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
+import { DetectionProgressCard } from "../ai/ui/DetectionStatus";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
-import type { SmartRemoveProgress } from "./ai/segment";
+import type { SmartRemoveProgress } from "../ai/runtime/segment";
 
 const MODES = ["Auto", "Chroma"] as const;
 const QUALITY_LABELS = ["Fast", "Better", "Best"] as const;

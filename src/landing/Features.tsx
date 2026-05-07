@@ -32,13 +32,13 @@ const FEATURES: Feature[] = [
     icon: <I.Sparkles size={20} />,
     title: "On-device AI",
     description:
-      "Subject detection, scoped tone edits, portrait blur, and one-click background removal — every model runs in your browser. No cloud calls, no telemetry.",
+      "Background removal, smart crop, portrait blur, and subject-scoped tone edits all run in-browser via WebGPU. The model loads once with your explicit consent — three sizes from 44 MB to 176 MB so you choose speed vs. fidelity.",
   },
   {
     icon: <I.WifiOff size={20} />,
     title: "Works offline",
     description:
-      "Once cached, keep editing and exporting without a connection — even AI tools work after the model has been downloaded once.",
+      "After the first visit, every tool — including AI features — keeps working without a connection. The model bytes live in your browser cache, not a remote API.",
   },
   {
     icon: <I.Rocket size={20} />,

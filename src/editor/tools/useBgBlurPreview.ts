@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { type MaskScope, peekMaskDownsample } from "../subjectMask";
+import { type MaskScope, peekMaskDownsample } from "../ai/subjectMask";
 import { bakeBgBlur, isBgBlurIdentity, type LensKind } from "./bgBlur";
 import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";
 import { previewLongEdge } from "./previewSize";

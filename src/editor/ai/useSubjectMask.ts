@@ -5,7 +5,8 @@
 // everywhere.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useEditorReadOnly, useToolState } from "./EditorContext";
+import { useEditorReadOnly, useToolState } from "../EditorContext";
+import type { BgQuality } from "./runtime/segment";
 import {
   clearMaskDeny,
   denyMaskConsent,
@@ -21,7 +22,6 @@ import {
   subscribeMaskState,
   waitForMaskResolution,
 } from "./subjectMask";
-import type { BgQuality } from "./tools/ai/segment";
 
 const QUALITY_KEYS: BgQuality[] = ["small", "medium", "large"];
 

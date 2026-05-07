@@ -19,7 +19,8 @@ import { EditorProvider, useEditor } from "./EditorContext";
 import "./fabricDefaults";
 import { ExportModal, type ExportSettings } from "./ExportModal";
 import { FilePropertiesModal } from "./FilePropertiesModal";
-import { MaskConsentHost } from "./tools/MaskConsentHost";
+import { AiErrorBoundary } from "./ai/ui/AiErrorBoundary";
+import { MaskConsentHost } from "./ai/ui/MaskConsentHost";
 import { MobileSheet } from "./MobileSheet";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
@@ -233,7 +234,9 @@ function EditorShell() {
         <FilePropertiesModal layout={layout} onClose={() => setFilePropsOpen(false)} />
       )}
 
-      <MaskConsentHost />
+      <AiErrorBoundary>
+        <MaskConsentHost />
+      </AiErrorBoundary>
     </main>
   );
 }

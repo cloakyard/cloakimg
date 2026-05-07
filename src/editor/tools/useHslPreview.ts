@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
-import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
+import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../ai/subjectMask";
 import { bakeHsl, type HslParams, isHslIdentity } from "./hsl";
 import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";
 import { previewLongEdge } from "./previewSize";

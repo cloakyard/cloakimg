@@ -19,14 +19,15 @@
 // blending we just composite via canvas operations — no need to
 // extract a single-channel alpha buffer.
 
-import { acquireCanvas, releaseCanvas } from "./doc";
+import { acquireCanvas, releaseCanvas } from "../doc";
+import { aiLog } from "./log";
 import {
   AiAbortError,
   type BgQuality,
   isModelCached,
   smartRemoveBackground,
   type SmartRemoveProgress,
-} from "./tools/ai/segment";
+} from "./runtime/segment";
 
 export type MaskStatus = "idle" | "loading" | "ready" | "error" | "needs-consent";
 
@@ -117,6 +118,17 @@ let state: MaskState = {
 const listeners = new Set<(s: MaskState) => void>();
 
 function setState(next: Partial<MaskState>) {
+  // Tracing every state machine transition (idle → needs-consent →
+  // loading → ready, plus error / userDenied flips) is invaluable when
+  // a user reports "tap doesn't do anything". Cheap — only fires when
+  // status actually changes — and gated behind aiLog's debug switch.
+  if (next.status !== undefined && next.status !== state.status) {
+    aiLog.debug("subjectMask", `status: ${state.status} → ${next.status}`, {
+      hasProgress: !!next.progress,
+      hasError: !!next.error,
+      pendingQuality: next.pendingQuality ?? state.pendingQuality,
+    });
+  }
   state = { ...state, ...next, version: state.version + 1 };
   for (const l of listeners) l(state);
 }
@@ -409,6 +421,10 @@ export async function ensureSubjectMask(
         releaseCanvas(cut);
         const msg =
           "No subject detected. Try a photo with a clearer foreground (people, animals, products).";
+        aiLog.warn("subjectMask", "empty mask returned by model", {
+          quality,
+          source: `${source.width}x${source.height}`,
+        });
         setState({ status: "error", progress: null, error: msg });
         throw new Error(msg);
       }
@@ -433,12 +449,26 @@ export async function ensureSubjectMask(
     } catch (err) {
       // Superseded errors are silent — they're a cooperative signal
       // from our own generation guard, not a user-visible failure.
-      if (myGeneration !== inflightGeneration) throw err;
+      if (myGeneration !== inflightGeneration) {
+        aiLog.debug("subjectMask", "detection superseded by newer request", {
+          myGeneration,
+          currentGeneration: inflightGeneration,
+        });
+        throw err;
+      }
       // User-initiated cancel: drop back to idle without surfacing an
       // error card. cancelMaskDetection() flips status itself, so all
       // we have to do here is rethrow without touching state.
-      if (err instanceof AiAbortError) throw err;
+      if (err instanceof AiAbortError) {
+        aiLog.debug("subjectMask", "detection cancelled by user");
+        throw err;
+      }
       const msg = err instanceof Error ? err.message : String(err);
+      aiLog.error("subjectMask", "detection failed", err, {
+        quality,
+        source: `${source.width}x${source.height}`,
+        priorStatus: state.status,
+      });
       // Don't double-write state for the "no subject" branch — that
       // branch already set its own user-friendly error.
       if (state.status !== "error") {

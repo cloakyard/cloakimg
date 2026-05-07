@@ -23,11 +23,11 @@
 // dimming / blur is consistent with the other editor modals.
 
 import { useCallback, useEffect, useState } from "react";
-import { I } from "../../components/icons";
-import { ModalFrame } from "../../components/ModalFrame";
-import { useEditorActions, useEditorReadOnly } from "../EditorContext";
-import type { Layout } from "../types";
-import { type BgQuality, isModelCached } from "./ai/segment";
+import { I } from "../../../components/icons";
+import { ModalFrame } from "../../../components/ModalFrame";
+import { useEditorActions, useEditorReadOnly } from "../../EditorContext";
+import type { Layout } from "../../types";
+import { type BgQuality, isModelCached } from "../runtime/segment";
 
 interface Tier {
   id: BgQuality;

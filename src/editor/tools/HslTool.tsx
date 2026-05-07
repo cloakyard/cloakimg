@@ -5,8 +5,8 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
-import type { MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
+import type { MaskScope } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
 import type { HslParams } from "./hsl";
 import { useHslPreview } from "./useHslPreview";
 

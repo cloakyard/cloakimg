@@ -53,12 +53,12 @@ export function Landing({ onStart, onIntent }: Props) {
 
         <section className="mx-auto max-w-275 px-5 pt-14 pb-10 text-center sm:px-8 sm:pt-24 sm:pb-20">
           <h1 className="t-hero mx-auto mb-4.5 max-w-205">
-            A minimal photo editor that <em>respects your photos.</em>
+            A photo editor that <em>respects your photos.</em>
           </h1>
-          <p className="t-subtitle mx-auto mb-7 max-w-150 dark:text-dark-text-muted">
-            Crop, retouch, redact, convert, export — plus subject-aware adjustments and AI
-            background removal that <em>run entirely on your device</em>. Files never leave your
-            browser.
+          <p className="t-subtitle mx-auto mb-7 max-w-160 dark:text-dark-text-muted">
+            Crop, redact, retouch and export — with on-device AI for{" "}
+            <em>subject detection, background removal, smart crop, and portrait blur</em>. Models
+            run in your browser. Your photo never leaves this tab.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <button
@@ -76,17 +76,17 @@ export function Landing({ onStart, onIntent }: Props) {
           </div>
           <div className="mt-5.5 flex flex-wrap justify-center gap-x-4.5 gap-y-2 text-[12.5px] font-medium text-text-muted dark:text-dark-text-muted">
             <span className="flex items-center gap-1.5">
-              <I.Lock size={13} /> 100% on-device
+              <I.Lock size={13} /> Stays on your device
             </span>
             <span className="flex items-center gap-1.5">
-              <I.Sparkles size={13} className="text-coral-500 dark:text-coral-400" /> Local AI
-              models
+              <I.Sparkles size={13} className="text-coral-500 dark:text-coral-400" /> AI runs
+              in-browser (WebGPU)
             </span>
             <span className="flex items-center gap-1.5">
-              <I.Refresh size={13} /> Works offline
+              <I.Refresh size={13} /> Works offline after first load
             </span>
             <span className="flex items-center gap-1.5">
-              <I.Check size={13} /> No sign-in
+              <I.Check size={13} /> No sign-in, no telemetry
             </span>
           </div>
         </section>

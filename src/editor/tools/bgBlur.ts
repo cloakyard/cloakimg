@@ -26,7 +26,7 @@
 // few drawImage compositions.
 
 import { acquireCanvas, releaseCanvas } from "../doc";
-import { applyMaskScope, getSubjectBBox, type MaskScope } from "../subjectMask";
+import { applyMaskScope, getSubjectBBox, type MaskScope } from "../ai/subjectMask";
 
 /** Map slider 0..1 → blur radius in CSS pixels. 0 = no blur (returns
  *  source unchanged); 1 = 40 px which reads as a very strong portrait

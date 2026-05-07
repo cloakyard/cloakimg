@@ -19,8 +19,8 @@ import { I } from "../../components/icons";
 import { PropRow, Segment, Slider, ToggleSwitch } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import type { MaskScope } from "../subjectMask";
-import { useSubjectMask } from "../useSubjectMask";
+import type { MaskScope } from "../ai/subjectMask";
+import { useSubjectMask } from "../ai/useSubjectMask";
 import {
   bakeBgBlur,
   blurAmountToPx,
@@ -34,8 +34,8 @@ import {
   DetectionPausedChip,
   DetectionProgressCard,
   DetectionReadyChip,
-} from "./DetectionStatus";
-import { ScopeGate } from "./ScopeGate";
+} from "../ai/ui/DetectionStatus";
+import { ScopeGate } from "../ai/ui/ScopeGate";
 
 const TARGETS = ["Background only", "Whole image"] as const;
 const LENS_OPTIONS: LensKind[] = ["gaussian", "lens", "tilt-shift"];
