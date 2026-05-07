@@ -203,6 +203,7 @@ cloakimg/
 │       ├── EditorContext.tsx    # Document, history, layers, autosave
 │       ├── ImageCanvas.tsx      # Fabric-backed canvas + pan/zoom/transform
 │       ├── tools/               # One file per tool (Crop, Adjust, Filter, Redact, …)
+│       │   └── ai/               # Shared on-device AI runtime: worker, pipeline cache, segmentation facade, cache probe
 │       └── ExportModal.tsx      # Format, quality, EXIF, target size pipeline
 │
 ├── index.html                 # HTML entry point + meta/OG tags + CSP
