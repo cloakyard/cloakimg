@@ -21,6 +21,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
+import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { type CurvePoint, isCurveIdentity } from "../toolState";
 import { bakeAdjust, isIdentity } from "./adjustments";
 import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";
@@ -44,6 +45,18 @@ export function useAdjustPreview(
    *  skipped at bake time. Filter / preview consumers without a
    *  user-facing curve simply leave this undefined. */
   curve?: CurvePoint[],
+  /** Mask-aware scope for the bake: 0 (whole), 1 (subject), 2 (bg).
+   *  When scope is non-zero AND the subject-mask service reports
+   *  ready, the bake reads the cached downsample directly from the
+   *  service inside its rAF. When scope is non-zero but the mask
+   *  isn't ready, we suppress the preview so the canvas keeps
+   *  showing `doc.working`. */
+  scope: MaskScope = 0,
+  /** True iff the central subject-mask service has a detected cut
+   *  for the current source. The bake reads the canvas directly
+   *  from the service the moment it bakes, so any reference drift
+   *  in the React tree is irrelevant. */
+  maskReady: boolean = false,
   /** Bumps whenever doc.working pixels may have changed without
    *  changing canvas identity (undo, redo, reset, replaceWithFile,
    *  another tool baked into history). The caller passes the doc
@@ -117,6 +130,16 @@ export function useAdjustPreview(
       clearPublished();
       return;
     }
+    // Scope gating: when the user has picked Subject / Background
+    // but the mask isn't ready, suppress the preview entirely so the
+    // canvas keeps showing `doc.working`. Without this we'd bake a
+    // misleading whole-image preview during detection — exactly the
+    // "controls drift while AI is loading" UX the gating was added
+    // to prevent.
+    if (scope !== 0 && !maskReady) {
+      clearPublished();
+      return;
+    }
     if (!downsampledRef.current) {
       downsampledRef.current = makeDownsampled(source);
     }
@@ -145,6 +168,29 @@ export function useAdjustPreview(
         try {
           baked = bakeAdjust(ds, sliders, grain, curve);
           if (monochrome) toMonochrome(baked);
+          if (scope !== 0 && source) {
+            // Read the freshest mask from the service at the moment
+            // we bake — bypasses any stale React-tree references.
+            // peekMaskDownsample is O(1) (cache lookup + dim check),
+            // so the per-rAF cost is negligible.
+            const liveMask = peekMaskDownsample(source, previewLongEdge());
+            if (!liveMask) {
+              // Cache went stale between the effect's gate check and
+              // this rAF (e.g. dim drift detected by another peek
+              // this tick). Skip painting; keeping the previous
+              // scoped preview visible reads better than either
+              // (a) blanking to doc.working or (b) silently falling
+              // through to a misleading whole-image bake. The
+              // pending re-detection will refresh the mask shortly.
+              if (baked !== ds) releaseCanvas(baked);
+              return;
+            }
+            const scoped = applyMaskScope(ds, baked, liveMask, scope);
+            if (scoped !== baked) {
+              releaseCanvas(baked);
+              baked = scoped;
+            }
+          }
         } catch (err) {
           console.error("[useAdjustPreview] bake failed", err);
           if (baked && baked !== ds) releaseCanvas(baked);
@@ -181,7 +227,7 @@ export function useAdjustPreview(
         rafRef.current = null;
       }
     };
-  }, [debounceMs, grain, monochrome, sliders, source, curve]);
+  }, [debounceMs, grain, monochrome, sliders, source, curve, scope, maskReady]);
 
   // Drop the last preview AND the cached downsample when the hook
   // unmounts so a tool swap doesn't leak either. The downsample is

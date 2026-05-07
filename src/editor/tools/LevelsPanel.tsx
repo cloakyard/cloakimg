@@ -7,10 +7,17 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { applyMaskScope, type MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
+import { AiSectionHeader } from "./AiSectionHeader";
 import { bakeLevels, isLevelsIdentity, LEVELS_DEFAULT, type LevelsParams } from "./levels";
+import { MaskScopeRow } from "./MaskScopeRow";
+import { ScopeGate } from "./ScopeGate";
 
 export function LevelsPanel() {
   const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
+  const subjectMask = useSubjectMask();
+  const scope = (toolState.levelsScope as MaskScope) ?? 0;
 
   const params = useMemo<LevelsParams>(
     () => ({
@@ -37,11 +44,24 @@ export function LevelsPanel() {
     patchTool("levelsGamma", LEVELS_DEFAULT.gamma);
     patchTool("levelsBlackOut", LEVELS_DEFAULT.blackOut);
     patchTool("levelsWhiteOut", LEVELS_DEFAULT.whiteOut);
+    patchTool("levelsScope", 0);
   }, [patchTool]);
 
   const apply = useCallback(async () => {
     if (!doc || !dirty) return;
-    const out = bakeLevels(doc.working, params);
+    let out = bakeLevels(doc.working, params);
+    if (scope !== 0) {
+      try {
+        const mask = subjectMask.peek() ?? (await subjectMask.request());
+        const scoped = applyMaskScope(doc.working, out, mask, scope);
+        if (scoped !== out) {
+          releaseCanvas(out);
+          out = scoped;
+        }
+      } catch {
+        // Fall through to whole-image bake.
+      }
+    }
     copyInto(doc.working, out);
     // bakeLevels pulls from the canvas pool; once copyInto has
     // mirrored the pixels we can hand the bake canvas back instead
@@ -49,7 +69,7 @@ export function LevelsPanel() {
     releaseCanvas(out);
     reset();
     commit("Levels");
-  }, [commit, dirty, doc, params, reset]);
+  }, [commit, dirty, doc, params, reset, scope, subjectMask]);
 
   const applyRef = useRef(apply);
   applyRef.current = apply;
@@ -90,123 +110,133 @@ export function LevelsPanel() {
     [patchTool],
   );
 
+  // Gate the five Levels sliders while the user has Subject /
+  // Background scope picked but the mask isn't ready — the
+  // MaskScopeRow above renders the detection progress, and the
+  // sliders below stay greyed-out until the cut is cached.
+  const gated = scope !== 0 && subjectMask.state.status !== "ready";
+
   return (
     <>
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-        Pull the input black up to crush shadows, the white down to clip highlights, and the midtone
-        slider to lift or darken the middle of the curve.
-      </div>
+      <AiSectionHeader />
+      <MaskScopeRow scope={toolState.levelsScope} onScope={(i) => patchTool("levelsScope", i)} />
+      <ScopeGate disabled={gated}>
+        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          Pull the input black up to crush shadows, the white down to clip highlights, and the
+          midtone slider to lift or darken the middle of the curve.
+        </div>
 
-      <PropRow
-        label="Input black"
-        valueInput={
-          <NumericReadout
-            display={`${toolState.levelsBlackIn}`}
-            normalized={toolState.levelsBlackIn / 255}
-            fromNormalized={(n) => Math.round(n * 255)}
-            toNormalized={(real) => real / 255}
-            onCommit={(n) => setBlackIn(n * 255)}
+        <PropRow
+          label="Input black"
+          valueInput={
+            <NumericReadout
+              display={`${toolState.levelsBlackIn}`}
+              normalized={toolState.levelsBlackIn / 255}
+              fromNormalized={(n) => Math.round(n * 255)}
+              toNormalized={(real) => real / 255}
+              onCommit={(n) => setBlackIn(n * 255)}
+            />
+          }
+        >
+          <Slider
+            value={toolState.levelsBlackIn / 255}
+            accent={toolState.levelsBlackIn !== 0}
+            defaultValue={0}
+            onChange={(v) => setBlackIn(v * 255)}
           />
-        }
-      >
-        <Slider
-          value={toolState.levelsBlackIn / 255}
-          accent={toolState.levelsBlackIn !== 0}
-          defaultValue={0}
-          onChange={(v) => setBlackIn(v * 255)}
-        />
-      </PropRow>
+        </PropRow>
 
-      <PropRow
-        label="Midtone"
-        valueInput={
-          <NumericReadout
-            display={toolState.levelsGamma.toFixed(2)}
-            normalized={gammaToNormalized(toolState.levelsGamma)}
-            step={0.1}
-            fromNormalized={(n) => normalizedToGamma(n)}
-            toNormalized={(real) => gammaToNormalized(real)}
-            onCommit={(n) => setGamma(normalizedToGamma(n))}
+        <PropRow
+          label="Midtone"
+          valueInput={
+            <NumericReadout
+              display={toolState.levelsGamma.toFixed(2)}
+              normalized={gammaToNormalized(toolState.levelsGamma)}
+              step={0.1}
+              fromNormalized={(n) => normalizedToGamma(n)}
+              toNormalized={(real) => gammaToNormalized(real)}
+              onCommit={(n) => setGamma(normalizedToGamma(n))}
+            />
+          }
+        >
+          <Slider
+            value={gammaToNormalized(toolState.levelsGamma)}
+            accent={Math.abs(toolState.levelsGamma - 1) > 1e-3}
+            defaultValue={0.5}
+            onChange={(v) => setGamma(normalizedToGamma(v))}
           />
-        }
-      >
-        <Slider
-          value={gammaToNormalized(toolState.levelsGamma)}
-          accent={Math.abs(toolState.levelsGamma - 1) > 1e-3}
-          defaultValue={0.5}
-          onChange={(v) => setGamma(normalizedToGamma(v))}
-        />
-      </PropRow>
+        </PropRow>
 
-      <PropRow
-        label="Input white"
-        valueInput={
-          <NumericReadout
-            display={`${toolState.levelsWhiteIn}`}
-            normalized={toolState.levelsWhiteIn / 255}
-            fromNormalized={(n) => Math.round(n * 255)}
-            toNormalized={(real) => real / 255}
-            onCommit={(n) => setWhiteIn(n * 255)}
+        <PropRow
+          label="Input white"
+          valueInput={
+            <NumericReadout
+              display={`${toolState.levelsWhiteIn}`}
+              normalized={toolState.levelsWhiteIn / 255}
+              fromNormalized={(n) => Math.round(n * 255)}
+              toNormalized={(real) => real / 255}
+              onCommit={(n) => setWhiteIn(n * 255)}
+            />
+          }
+        >
+          <Slider
+            value={toolState.levelsWhiteIn / 255}
+            accent={toolState.levelsWhiteIn !== 255}
+            defaultValue={1}
+            onChange={(v) => setWhiteIn(v * 255)}
           />
-        }
-      >
-        <Slider
-          value={toolState.levelsWhiteIn / 255}
-          accent={toolState.levelsWhiteIn !== 255}
-          defaultValue={1}
-          onChange={(v) => setWhiteIn(v * 255)}
-        />
-      </PropRow>
+        </PropRow>
 
-      <PropRow
-        label="Output black"
-        valueInput={
-          <NumericReadout
-            display={`${toolState.levelsBlackOut}`}
-            normalized={toolState.levelsBlackOut / 255}
-            fromNormalized={(n) => Math.round(n * 255)}
-            toNormalized={(real) => real / 255}
-            onCommit={(n) => setBlackOut(n * 255)}
+        <PropRow
+          label="Output black"
+          valueInput={
+            <NumericReadout
+              display={`${toolState.levelsBlackOut}`}
+              normalized={toolState.levelsBlackOut / 255}
+              fromNormalized={(n) => Math.round(n * 255)}
+              toNormalized={(real) => real / 255}
+              onCommit={(n) => setBlackOut(n * 255)}
+            />
+          }
+        >
+          <Slider
+            value={toolState.levelsBlackOut / 255}
+            accent={toolState.levelsBlackOut !== 0}
+            defaultValue={0}
+            onChange={(v) => setBlackOut(v * 255)}
           />
-        }
-      >
-        <Slider
-          value={toolState.levelsBlackOut / 255}
-          accent={toolState.levelsBlackOut !== 0}
-          defaultValue={0}
-          onChange={(v) => setBlackOut(v * 255)}
-        />
-      </PropRow>
+        </PropRow>
 
-      <PropRow
-        label="Output white"
-        valueInput={
-          <NumericReadout
-            display={`${toolState.levelsWhiteOut}`}
-            normalized={toolState.levelsWhiteOut / 255}
-            fromNormalized={(n) => Math.round(n * 255)}
-            toNormalized={(real) => real / 255}
-            onCommit={(n) => setWhiteOut(n * 255)}
+        <PropRow
+          label="Output white"
+          valueInput={
+            <NumericReadout
+              display={`${toolState.levelsWhiteOut}`}
+              normalized={toolState.levelsWhiteOut / 255}
+              fromNormalized={(n) => Math.round(n * 255)}
+              toNormalized={(real) => real / 255}
+              onCommit={(n) => setWhiteOut(n * 255)}
+            />
+          }
+        >
+          <Slider
+            value={toolState.levelsWhiteOut / 255}
+            accent={toolState.levelsWhiteOut !== 255}
+            defaultValue={1}
+            onChange={(v) => setWhiteOut(v * 255)}
           />
-        }
-      >
-        <Slider
-          value={toolState.levelsWhiteOut / 255}
-          accent={toolState.levelsWhiteOut !== 255}
-          defaultValue={1}
-          onChange={(v) => setWhiteOut(v * 255)}
-        />
-      </PropRow>
+        </PropRow>
 
-      <button
-        type="button"
-        className="btn btn-secondary btn-xs mt-1 w-full justify-center"
-        onClick={reset}
-        disabled={!dirty}
-      >
-        <I.Refresh size={12} />
-        Reset
-      </button>
+        <button
+          type="button"
+          className="btn btn-secondary btn-xs mt-1 w-full justify-center"
+          onClick={reset}
+          disabled={!dirty}
+        >
+          <I.Refresh size={12} />
+          Reset
+        </button>
+      </ScopeGate>
     </>
   );
 }

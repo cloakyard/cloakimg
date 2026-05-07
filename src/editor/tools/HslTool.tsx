@@ -5,11 +5,16 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
+import type { MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import type { HslParams } from "./hsl";
 import { useHslPreview } from "./useHslPreview";
 
 export function HslTool() {
   const { toolState, doc, historyVersion } = useEditor();
+  const subjectMask = useSubjectMask();
+  const maskReady = subjectMask.state.status === "ready";
+  const scope = (toolState.hslScope as MaskScope) ?? 0;
   const params = useMemo<HslParams>(
     () => ({
       hue: toolState.hslHue,
@@ -18,11 +23,7 @@ export function HslTool() {
     }),
     [toolState.hslHue, toolState.hslSat, toolState.hslLum],
   );
-  // historyVersion as invalidation key — refreshes the cached
-  // downsample after every commit / undo / redo / reset (the doc
-  // ref alone misses intra-tool commits because commit() doesn't
-  // setDoc).
-  const preview = useHslPreview(doc?.working ?? null, params, historyVersion);
+  const preview = useHslPreview(doc?.working ?? null, params, scope, maskReady, historyVersion);
   useStageProps({ previewCanvas: preview.canvas, previewVersion: preview.version });
   return null;
 }

@@ -6,10 +6,19 @@
 
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
+import type { MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function AdjustTool() {
   const { toolState, doc, historyVersion } = useEditor();
+  const subjectMask = useSubjectMask();
+  // Pass a readiness flag rather than the mask canvas itself. The
+  // bake reads the cached downsample directly from the service the
+  // moment it runs (peekMaskDownsample inside the rAF). Threading
+  // the canvas through React was racing with the cache lifecycle.
+  const maskReady = subjectMask.state.status === "ready";
+  const scope = (toolState.adjustScope as MaskScope) ?? 0;
   // historyVersion bumps on every history mutation — commit (Adjust /
   // Filter / etc bake into history), undo, redo, resetToOriginal,
   // replaceWithFile's "Open" push. That covers every path that
@@ -24,6 +33,8 @@ export function AdjustTool() {
     false,
     0,
     toolState.curveRGB,
+    scope,
+    maskReady,
     historyVersion,
   );
   useStageProps({ previewCanvas: preview.canvas, previewVersion: preview.version });

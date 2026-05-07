@@ -97,6 +97,18 @@ export interface ToolState {
    *  per-pixel adjustment in bakeAdjust. */
   curveRGB: CurvePoint[];
 
+  /** Mask scope for the per-pixel adjustment tools (Adjust, Filter,
+   *  Levels, HSL). 0 = whole image, 1 = subject only, 2 = background
+   *  only. Picking 1 or 2 lazily triggers subject detection through
+   *  the central mask service the first time it's used; subsequent
+   *  scoped edits across any of these tools share the same cached
+   *  mask. Per-tool scope keys keep one tool's "subject only" choice
+   *  from leaking into another's defaults. */
+  adjustScope: number;
+  filterScope: number;
+  levelsScope: number;
+  hslScope: number;
+
   // Redact
   redactMode: number; // [Rect, Brush]
   redactStyle: number; // [Pixelate, Blur, Solid]
@@ -271,6 +283,11 @@ export const DEFAULT_TOOL_STATE: ToolState = {
 
   adjust: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
   curveRGB: IDENTITY_CURVE,
+
+  adjustScope: 0,
+  filterScope: 0,
+  levelsScope: 0,
+  hslScope: 0,
 
   redactMode: 0,
   redactStyle: 0,

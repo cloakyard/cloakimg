@@ -6,11 +6,16 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
+import type { MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import type { LevelsParams } from "./levels";
 import { useLevelsPreview } from "./useLevelsPreview";
 
 export function LevelsTool() {
   const { toolState, doc, historyVersion } = useEditor();
+  const subjectMask = useSubjectMask();
+  const maskReady = subjectMask.state.status === "ready";
+  const scope = (toolState.levelsScope as MaskScope) ?? 0;
   const params = useMemo<LevelsParams>(
     () => ({
       blackIn: toolState.levelsBlackIn,
@@ -28,10 +33,8 @@ export function LevelsTool() {
     ],
   );
   // historyVersion as invalidation key — refreshes the cached
-  // downsample after every commit / undo / redo / reset (the doc
-  // ref alone misses intra-tool commits because commit() doesn't
-  // setDoc).
-  const preview = useLevelsPreview(doc?.working ?? null, params, historyVersion);
+  // downsample after every commit / undo / redo / reset.
+  const preview = useLevelsPreview(doc?.working ?? null, params, scope, maskReady, historyVersion);
   useStageProps({ previewCanvas: preview.canvas, previewVersion: preview.version });
   return null;
 }

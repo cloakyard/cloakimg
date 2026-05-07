@@ -142,7 +142,14 @@ export function acquireCanvas(w: number, h: number): HTMLCanvasElement {
 /** Return a canvas to the pool. Caller must drop all references
  *  afterwards — a future `acquireCanvas` may hand the same element to
  *  someone else. Drops on the floor once the per-size cap is hit so a
- *  rapid sequence of unique sizes can't unboundedly grow the pool. */
+ *  rapid sequence of unique sizes can't unboundedly grow the pool.
+ *
+ *  ⚠️ Do not call this inside a `setState` updater function. React
+ *  StrictMode double-invokes updaters in dev to flag impurity, which
+ *  pushes the same canvas onto the pool twice and corrupts subsequent
+ *  acquires. The live-preview hooks track their published canvas in
+ *  a ref and release it synchronously before calling setPreview.
+ *  See AGENTS.md → "Critical gotcha: live preview hooks". */
 export function releaseCanvas(c: HTMLCanvasElement | null | undefined) {
   if (!c) return;
   const key = poolKey(c.width, c.height);

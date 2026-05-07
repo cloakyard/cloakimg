@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
+import { applyMaskScope, type MaskScope, peekMaskDownsample } from "../subjectMask";
 import { bakeLevels, isLevelsIdentity, type LevelsParams } from "./levels";
 import { EMPTY_PREVIEW, type PreviewResult } from "./previewResult";
 import { previewLongEdge } from "./previewSize";
@@ -13,6 +14,10 @@ import { previewLongEdge } from "./previewSize";
 export function useLevelsPreview(
   source: HTMLCanvasElement | null,
   params: LevelsParams,
+  scope: MaskScope = 0,
+  /** True iff the central subject-mask service has a detected cut.
+   *  See useAdjustPreview for the rationale. */
+  maskReady: boolean = false,
   /** Bumps on undo / redo / reset / replaceWithFile so the cached
    *  downsample picks up the new pixels even when source identity
    *  is unchanged. See useAdjustPreview for the full rationale. */
@@ -22,10 +27,8 @@ export function useLevelsPreview(
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const versionRef = useRef<unknown>(null);
   const [preview, setPreview] = useState<PreviewResult>(EMPTY_PREVIEW);
-  // Track the published canvas in a ref so the release-back-to-pool
-  // happens BEFORE setPreview, not inside its updater. StrictMode
-  // double-invokes useState updaters; impure releases would push the
-  // same canvas onto the pool twice.
+  // See useAdjustPreview / AGENTS.md for why the release lives outside
+  // the setPreview updater (StrictMode double-invocation safety).
   const publishedCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const versionCounterRef = useRef(0);
   const rafRef = useRef<number | null>(null);
@@ -60,6 +63,10 @@ export function useLevelsPreview(
       clearPublished();
       return;
     }
+    if (scope !== 0 && !maskReady) {
+      clearPublished();
+      return;
+    }
     if (!downsampledRef.current) downsampledRef.current = makeDownsampled(source);
     const ds = downsampledRef.current;
     if (!ds) return;
@@ -69,6 +76,18 @@ export function useLevelsPreview(
       let baked: HTMLCanvasElement | null = null;
       try {
         baked = bakeLevels(ds, params);
+        if (scope !== 0) {
+          const liveMask = peekMaskDownsample(source, previewLongEdge());
+          if (!liveMask) {
+            if (baked !== ds) releaseCanvas(baked);
+            return;
+          }
+          const scoped = applyMaskScope(ds, baked, liveMask, scope);
+          if (scoped !== baked) {
+            releaseCanvas(baked);
+            baked = scoped;
+          }
+        }
       } catch (err) {
         console.error("[useLevelsPreview] bake failed", err);
         if (baked && baked !== ds) releaseCanvas(baked);
@@ -88,7 +107,7 @@ export function useLevelsPreview(
         rafRef.current = null;
       }
     };
-  }, [params, source]);
+  }, [params, source, scope, maskReady]);
 
   useEffect(() => {
     return () => {

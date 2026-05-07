@@ -6,11 +6,15 @@
 import { useMemo } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
+import type { MaskScope } from "../subjectMask";
+import { useSubjectMask } from "../useSubjectMask";
 import { FILTER_PRESETS_RECIPES } from "./filterPresets";
 import { useAdjustPreview } from "./useAdjustPreview";
 
 export function FilterTool() {
   const { toolState, doc, historyVersion } = useEditor();
+  const subjectMask = useSubjectMask();
+  const maskReady = subjectMask.state.status === "ready";
   const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
   // Memoise the composed slider vector against its true inputs.
   // applyPresetVector returns a fresh array via .slice(), so without
@@ -22,6 +26,7 @@ export function FilterTool() {
     () => applyPresetVector(adjust, filterPreset, filterIntensity),
     [adjust, filterPreset, filterIntensity],
   );
+  const scope = (toolState.filterScope as MaskScope) ?? 0;
   // No timer-based debounce. The previous build added an 80 ms
   // trailing window so a tap-tap-tap of presets coalesced into a
   // single bake — but the trailing semantics meant *no preview*
@@ -29,14 +34,7 @@ export function FilterTool() {
   // hook's own rAF cancellation already coalesces work: every
   // effect run cancels the still-pending rAF from the previous
   // run, so a burst of clicks ends up scheduling exactly one bake
-  // (the latest preset) on the next animation frame. That gives
-  // immediate feedback on the first click *and* skips the wasted
-  // bakes from intermediate clicks.
-  // historyVersion as invalidation key — refreshes the cached
-  // downsample after every commit / undo / redo / reset (any path
-  // that mutates doc.working pixels in place). doc identity alone
-  // misses commits within the same tool — only setDoc bumps doc,
-  // and commit() doesn't.
+  // (the latest preset) on the next animation frame.
   const preview = useAdjustPreview(
     doc?.working ?? null,
     composed,
@@ -44,6 +42,8 @@ export function FilterTool() {
     preset?.monochrome ?? false,
     0,
     undefined,
+    scope,
+    maskReady,
     historyVersion,
   );
   useStageProps({ previewCanvas: preview.canvas, previewVersion: preview.version });
