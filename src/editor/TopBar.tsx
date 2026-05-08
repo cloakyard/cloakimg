@@ -5,8 +5,9 @@
 // Theme is no longer toggleable here — light/dark follows the OS via
 // `@media (prefers-color-scheme: dark)`. See [tokens.css](../tokens.css).
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { BrandMark, I } from "../components/icons";
+import { useSubjectMask } from "./ai/useSubjectMask";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useEditor } from "./EditorContext";
 import { MobileMoreMenu } from "./MobileMoreMenu";
@@ -35,7 +36,24 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
     setCompareActive,
   } = useEditor();
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+  // The CloakIMG mark is also a "Back to start" button — on a phone
+  // it sits ~30 px above where the AI download dialog draws, so a
+  // mistap during a long model fetch used to drop the user back at
+  // landing with no warning (and no console log, since it's a normal
+  // route change). Confirm-on-exit gates that path while detection is
+  // mid-flight; idle taps still navigate immediately.
+  const aiState = useSubjectMask().state.status;
+  const aiBusy = aiState === "loading" || aiState === "needs-consent";
+  const onLogoClick = useCallback(() => {
+    if (aiBusy) {
+      setExitConfirmOpen(true);
+      return;
+    }
+    exit();
+  }, [aiBusy, exit]);
 
   const isMobile = layout === "mobile";
   const fileName = doc?.fileName ?? "untitled";
@@ -54,7 +72,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
       >
         <button
           type="button"
-          onClick={exit}
+          onClick={onLogoClick}
           aria-label="Back to start"
           className="flex cursor-pointer items-center gap-2.5 border-none bg-transparent p-0 font-[inherit] text-inherit"
         >
@@ -253,6 +271,21 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             setResetConfirmOpen(false);
           }}
           onCancel={() => setResetConfirmOpen(false)}
+        />
+      )}
+      {exitConfirmOpen && (
+        <ConfirmDialog
+          layout={layout}
+          title="Leave while AI download is running?"
+          message="The on-device subject model is still downloading. Leaving now cancels it; your image stays on this device and can be reopened from Resume."
+          confirmLabel="Leave"
+          cancelLabel="Stay"
+          icon={I.ArrowRight}
+          onConfirm={() => {
+            setExitConfirmOpen(false);
+            exit();
+          }}
+          onCancel={() => setExitConfirmOpen(false)}
         />
       )}
       {moreMenuOpen && (

@@ -38,9 +38,10 @@ import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
 import { History, restoreCanvas } from "./history";
+import { aiLog } from "./ai/log";
 import { indexFor, resolvePreferredQuality } from "./ai/runtime/preferredQuality";
 import { shutdownAiWorker } from "./ai/runtime/runtime";
-import { invalidateSubjectMask } from "./ai/subjectMask";
+import { invalidateSubjectMask, getMaskState } from "./ai/subjectMask";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import { DEFAULT_TOOL_STATE, type ToolState } from "./toolState";
 import type { Layout, Mode } from "./types";
@@ -349,36 +350,30 @@ export function EditorProvider({
   const peekFabricSnapshot = useCallback(() => fabricSnapshotRef.current, []);
 
   // Auto-save draft on any history mutation. Debounced ~5 s so a
-  // burst of slider drags doesn't flood the IDB write pipeline. The
-  // first commit (`Open`) skips the save — it's identical to the
-  // source, so there's nothing to recover. Cleared on doc replace +
-  // on successful export. Best-effort: failures are swallowed so a
-  // hostile profile (private-mode, full quota) doesn't break editing.
-  const autosaveSeenInitial = useRef(false);
+  // burst of slider drags doesn't flood the IDB write pipeline.
+  // Cleared on doc replace + on successful export. Best-effort:
+  // failures are swallowed so a hostile profile (private-mode, full
+  // quota) doesn't break editing.
+  //
+  // The very first save is a *baseline* of the source image, written
+  // shortly after open. Without it, a tab kill during a long AI
+  // download (mobile Safari evicts content processes under memory
+  // pressure — the model fetch can be ~84 MB on top of working memory)
+  // would lose the user's image entirely: on relaunch, App boots to
+  // <Landing> because React state was reset, and the resume row
+  // wouldn't find a draft to surface. Saving the baseline early means
+  // the user can recover from the landing page even if the editor
+  // never reached its first commit.
   useEffect(() => {
-    // historyVersion isn't read in the body, but it's the trigger —
-    // this effect should re-run on every commit so the debounced save
-    // fires after the latest state.
     void historyVersion;
     if (!doc) return;
-    // Skip the very first push (the "Open" baseline).
-    if (!autosaveSeenInitial.current) {
-      autosaveSeenInitial.current = true;
-      return;
-    }
     const handle = window.setTimeout(() => {
       const fc = fabricCanvasRef.current;
       const fabricJson = fc ? snapshotPersistentObjects(fc) : null;
       void saveDraft(doc.working, fabricJson, doc.fileName);
-    }, 5000);
+    }, 1500);
     return () => window.clearTimeout(handle);
   }, [doc, historyVersion]);
-
-  // Reset the autosave gate when a new doc replaces the current one.
-  useEffect(() => {
-    void doc;
-    autosaveSeenInitial.current = false;
-  }, [doc]);
 
   // Revoke any outstanding batch blob URLs (thumb + result) when the
   // editor unmounts. Without this, leaving the editor with a populated
@@ -660,6 +655,20 @@ export function EditorProvider({
   const closeExport = useCallback(() => setExportOpen(false), []);
   const baseCanvas = useCallback(() => historyRef.current.base()?.canvas ?? null, []);
 
+  // Wrap onExit so every "Back to start" path leaves a breadcrumb in
+  // the console alongside the AI mask status. This is the only clue
+  // we have when a user reports "the editor vanished to landing" —
+  // the stack frame names which call site triggered it (user button,
+  // error boundary secondary action, modal `defaultGoHome`).
+  const exit = useCallback(() => {
+    aiLog.info("panel", "editor exit() called", {
+      maskStatus: getMaskState().status,
+      maskWarm: getMaskState().warm,
+      hasDoc: !!doc,
+    });
+    onExit();
+  }, [doc, onExit]);
+
   // Stable: every callback below has stable identity (refs + setState
   // dispatchers + useCallback'd handlers), so the actions context value
   // never changes after first render. Components that subscribe to it
@@ -686,7 +695,7 @@ export function EditorProvider({
       resetToOriginal,
       openExport,
       closeExport,
-      exit: onExit,
+      exit,
       batchAddFiles,
       batchClear,
       setRecipe,
@@ -712,7 +721,7 @@ export function EditorProvider({
       resetToOriginal,
       openExport,
       closeExport,
-      onExit,
+      exit,
       batchAddFiles,
       batchClear,
       setRecipe,
