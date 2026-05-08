@@ -3,11 +3,12 @@
 // (registerPendingApply hook), so an explicit Apply button is
 // redundant — Undo/Redo are the recovery path.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -56,7 +57,7 @@ function fmt(key: (typeof ADJUST_KEYS)[number], v: number): string {
 
 export function AdjustPanel() {
   const toolState = useToolState();
-  const { patchTool, commit, registerPendingApply } = useEditorActions();
+  const { patchTool, commit } = useEditorActions();
   const { doc, layout } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   const isMobile = layout === "mobile";
@@ -104,18 +105,8 @@ export function AdjustPanel() {
 
   const dirty = !isAdjustIdentity(toolState.adjust, toolState.curveRGB);
 
-  // Hand the latest apply() to the editor context via a ref so that a
-  // tool switch flushes the pending preview before the panel unmounts.
-  const applyRef = useRef(apply);
-  applyRef.current = apply;
-  useEffect(() => {
-    if (!dirty) {
-      registerPendingApply(null);
-      return;
-    }
-    registerPendingApply(() => applyRef.current());
-    return () => registerPendingApply(null);
-  }, [dirty, registerPendingApply]);
+  // Tool switch / Export auto-flushes the pending preview into history.
+  useApplyOnToolSwitch(apply, dirty);
 
   const setAt = useCallback(
     (i: number, next: number) => {

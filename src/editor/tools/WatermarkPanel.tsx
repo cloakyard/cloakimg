@@ -11,6 +11,7 @@ import { useEditor } from "../EditorContext";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { I } from "../../components/icons";
 import { MaskConsentError, regionCoverage } from "../ai/subjectMask";
+import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 
 /** Fabric `cloakKind` tags. Used to find the singleton on re-apply
@@ -319,11 +320,9 @@ export function WatermarkPanel() {
             </>
           )}
         </button>
-        {smartError && (
-          <div className="mb-1.5 rounded-md border border-coral-300 bg-coral-50 px-2.5 py-1.5 text-[11px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
-            {smartError}
-          </div>
-        )}
+        <div className="mb-1.5">
+          <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
+        </div>
         <div className="grid grid-cols-3 gap-1">
           {POSITIONS.map((p, i) => {
             const active = i === toolState.watermarkPosition;

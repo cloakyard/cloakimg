@@ -2,12 +2,13 @@
 // + colour. Apply bakes a new larger working canvas and shifts every
 // Fabric layer by the offset so they stay anchored to the image.
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
 import { ColorPicker } from "../ColorPicker";
 import { copyInto } from "../doc";
 import { useEditor } from "../EditorContext";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import {
   bakeBorder,
   BORDER_ASPECTS,
@@ -19,7 +20,7 @@ import {
 const MODES = ["Solid", "Aspect"] as const;
 
 export function BorderPanel() {
-  const { toolState, patchTool, doc, commit, registerPendingApply, getFabricCanvas } = useEditor();
+  const { toolState, patchTool, doc, commit, getFabricCanvas } = useEditor();
   const docW = doc?.width ?? 0;
   const docH = doc?.height ?? 0;
 
@@ -72,16 +73,7 @@ export function BorderPanel() {
     commit("Border");
   }, [commit, dirty, doc, getFabricCanvas, params, reset]);
 
-  const applyRef = useRef(apply);
-  applyRef.current = apply;
-  useEffect(() => {
-    if (!dirty) {
-      registerPendingApply(null);
-      return;
-    }
-    registerPendingApply(() => applyRef.current());
-    return () => registerPendingApply(null);
-  }, [dirty, registerPendingApply]);
+  useApplyOnToolSwitch(apply, dirty);
 
   const target = useMemo(() => {
     if (!doc || params.mode !== 1 || params.aspect <= 0) return null;

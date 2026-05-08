@@ -22,6 +22,7 @@ import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, MaskConsentError, type MaskScope } from "../ai/subjectMask";
+import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { applyRedaction, type RedactStyle } from "./redact";
 
@@ -173,11 +174,7 @@ export function RedactPanel() {
           </button>
         </div>
       </PropRow>
-      {smartError && (
-        <div className="rounded-md border border-coral-300 bg-coral-50 px-2.5 py-1.5 text-[11px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
-          {smartError}
-        </div>
-      )}
+      <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
       <div className="text-[11px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         Person scrubs the detected subject with the selected style; Scene scrubs everything except
         the subject. Detection runs locally — your image never leaves this device.

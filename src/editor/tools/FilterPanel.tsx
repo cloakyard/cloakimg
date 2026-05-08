@@ -7,10 +7,11 @@
 // (centre-cropped to a square) so the grid previews what each preset
 // will do to *this* image rather than a canned sample.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PropRow, Slider } from "../atoms";
 import { copyInto, createCanvas, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
@@ -23,7 +24,7 @@ const THUMB_PX = 96;
 
 export function FilterPanel() {
   const toolState = useToolState();
-  const { patchTool, commit, registerPendingApply } = useEditorActions();
+  const { patchTool, commit } = useEditorActions();
   const { doc, layout } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   const isMobile = layout === "mobile";
@@ -103,16 +104,7 @@ export function FilterPanel() {
 
   // Auto-flush the preview into history if the user switches tools
   // mid-edit instead of clicking Apply.
-  const applyRef = useRef(apply);
-  applyRef.current = apply;
-  useEffect(() => {
-    if (!dirty) {
-      registerPendingApply(null);
-      return;
-    }
-    registerPendingApply(() => applyRef.current());
-    return () => registerPendingApply(null);
-  }, [dirty, registerPendingApply]);
+  useApplyOnToolSwitch(apply, dirty);
 
   // Gate the preset grid + sliders while a non-Whole scope is picked
   // and the mask is still loading; otherwise tapping a preset would

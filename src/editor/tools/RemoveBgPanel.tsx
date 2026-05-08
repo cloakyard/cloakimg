@@ -24,6 +24,7 @@ import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { cancelMaskDetection, MaskConsentError, requestModelPicker } from "../ai/subjectMask";
+import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { DetectionProgressCard } from "../ai/ui/DetectionStatus";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
@@ -223,23 +224,7 @@ export function RemoveBgPanel() {
         />
       )}
 
-      {bgError && (
-        <div
-          role="alert"
-          className="flex items-start gap-2 rounded-lg border border-coral-300 bg-coral-50 px-2.5 py-2 text-[11.5px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200"
-        >
-          <I.ShieldCheck size={12} className="mt-0.5 shrink-0" />
-          <span className="min-w-0 flex-1 wrap-break-word">{bgError}</span>
-          <button
-            type="button"
-            onClick={() => setBgError(null)}
-            aria-label="Dismiss error"
-            className="-mr-0.5 -mt-0.5 flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100"
-          >
-            <I.X size={10} />
-          </button>
-        </div>
-      )}
+      <SmartActionError message={bgError} onDismiss={() => setBgError(null)} />
     </>
   );
 }

@@ -15,6 +15,7 @@ import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 import type { ToolState } from "../toolState";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import type { ExifData } from "./exif";
 
 export const FRAME_STYLES = [
@@ -73,16 +74,7 @@ export function FrameTool() {
 }
 
 export function FramePanel() {
-  const {
-    toolState,
-    patchTool,
-    doc,
-    commit,
-    registerPendingApply,
-    peekLastCommitLabel,
-    undo,
-    layout,
-  } = useEditor();
+  const { toolState, patchTool, doc, commit, peekLastCommitLabel, undo, layout } = useEditor();
   const isMobile = layout === "mobile";
   const w = toolState.frameWidth;
 
@@ -208,16 +200,9 @@ export function FramePanel() {
   }, [sourceThumb, w, shorterImageSide, toolState.frameColor]);
 
   // Auto-bake the frame preview if the user navigates away mid-edit.
-  const applyRef = useRef(apply);
-  applyRef.current = apply;
-  useEffect(() => {
-    if (w <= 0) {
-      registerPendingApply(null);
-      return;
-    }
-    registerPendingApply(() => applyRef.current());
-    return () => registerPendingApply(null);
-  }, [registerPendingApply, w]);
+  // `w > 0` is the panel's "anything to bake?" predicate — Frame is
+  // dirty when the slider is non-zero (zero w = identity = no-op).
+  useApplyOnToolSwitch(apply, w > 0);
 
   return (
     <>

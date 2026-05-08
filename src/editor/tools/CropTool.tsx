@@ -20,8 +20,10 @@ import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 import { getSubjectBBox, MaskConsentError } from "../ai/subjectMask";
+import { SmartActionError } from "../ai/ui/SmartActionError";
 import type { ToolState } from "../toolState";
 import { useSubjectMask } from "../ai/useSubjectMask";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { ASPECT_OPTIONS, initialRect, type Rect } from "./cropMath";
 
 const CROP_TAG = "cloak:cropOverlay";
@@ -328,7 +330,7 @@ export function applyCrop(
 // ── Property-panel piece for crop ────────────────────────────────────
 
 export function CropPanel() {
-  const { toolState, patchTool, doc, getFabricCanvas, commit, registerPendingApply } = useEditor();
+  const { toolState, patchTool, doc, getFabricCanvas, commit } = useEditor();
   const subjectMask = useSubjectMask();
   const [smartBusy, setSmartBusy] = useState(false);
   const [smartError, setSmartError] = useState<string | null>(null);
@@ -543,15 +545,10 @@ export function CropPanel() {
   // when nothing's actually been changed, so this is safe to register
   // unconditionally — no spurious history entries when the user just
   // peeked at the Crop panel.
-  const applyRef = useRef(apply);
-  applyRef.current = apply;
-  useEffect(() => {
-    registerPendingApply(() => applyRef.current());
-    return () => registerPendingApply(null);
-    // applyRef is a stable ref; intentionally omitted from deps so we
-    // register once on mount and unregister once on unmount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registerPendingApply]);
+  // Crop's apply() is self-gated (it early-returns when there's
+  // nothing to bake), so this registers unconditionally — no spurious
+  // history entries when the user just peeked at the Crop panel.
+  useApplyOnToolSwitch(apply);
 
   const subjectStatus = subjectMask.state.status;
   const smartLabel = smartBusy
@@ -587,11 +584,7 @@ export function CropPanel() {
         )}
         {smartLabel}
       </button>
-      {smartError && (
-        <div className="rounded-md border border-coral-300 bg-coral-50 px-2.5 py-1.5 text-[11px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
-          {smartError}
-        </div>
-      )}
+      <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
       <CropDimensions />
       <PropRow label="Rotation" value={rotationLabel}>
         <Slider value={rotationSlider} accent defaultValue={0.5} onChange={setRotation} />

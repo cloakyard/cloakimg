@@ -3,11 +3,12 @@
 // Mirrors Lightroom's HSL panel structure so users coming from there
 // don't have to relearn the workflow.
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
@@ -24,7 +25,7 @@ import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 
 export function HslPanel() {
-  const { toolState, patchTool, doc, commit, registerPendingApply } = useEditor();
+  const { toolState, patchTool, doc, commit } = useEditor();
   const subjectMask = useSubjectMask();
   const band = toolState.hslBand;
   const scope = (toolState.hslScope as MaskScope) ?? 0;
@@ -72,16 +73,7 @@ export function HslPanel() {
     commit("Selective colour");
   }, [commit, dirty, doc, params, reset, scope, subjectMask]);
 
-  const applyRef = useRef(apply);
-  applyRef.current = apply;
-  useEffect(() => {
-    if (!dirty) {
-      registerPendingApply(null);
-      return;
-    }
-    registerPendingApply(() => applyRef.current());
-    return () => registerPendingApply(null);
-  }, [dirty, registerPendingApply]);
+  useApplyOnToolSwitch(apply, dirty);
 
   const setBandValue = useCallback(
     (key: "hslHue" | "hslSat" | "hslLum", value: number) => {
