@@ -50,10 +50,18 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           into a tall panel (e.g. Adjust) and switching to a shorter one
           left the new panel scrolled past its content. The remount only
           re-creates this div — Fabric, EditorContext, and LayersList
-          (sibling) are unaffected, so there's no perf cost. */}
+          (sibling) are unaffected, so there's no perf cost.
+
+          `overscroll-contain` lives here (not on `.scroll-thin`)
+          because horizontal-only preset rows inside the panel inherit
+          .scroll-thin for the thin-scrollbar look but should NOT
+          contain vertical pans — that broke vertical scrolling when a
+          user touched a preset thumbnail. Containment now applies only
+          where the rubber-band actually needs catching: the panel's
+          own vertical scroll. */}
       <div
         key={activeTool}
-        className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pt-3.5 pb-4"
+        className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
       >
         <ToolControls />
       </div>

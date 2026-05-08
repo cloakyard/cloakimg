@@ -142,6 +142,16 @@ export function FilterPanel() {
             <div key={category} className="flex flex-col gap-1.5">
               <div className="t-section-label">{category}</div>
               <div
+                // No `touch-pan-x` here. Per spec, `pan-x` *disables*
+                // vertical pans on the element rather than passing
+                // them up — which made vertical scrolling impossible
+                // when the user touched a preset thumbnail. The actual
+                // bug was `.scroll-thin`'s `overscroll-behavior:
+                // contain` bleeding onto this horizontal child;
+                // moving that to the vertical panel scrollers
+                // (PropertiesPanel / MobileSheet) lets the default
+                // `touch-action: auto` route vertical pans to the
+                // panel naturally.
                 className={
                   isMobile
                     ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"

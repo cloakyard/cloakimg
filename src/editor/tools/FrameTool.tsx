@@ -212,6 +212,10 @@ export function FramePanel() {
             keeps its height. Desktop keeps the 4-up grid where vertical
             space is plentiful. Same trade FilterPanel makes. */}
         <div
+          // See FilterPanel for the full rationale — `.scroll-thin`
+          // no longer carries `overscroll-behavior: contain`, so this
+          // horizontal scroller no longer blocks vertical pans from
+          // chaining to the parent panel.
           className={
             isMobile
               ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"

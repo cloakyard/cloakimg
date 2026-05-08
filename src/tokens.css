@@ -560,10 +560,17 @@ html {
 .scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
-  /* Stops a child scroll from chaining into the page on iOS Safari —
-     when the panel hits its top/bottom, the rubber-band stays inside
-     the panel instead of bouncing the editor shell underneath. */
-  overscroll-behavior: contain;
+  /* No `overscroll-behavior` here. It used to be `contain` on this
+     class, but that bled onto horizontal-only preset rows in
+     FilterPanel / ColorPickerPanel / FrameTool, where it blocked
+     vertical pans from chaining to the parent panel scroller — users
+     reported "have to be very precise to touch the gap area between
+     rows to scroll up." Per spec, `overscroll-behavior: contain`
+     prevents *all* axes' chains, not just the scroll axis the element
+     handles. The vertical panel scrollers
+     (PropertiesPanel / MobileSheet) apply Tailwind's
+     `overscroll-contain` utility directly so the rubber-band fix
+     stays where it's actually needed without leaking to children. */
 }
 .scroll-thin::-webkit-scrollbar {
   width: 6px;
