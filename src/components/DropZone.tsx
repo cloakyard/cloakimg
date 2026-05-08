@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { decodeHeic, isHeicFile } from "../editor/heicDecoder";
 import { I } from "./icons";
 
 interface DropZoneProps {
@@ -58,23 +59,78 @@ export function DropZone({
   const [glowStyle, setGlowStyle] = useState<CSSProperties>({ opacity: 0 });
   // Thumbnail preview when a file is selected (single-pick mode). The
   // upload icon alone left users uncertain whether the *right* image was
-  // queued — a thumbnail confirms it visually. HEIC/HEIF aren't natively
-  // decodable by <img> in most browsers, so we fall back to the file
-  // icon for those rather than rendering a broken-image glyph.
+  // queued — a thumbnail confirms it visually. Two decode paths:
+  //
+  //   • Browser-native formats (JPEG / PNG / WebP / AVIF / GIF):
+  //     URL.createObjectURL → <img src>.
+  //
+  //   • HEIC / HEIF (popular among iPhone users): <img> can't decode
+  //     these in Chrome / Firefox, so we route through libheif-js
+  //     (the same decoder doc.ts uses) → ImageBitmap → small canvas
+  //     → data URL. The wasm bundle + decoder instance are singleton-
+  //     cached, so the second decode (when the user clicks "Open in
+  //     editor") reuses everything and adds no extra round-trip.
+  //
+  // `previewLoading` flips on while the HEIC decode is in flight so we
+  // can show a subtle spinner instead of leaving the FileImage icon
+  // ambiguously frozen on screen.
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   useEffect(() => {
     if (!selectedFile || multiple) {
       setPreviewUrl(null);
+      setPreviewLoading(false);
       return;
     }
-    const isHeic =
-      /\.(heic|heif)$/i.test(selectedFile.name) || /heic|heif/i.test(selectedFile.type);
-    if (isHeic) {
+    if (isHeicFile(selectedFile)) {
+      let cancelled = false;
       setPreviewUrl(null);
-      return;
+      setPreviewLoading(true);
+      void (async () => {
+        try {
+          const bitmap = await decodeHeic(selectedFile);
+          if (cancelled) {
+            bitmap.close();
+            return;
+          }
+          // Long edge ≤ 240 px keeps the data-URL payload small (~40 KB
+          // at q=0.7) — same target as the recents thumbnail builder.
+          const max = 240;
+          const aspect = bitmap.width / bitmap.height;
+          const w = aspect >= 1 ? max : Math.round(max * aspect);
+          const h = aspect >= 1 ? Math.round(max / aspect) : max;
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            // jsdom or a browser without 2D canvas — fall back to the
+            // file-icon path silently.
+            bitmap.close();
+            if (!cancelled) setPreviewLoading(false);
+            return;
+          }
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(bitmap, 0, 0, w, h);
+          bitmap.close();
+          const url = canvas.toDataURL("image/webp", 0.7);
+          if (!cancelled) {
+            setPreviewUrl(url);
+            setPreviewLoading(false);
+          }
+        } catch {
+          // Truly broken HEIC, libheif crash, etc. The file-icon
+          // fallback already handles the visual; just clear loading.
+          if (!cancelled) setPreviewLoading(false);
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
     }
     const url = URL.createObjectURL(selectedFile);
     setPreviewUrl(url);
+    setPreviewLoading(false);
     return () => URL.revokeObjectURL(url);
   }, [multiple, selectedFile]);
 
@@ -215,6 +271,9 @@ export function DropZone({
         </div>
       ) : (
         <div
+          {...(previewLoading
+            ? { role: "status", "aria-busy": true, "aria-label": "Decoding HEIC preview…" }
+            : {})}
           className={`relative z-10 mb-3.5 inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-[background-color,transform,color] duration-200 motion-safe:group-hover:-translate-y-0.5 ${
             hover
               ? "bg-coral-100 text-coral-600 dark:bg-coral-900/50"
@@ -223,7 +282,22 @@ export function DropZone({
                 : "bg-page-bg text-text-muted group-hover:bg-coral-50 group-hover:text-coral-500 dark:bg-dark-page-bg dark:text-dark-text-muted dark:group-hover:bg-coral-900/30"
           }`}
         >
-          {showSelected ? <I.FileImage size={24} /> : <I.Upload size={24} />}
+          {previewLoading ? (
+            // Subtle spinner during HEIC decode (~200–500 ms on phones).
+            // Without it, the FileImage icon sits frozen on a HEIC pick
+            // and the user can't tell whether the app stalled or is
+            // working. The animation is CSS-only via the global
+            // `ci-spin` keyframes already used by Spinner.
+            <span
+              aria-hidden
+              className="block h-5 w-5 rounded-full border-2 border-current border-t-transparent"
+              style={{ animation: "ci-spin 0.9s linear infinite" }}
+            />
+          ) : showSelected ? (
+            <I.FileImage size={24} />
+          ) : (
+            <I.Upload size={24} />
+          )}
         </div>
       )}
       <div
