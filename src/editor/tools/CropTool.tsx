@@ -590,7 +590,7 @@ export function CropPanel() {
         type="button"
         onClick={() => void smartCrop()}
         disabled={smartBusy}
-        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
         style={{ opacity: smartBusy ? 0.7 : 1 }}
       >
         {smartBusy ? (
@@ -609,31 +609,28 @@ export function CropPanel() {
         <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
-            className={`btn btn-secondary flex-1 ${
+            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]! ${
               toolState.flipH ? "border-coral-500 text-coral-700 dark:text-coral-300" : ""
             }`}
             onClick={() => patchTool("flipH", !toolState.flipH)}
             aria-pressed={toolState.flipH}
-            style={{ fontSize: 11.5, padding: "7px 10px" }}
           >
             <I.Resize size={12} /> Flip H
           </button>
           <button
             type="button"
-            className={`btn btn-secondary flex-1 ${
+            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]! ${
               toolState.flipV ? "border-coral-500 text-coral-700 dark:text-coral-300" : ""
             }`}
             onClick={() => patchTool("flipV", !toolState.flipV)}
             aria-pressed={toolState.flipV}
-            style={{ fontSize: 11.5, padding: "7px 10px" }}
           >
             <I.Resize size={12} className="rotate-90" /> Flip V
           </button>
           <button
             type="button"
-            className="btn btn-secondary flex-1"
+            className="btn btn-secondary flex-1 px-2.5! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]!"
             onClick={() => patchTool("cropQuarterTurns", (toolState.cropQuarterTurns + 1) % 4)}
-            style={{ fontSize: 11.5, padding: "7px 10px" }}
           >
             <I.Rotate size={12} /> 90°
           </button>
@@ -654,10 +651,10 @@ export function CropPanel() {
           desktop user a visible "I'm done" signal. */}
       <button
         type="button"
-        className="btn btn-primary mt-1 w-full justify-center"
+        className="btn btn-primary mt-1 w-full justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
         onClick={() => void apply()}
         disabled={applying}
-        style={{ fontSize: 12.5, padding: "9px", opacity: applying ? 0.7 : 1 }}
+        style={{ opacity: applying ? 0.7 : 1 }}
       >
         {applying ? (
           <>

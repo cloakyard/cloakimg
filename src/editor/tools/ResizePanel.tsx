@@ -239,11 +239,10 @@ export function ResizePanel() {
       )}
       <button
         type="button"
-        className="btn btn-primary justify-center"
+        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
         onClick={() => void apply()}
         disabled={resizing}
         aria-busy={resizing}
-        style={{ fontSize: 12.5, padding: "9px" }}
       >
         <I.Check size={12} /> {resizing ? "Resizing…" : "Apply resize"}
       </button>

@@ -308,7 +308,7 @@ export function WatermarkPanel() {
           type="button"
           onClick={() => void smartPlace()}
           disabled={smartBusy}
-          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
           style={{ opacity: smartBusy ? 0.7 : 1 }}
         >
           {smartBusy ? (
@@ -370,14 +370,10 @@ export function WatermarkPanel() {
       </PropRow>
       <button
         type="button"
-        className="btn btn-primary justify-center"
+        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
         onClick={isImage ? applyImage : applyText}
         disabled={isImage && !toolState.watermarkImageDataUrl}
-        style={{
-          fontSize: 12.5,
-          padding: "9px",
-          opacity: isImage && !toolState.watermarkImageDataUrl ? 0.5 : 1,
-        }}
+        style={{ opacity: isImage && !toolState.watermarkImageDataUrl ? 0.5 : 1 }}
       >
         Apply watermark
       </button>

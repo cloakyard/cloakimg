@@ -154,7 +154,7 @@ export function RedactPanel() {
             type="button"
             onClick={() => void smartAnonymize(1)}
             disabled={smartBusy !== null}
-            className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-2 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+            className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-2 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
             style={{ opacity: smartBusy ? 0.7 : 1 }}
           >
             {smartBusy === "subject" ? (
@@ -171,7 +171,7 @@ export function RedactPanel() {
             type="button"
             onClick={() => void smartAnonymize(2)}
             disabled={smartBusy !== null}
-            className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-2 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+            className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-2 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
             style={{ opacity: smartBusy ? 0.7 : 1 }}
           >
             {smartBusy === "background" ? (

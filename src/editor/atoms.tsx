@@ -331,20 +331,29 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
   // the slot. Transition is on `transform`, so the indicator slides
   // smoothly between taps without forcing a repaint of the buttons.
   // Falls back gracefully when N === 0 (renders nothing).
+  //
+  // Inset is sourced from the `--seg-inset` CSS variable so the pill
+  // geometry tracks the parent's padding (2px on mouse, 4px on touch).
+  // Hard-coding the inset caused the rightmost pill to touch the
+  // outer border on coarse pointers because the parent padding
+  // doubled while the pill's inset stayed at 2px.
   const n = options.length;
   const slotPct = n > 0 ? 100 / n : 0;
   return (
     <div
-      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 pointer-coarse:p-1 dark:border-dark-border-soft dark:bg-dark-page-bg"
+      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 [--seg-inset:2px] pointer-coarse:p-1 pointer-coarse:[--seg-inset:4px] dark:border-dark-border-soft dark:bg-dark-page-bg"
       style={style}
     >
       {n > 0 && (
         <span
           aria-hidden
-          className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 rounded bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.06)] pointer-coarse:top-1 pointer-coarse:right-1 pointer-coarse:bottom-1 pointer-coarse:left-1 dark:bg-dark-surface"
+          className="pointer-events-none absolute rounded-[5px] bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-dark-surface"
           style={{
-            width: `calc(${slotPct}% - 4px)`,
-            transform: `translateX(calc(${active * 100}% + ${active * 4}px))`,
+            top: "var(--seg-inset)",
+            bottom: "var(--seg-inset)",
+            left: "var(--seg-inset)",
+            width: `calc(${slotPct}% - var(--seg-inset) * 2)`,
+            transform: `translateX(calc(${active} * 100% + ${active} * var(--seg-inset) * 2))`,
             transition: "transform 200ms cubic-bezier(0.32, 0.72, 0, 1)",
           }}
         />

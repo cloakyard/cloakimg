@@ -333,14 +333,10 @@ function AutoPanel({
 
       <button
         type="button"
-        className="btn btn-primary justify-center"
+        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
         onClick={onApply}
         disabled={alreadyRemoved || busy}
-        style={{
-          fontSize: 12.5,
-          padding: "9px",
-          opacity: alreadyRemoved || busy ? 0.6 : 1,
-        }}
+        style={{ opacity: alreadyRemoved || busy ? 0.6 : 1 }}
       >
         {alreadyRemoved ? (
           <>
@@ -459,7 +455,7 @@ function ChromaPanel({
             onClick={onTogglePick}
             disabled={alreadyRemoved}
             aria-pressed={bgPickActive}
-            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold ${
+            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
               bgPickActive
                 ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
                 : "bg-page-bg text-text-muted dark:bg-dark-page-bg dark:text-dark-text-muted"
@@ -490,19 +486,19 @@ function ChromaPanel({
       </PropRow>
       <button
         type="button"
-        className="btn btn-secondary justify-center"
+        className="btn btn-secondary justify-center px-2! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]!"
         onClick={onAutoTune}
         disabled={alreadyRemoved}
-        style={{ fontSize: 11.5, padding: "7px", opacity: alreadyRemoved ? 0.5 : 1 }}
+        style={{ opacity: alreadyRemoved ? 0.5 : 1 }}
       >
         <I.Wand size={12} /> Auto-detect
       </button>
       <button
         type="button"
-        className="btn btn-primary justify-center"
+        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
         onClick={onApply}
         disabled={applyDisabled}
-        style={{ fontSize: 12.5, padding: "9px", opacity: applyDisabled ? 0.5 : 1 }}
+        style={{ opacity: applyDisabled ? 0.5 : 1 }}
       >
         {alreadyRemoved ? (
           <>
