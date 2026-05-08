@@ -90,7 +90,7 @@ export function PerspectivePanel() {
       <div className="flex gap-2">
         <button
           type="button"
-          className="btn btn-secondary btn-xs flex-1 justify-center"
+          className="btn btn-ghost btn-xs flex-1 justify-center text-coral-700 dark:text-coral-300"
           onClick={reset}
           disabled={!dirty}
         >
