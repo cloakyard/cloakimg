@@ -11,6 +11,7 @@ import {
   type DragEvent as ReactDragEvent,
   type ClipboardEvent as ReactClipboardEvent,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -55,6 +56,27 @@ export function DropZone({
   const zoneRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
   const [glowStyle, setGlowStyle] = useState<CSSProperties>({ opacity: 0 });
+  // Thumbnail preview when a file is selected (single-pick mode). The
+  // upload icon alone left users uncertain whether the *right* image was
+  // queued — a thumbnail confirms it visually. HEIC/HEIF aren't natively
+  // decodable by <img> in most browsers, so we fall back to the file
+  // icon for those rather than rendering a broken-image glyph.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!selectedFile || multiple) {
+      setPreviewUrl(null);
+      return;
+    }
+    const isHeic =
+      /\.(heic|heif)$/i.test(selectedFile.name) || /heic|heif/i.test(selectedFile.type);
+    if (isHeic) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(selectedFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [multiple, selectedFile]);
 
   const onPick = useCallback(() => inputRef.current?.click(), []);
 
@@ -172,15 +194,38 @@ export function DropZone({
           e.target.value = "";
         }}
       />
-      <div
-        className={`relative z-10 mb-3.5 inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-[background-color,transform,color] duration-200 motion-safe:group-hover:-translate-y-0.5 ${
-          hover
-            ? "bg-coral-100 text-coral-600 dark:bg-coral-900/50"
-            : "bg-page-bg text-text-muted group-hover:bg-coral-50 group-hover:text-coral-500 dark:bg-dark-page-bg dark:text-dark-text-muted dark:group-hover:bg-coral-900/30"
-        }`}
-      >
-        <I.Upload size={24} />
-      </div>
+      {showSelected && previewUrl ? (
+        // Selected-file thumbnail. Confirms the *right* image is queued
+        // — without this, users couldn't tell from the file name alone
+        // whether they'd dropped the photo they meant. Coral ring marks
+        // the "ready to open" state to match the rest of the modal's
+        // active accents.
+        <div className="relative z-10 mb-3.5 inline-flex">
+          <img
+            src={previewUrl}
+            alt={selectedFile.name}
+            className="h-20 w-20 rounded-2xl object-cover shadow-[0_4px_12px_-2px_rgba(0,0,0,0.15)] ring-2 ring-coral-500/70"
+          />
+          <span
+            aria-hidden
+            className="absolute -right-1.5 -bottom-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-coral-500 text-white shadow-[0_2px_6px_-1px_rgba(245,97,58,0.5)]"
+          >
+            <I.Check size={13} stroke={3} />
+          </span>
+        </div>
+      ) : (
+        <div
+          className={`relative z-10 mb-3.5 inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-[background-color,transform,color] duration-200 motion-safe:group-hover:-translate-y-0.5 ${
+            hover
+              ? "bg-coral-100 text-coral-600 dark:bg-coral-900/50"
+              : showSelected
+                ? "bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300"
+                : "bg-page-bg text-text-muted group-hover:bg-coral-50 group-hover:text-coral-500 dark:bg-dark-page-bg dark:text-dark-text-muted dark:group-hover:bg-coral-900/30"
+          }`}
+        >
+          {showSelected ? <I.FileImage size={24} /> : <I.Upload size={24} />}
+        </div>
+      )}
       <div
         className={`relative z-10 mb-1 text-base font-semibold transition-colors duration-200 ${
           hover ? "text-coral-700 dark:text-coral-300" : "text-text dark:text-dark-text"
