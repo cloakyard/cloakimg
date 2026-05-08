@@ -11,6 +11,7 @@ import { useEditor } from "../EditorContext";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { I } from "../../components/icons";
 import { MaskConsentError, regionCoverage } from "../ai/subjectMask";
+import { MaskReadyPill } from "../ai/ui/MaskReadyPill";
 import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 
@@ -302,6 +303,7 @@ export function WatermarkPanel() {
             overlap, so the watermark lands diagonally opposite the
             face / centre of attention. The 6-tile manual grid below
             stays for users who want a specific corner regardless. */}
+        <MaskReadyPill ready={!!subjectMask.peek()} align="end" />
         <button
           type="button"
           onClick={() => void smartPlace()}

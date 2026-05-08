@@ -20,6 +20,7 @@ import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 import { getSubjectBBox, MaskConsentError } from "../ai/subjectMask";
+import { MaskReadyPill } from "../ai/ui/MaskReadyPill";
 import { SmartActionError } from "../ai/ui/SmartActionError";
 import type { ToolState } from "../toolState";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -523,7 +524,13 @@ export function CropPanel() {
     fc.requestRenderAll();
   }, [aspect, doc, getFabricCanvas, patchTool]);
 
-  // Press Enter to apply.
+  // Keyboard shortcuts:
+  //   • Enter — apply the crop (existing behaviour).
+  //   • R     — reset the crop rect, rotation, flip, and 90° turns.
+  //             Matches iOS Photos / common image-editor convention so
+  //             muscle memory carries over. The W/H/X/Y inputs and the
+  //             dimensions form fields are excluded so typing R inside
+  //             a numeric input doesn't blow away the user's edit.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (
@@ -535,11 +542,19 @@ export function CropPanel() {
       if (e.key === "Enter") {
         e.preventDefault();
         void apply();
+        return;
+      }
+      // Bare R — no Cmd/Ctrl/Alt/Meta so we don't collide with browser
+      // refresh (Cmd+R) or platform shortcuts. Shift is allowed so the
+      // capital-R on iPad keyboards still triggers.
+      if ((e.key === "r" || e.key === "R") && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        reset();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [apply]);
+  }, [apply, reset]);
 
   // Auto-bake on tool switch / Export. The apply itself early-returns
   // when nothing's actually been changed, so this is safe to register
@@ -570,6 +585,7 @@ export function CropPanel() {
           Flip / 90° row so the panel keeps a single visual rhythm.
           Sparkles badge marks it as the AI-powered affordance, same
           convention as the rail. */}
+      <MaskReadyPill ready={!!subjectMask.peek()} align="end" />
       <button
         type="button"
         onClick={() => void smartCrop()}
@@ -654,7 +670,7 @@ export function CropPanel() {
         )}
       </button>
       <p className="text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
-        Or press Enter / switch tools. Undo/Redo recover.
+        Or press Enter / switch tools. R resets the rect. Undo/Redo recover.
       </p>
     </>
   );

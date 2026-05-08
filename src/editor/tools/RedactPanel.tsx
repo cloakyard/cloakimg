@@ -22,6 +22,7 @@ import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, MaskConsentError, type MaskScope } from "../ai/subjectMask";
+import { MaskReadyPill } from "../ai/ui/MaskReadyPill";
 import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { applyRedaction, type RedactStyle } from "./redact";
@@ -103,10 +104,20 @@ export function RedactPanel() {
         // quality-tier change). A stale reference would point to a
         // canvas that's been released back to the pool and possibly
         // reallocated to another caller — compositing against it
-        // would produce a corrupt result. Aborting silently is the
-        // correct response to the user's explicit invalidation.
+        // would produce a corrupt result.
+        //
+        // Surface the abort via the shared error chip rather than
+        // returning silently: the previous behaviour made Smart
+        // Anonymize look like a no-op button when a tier change
+        // raced with the bake (the spinner cleared, no commit, no
+        // explanation). One sentence is friendlier than nothing.
         const liveMask = subjectMask.peek();
-        if (!liveMask) return;
+        if (!liveMask) {
+          setSmartError(
+            "Smart Anonymize cancelled — the subject mask was invalidated mid-bake. Try again.",
+          );
+          return;
+        }
         composed = applyMaskScope(doc.working, full, liveMask, scope);
         await yieldFrame();
 
@@ -136,6 +147,7 @@ export function RedactPanel() {
           controls below stay for fine-grained work. Two paired
           buttons rather than a hidden toggle so both options are one
           tap from the same surface. */}
+      <MaskReadyPill ready={!!subjectMask.peek()} align="end" />
       <PropRow label="Smart anonymize">
         <div className="grid grid-cols-2 gap-1.5">
           <button

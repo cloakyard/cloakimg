@@ -118,9 +118,32 @@ export function BorderPanel() {
       ) : (
         <PropRow label="Target ratio">
           <div className="flex flex-wrap gap-1.5">
-            {BORDER_ASPECTS.map((a, i) => {
-              const idx = i + 1;
-              const active = idx === toolState.borderAspect;
+            {/* Explicit "None" pill — gives the user a tappable
+                "no aspect lock" state instead of relying on
+                tap-the-active-button-again to clear. The previous
+                tap-to-deselect behaviour is retained for power users
+                but the None pill makes the no-op state visible to
+                first-time users. */}
+            {(() => {
+              const noneActive = toolState.borderAspect === 0;
+              return (
+                <button
+                  key="none"
+                  type="button"
+                  onClick={() => patchTool("borderAspect", 0)}
+                  aria-pressed={noneActive}
+                  className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+                    noneActive
+                      ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+                      : "border-border-soft bg-page-bg text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted"
+                  }`}
+                >
+                  None
+                </button>
+              );
+            })()}
+            {BORDER_ASPECTS.map((a) => {
+              const active = Math.abs(toolState.borderAspect - a.ratio) < 1e-3;
               return (
                 <button
                   key={a.label}
@@ -128,7 +151,7 @@ export function BorderPanel() {
                   onClick={() => patchTool("borderAspect", active ? 0 : a.ratio)}
                   aria-pressed={active}
                   className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
-                    Math.abs(toolState.borderAspect - a.ratio) < 1e-3
+                    active
                       ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
                       : "border-border-soft bg-page-bg text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted"
                   }`}

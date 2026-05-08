@@ -16,7 +16,11 @@ export function DefaultPanel() {
         />
       </PropRow>
       <PropRow label="Size" value={`${Math.round(toolState.genericSize * 100)} px`}>
-        <Slider value={toolState.genericSize} onChange={(v) => patchTool("genericSize", v)} />
+        <Slider
+          value={toolState.genericSize}
+          accent
+          onChange={(v) => patchTool("genericSize", v)}
+        />
       </PropRow>
       <PropRow label="Mode">
         <Segment

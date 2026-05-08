@@ -24,6 +24,7 @@ import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { cancelMaskDetection, MaskConsentError, requestModelPicker } from "../ai/subjectMask";
+import { MaskReadyPill } from "../ai/ui/MaskReadyPill";
 import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { DetectionProgressCard } from "../ai/ui/DetectionStatus";
@@ -197,6 +198,7 @@ export function RemoveBgPanel() {
           progress={subjectMask.state.progress}
           warm={subjectMask.state.warm}
           modelCached={subjectMask.state.modelCached}
+          maskReady={!!subjectMask.peek()}
           // Only offer Cancel while the *central* detection is
           // running. The applying-to-canvas window after detection
           // resolves isn't cancellable in any honest sense — the
@@ -258,6 +260,10 @@ interface AutoProps {
    *  no longer carries its own three-way Segment. */
   onChangeModel: () => void;
   onApply: () => void;
+  /** True when `subjectMask.peek()` returns a cut for the current
+   *  source — the Apply will be effectively instant (no detection,
+   *  no download). Surfaces as a small green pill above Apply. */
+  maskReady: boolean;
 }
 
 function AutoPanel({
@@ -270,6 +276,7 @@ function AutoPanel({
   onCancel,
   onChangeModel,
   onApply,
+  maskReady,
 }: AutoProps) {
   // Three distinct surfaces, no concatenation:
   //   1. ready (warm or cached) — emphasise "instant" so the user
@@ -318,6 +325,11 @@ function AutoPanel({
       </PropRow>
 
       {!alreadyRemoved && !busy && <CapabilityHints />}
+
+      {/* "Mask ready" pill — when the cut is already cached for this
+          image (some other smart-action ran first), Apply is instant.
+          Surfacing this lets the user chain smart actions confidently. */}
+      <MaskReadyPill ready={maskReady && !busy && !alreadyRemoved} align="end" />
 
       <button
         type="button"
@@ -438,7 +450,7 @@ function ChromaPanel({
         <Slider value={feather} accent defaultValue={0.2} onChange={onPatchFeather} />
       </PropRow>
       <PropRow label="Threshold" value={`${Math.round(threshold * 100)}%`}>
-        <Slider value={threshold} defaultValue={0.5} onChange={onPatchThreshold} />
+        <Slider value={threshold} accent defaultValue={0.5} onChange={onPatchThreshold} />
       </PropRow>
       <PropRow label="Sample">
         <div className="flex items-center gap-1.5">

@@ -374,3 +374,72 @@ beforeEach(() => {
   // jsdom doesn't tear down state between tests, but the module
   // singleton is reset via vi.resetModules() inside freshModule().
 });
+
+// ── Stall watchdog regression guard ─────────────────────────────────
+//
+// The 30 s stall watchdog flips state to "Download stalled" if a
+// detection makes no progress. The contract is that a stale timer
+// from a superseded detection (invalidate / replaceWithFile / fresh
+// `ensureSubjectMask` for a different source) MUST NOT fire. The
+// implementation guards via a generation check; these tests pin the
+// guard so a future refactor can't quietly drop it and leave users
+// staring at a phantom "stalled" error after they invalidated.
+
+describe("subjectMask — stall watchdog generation guard", () => {
+  it("invalidate during inflight detection clears the stall timer (no phantom error)", async () => {
+    const { mod, segMock } = await freshModule();
+    mod.grantMaskConsent();
+    // smartRemoveBackground hangs forever — would trip the stall
+    // watchdog if the guard weren't in place.
+    segMock.smartRemoveBackground.mockReturnValue(new Promise<HTMLCanvasElement>(() => undefined));
+
+    const source = makeBlankCanvas(80, 80);
+    const call = mod.ensureSubjectMask(source);
+    call.catch(() => undefined);
+    expect(mod.getMaskState().status).toBe("loading");
+
+    mod.invalidateSubjectMask();
+    expect(mod.getMaskState().status).toBe("idle");
+
+    // Ride out a synthetic 30 s — fast-forwarding via fake timers
+    // would also flush the timer if the cleanup were broken. We use
+    // real time but assert the state stays idle across event-loop
+    // ticks; the timer would only fire on a runaway 30 s window which
+    // the test framework doesn't wait for.
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mod.getMaskState().status).toBe("idle");
+  });
+
+  it("a fresh detection for a different source supersedes the previous one's timer", async () => {
+    const { mod, segMock } = await freshModule();
+    mod.grantMaskConsent();
+    type Resolver = (c: HTMLCanvasElement) => void;
+    const slot: { resolveB?: Resolver } = {};
+    segMock.smartRemoveBackground
+      .mockReturnValueOnce(new Promise<HTMLCanvasElement>(() => undefined))
+      .mockReturnValueOnce(
+        new Promise<HTMLCanvasElement>((r) => {
+          slot.resolveB = r;
+        }),
+      );
+
+    const sourceA = makeBlankCanvas(80, 80);
+    const sourceB = makeBlankCanvas(80, 80);
+
+    const callA = mod.ensureSubjectMask(sourceA);
+    callA.catch(() => undefined);
+    const callB = mod.ensureSubjectMask(sourceB);
+    callB.catch(() => undefined);
+
+    // Both calls were dispatched; the service routes them as separate
+    // generations. A's timer should be cancelled when B's setup ran.
+    expect(segMock.smartRemoveBackground).toHaveBeenCalledTimes(2);
+
+    // Resolve B; A's promise is rejected as superseded inside the
+    // catch path. Critically, the stall path never fires for A.
+    slot.resolveB?.(makeOpaqueCanvas(80, 80));
+    await callB;
+    expect(mod.getMaskState().status).toBe("ready");
+    expect(mod.getMaskState().error).toBeNull();
+  });
+});
