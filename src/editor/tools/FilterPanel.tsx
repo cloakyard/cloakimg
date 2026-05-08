@@ -16,7 +16,7 @@ import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
 import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
-import { FILTER_PRESETS_RECIPES } from "./filterPresets";
+import { FILTER_PRESETS_RECIPES, groupRecipesByCategory } from "./filterPresets";
 import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 
@@ -68,6 +68,12 @@ export function FilterPanel() {
     });
   }, [sourceThumb]);
 
+  // Group recipes by category for the rendered sections. The grouping
+  // is purely registry-driven (no inputs) so it's safe to memoise with
+  // an empty dep list — a hot reload that adds a category would force
+  // a full module reload anyway.
+  const presetGroups = useMemo(() => groupRecipesByCategory(), []);
+
   const apply = useCallback(async (): Promise<void> => {
     if (!doc) return;
     const preset = FILTER_PRESETS_RECIPES[toolState.filterPreset];
@@ -117,58 +123,73 @@ export function FilterPanel() {
       <AiSectionHeader />
       <MaskScopeRow scope={toolState.filterScope} onScope={(i) => patchTool("filterScope", i)} />
       <ScopeGate disabled={gated}>
-        <PropRow label="Preset">
-          {/* On mobile the presets reflow into a single horizontally
-              scrolling row so the panel stays short and the canvas above
-              keeps its height. Desktop keeps the 3-up grid where vertical
-              space is plentiful. */}
-          <div
-            className={
-              isMobile
-                ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-                : "grid grid-cols-3 gap-1.5"
-            }
-          >
-            {FILTER_PRESETS_RECIPES.map((preset, i) => {
-              const active = i === toolState.filterPreset;
-              const thumbUrl = presetThumbUrls?.[i];
-              return (
-                <button
-                  key={preset.name}
-                  type="button"
-                  onClick={() => patchTool("filterPreset", i)}
-                  aria-pressed={active}
-                  className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 dark:bg-dark-page-bg ${
-                    isMobile ? "w-18 shrink-0" : ""
-                  } ${
-                    active
-                      ? "border-2 border-coral-500"
-                      : "border border-border dark:border-dark-border"
-                  }`}
-                >
-                  {thumbUrl ? (
-                    <img
-                      src={thumbUrl}
-                      alt={preset.name}
-                      className="block aspect-square w-full object-cover"
-                    />
-                  ) : (
-                    <div
-                      className="aspect-square w-full"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, var(--page-bg) 0%, var(--surface) 100%)",
-                      }}
-                    />
-                  )}
-                  <div className="px-1 py-0.75 text-center text-[10px] font-semibold">
-                    {preset.name}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </PropRow>
+        {/* Categorised sections. The `groupRecipesByCategory()` helper
+            preserves registry order inside each group and skips empty
+            categories, so the rendered structure is data-driven and
+            stays in sync if a future preset is re-categorised. Each
+            section gets its own scroll container on mobile (one
+            horizontal row per category) or a 3-col grid on desktop.
+            Section headers (`t-section-label`) match the existing
+            panel typography (Adjust, Levels) so the Filter panel
+            doesn't introduce a one-off heading style.
+
+            We deliberately do NOT use `<PropRow label="Preset">` here:
+            PropRow is for single-row controls (label-on-left, control
+            on the right). A multi-section preset grid sits at the top
+            level so each section's own header reads as the label. */}
+        <div className="flex flex-col gap-3">
+          {presetGroups.map(({ category, items }) => (
+            <div key={category} className="flex flex-col gap-1.5">
+              <div className="t-section-label">{category}</div>
+              <div
+                className={
+                  isMobile
+                    ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+                    : "grid grid-cols-3 gap-1.5"
+                }
+              >
+                {items.map(({ recipe, index }) => {
+                  const active = index === toolState.filterPreset;
+                  const thumbUrl = presetThumbUrls?.[index];
+                  return (
+                    <button
+                      key={recipe.name}
+                      type="button"
+                      onClick={() => patchTool("filterPreset", index)}
+                      aria-pressed={active}
+                      className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 dark:bg-dark-page-bg ${
+                        isMobile ? "w-18 shrink-0" : ""
+                      } ${
+                        active
+                          ? "border-2 border-coral-500"
+                          : "border border-border dark:border-dark-border"
+                      }`}
+                    >
+                      {thumbUrl ? (
+                        <img
+                          src={thumbUrl}
+                          alt={recipe.name}
+                          className="block aspect-square w-full object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="aspect-square w-full"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, var(--page-bg) 0%, var(--surface) 100%)",
+                          }}
+                        />
+                      )}
+                      <div className="px-1 py-0.75 text-center text-[10px] font-semibold">
+                        {recipe.name}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
         <PropRow label="Intensity" value={`${Math.round(toolState.filterIntensity * 100)}%`}>
           <Slider
             value={toolState.filterIntensity}
