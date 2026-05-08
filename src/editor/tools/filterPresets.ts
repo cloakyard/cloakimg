@@ -108,6 +108,15 @@ export const FILTER_PRESETS_RECIPES: FilterRecipe[] = [
     category: "Warm",
     adjust: [0.05, -0.15, -0.1, 0.2, -0.05, 0.2, -0.1, -0.05, 0.15, 0.05, -0.05],
   },
+  // Avocado — earthy 70s palette: warm-muted, low contrast, lifted
+  // blacks. Sits alongside 70s and Aged but is more desaturated and
+  // softer; reads as faded magazine print rather than punchy slide
+  // film.
+  {
+    name: "Avocado",
+    category: "Warm",
+    adjust: [0.05, -0.2, -0.1, 0.25, -0.15, 0.25, -0.2, -0.05, 0.25, 0.1, -0.05],
+  },
   // Super 8 — heavy orange, lifted blacks, soft + grainy. The grain
   // default (0.4) is what gives this preset its character; scaled by
   // the panel's intensity slider at apply time.
@@ -144,6 +153,14 @@ export const FILTER_PRESETS_RECIPES: FilterRecipe[] = [
     category: "Vibrant",
     adjust: [0, 0.25, -0.15, 0.05, 0.05, -0.1, 0.35, 0.3, 0.05, 0.4, 0.1],
   },
+  // Disco — late-70s saturated dance-floor look. Higher saturation
+  // than Punch with lifted shadows (mirror-ball glow) and a touch of
+  // warmth. Lower vignette than Lomo so faces stay readable.
+  {
+    name: "Disco",
+    category: "Vibrant",
+    adjust: [0, 0.2, -0.05, 0.1, 0, -0.05, 0.4, 0.3, 0.1, 0.15, 0.05],
+  },
 
   // ── Cool ──────────────────────────────────────────────────────────
   {
@@ -160,6 +177,14 @@ export const FILTER_PRESETS_RECIPES: FilterRecipe[] = [
     name: "Cross",
     category: "Cool",
     adjust: [0.05, 0.3, 0.05, -0.1, 0.05, 0, 0.3, 0.25, -0.15, 0.1, 0.1],
+  },
+  // Miami — 80s pastel: soft cool tones, lifted shadows, very low
+  // contrast. Reads as Vice / South-Beach poster: airy, not punchy.
+  // Distinct from Cool/Phocus (more contrasty, less lifted).
+  {
+    name: "Miami",
+    category: "Cool",
+    adjust: [0.05, -0.1, -0.15, 0.2, -0.05, 0.15, -0.05, 0.1, -0.1, 0, 0],
   },
 
   // ── Moody / cinematic ─────────────────────────────────────────────
@@ -186,6 +211,15 @@ export const FILTER_PRESETS_RECIPES: FilterRecipe[] = [
     category: "Cinematic",
     adjust: [0, 0.15, -0.05, 0.05, 0, 0.05, -0.05, 0.1, 0.15, 0.15, 0],
   },
+  // Synthwave — 80s neon retrofuture: cool temp, high contrast,
+  // saturated, heavy vignette. The only Cinematic preset that pulls
+  // temp negative — gives it the Drive / Stranger Things palette
+  // without competing with the warm Drama / Cinestill section.
+  {
+    name: "Synthwave",
+    category: "Cinematic",
+    adjust: [-0.05, 0.3, -0.15, -0.1, 0.05, -0.15, 0.2, 0.25, -0.25, 0.3, 0.1],
+  },
 
   // ── Faded / bleach ────────────────────────────────────────────────
   {
@@ -202,6 +236,15 @@ export const FILTER_PRESETS_RECIPES: FilterRecipe[] = [
     name: "Bleach",
     category: "Faded",
     adjust: [0, 0.35, -0.1, -0.1, 0.15, 0.05, -0.6, -0.3, 0, 0.1, 0.15],
+  },
+  // VHS — 80s home video: soft (negative sharpen), low contrast,
+  // faintly desaturated, light grain for the analog noise floor.
+  // Differentiated from Matte by the deliberate softness + grain.
+  {
+    name: "VHS",
+    category: "Faded",
+    adjust: [0.05, -0.15, -0.1, 0.15, -0.05, 0.2, -0.1, -0.05, 0.05, 0.05, -0.15],
+    grain: 0.2,
   },
 
   // ── Vintage / antique processes ───────────────────────────────────
