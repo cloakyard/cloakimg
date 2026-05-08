@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PropRow, Slider } from "../atoms";
 import { copyInto, createCanvas, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../ai/subjectMask";
+import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { bakeAdjust, bakeAdjustAsync } from "./adjustments";
 import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
@@ -45,13 +45,25 @@ export function FilterPanel() {
   // Bake every preset against the source thumb. Intensity is fixed at
   // 1.0 here so the grid showcases each preset's full character; the
   // intensity slider below scales the bake at apply time.
+  //
+  // `bakeAdjust` acquires from the canvas pool — without releasing the
+  // intermediate canvas after `toDataURL`, every panel mount leaks a
+  // canvas per preset (~12 today). On a phone with a small pool that
+  // exhausts the pool quickly: subsequent live-preview hooks then
+  // start allocating fresh canvases per slider tick, undoing the
+  // pool's whole point. Capture the canvas, encode, release.
   const presetThumbUrls = useMemo(() => {
     if (!sourceThumb) return null;
     return FILTER_PRESETS_RECIPES.map((recipe) => {
       const sliders = recipe.adjust.map((d) => Math.max(0, Math.min(1, 0.5 + d)));
       let baked = bakeAdjust(sourceThumb, sliders, 0);
+      // monochrome() mutates in place and returns the same canvas, so
+      // we release once at the end. Reassigning `baked` is just for
+      // type clarity.
       if (recipe.monochrome) baked = monochrome(baked);
-      return baked.toDataURL("image/jpeg", 0.78);
+      const dataUrl = baked.toDataURL("image/jpeg", 0.78);
+      releaseCanvas(baked);
+      return dataUrl;
     });
   }, [sourceThumb]);
 
@@ -71,23 +83,10 @@ export function FilterPanel() {
     // new spinner frames.
     let out = await bakeAdjustAsync(doc.working, final, toolState.grain);
     if (preset.monochrome) out = monochrome(out);
-    // Same scope-aware composite as Adjust — when the user picked
-    // Subject / Background, splice the filter result against the
-    // original so it only lands in-scope. Detection is awaited at
-    // commit time so the bake is honest about what the user asked
-    // for; preview already shows the scoped result.
-    if (scope !== 0) {
-      try {
-        const mask = subjectMask.peek() ?? (await subjectMask.request());
-        const scoped = applyMaskScope(doc.working, out, mask, scope);
-        if (scoped !== out) {
-          releaseCanvas(out);
-          out = scoped;
-        }
-      } catch {
-        // Fall through to whole-image bake.
-      }
-    }
+    // Same scope-aware composite as Adjust — see applyScopedBake's
+    // header for the contract (degrades to whole-image on detection
+    // failure rather than dropping the user's edit).
+    out = await applyScopedBake(out, doc.working, scope, subjectMask);
     copyInto(doc.working, out);
     // bakeAdjustAsync acquires from the canvas pool; once copyInto has
     // mirrored the pixels into doc.working we can hand the bake canvas

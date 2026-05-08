@@ -8,7 +8,7 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../ai/subjectMask";
+import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
@@ -92,18 +92,7 @@ export function AdjustPanel() {
     // half-completed mask would silently fall back to whole-image,
     // which is the opposite of what the user asked for. If detection
     // errors, fall back to whole-image rather than dropping the edit.
-    if (scope !== 0) {
-      try {
-        const mask = subjectMask.peek() ?? (await subjectMask.request());
-        const scoped = applyMaskScope(doc.working, out, mask, scope);
-        if (scoped !== out) {
-          releaseCanvas(out);
-          out = scoped;
-        }
-      } catch {
-        // Fall through to whole-image bake.
-      }
-    }
+    out = await applyScopedBake(out, doc.working, scope, subjectMask);
     copyInto(doc.working, out);
     // bakeAdjustAsync acquires from the canvas pool; copyInto already
     // duplicated the pixels into doc.working, so the bake canvas can

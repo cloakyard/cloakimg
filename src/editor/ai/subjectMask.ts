@@ -824,3 +824,38 @@ export function applyMaskScope(
   ctx.globalCompositeOperation = "source-over";
   return out;
 }
+
+/** Scope-aware finishing pass shared by every panel that bakes
+ *  whole-image then composites against the subject mask:
+ *  Adjust · Filter · HSL · Levels. The four panels used to repeat
+ *  this 11-line block verbatim, with subtly different catch
+ *  comments — a future scoped tool was destined to copy the wrong
+ *  variant. The function takes ownership of `baked` (releases it
+ *  back to the canvas pool when a scoped composite replaces it)
+ *  and returns whichever canvas now holds the pixels the caller
+ *  should commit. Caller is still responsible for `releaseCanvas`
+ *  on the *returned* canvas after `copyInto(doc.working, …)`.
+ *
+ *  Whole scope (0) is a no-op — return `baked` untouched. Subject /
+ *  background scopes try to fetch the mask via the existing peek →
+ *  request fallback; on detection failure we degrade to whole-image
+ *  rather than dropping the user's edit on the floor (matches the
+ *  contract every panel had before this was extracted). */
+export async function applyScopedBake(
+  baked: HTMLCanvasElement,
+  original: HTMLCanvasElement,
+  scope: MaskScope,
+  subjectMask: { peek: () => HTMLCanvasElement | null; request: () => Promise<HTMLCanvasElement> },
+): Promise<HTMLCanvasElement> {
+  if (scope === 0) return baked;
+  let mask: HTMLCanvasElement | null = null;
+  try {
+    mask = subjectMask.peek() ?? (await subjectMask.request());
+  } catch {
+    // Fall through to whole-image bake.
+    return baked;
+  }
+  const scoped = applyMaskScope(original, baked, mask, scope);
+  if (scoped !== baked) releaseCanvas(baked);
+  return scoped;
+}

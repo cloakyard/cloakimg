@@ -8,7 +8,7 @@ import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
-import { applyMaskScope, type MaskScope } from "../ai/subjectMask";
+import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
 import {
@@ -63,18 +63,7 @@ export function HslPanel() {
   const apply = useCallback(async () => {
     if (!doc || !dirty) return;
     let out = bakeHsl(doc.working, params);
-    if (scope !== 0) {
-      try {
-        const mask = subjectMask.peek() ?? (await subjectMask.request());
-        const scoped = applyMaskScope(doc.working, out, mask, scope);
-        if (scoped !== out) {
-          releaseCanvas(out);
-          out = scoped;
-        }
-      } catch {
-        // Fall through to whole-image bake.
-      }
-    }
+    out = await applyScopedBake(out, doc.working, scope, subjectMask);
     copyInto(doc.working, out);
     // bakeHsl pulls from the canvas pool; once copyInto has mirrored
     // the pixels we can return the bake canvas for reuse.
