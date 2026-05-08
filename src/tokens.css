@@ -560,6 +560,10 @@ html {
 .scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  /* Stops a child scroll from chaining into the page on iOS Safari —
+     when the panel hits its top/bottom, the rubber-band stays inside
+     the panel instead of bouncing the editor shell underneath. */
+  overscroll-behavior: contain;
 }
 .scroll-thin::-webkit-scrollbar {
   width: 6px;

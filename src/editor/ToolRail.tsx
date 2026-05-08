@@ -133,7 +133,11 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
     >
       <div
         ref={scrollerRef}
-        className="no-scrollbar flex gap-1 overflow-x-auto px-2 py-2 pb-[max(env(safe-area-inset-bottom),8px)]"
+        // Safe-area-inset-left/right on the horizontal scroll padding so
+        // the first/last tool tab clears the notch on landscape phones
+        // (iPhone notch / dynamic island, Android punch-hole). Without
+        // this, the rail edges sit underneath the cutout in landscape.
+        className="no-scrollbar flex gap-1 overflow-x-auto py-2 pr-[max(env(safe-area-inset-right),0.5rem)] pb-[max(env(safe-area-inset-bottom),8px)] pl-[max(env(safe-area-inset-left),0.5rem)]"
       >
         {ALL_TOOLS.map((tool) => {
           const Ic = tool.icon;
@@ -149,7 +153,7 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
               onClick={() => onSelect(tool.id)}
               aria-label={tool.name}
               aria-pressed={active}
-              className={`relative flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 transition-colors ${
+              className={`relative flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
                 active
                   ? "bg-coral-500 text-white shadow-[0_4px_10px_-4px_rgba(245,97,58,0.55)] dark:bg-coral-500 dark:text-white"
                   : "bg-transparent text-text-muted dark:text-dark-text-muted"

@@ -255,10 +255,10 @@ function LayerRow({
             onDelete(row.id);
           }
         }}
-        className={`flex cursor-grab items-center gap-2 rounded-md px-1.5 py-1 ${
+        className={`flex cursor-grab items-center gap-2 rounded-md px-1.5 py-1 focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
           selected
             ? "bg-coral-50 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30"
-            : "bg-transparent"
+            : "bg-transparent hover:bg-page-bg dark:hover:bg-dark-page-bg"
         }`}
       >
         <button

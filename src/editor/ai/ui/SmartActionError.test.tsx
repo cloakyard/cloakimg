@@ -67,4 +67,18 @@ describe("SmartActionError", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("second");
     expect(screen.queryByText("first")).toBeNull();
   });
+
+  // Touch-target regression guard. The dismiss X used to be h-4 w-4
+  // (16 px) — well below the iOS HIG 44 pt recommendation. Bumped to
+  // h-6 w-6 (24) on mouse and h-7 w-7 (28) on coarse pointers, with
+  // active:opacity-100 so touch users get a tap-down state. If a
+  // future class-shuffle drops the coarse-pointer growth or the
+  // active-state affordance, this test fires.
+  it("dismiss button has touch-friendly classes (≥24 px hit-box, pointer-coarse growth, active state)", () => {
+    render(<SmartActionError message="x" onDismiss={() => undefined} />);
+    const btn = screen.getByRole("button", { name: /dismiss/i });
+    expect(btn).toHaveClass("h-6", "w-6");
+    expect(btn).toHaveClass("pointer-coarse:h-7", "pointer-coarse:w-7");
+    expect(btn).toHaveClass("active:opacity-100");
+  });
 });
