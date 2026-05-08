@@ -15,6 +15,11 @@ export const ASPECT_OPTIONS: Array<{ label: string; ratio: number | null }> = [
   { label: "1:1", ratio: 1 },
   { label: "4:5", ratio: 4 / 5 },
   { label: "16:9", ratio: 16 / 9 },
+  // 9:16 is the canonical mobile / Story / Reel aspect — the inverse
+  // of 16:9. Without it, users targeting vertical mobile-native content
+  // had to fall back to Free and eyeball the crop. Order: 16:9 → 9:16
+  // keeps the wide → tall progression readable.
+  { label: "9:16", ratio: 9 / 16 },
 ];
 
 export function clampRectToImage(r: Rect, iw: number, ih: number): Rect {

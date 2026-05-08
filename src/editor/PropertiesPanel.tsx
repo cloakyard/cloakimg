@@ -14,7 +14,8 @@ interface Props {
 
 export function PropertiesPanel({ collapsed = false }: Props) {
   const { toolState } = useEditor();
-  const tool = findTool(toolState.activeTool);
+  const { activeTool } = toolState;
+  const tool = findTool(activeTool);
   const Ic = tool.icon;
 
   return (
@@ -44,7 +45,16 @@ export function PropertiesPanel({ collapsed = false }: Props) {
         <I.ChevronDown size={14} className="text-text-muted dark:text-dark-text-muted" />
       </div>
 
-      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pt-3.5 pb-4">
+      {/* `key={activeTool}` remounts the scroll container on every tool
+          switch so scrollTop resets to 0. Without this, scrolling deep
+          into a tall panel (e.g. Adjust) and switching to a shorter one
+          left the new panel scrolled past its content. The remount only
+          re-creates this div — Fabric, EditorContext, and LayersList
+          (sibling) are unaffected, so there's no perf cost. */}
+      <div
+        key={activeTool}
+        className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pt-3.5 pb-4"
+      >
         <ToolControls />
       </div>
       <LayersList />

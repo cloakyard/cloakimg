@@ -190,7 +190,14 @@ export function MobileSheet() {
             className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:bg-dark-border dark:group-active:bg-dark-text-muted"
           />
         </button>
-        <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-1.5 pb-5">
+        {/* `key={activeTool}` remounts on tool switch so scrollTop
+            resets to 0. Without this, scrolling deep into a tall panel
+            (e.g. Adjust) on the mobile sheet and switching to a shorter
+            one left the new panel scrolled past its content. */}
+        <div
+          key={toolState.activeTool}
+          className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-1.5 pb-5"
+        >
           <ToolControls />
         </div>
         <LayersList />

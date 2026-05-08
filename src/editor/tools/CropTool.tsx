@@ -482,6 +482,16 @@ export function CropPanel() {
         scaleY: 1,
       });
       rectObj.setCoords();
+      // Re-assert selection on the rect. Tapping the Smart Crop button
+      // blurs the canvas, which on mobile causes Fabric to clear the
+      // active object — that strips the selection chrome (orange
+      // border + 8 control chips) from the upper canvas, leaving only
+      // the rect's own 1.5 px stroke + the lower-canvas dim/handles.
+      // The resulting outline read as "the crop bars became so thin
+      // they're barely noticeable" until the user tapped an aspect,
+      // which re-engaged Fabric's selection rendering. Setting it
+      // explicitly here keeps the chrome on after Smart Crop.
+      fc.setActiveObject(rectObj);
       fc.requestRenderAll();
     } catch (err) {
       // Consent dialog renders via the central host; this inline
