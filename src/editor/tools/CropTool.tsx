@@ -280,6 +280,13 @@ export function CropTool() {
         scaleY: 1,
       });
     }
+    // Without setCoords, Fabric's cached aCoords stay anchored to the
+    // pre-aspect-change geometry. The rect's stroke draws at the new
+    // box, but Fabric still paints its selection border + 8 control
+    // chips at the OLD coords on the upper canvas — overlapping the
+    // new dim/handles paintOverlay paints below, which reads as
+    // "multiple crop bars" on every aspect tap.
+    rect.setCoords();
     fc.requestRenderAll();
   }, [aspect, doc, getFabricCanvas]);
 

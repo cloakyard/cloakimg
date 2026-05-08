@@ -161,4 +161,11 @@ export default defineConfig({
     ignorePatterns: ["handoff-readonly/**"],
     options: { typeAware: true, typeCheck: true },
   },
+  test: {
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    environment: "jsdom",
+    globals: false,
+    pool: "forks",
+    setupFiles: ["./src/test/setup.ts"],
+  },
 });
