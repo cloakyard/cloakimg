@@ -101,13 +101,12 @@ export function ColorPickerPanel() {
             short. Wider cells let the full hex (with #) breathe instead
             of crowding the card edges. */}
         <div
-          // See FilterPanel for the full rationale — `.scroll-thin`
-          // no longer carries `overscroll-behavior: contain`, so this
-          // horizontal scroller no longer blocks vertical pans from
-          // chaining to the parent panel.
+          // `.no-scrollbar` on horizontal touch scrollers — see
+          // FilterPanel for the rationale (no persistent scrollbar
+          // noise + clean vertical-pan propagation to the parent).
           className={
             isMobile
-              ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+              ? "no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
               : "grid grid-cols-3 gap-1.5"
           }
         >

@@ -142,19 +142,18 @@ export function FilterPanel() {
             <div key={category} className="flex flex-col gap-1.5">
               <div className="t-section-label">{category}</div>
               <div
-                // No `touch-pan-x` here. Per spec, `pan-x` *disables*
-                // vertical pans on the element rather than passing
-                // them up — which made vertical scrolling impossible
-                // when the user touched a preset thumbnail. The actual
-                // bug was `.scroll-thin`'s `overscroll-behavior:
-                // contain` bleeding onto this horizontal child;
-                // moving that to the vertical panel scrollers
-                // (PropertiesPanel / MobileSheet) lets the default
-                // `touch-action: auto` route vertical pans to the
-                // panel naturally.
+                // `.no-scrollbar` (not `.scroll-thin`): horizontal
+                // preset rows on touch don't benefit from a persistent
+                // 6 px scrollbar track — it just adds visual noise
+                // under every category. Matches ToolRail's bottom
+                // toolbar pattern (also a horizontal touch scroller).
+                // No `touch-pan-x` either: per spec, `pan-x` *disables*
+                // vertical pans on the element rather than chaining
+                // them up. Default `touch-action: auto` lets vertical
+                // pans propagate to the parent panel naturally.
                 className={
                   isMobile
-                    ? "scroll-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+                    ? "no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
                     : "grid grid-cols-3 gap-1.5"
                 }
               >
