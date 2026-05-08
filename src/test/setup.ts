@@ -3,7 +3,15 @@
 // We stub them as no-op shells; individual tests override with vi.mock
 // or explicit globals when they need a richer fake.
 
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
 import { afterEach, beforeAll, vi } from "vitest";
+
+// Auto-tear-down rendered components between tests so a stray dialog
+// from one case can't leak into the next case's getByText queries.
+afterEach(() => {
+  cleanup();
+});
 
 // Jsdom's HTMLCanvasElement.getContext is a no-op (returns null) and
 // emits a "Not implemented" warning on every call. Our tests don't
