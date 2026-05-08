@@ -40,9 +40,9 @@ export function SmartActionError({ message, onDismiss }: Props) {
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss error"
-          className="-mr-0.5 -mt-0.5 flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100"
+          className="-mr-1 -mt-1 flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100 active:opacity-100 pointer-coarse:h-7 pointer-coarse:w-7"
         >
-          <I.X size={10} />
+          <I.X size={11} />
         </button>
       )}
     </div>

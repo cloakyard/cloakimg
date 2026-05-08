@@ -358,7 +358,7 @@ function PresetButton({ label, active, onClick }: PresetButtonProps) {
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`cursor-pointer rounded-md border-none px-2 py-1.5 font-[inherit] text-[11px] font-semibold ${
+      className={`cursor-pointer rounded-md border-none px-2 py-1.5 font-[inherit] text-[11px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
         active
           ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
           : "bg-page-bg text-text-muted dark:bg-dark-page-bg dark:text-dark-text-muted"

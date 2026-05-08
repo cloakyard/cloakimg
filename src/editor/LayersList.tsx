@@ -269,7 +269,7 @@ function LayerRow({
           }}
           aria-label={row.visible ? "Hide layer" : "Show layer"}
           title={row.visible ? "Hide layer" : "Show layer"}
-          className={`h-5.5 w-5.5 cursor-pointer border-none bg-transparent p-0 ${
+          className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8 dark:hover:bg-dark-page-bg ${
             row.visible
               ? "text-text dark:text-dark-text"
               : "text-text-muted opacity-50 dark:text-dark-text-muted"
@@ -297,10 +297,10 @@ function LayerRow({
             aria-label={filtersOpen ? "Close layer filters" : "Open layer filters"}
             aria-expanded={filtersOpen}
             title="Filters"
-            className={`h-5.5 w-5.5 cursor-pointer rounded border-none p-0 ${
+            className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none p-0 pointer-coarse:h-8 pointer-coarse:w-8 ${
               filtersOpen
                 ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-transparent text-text-muted dark:text-dark-text-muted"
+                : "bg-transparent text-text-muted hover:bg-page-bg dark:text-dark-text-muted dark:hover:bg-dark-page-bg"
             }`}
           >
             <I.Wand size={12} />
@@ -314,7 +314,7 @@ function LayerRow({
           }}
           aria-label="Delete layer"
           title="Delete layer"
-          className="h-5.5 w-5.5 cursor-pointer border-none bg-transparent p-0 text-text-muted dark:text-dark-text-muted"
+          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-page-bg hover:text-text pointer-coarse:h-8 pointer-coarse:w-8 dark:text-dark-text-muted dark:hover:bg-dark-page-bg dark:hover:text-dark-text"
         >
           <I.X size={11} />
         </button>

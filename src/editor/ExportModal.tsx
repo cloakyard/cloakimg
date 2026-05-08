@@ -405,7 +405,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
                 type="button"
                 onClick={() => setExportError(null)}
                 aria-label="Dismiss error"
-                className="-mr-1 -mt-1 flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100"
+                className="-mr-1 -mt-1 flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100 active:opacity-100 pointer-coarse:h-7 pointer-coarse:w-7"
               >
                 <I.X size={11} />
               </button>

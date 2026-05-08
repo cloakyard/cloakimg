@@ -212,9 +212,8 @@ export function ResizePanel() {
             <button
               key={p.value}
               type="button"
-              className="btn btn-secondary flex-1"
+              className="btn btn-secondary flex-1 px-2! py-1.5! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]!"
               onClick={() => setLongEdge(p.value)}
-              style={{ fontSize: 11.5, padding: "6px 8px" }}
             >
               {p.label}
             </button>

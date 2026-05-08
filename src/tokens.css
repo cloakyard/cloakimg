@@ -402,6 +402,17 @@ body {
   padding: 5px 10px;
   gap: 5px;
 }
+/* Coarse-pointer growth: reset and inline-action buttons live alongside
+   the .text-[11.5px] / pointer-coarse:text-[12.5px] rhythm of panel
+   buttons. Without this scale-up, .btn-xs reset buttons looked visibly
+   cramped on phones/tablets compared to the surrounding controls. */
+@media (pointer: coarse) {
+  .btn-xs {
+    font-size: 12.5px;
+    padding: 9px 12px;
+    gap: 6px;
+  }
+}
 .btn-sm {
   font-size: 13px;
   padding: 8px 16px;
@@ -483,6 +494,25 @@ body {
   height: 26px;
   padding: 0;
   border-radius: var(--r-sm);
+}
+/* Coarse-pointer growth: bring every icon button up toward the iOS HIG
+   44 pt minimum on touch. The visible icon glyph stays the same — only
+   the surrounding hit-box scales — so the desktop chrome doesn't get
+   heavier and TopBar/modal/zoom layouts retain the same rhythm on
+   touch (where rows are slightly taller anyway). */
+@media (pointer: coarse) {
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .btn-icon-sm {
+    width: 40px;
+    height: 40px;
+  }
+  .btn-icon-xs {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 /* ── Card ───────────────────────────────────────────────────── */

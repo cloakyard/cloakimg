@@ -476,7 +476,7 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted dark:text-dark-text-muted"
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8 dark:text-dark-text-muted dark:hover:bg-dark-page-bg"
               >
                 <I.X size={11} />
               </button>
