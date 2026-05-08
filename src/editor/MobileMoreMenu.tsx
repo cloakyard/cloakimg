@@ -1,6 +1,11 @@
 // MobileMoreMenu.tsx — Overflow drawer for the mobile top bar. Houses
-// the secondary actions (file info, compare, reset) so the bar itself
-// can stay focused on the high-frequency triad (undo · redo · export).
+// the secondary actions (file info, reset) so the bar itself can stay
+// focused on the high-frequency triad (undo · redo · export).
+//
+// "Show original" used to live here too; it was demoted to a press-and-
+// hold pill on the canvas because flipping back-and-forth via this menu
+// took four taps. The pill (see ImageCanvas → MobileCompareButton) is
+// now the single canonical compare affordance on mobile.
 //
 // Renders as a bottom sheet via the shared ModalFrame for visual
 // consistency with the other editor modals.
@@ -16,9 +21,7 @@ interface Props {
   fileName: string;
   hasDoc: boolean;
   canReset: boolean;
-  compareActive: boolean;
   onShowFileProps: () => void;
-  onToggleCompare: () => void;
   onReset: () => void;
   onClose: () => void;
 }
@@ -27,9 +30,7 @@ export function MobileMoreMenu({
   fileName,
   hasDoc,
   canReset,
-  compareActive,
   onShowFileProps,
-  onToggleCompare,
   onReset,
   onClose,
 }: Props) {
@@ -73,18 +74,6 @@ export function MobileMoreMenu({
           disabled={!hasDoc}
           onClick={() => {
             onShowFileProps();
-            onClose();
-          }}
-        />
-        <Divider />
-        <MenuItem
-          icon={I.GitCompare}
-          label={compareActive ? "Hide original" : "Show original"}
-          hint={compareActive ? "Currently showing the source image" : "Compare against the source"}
-          disabled={!hasDoc}
-          active={compareActive}
-          onClick={() => {
-            onToggleCompare();
             onClose();
           }}
         />

@@ -244,11 +244,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         {isMobile && (
           <button
             type="button"
-            className={`btn btn-ghost btn-icon ${
-              compareActive
-                ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : ""
-            }`}
+            className="btn btn-ghost btn-icon"
             aria-label="More actions"
             aria-haspopup="menu"
             aria-expanded={moreMenuOpen}
@@ -293,9 +289,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           fileName={fileName}
           hasDoc={!!doc}
           canReset={canReset}
-          compareActive={compareActive}
           onShowFileProps={onShowFileProps}
-          onToggleCompare={() => setCompareActive(!compareActive)}
           onReset={() => setResetConfirmOpen(true)}
           onClose={() => setMoreMenuOpen(false)}
         />

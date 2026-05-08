@@ -30,6 +30,7 @@
 import { Canvas, type FabricObject, FabricImage, Point } from "fabric";
 import { get2DContext } from "./colorSpace";
 import { FABRIC_CANVAS_SELECTION } from "./fabricDefaults";
+import { MobileCompareButton } from "./MobileCompareButton";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import {
   type CSSProperties,
@@ -122,6 +123,7 @@ export function ImageCanvas({
     toolState,
     layers,
     compareActive,
+    setCompareActive,
     baseCanvas,
     setFabricCanvas,
     captureFabricSnapshot,
@@ -859,6 +861,9 @@ export function ImageCanvas({
               ...(next === 1 ? { panX: 0, panY: 0 } : {}),
             }))
           }
+          hasDoc={!!doc}
+          compareActive={compareActive}
+          setCompareActive={setCompareActive}
         />
       )}
     </div>
@@ -870,15 +875,24 @@ function CanvasHints({
   zoom,
   fitScale,
   onZoomChange,
+  hasDoc,
+  compareActive,
+  setCompareActive,
 }: {
   isMobile: boolean;
   zoom: number;
   fitScale: number;
   onZoomChange: (next: number) => void;
+  hasDoc: boolean;
+  compareActive: boolean;
+  setCompareActive: (active: boolean) => void;
 }) {
   const displayZoom = Math.round(zoom * fitScale * 100);
   return (
     <>
+      {isMobile && hasDoc && (
+        <MobileCompareButton compareActive={compareActive} setCompareActive={setCompareActive} />
+      )}
       {isMobile && <MobileZoomControl displayZoom={displayZoom} onZoomChange={onZoomChange} />}
       {!isMobile && (
         <div
