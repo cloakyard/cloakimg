@@ -65,21 +65,37 @@ export async function runFaceDetect(args: RunDetectArgs): Promise<{
   const scoreThreshold = args.scoreThreshold ?? 0.5;
   const order = mapDeviceOrder(args.device);
 
+  // Persistent breadcrumb — survives a tab reload. If the user's tab
+  // dies mid-inference (the Firefox repro the in-tree probe can't
+  // reproduce headlessly), the next session can read this back via
+  // `localStorage.getItem("cloakimg:last-face-detect-attempt")` and
+  // tell us exactly where we got to.
+  writeBreadcrumb({
+    stage: "start",
+    ua: navigator.userAgent,
+    src: `${args.source.width}x${args.source.height}`,
+    order: order.join(","),
+  });
+
   // Fetch model bytes (with progress) before touching MediaPipe so the
   // user sees the download bar fill regardless of which delegate ends
   // up running inference.
   const bytes = await loadModelBytes(args);
   if (args.signal?.aborted) throw makeAbortError();
+  writeBreadcrumb({ stage: "model-loaded", bytes: bytes.length });
 
   const vision = await getVision(args);
   if (args.signal?.aborted) throw makeAbortError();
+  writeBreadcrumb({ stage: "vision-loaded" });
 
   let lastErr: unknown = null;
   for (const delegate of order) {
     try {
+      writeBreadcrumb({ stage: "delegate-attempt", delegate });
       const detector = await getDetector(args, vision, bytes, delegate, scoreThreshold);
       if (args.signal?.aborted) throw makeAbortError();
       args.onProgress?.({ phase: "inference", ratio: 0, label: "Detecting faces…" });
+      writeBreadcrumb({ stage: "inference-start", delegate });
       const result = detector.detect(args.source);
       args.onProgress?.({ phase: "decode", ratio: 0.9, label: "Finalising…" });
       const faces = mapDetections(
@@ -92,9 +108,16 @@ export async function runFaceDetect(args: RunDetectArgs): Promise<{
         "subjectMask",
         `[face-detect] inference done raw=${result.detections.length} kept=${faces.length} delegate=${delegate} src=${args.source.width}x${args.source.height} threshold=${scoreThreshold} boxes=${JSON.stringify(faces.map((f) => `${Math.round(f.x)},${Math.round(f.y)},${Math.round(f.width)}x${Math.round(f.height)}@${f.score.toFixed(2)}`))}`,
       );
+      writeBreadcrumb({ stage: "done", delegate, faces: faces.length });
       return { faces, device: delegate === "GPU" ? "webgpu" : "wasm" };
     } catch (err) {
       lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      // Loud log so a user-shared console capture reveals which
+      // delegate failed and why. The opaque "AI module failed to start"
+      // fallback the runtime renders otherwise hides the real cause.
+      aiLog.error("subjectMask", `[face-detect] ${delegate} delegate failed: ${msg}`, err);
+      writeBreadcrumb({ stage: "delegate-failed", delegate, error: msg.slice(0, 200) });
       if (currentDetector?.delegate === delegate) {
         try {
           currentDetector.instance.close();
@@ -106,6 +129,11 @@ export async function runFaceDetect(args: RunDetectArgs): Promise<{
     }
   }
 
+  writeBreadcrumb({
+    stage: "all-delegates-failed",
+    lastErr:
+      lastErr instanceof Error ? lastErr.message.slice(0, 200) : String(lastErr).slice(0, 200),
+  });
   throw lastErr ?? new Error("Face detection failed on every available delegate.");
 }
 
@@ -241,11 +269,45 @@ function mapDetections(
 function mapDeviceOrder(hint: RunDetectArgs["device"]): ("GPU" | "CPU")[] {
   if (hint === "wasm") return ["CPU"];
   if (hint === "webgpu") return ["GPU"];
+  // Auto: Firefox's WebGL2 → MediaPipe GPU delegate path has been
+  // implicated in user-reported "tab vanished after Download click"
+  // crashes that the in-tree probe (puppeteer-core driving Firefox
+  // 150) can't reproduce. CPU on a 1 MP photo is ~100 ms; on a 24 MP
+  // photo it's ~500 ms — both fast enough that skipping GPU is a fair
+  // safety trade. Chrome / Safari keep the GPU-first order they
+  // already had (fast on M-series GPUs, no reported crashes).
+  if (isFirefox()) return ["CPU", "GPU"];
   return ["GPU", "CPU"];
+}
+
+function isFirefox(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Firefox/i.test(navigator.userAgent);
 }
 
 function makeAbortError(): Error {
   const err = new Error("Face detection aborted");
   err.name = "AbortError";
   return err;
+}
+
+const BREADCRUMB_KEY = "cloakimg:last-face-detect-attempt";
+
+interface Breadcrumb {
+  stage: string;
+  [k: string]: unknown;
+}
+
+/** Persist a single most-recent breadcrumb across page reloads. If the
+ *  next user-shared report says "the tab vanished" we can ask them to
+ *  paste `localStorage.getItem("cloakimg:last-face-detect-attempt")` and
+ *  see exactly which stage we got to. Best-effort — private mode and
+ *  storage-quota errors fall through silently. */
+function writeBreadcrumb(crumb: Breadcrumb): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(BREADCRUMB_KEY, JSON.stringify({ ts: Date.now(), ...crumb }));
+  } catch {
+    // best-effort
+  }
 }
