@@ -120,6 +120,7 @@ describe("runtime — worker readiness handshake (cold path)", () => {
     w.emitMessage({
       id: sentMsg.id,
       type: "result",
+      resultKind: "segment",
       bitmap: { close: () => undefined } as unknown as ImageBitmap,
       width: 1,
       height: 1,
@@ -220,6 +221,7 @@ describe("runtime — request lifecycle", () => {
     w.emitMessage({
       id: sentMsg.id,
       type: "result",
+      resultKind: "segment",
       bitmap: { close: () => undefined } as unknown as ImageBitmap,
       width: 10,
       height: 10,

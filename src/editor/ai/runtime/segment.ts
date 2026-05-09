@@ -149,6 +149,18 @@ export async function smartRemoveBackground(
     throw err;
   }
 
+  // The runtime's result type is now a discriminated union (segment /
+  // detect-face / future kinds). A segment request can only ever
+  // resolve to a segment result — but TS doesn't track that, so we
+  // narrow defensively. A different resultKind here is a worker bug
+  // (handler registered the wrong shape), not a user-facing error.
+  if (result.resultKind !== "segment") {
+    aiLog.error("segment", "worker returned wrong result kind", null, {
+      resultKind: result.resultKind,
+    });
+    throw new Error("AI worker returned an unexpected result shape.");
+  }
+
   onProgress?.({ phase: "decode", ratio: 0.95, label: "Finalising…" });
 
   // 3. Composite the small cut's alpha back onto the full-res source.

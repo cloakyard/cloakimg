@@ -177,3 +177,6 @@ $RECYCLE.BIN/
 
 # ── Vite+ hook proxies (auto-generated) ─────────────────────
 .vite-hooks/_/
+
+# Local test images / fixtures (private — never commit)
+test-fixtures/

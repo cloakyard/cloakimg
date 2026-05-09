@@ -30,9 +30,13 @@ export interface AiProgress {
 }
 
 /** Worker request kinds. Discriminated by `kind`; the worker dispatches
- *  on this and adding a new pipeline (detection, OCR, depth) is a new
+ *  on this and adding a new pipeline (depth, inpaint, …) is a new
  *  variant here + a new branch in the worker. The main-thread runtime
- *  doesn't need to change. */
+ *  doesn't need to change.
+ *
+ *  Face detection lives outside this union — it runs on the main thread
+ *  (MediaPipe Tasks Web doesn't work in module workers, see
+ *  `capabilities/detect-face/runner.ts`). */
 export type AiRequest = AiSegmentRequest;
 
 export interface AiSegmentRequest {
@@ -61,6 +65,28 @@ export interface AiSegmentRequest {
   device?: "auto" | "webgpu" | "wasm";
 }
 
+/** A single face detection. Coordinates are in *source-image pixels*
+ *  so callers can pass them straight to canvas-space helpers.
+ *
+ *  Face detection runs on the main thread via MediaPipe Tasks Web
+ *  (see `capabilities/detect-face/runner.ts` for why) — it doesn't go
+ *  through the worker like segmentation, so there's no
+ *  `AiDetectFaceRequest` in the worker dispatch union. The runner
+ *  returns `FaceBox[]` directly. */
+export interface FaceBox {
+  /** Left edge, image-space pixels. */
+  x: number;
+  /** Top edge, image-space pixels. */
+  y: number;
+  /** Box width, image-space pixels. */
+  width: number;
+  /** Box height, image-space pixels. */
+  height: number;
+  /** Detector confidence (0..1). For MediaPipe BlazeFace this is the
+   *  category score on the single "face" class. */
+  score: number;
+}
+
 /** Worker response variants. All carry the request id so the runtime
  *  can route them back to the right caller's promise / progress
  *  callback.
@@ -78,6 +104,12 @@ export type AiResponse =
   | AiErrorResponse
   | AiReadyResponse
   | AiSelfErrorResponse;
+
+/** Result frames: discriminated by `resultKind` so a future capability
+ *  whose output isn't an ImageBitmap (depth map, alt-text caption)
+ *  doesn't have to fake one. Callers narrow on `resultKind` to access
+ *  the right payload. */
+export type AiResultResponse = AiSegmentResultResponse;
 
 export interface AiReadyResponse {
   type: "ready";
@@ -101,9 +133,11 @@ export interface AiProgressResponse {
   progress: AiProgress;
 }
 
-export interface AiResultResponse {
+/** Segmentation result — alpha-keyed bitmap at source resolution. */
+export interface AiSegmentResultResponse {
   id: string;
   type: "result";
+  resultKind: "segment";
   /** Alpha-keyed result as a transferable ImageBitmap. Skips a full
    *  PNG round-trip (encode in worker, decode on main) — the worker
    *  paints into an OffscreenCanvas and `transferToImageBitmap()`s

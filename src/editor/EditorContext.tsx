@@ -42,6 +42,7 @@ import { aiLog } from "./ai/log";
 import { indexFor, resolvePreferredQuality } from "./ai/runtime/preferredQuality";
 import { shutdownAiWorker } from "./ai/runtime/runtime";
 import { invalidateSubjectMask, getMaskState } from "./ai/subjectMask";
+import { invalidateFaceDetection } from "./ai/capabilities/detect-face/service";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import { DEFAULT_TOOL_STATE, type ToolState } from "./toolState";
 import type { Layout, Mode } from "./types";
@@ -416,6 +417,7 @@ export function EditorProvider({
         // session — its source canvas is gone, the cache is dead
         // weight.
         invalidateSubjectMask();
+        invalidateFaceDetection();
         historyRef.current.push("Open", d.working, d.layers, null);
         setHistoryVersion((v) => v + 1);
         setLoading(false);
@@ -498,6 +500,15 @@ export function EditorProvider({
       const fabricJson = fc ? snapshotPersistentObjects(fc) : null;
       historyRef.current.push(label, doc.working, layers, fabricJson);
       setHistoryVersion((v) => v + 1);
+      // Bump `doc` identity so consumers re-derive from the now-mutated
+      // `doc.working`. ImageCanvas's bg-image effect depends on `doc`
+      // and is what tells Fabric to re-rasterise the cached background;
+      // without an identity change here the smart-action / batch-bake
+      // pixels land in `doc.working` but the visible canvas keeps
+      // showing the pre-bake frame ("preview not updating", reported
+      // for Smart Anonymize Person / Scene / Faces). Mirrors what
+      // undo / redo / resetToOriginal already do via `setDoc({...})`.
+      setDoc((prev) => (prev ? { ...prev } : prev));
     },
     [doc, layers],
   );
@@ -538,6 +549,7 @@ export function EditorProvider({
     // subject mask was detected against intermediate state and is now
     // out of date — drop it so the next scoped tool re-detects.
     invalidateSubjectMask();
+    invalidateFaceDetection();
     historyRef.current.push("Reset", doc.working, base.layers, base.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
@@ -589,6 +601,7 @@ export function EditorProvider({
       // canvas; drop it now so the new image starts fresh and we don't
       // hold the old canvas alive in the cache.
       invalidateSubjectMask();
+      invalidateFaceDetection();
       historyRef.current.push("Open", next.working, next.layers, null);
       setHistoryVersion((v) => v + 1);
     } catch (e: unknown) {
@@ -658,13 +671,18 @@ export function EditorProvider({
   // Wrap onExit so every "Back to start" path leaves a breadcrumb in
   // the console alongside the AI mask status. This is the only clue
   // we have when a user reports "the editor vanished to landing" —
-  // the stack frame names which call site triggered it (user button,
-  // error boundary secondary action, modal `defaultGoHome`).
+  // the stack frame in `trigger` names which call site fired it
+  // (user logo tap, error-card "Back to start", PWA reload prompt,
+  // ConfirmDialog "Leave"). Capturing the stack here means a future
+  // bug-report can paste the console snippet and we know exactly
+  // which path the user hit instead of having to guess.
   const exit = useCallback(() => {
+    const trigger = new Error("exit() trigger trace").stack ?? "(no stack)";
     aiLog.info("panel", "editor exit() called", {
       maskStatus: getMaskState().status,
       maskWarm: getMaskState().warm,
       hasDoc: !!doc,
+      trigger,
     });
     onExit();
   }, [doc, onExit]);

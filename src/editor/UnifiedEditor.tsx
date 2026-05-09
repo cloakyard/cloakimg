@@ -21,6 +21,7 @@ import "./fabricDefaults";
 import { ExportModal, type ExportSettings } from "./ExportModal";
 import { FilePropertiesModal } from "./FilePropertiesModal";
 import { MaskConsentHost } from "./ai/ui/MaskConsentHost";
+import { DetectFaceConsentHost } from "./ai/capabilities/detect-face/ConsentHost";
 import { MobileSheet } from "./MobileSheet";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
@@ -258,6 +259,7 @@ function EditorShell() {
           fresh state. Editor remains fully usable around it. */}
       <ErrorBoundary variant="silent" subsystem="consent">
         <MaskConsentHost />
+        <DetectFaceConsentHost />
       </ErrorBoundary>
     </main>
   );

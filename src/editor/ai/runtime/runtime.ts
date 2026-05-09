@@ -226,17 +226,25 @@ interface DispatchOptions {
   transfer?: Transferable[];
 }
 
+/** Distributive `Omit` — `Omit<A | B, K>` collapses to common-fields
+ *  only because `keyof (A | B)` is the *intersection* of A and B's
+ *  keys. The distributive form maps Omit across the union variants
+ *  individually, so `AiRequestInput` keeps the per-variant shape
+ *  (model + dtype for segment; modelUrl + inferenceLongEdge for
+ *  detect-face) and TS's discriminated narrowing on `kind` still
+ *  works at the call site. */
+type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
+export type AiRequestInput = DistributiveOmit<AiRequest, "id">;
+
 /** Dispatch a single AI request. Resolves with the raw result message
- *  from the worker (bitmap + dims + device); rejects with
- *  `AiAbortError` on abort, or a generic Error on inference failure.
+ *  from the worker (variant-specific payload + dims + device); rejects
+ *  with `AiAbortError` on abort, or a generic Error on inference
+ *  failure.
  *
  *  Aborting one call terminates the worker, which by extension rejects
  *  every other call in flight (worker is dead — no honest way to keep
  *  serving them). The next call re-spawns. */
-export function runAi(
-  req: Omit<AiRequest, "id">,
-  opts: DispatchOptions = {},
-): Promise<AiResultResponse> {
+export function runAi(req: AiRequestInput, opts: DispatchOptions = {}): Promise<AiResultResponse> {
   const { signal, onProgress, transfer } = opts;
   if (signal?.aborted) return Promise.reject(new AiAbortError());
 
