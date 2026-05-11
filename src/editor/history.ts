@@ -90,6 +90,16 @@ export class History {
     return this.stack[this.cursor]?.label ?? null;
   }
 
+  /** Absolute position of the cursor in the stack. -1 when the stack
+   *  is empty; 0 when sitting on the pinned base ("Open") entry; N
+   *  after N commits past base. The mobile in-tool sheet captures
+   *  this on open and rewinds to it on cancel — implements the
+   *  Snapseed-style "discard everything I did inside this tool"
+   *  semantic without needing a dedicated transactional layer. */
+  currentIndex(): number {
+    return this.cursor;
+  }
+
   undo(): HistoryEntry | null {
     if (!this.canUndo()) return null;
     this.cursor -= 1;

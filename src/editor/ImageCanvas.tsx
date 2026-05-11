@@ -888,12 +888,23 @@ function CanvasHints({
   setCompareActive: (active: boolean) => void;
 }) {
   const displayZoom = Math.round(zoom * fitScale * 100);
+  // Mobile canvas overlays (the "Hold to compare" pill + the zoom-%
+  // badge) are intentionally suppressed in the V2 redesign — they
+  // floated ON the photo and pulled the eye away from the image,
+  // breaking the "expansive cream canvas" aesthetic the redesign is
+  // built around. Compare lives in the More menu; zoom uses pinch
+  // gestures (the badge was redundant with the visible zoom level).
+  // Desktop keeps both because the larger viewport absorbs the chrome
+  // without crowding the photo work area.
+  const showMobileCanvasOverlays = false;
   return (
     <>
-      {isMobile && hasDoc && (
+      {isMobile && hasDoc && showMobileCanvasOverlays && (
         <MobileCompareButton compareActive={compareActive} setCompareActive={setCompareActive} />
       )}
-      {isMobile && <MobileZoomControl displayZoom={displayZoom} onZoomChange={onZoomChange} />}
+      {isMobile && showMobileCanvasOverlays && (
+        <MobileZoomControl displayZoom={displayZoom} onZoomChange={onZoomChange} />
+      )}
       {!isMobile && (
         <div
           style={{

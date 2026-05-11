@@ -22,10 +22,10 @@ import { ExportModal, type ExportSettings } from "./ExportModal";
 import { FilePropertiesModal } from "./FilePropertiesModal";
 import { MaskConsentHost } from "./ai/ui/MaskConsentHost";
 import { DetectFaceConsentHost } from "./ai/capabilities/detect-face/ConsentHost";
-import { MobileSheet } from "./MobileSheet";
+import { MobileEditorSurface } from "./MobileEditorSurface";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
-import { ToolRail, MobileToolbar } from "./ToolRail";
+import { ToolRail } from "./ToolRail";
 import { ToolStage } from "./ToolStage";
 import { TopBar } from "./TopBar";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
@@ -208,16 +208,25 @@ function EditorShell() {
             {mode === "batch" ? (
               <BatchCanvas isMobile={isMobile} />
             ) : isMobile ? (
-              // On mobile, the canvas + drawer share a single sub-container
-              // so the drawer's `max-h: 50%` resolves against just those two
-              // (not including the toolbar). The matte gets rounded bottom
-              // corners to visually mirror the drawer's rounded top.
+              // Mobile single-mode chrome (V3.3 "unified surface" redesign,
+              // May 2026):
+              //   ┌─ Canvas (StageHost + ToolStage) — fills the column;
+              //   │  shrinks to fit above the surface when expanded.
+              //   └─ MobileEditorSurface — single morphing shell that
+              //      progresses through collapsed → picker → tool with
+              //      content cross-fading inside the same card. In-flow
+              //      so the canvas reflows as it grows.
+              // The mobile canvas matte uses the page-bg colour rather
+              // than the dark photo-workbench `--canvas-bg` from
+              // tokens.css (override in style.css's mobile @media
+              // block) so the photo floats in cream and the editor
+              // reads as one continuous airy surface.
               <div className="flex min-h-0 flex-1 flex-col">
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-2xl">
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   <StageHost />
                   <ToolStage />
                 </div>
-                {mode === "single" && <MobileSheet />}
+                {mode === "single" && <MobileEditorSurface />}
               </div>
             ) : (
               // StageHost mounts the live ImageCanvas + Fabric instance
@@ -229,9 +238,6 @@ function EditorShell() {
                 <StageHost />
                 <ToolStage />
               </>
-            )}
-            {isMobile && mode === "single" && (
-              <MobileToolbar activeTool={toolState.activeTool} onSelect={setActiveTool} />
             )}
           </div>
 

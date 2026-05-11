@@ -104,6 +104,22 @@ body {
       background: rgb(28, 24, 20);
     }
   }
+  /* "Expansive canvas" treatment (May 2026 mobile redesign): on phones,
+     the canvas matte stops being the dark photo-workbench colour and
+     matches the page background instead. The photo then floats in the
+     same cream as the surrounding chrome — colour continuity makes the
+     editor feel airier without changing any geometry, and the tonal
+     break that used to draw the eye to the edge of the matte goes
+     away. Desktop/tablet keep the dark matte (Photoshop / Lightroom
+     parity for users who treat the surface as a "photo workbench"). */
+  :root {
+    --canvas-bg: var(--page-bg);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --canvas-bg: var(--page-bg);
+    }
+  }
 }
 
 /* Mobile bottom sheet — animate the slot's *height* so the drawer's

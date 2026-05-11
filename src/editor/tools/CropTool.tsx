@@ -331,7 +331,8 @@ export function applyCrop(
 // ── Property-panel piece for crop ────────────────────────────────────
 
 export function CropPanel() {
-  const { toolState, patchTool, doc, getFabricCanvas, commit } = useEditor();
+  const { toolState, patchTool, doc, getFabricCanvas, commit, layout } = useEditor();
+  const isMobile = layout === "mobile";
   const subjectMask = useSubjectMask();
   const [smartBusy, setSmartBusy] = useState(false);
   const [smartError, setSmartError] = useState<string | null>(null);
@@ -654,31 +655,39 @@ export function CropPanel() {
         <I.Refresh size={12} />
         Reset crop area
       </button>
-      {/* Explicit Apply — the prior "Enter or tool-switch" approach was
-          discoverable on desktop but invisible on touch. Bake-on-tool-
-          switch still works as a safety net, so this button is purely
-          additive: it gives a touch user a tappable surface, and a
-          desktop user a visible "I'm done" signal. */}
-      <button
-        type="button"
-        className="btn btn-primary mt-1 w-full justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
-        onClick={() => void apply()}
-        disabled={applying}
-        style={{ opacity: applying ? 0.7 : 1 }}
-      >
-        {applying ? (
-          <>
-            <InlineSpinner /> Applying…
-          </>
-        ) : (
-          <>
-            <I.Check size={13} /> Apply crop
-          </>
-        )}
-      </button>
-      <p className="text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
-        Or press Enter / switch tools. R resets the rect. Undo/Redo recover.
-      </p>
+      {/* Explicit Apply — desktop / tablet only. On mobile the
+          MobileEditorSurface footer's ✓ is the universal commit, so a
+          per-tool Apply duplicates the affordance and adds chrome the
+          minimalist mobile design wants gone. The auto-bake on tool
+          switch (registered via `useApplyOnToolSwitch(apply)` above)
+          fires when the user taps ✓, so removing the visible button
+          on mobile loses no functionality.
+          The keyboard-shortcut hint also hides on mobile because the
+          gestures it describes (Enter, R) don't apply on touch. */}
+      {!isMobile && (
+        <>
+          <button
+            type="button"
+            className="btn btn-primary mt-1 w-full justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+            onClick={() => void apply()}
+            disabled={applying}
+            style={{ opacity: applying ? 0.7 : 1 }}
+          >
+            {applying ? (
+              <>
+                <InlineSpinner /> Applying…
+              </>
+            ) : (
+              <>
+                <I.Check size={13} /> Apply crop
+              </>
+            )}
+          </button>
+          <p className="text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
+            Or press Enter / switch tools. R resets the rect. Undo/Redo recover.
+          </p>
+        </>
+      )}
     </>
   );
 }

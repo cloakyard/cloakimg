@@ -551,4 +551,27 @@ export const I = {
       <path d="M19 19 L16.5 16.5 M19 19 H16.5 M19 19 V16.5" />
     </Icon>
   ),
+  MoreHorizontal: (p: P) => (
+    <Icon {...p}>
+      <circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </Icon>
+  ),
+  Grid2x2: (p: P) => (
+    <Icon {...p}>
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1" />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1" />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1" />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1" />
+    </Icon>
+  ),
+  Share: (p: P) => (
+    <Icon {...p}>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+    </Icon>
+  ),
 };

@@ -23,6 +23,7 @@ import { I } from "../../components/icons";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { cancelMaskDetection, MaskConsentError, requestModelPicker } from "../ai/subjectMask";
 import { MaskReadyPill } from "../ai/ui/MaskReadyPill";
 import { SmartActionError } from "../ai/ui/SmartActionError";
@@ -35,7 +36,8 @@ import type { SmartRemoveProgress } from "../ai/runtime/segment";
 const MODES = ["Auto", "Chroma"] as const;
 
 export function RemoveBgPanel() {
-  const { toolState, patchTool, doc, commit, runBusy } = useEditor();
+  const { toolState, patchTool, doc, commit, runBusy, layout } = useEditor();
+  const isMobile = layout === "mobile";
   const subjectMask = useSubjectMask();
   // Inline error state replaces the older toast — the canvas itself
   // is the success confirmation, and a failure stays pinned next to
@@ -171,6 +173,17 @@ export function RemoveBgPanel() {
     toolState.genericStrength > 0 || toolState.feather > 0 || toolState.bgSample !== null;
   const chromaApplyDisabled = alreadyRemoved || !chromaEngaged;
 
+  // Auto-bake on tool switch — picks the apply path matching the
+  // active mode so the global ✓ in MobileEditorSurface's footer
+  // commits the right thing. Auto registers whenever there's
+  // something to remove (the AI download itself is gated by the
+  // consent dialog if needed). Chroma only registers when the user
+  // has actually engaged the keyer — we don't want a no-op tool peek
+  // in Chroma mode to push a clean image through removeBackground.
+  const applyActive = isAuto ? applyAuto : applyChroma;
+  const applyDirty = isAuto ? !alreadyRemoved : !chromaApplyDisabled;
+  useApplyOnToolSwitch(applyActive, applyDirty);
+
   return (
     <>
       <PropRow label="Mode">
@@ -208,6 +221,7 @@ export function RemoveBgPanel() {
           }
           onChangeModel={() => requestModelPicker(subjectMask.quality)}
           onApply={() => void applyAuto()}
+          showApplyButton={!isMobile}
         />
       ) : (
         <ChromaPanel
@@ -223,6 +237,7 @@ export function RemoveBgPanel() {
           onClearSample={clearSample}
           onAutoTune={autoTune}
           onApply={applyChroma}
+          showApplyButton={!isMobile}
         />
       )}
 
@@ -264,6 +279,11 @@ interface AutoProps {
    *  source — the Apply will be effectively instant (no detection,
    *  no download). Surfaces as a small green pill above Apply. */
   maskReady: boolean;
+  /** Mobile (V3.4+) hides the per-tool Apply button — the global ✓ in
+   *  MobileEditorSurface's footer is the universal commit, and the
+   *  parent registers `applyAuto` via useApplyOnToolSwitch so ✓ runs
+   *  it. Desktop / tablet still surface the visible button. */
+  showApplyButton: boolean;
 }
 
 function AutoPanel({
@@ -277,6 +297,7 @@ function AutoPanel({
   onChangeModel,
   onApply,
   maskReady,
+  showApplyButton,
 }: AutoProps) {
   // Three distinct surfaces, no concatenation:
   //   1. ready (warm or cached) — emphasise "instant" so the user
@@ -331,27 +352,29 @@ function AutoPanel({
           Surfacing this lets the user chain smart actions confidently. */}
       <MaskReadyPill ready={maskReady && !busy && !alreadyRemoved} align="end" />
 
-      <button
-        type="button"
-        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
-        onClick={onApply}
-        disabled={alreadyRemoved || busy}
-        style={{ opacity: alreadyRemoved || busy ? 0.6 : 1 }}
-      >
-        {alreadyRemoved ? (
-          <>
-            <I.Check size={13} /> Background removed
-          </>
-        ) : busy ? (
-          <>
-            <InlineSpinner /> {progress?.label ?? "Working…"}
-          </>
-        ) : (
-          <>
-            <I.Wand size={13} /> Remove background
-          </>
-        )}
-      </button>
+      {showApplyButton && (
+        <button
+          type="button"
+          className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          onClick={onApply}
+          disabled={alreadyRemoved || busy}
+          style={{ opacity: alreadyRemoved || busy ? 0.6 : 1 }}
+        >
+          {alreadyRemoved ? (
+            <>
+              <I.Check size={13} /> Background removed
+            </>
+          ) : busy ? (
+            <>
+              <InlineSpinner /> {progress?.label ?? "Working…"}
+            </>
+          ) : (
+            <>
+              <I.Wand size={13} /> Remove background
+            </>
+          )}
+        </button>
+      )}
 
       {busy && (
         <DetectionProgressCard
@@ -424,6 +447,8 @@ interface ChromaProps {
   onClearSample: () => void;
   onAutoTune: () => void;
   onApply: () => void;
+  /** Mobile (V3.4+) hides the per-tool Apply button — see AutoProps. */
+  showApplyButton: boolean;
 }
 
 function ChromaPanel({
@@ -439,6 +464,7 @@ function ChromaPanel({
   onClearSample,
   onAutoTune,
   onApply,
+  showApplyButton,
 }: ChromaProps) {
   return (
     <>
@@ -493,23 +519,25 @@ function ChromaPanel({
       >
         <I.Wand size={12} /> Auto-detect
       </button>
-      <button
-        type="button"
-        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
-        onClick={onApply}
-        disabled={applyDisabled}
-        style={{ opacity: applyDisabled ? 0.5 : 1 }}
-      >
-        {alreadyRemoved ? (
-          <>
-            <I.Check size={13} /> Background removed
-          </>
-        ) : (
-          <>
-            <I.Layers size={13} /> Remove background
-          </>
-        )}
-      </button>
+      {showApplyButton && (
+        <button
+          type="button"
+          className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          onClick={onApply}
+          disabled={applyDisabled}
+          style={{ opacity: applyDisabled ? 0.5 : 1 }}
+        >
+          {alreadyRemoved ? (
+            <>
+              <I.Check size={13} /> Background removed
+            </>
+          ) : (
+            <>
+              <I.Layers size={13} /> Remove background
+            </>
+          )}
+        </button>
+      )}
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
         {alreadyRemoved
           ? "The background is already cleared. Undo to bring it back, or place a new image to start over."

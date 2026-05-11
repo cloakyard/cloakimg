@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { I } from "../../components/icons";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import {
   defaultQuad,
   isPersIdentity,
@@ -17,7 +18,8 @@ import {
 } from "./perspective";
 
 export function PerspectivePanel() {
-  const { toolState, patchTool, doc, commit, runBusy, getFabricCanvas } = useEditor();
+  const { toolState, patchTool, doc, commit, runBusy, getFabricCanvas, layout } = useEditor();
+  const isMobile = layout === "mobile";
 
   const corners = (toolState.persCorners as Quad | null) ?? null;
   const docW = doc?.width ?? 0;
@@ -32,6 +34,16 @@ export function PerspectivePanel() {
     if (!doc) return;
     patchTool("persCorners", defaultQuad(doc.width, doc.height));
   }, [doc, patchTool]);
+
+  // Auto-bake on tool switch — wires the same `apply` into the
+  // pending-apply slot the EditorContext flushes when the active tool
+  // changes. Without this, the mobile MobileEditorSurface ✓ tap (which
+  // resets activeTool to Move and triggers the flush) would close the
+  // tool without ever performing the rectification. The (dirty &&
+  // !degenerate) gate keeps a no-op tool peek or an unsolvable quad
+  // from baking.
+  // (Defined later in this component — useApplyOnToolSwitch is called
+  // after `apply` is constructed below.)
 
   const apply = useCallback(async () => {
     if (!doc || !corners || !dirty || degenerate) return;
@@ -63,13 +75,16 @@ export function PerspectivePanel() {
     });
   }, [commit, corners, degenerate, dirty, doc, getFabricCanvas, patchTool, runBusy]);
 
+  useApplyOnToolSwitch(apply, dirty && !degenerate);
+
   const recommended = corners ? recommendedOutputSize(corners) : null;
 
   return (
     <>
       <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-        Drag the four coral handles on the canvas to the corners of the rectangular subject — a
-        document, screen, or painting — then Apply to flatten it.
+        {isMobile
+          ? "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting."
+          : "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting — then Apply to flatten it."}
       </div>
 
       {recommended && !degenerate && (
@@ -87,25 +102,33 @@ export function PerspectivePanel() {
         </div>
       )}
 
+      {/* Reset always shows; Apply only on tablet / desktop. On mobile
+          the global ✓ in MobileEditorSurface's footer is the universal
+          commit, and the auto-bake registered above runs the warp when
+          the user taps it. */}
       <div className="flex gap-2">
         <button
           type="button"
-          className="btn btn-ghost btn-xs flex-1 justify-center text-coral-700 dark:text-coral-300"
+          className={`btn btn-ghost btn-xs justify-center text-coral-700 dark:text-coral-300 ${
+            isMobile ? "w-full" : "flex-1"
+          }`}
           onClick={reset}
           disabled={!dirty}
         >
           <I.Refresh size={12} />
           Reset
         </button>
-        <button
-          type="button"
-          className="btn btn-primary btn-xs flex-1 justify-center"
-          onClick={() => void apply()}
-          disabled={!dirty || degenerate}
-        >
-          <I.Check size={12} />
-          Apply
-        </button>
+        {!isMobile && (
+          <button
+            type="button"
+            className="btn btn-primary btn-xs flex-1 justify-center"
+            onClick={() => void apply()}
+            disabled={!dirty || degenerate}
+          >
+            <I.Check size={12} />
+            Apply
+          </button>
+        )}
       </div>
     </>
   );

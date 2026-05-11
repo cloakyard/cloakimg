@@ -62,19 +62,25 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   return (
     <>
       <div
-        // Glassmorphism — translucent surface + backdrop-blur so the
-        // canvas / grainient backdrop tints the bar slightly. Matches
-        // the bottom MobileToolbar so chrome reads as a single
-        // floating layer around the photo.
-        className={`editor-paper flex h-16 shrink-0 items-center border-b border-border bg-surface/85 py-3 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border dark:bg-dark-surface/85 ${
-          isMobile ? "gap-1.5 px-2.5" : "gap-3 px-4"
-        }`}
+        // Desktop keeps the glass-toolbar treatment (translucent surface,
+        // backdrop blur, hairline border) so the photo workbench reads
+        // with deliberate chrome around it. Mobile drops every one of
+        // those — V3 minimalist — so the cream page-bg flows from above
+        // the logo through the canvas matte and out to the pill below
+        // without any tonal break. Brand mark + wordmark match the
+        // desktop sizes so the app's identity is proper-sized rather
+        // than apologetic at the top of the screen.
+        className={
+          isMobile
+            ? "flex h-16 shrink-0 items-center gap-1.5 px-3 py-3"
+            : "editor-paper flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface/85 px-4 py-3 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border dark:bg-dark-surface/85"
+        }
       >
         <button
           type="button"
           onClick={onLogoClick}
           aria-label="Back to start"
-          className="flex cursor-pointer items-center gap-2.5 border-none bg-transparent p-0 font-[inherit] text-inherit"
+          className="flex cursor-pointer items-center gap-2 border-none bg-transparent p-0 font-[inherit] text-inherit"
         >
           <BrandMark
             size={40}
@@ -82,7 +88,18 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               filter: "drop-shadow(0 2px 6px rgba(245, 97, 58, 0.28))",
             }}
           />
-          <div className="logo-wordmark" style={{ fontSize: 19, letterSpacing: "-0.025em" }}>
+          {/* Brand mark + wordmark sized identically across breakpoints
+              in V3 — the prior mobile-shrunk treatment made the editor
+              feel apologetic at the top of the screen. With the TopBar
+              chrome stripped on mobile, full-size branding sits cleanly
+              on the cream page. */}
+          <div
+            className="logo-wordmark"
+            style={{
+              fontSize: 19,
+              letterSpacing: "-0.025em",
+            }}
+          >
             Cloak<span>IMG</span>
           </div>
         </button>
@@ -226,20 +243,37 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           </button>
         )}
 
-        <button
-          type="button"
-          className={
-            isMobile
-              ? "btn btn-ghost btn-icon text-coral-600 dark:text-coral-400"
-              : "btn btn-outline-coral btn-sm"
-          }
-          onClick={openExport}
-          aria-label="Export"
-          title="Export"
-        >
-          <I.Download size={isMobile ? 18 : 13} />
-          {!isMobile && "Export"}
-        </button>
+        {/* Desktop keeps Export as the brand-coloured CTA in the TopBar.
+            On mobile the V3 minimalist redesign collapses the prior
+            3-way bottom nav (Looks · Tools · Export) into a single
+            floating Tools pill, so Export gets surfaced here as a
+            ghost icon button — one tap away from the canvas idle view
+            without competing with the pill for the bottom margin. */}
+        {!isMobile && (
+          <button
+            type="button"
+            className="btn btn-outline-coral btn-sm"
+            onClick={openExport}
+            aria-label="Export"
+            title="Export"
+          >
+            <I.Download size={13} />
+            Export
+          </button>
+        )}
+
+        {isMobile && (
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon"
+            aria-label="Export"
+            title="Export"
+            disabled={!doc}
+            onClick={openExport}
+          >
+            <I.Download size={17} />
+          </button>
+        )}
 
         {isMobile && (
           <button

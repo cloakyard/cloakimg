@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { PropRow, Segment } from "../atoms";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { lanczosResampleAsync } from "./lanczos";
 import { I } from "../../components/icons";
 
@@ -19,7 +20,8 @@ const LONG_EDGE_PRESETS = [
 const FIT = ["Fit", "Fill", "Stretch"] as const;
 
 export function ResizePanel() {
-  const { doc, toolState, patchTool, commit, runBusy } = useEditor();
+  const { doc, toolState, patchTool, commit, runBusy, layout } = useEditor();
+  const isMobile = layout === "mobile";
   const [fit, setFit] = useState(0);
   const [resizing, setResizing] = useState(false);
 
@@ -122,6 +124,16 @@ export function ResizePanel() {
 
   const targetW = toolState.resizeW;
   const targetH = toolState.resizeH;
+
+  // Auto-bake on tool switch — wires the same `apply` into the
+  // pending-apply slot the EditorContext flushes when the active tool
+  // changes. Without this, the mobile MobileEditorSurface ✓ tap (which
+  // resets activeTool to Move and triggers the flush) would close the
+  // tool without ever performing the resize. The `dirty` gate keeps a
+  // no-op tool peek from spuriously baking the original dimensions
+  // back into history.
+  const dirty = !!doc && (targetW !== doc.width || targetH !== doc.height || fit !== 0);
+  useApplyOnToolSwitch(apply, dirty);
 
   // Cached small preview of the working canvas (~96 px long edge), so
   // the panel can show the user *what* their resize is shrinking. We
@@ -236,15 +248,21 @@ export function ResizePanel() {
           to Fast automatically when the change is too small to benefit.
         </div>
       )}
-      <button
-        type="button"
-        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
-        onClick={() => void apply()}
-        disabled={resizing}
-        aria-busy={resizing}
-      >
-        <I.Check size={12} /> {resizing ? "Resizing…" : "Apply resize"}
-      </button>
+      {/* Apply resize — desktop / tablet only. On mobile the
+          MobileEditorSurface footer's ✓ is the universal commit; the
+          auto-bake registered above runs the resize when the user taps
+          ✓, so the visible button is redundant chrome. */}
+      {!isMobile && (
+        <button
+          type="button"
+          className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          onClick={() => void apply()}
+          disabled={resizing}
+          aria-busy={resizing}
+        >
+          <I.Check size={12} /> {resizing ? "Resizing…" : "Apply resize"}
+        </button>
+      )}
     </>
   );
 }

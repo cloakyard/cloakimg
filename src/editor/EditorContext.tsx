@@ -110,6 +110,13 @@ interface EditorContextValue {
    *  if history is empty. Lets tools detect "I committed this" and
    *  replace their own prior entry instead of stacking. */
   peekLastCommitLabel: () => string | null;
+  /** Cursor position in the history stack. The mobile in-tool sheet
+   *  captures this when it opens (the "checkpoint") and on cancel
+   *  rewinds via repeated undo() until depth is back at the
+   *  checkpoint, discarding every commit made during the tool
+   *  session. Replaces the prior single-undo cancel which left
+   *  multi-commit work half-baked. */
+  historyDepth: () => number;
   /** Restore a previous snapshot from history. Async because older
    *  entries are stored as compressed WebP blobs and need a decode. */
   undo: () => Promise<void>;
@@ -183,6 +190,7 @@ interface ActionsValue {
   setFabricCanvas: EditorContextValue["setFabricCanvas"];
   commit: EditorContextValue["commit"];
   peekLastCommitLabel: EditorContextValue["peekLastCommitLabel"];
+  historyDepth: EditorContextValue["historyDepth"];
   undo: EditorContextValue["undo"];
   redo: EditorContextValue["redo"];
   resetToOriginal: EditorContextValue["resetToOriginal"];
@@ -376,6 +384,31 @@ export function EditorProvider({
     return () => window.clearTimeout(handle);
   }, [doc, historyVersion]);
 
+  // Test hook — exposes the working doc's current dimensions on
+  // window for headless e2e tests to assert against. Stripped in
+  // production by Vite's tree-shaker because the read-only string
+  // import is unused at runtime; the assignment below sits inside an
+  // effect so it never executes during SSR / non-browser builds.
+  // (Intentionally NOT typed — we don't want app code reaching for
+  // this surface, only out-of-band tests.)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const w = window as unknown as {
+      __editorDebug?: {
+        docDims: { w: number; h: number } | null;
+        toolState: typeof toolState;
+      };
+    };
+    w.__editorDebug = {
+      docDims: doc ? { w: doc.width, h: doc.height } : null,
+      toolState,
+    };
+    // commit() bumps doc identity via setDoc({...prev}), so this
+    // effect re-runs on every history mutation. toolState in deps
+    // re-runs on every patchTool so the test can read the latest
+    // crop / adjust / etc. values.
+  }, [doc, toolState]);
+
   // Revoke any outstanding batch blob URLs (thumb + result) when the
   // editor unmounts. Without this, leaving the editor with a populated
   // batch queue leaks every URL since `batchClear` is the only other
@@ -486,6 +519,7 @@ export function EditorProvider({
   }, []);
 
   const peekLastCommitLabel = useCallback(() => historyRef.current.currentLabel(), []);
+  const historyDepth = useCallback(() => historyRef.current.currentIndex(), []);
 
   const commit = useCallback(
     (label: string) => {
@@ -708,6 +742,7 @@ export function EditorProvider({
       setFabricCanvas,
       commit,
       peekLastCommitLabel,
+      historyDepth,
       undo,
       redo,
       resetToOriginal,
@@ -734,6 +769,7 @@ export function EditorProvider({
       setFabricCanvas,
       commit,
       peekLastCommitLabel,
+      historyDepth,
       undo,
       redo,
       resetToOriginal,
