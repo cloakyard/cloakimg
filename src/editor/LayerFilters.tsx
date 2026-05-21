@@ -81,7 +81,7 @@ export function LayerFilters({ image }: Props) {
   const onCommit = useCallback(() => commit("Image filters"), [commit]);
 
   return (
-    <div className="mt-1 flex flex-col gap-2 rounded-md border border-border-soft bg-page-bg px-1.5 py-2 dark:border-dark-border-soft dark:bg-dark-page-bg">
+    <div className="mt-1 flex flex-col gap-2 rounded-md border border-border-soft bg-page-bg px-1.5 py-2">
       <PropRow
         label="Brightness"
         value={
@@ -135,11 +135,11 @@ export function LayerFilters({ image }: Props) {
         />
       </PropRow>
       <div className="flex items-center justify-between">
-        <span className="text-[11.5px] text-text-muted dark:text-dark-text-muted">Grayscale</span>
+        <span className="text-[11.5px] text-text-muted">Grayscale</span>
         <ToggleSwitch on={state.grayscale} onChange={(on) => apply({ ...state, grayscale: on })} />
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[11.5px] text-text-muted dark:text-dark-text-muted">Sepia</span>
+        <span className="text-[11.5px] text-text-muted">Sepia</span>
         <ToggleSwitch on={state.sepia} onChange={(on) => apply({ ...state, sepia: on })} />
       </div>
       <div className="flex gap-1.5">

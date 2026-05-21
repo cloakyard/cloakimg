@@ -38,15 +38,10 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
     // canvas matte now sharing `--page-bg` with the rest of the editor,
     // a hard rail divider made the rail feel walled-off from the photo.
     // Soft border + translucent surface lets the cream flow through.
-    <div className="editor-paper no-scrollbar flex w-18 shrink-0 flex-col overflow-y-auto border-r border-border-soft bg-surface/60 py-2 dark:border-dark-border-soft dark:bg-dark-surface/60">
+    <div className="editor-paper no-scrollbar flex w-18 shrink-0 flex-col overflow-y-auto border-r border-border-soft bg-surface/60 py-2">
       {items.map((item) => {
         if (item.sep) {
-          return (
-            <div
-              key={item.key}
-              className="mx-3 my-1.5 h-px bg-border-soft dark:bg-dark-border-soft"
-            />
-          );
+          return <div key={item.key} className="mx-3 my-1.5 h-px bg-border-soft" />;
         }
         const { tool } = item;
         const Ic = tool.icon;
@@ -67,7 +62,7 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
             className={`relative mx-auto my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-none p-0 transition-all duration-200 ease-out ${
               active
                 ? "scale-105 bg-coral-50 text-coral-700 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-transparent text-text-muted hover:bg-page-bg dark:text-dark-text-muted dark:hover:bg-dark-page-bg"
+                : "bg-transparent text-text-muted hover:bg-page-bg"
             }`}
           >
             <Ic size={17} />
@@ -139,7 +134,7 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
       // matches the TopBar's chrome so the editor reads as a single
       // floating-chrome surface around the photo. Falls back to
       // opaque `bg-surface` on browsers without backdrop-filter.
-      className="editor-paper relative shrink-0 border-t border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface/85"
+      className="editor-paper relative shrink-0 border-t border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150"
     >
       <div
         ref={scrollerRef}
@@ -166,7 +161,7 @@ export function MobileToolbar({ activeTool, onSelect }: RailProps) {
               className={`relative flex min-h-12 min-w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-none px-1.5 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
                 active
                   ? "bg-coral-500 text-white shadow-[0_4px_10px_-4px_rgba(245,97,58,0.55)] dark:bg-coral-500 dark:text-white"
-                  : "bg-transparent text-text-muted dark:text-dark-text-muted"
+                  : "bg-transparent text-text-muted"
               }`}
             >
               <Ic size={18} />

@@ -30,18 +30,16 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
         <div className="min-w-0 flex-1">
           <h2
             id="privacy-title"
-            className="text-[19px] font-semibold tracking-[-0.015em] text-text dark:text-dark-text"
+            className="text-[19px] font-semibold tracking-[-0.015em] text-text"
           >
             Privacy Policy
           </h2>
-          <p className="mt-0.5 text-[12.5px] text-text-muted dark:text-dark-text-muted">
-            Last updated: May 6, 2026
-          </p>
+          <p className="mt-0.5 text-[12.5px] text-text-muted">Last updated: May 6, 2026</p>
         </div>
         <ModalCloseButton onClose={onClose} label="Close privacy policy" />
       </div>
 
-      <div className="scroll-thin flex-1 space-y-6 overflow-y-auto border-t border-border-soft px-6 py-5 text-[13px] leading-[1.6] text-text-muted sm:px-7 dark:border-dark-border-soft dark:text-dark-text-muted">
+      <div className="scroll-thin flex-1 space-y-6 overflow-y-auto border-t border-border-soft px-6 py-5 text-[13px] leading-[1.6] text-text-muted sm:px-7">
         <Section title="Overview">
           CloakIMG is a free, open-source photo editor that runs entirely in your web browser. We
           are committed to your privacy. This policy explains what data we collect (spoiler: none)
@@ -51,8 +49,8 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
         <Section title="Your Photos Stay on Your Device">
           All image processing — cropping, retouching, redaction, adjustments, filters, frames,
           export, every operation — is performed locally in your browser. Your photos are{" "}
-          <strong className="text-text dark:text-dark-text">never uploaded</strong> to any server.
-          No image content, metadata, or document data is transmitted over the network.
+          <strong className="text-text">never uploaded</strong> to any server. No image content,
+          metadata, or document data is transmitted over the network.
         </Section>
 
         <Section title="On-Device AI &mdash; Your Images Never See the Cloud">
@@ -60,9 +58,7 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
             Some tools (background removal, subject-aware Adjust / Filters / Levels / Selective
             colour, portrait blur) use a neural network to detect the subject in your photo. Those
             models run{" "}
-            <strong className="text-text dark:text-dark-text">
-              entirely inside your browser, on your device
-            </strong>{" "}
+            <strong className="text-text">entirely inside your browser, on your device</strong>{" "}
             &mdash; via WebAssembly + the ONNX Runtime web build. We do not send your image to a
             cloud inference API or to anyone else&rsquo;s server.
           </p>
@@ -143,7 +139,7 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
         </Section>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-border-soft px-6 py-4 sm:px-7 dark:border-dark-border-soft">
+      <div className="flex items-center justify-end gap-2 border-t border-border-soft px-6 py-4 sm:px-7">
         <button type="button" onClick={onClose} className="btn btn-primary btn-sm">
           Got it
         </button>
@@ -155,7 +151,7 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-1.5 text-[13.5px] font-semibold text-text dark:text-dark-text">{title}</h3>
+      <h3 className="mb-1.5 text-[13.5px] font-semibold text-text">{title}</h3>
       <div>{children}</div>
     </section>
   );

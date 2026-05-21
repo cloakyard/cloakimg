@@ -83,7 +83,7 @@ export function OrientationLock() {
       aria-label="Rotate your device"
       // Top-level overlay — must outrank the editor's own modals (z-200)
       // and toasts (z-300) so the user never sees a half-rotated UI.
-      className="fixed inset-0 z-[1000] flex flex-col items-center justify-center gap-5 bg-page-bg px-8 text-center text-text dark:bg-dark-page-bg dark:text-dark-text"
+      className="fixed inset-0 z-[1000] flex flex-col items-center justify-center gap-5 bg-page-bg px-8 text-center text-text"
     >
       <div
         className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-coral-500/12 text-coral-500"
@@ -93,7 +93,7 @@ export function OrientationLock() {
       </div>
       <div className="flex flex-col gap-2">
         <div className="text-[18px] font-semibold tracking-tight">Rotate your phone</div>
-        <div className="max-w-xs text-[13.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="max-w-xs text-[13.5px] leading-relaxed text-text-muted">
           CloakIMG is designed for portrait mode on phones — there's more room for the canvas and
           tools that way. Turn your device upright to keep editing.
         </div>

@@ -102,7 +102,7 @@ export function LevelsPanel() {
       <AiSectionHeader />
       <MaskScopeRow scope={toolState.levelsScope} onScope={(i) => patchTool("levelsScope", i)} />
       <ScopeGate disabled={gated}>
-        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11.5px] leading-relaxed text-text-muted">
           Pull the input black up to crush shadows, the white down to clip highlights, and the
           midtone slider to lift or darken the middle of the curve.
         </div>

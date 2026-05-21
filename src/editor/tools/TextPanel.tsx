@@ -127,7 +127,7 @@ export function TextPanel() {
             else patchTool("textValue", e.target.value);
           }}
           rows={2}
-          className="w-full resize-y rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text dark:border-dark-border dark:bg-dark-page-bg dark:text-dark-text"
+          className="w-full resize-y rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text"
         />
       </PropRow>
       <PropRow label="Font">
@@ -302,13 +302,13 @@ export function TextPanel() {
         />
       </div>
       {!selected && (
-        <div className="text-[11px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11px] leading-relaxed text-text-muted">
           Click on the canvas to drop a text layer — it lands selected so you can drag immediately.
           Double-click to edit inline.
         </div>
       )}
       {selected && (
-        <div className="text-[11px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11px] leading-relaxed text-text-muted">
           Editing the selected text. Esc exits inline edit; Delete removes the layer (via the Layers
           panel).
         </div>
@@ -334,7 +334,7 @@ function StyleToggle({ label, on, italic, underline, onChange }: StyleToggleProp
       className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded border-none font-[inherit] text-[12px] font-semibold ${
         on
           ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-          : "bg-page-bg text-text-muted dark:bg-dark-page-bg dark:text-dark-text-muted"
+          : "bg-page-bg text-text-muted"
       }`}
       style={{
         fontStyle: italic ? "italic" : "normal",
@@ -361,7 +361,7 @@ function PresetButton({ label, active, onClick }: PresetButtonProps) {
       className={`cursor-pointer rounded-md border-none px-2 py-1.5 font-[inherit] text-[11px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
         active
           ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-          : "bg-page-bg text-text-muted dark:bg-dark-page-bg dark:text-dark-text-muted"
+          : "bg-page-bg text-text-muted"
       }`}
     >
       {label}

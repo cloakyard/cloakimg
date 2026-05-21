@@ -127,7 +127,7 @@ function ModalHeader({ isPhone, onCancel }: { isPhone: boolean; onCancel: () => 
         {/* Privacy reassurance lives in the header now — it sets the
             tone before the user picks anything, instead of crowding
             the action footer with a stray label. */}
-        <div className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted dark:text-dark-text-muted">
+        <div className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
           <I.Lock size={11} stroke={2.25} className="text-coral-600 dark:text-coral-400" />
           Files never leave your browser
         </div>
@@ -152,9 +152,7 @@ function ModalTabs({
   ];
   return (
     <div
-      className={`flex gap-1 border-b border-border-soft dark:border-dark-border-soft ${
-        isPhone ? "px-5 pt-2" : "px-7 pt-3"
-      }`}
+      className={`flex gap-1 border-b border-border-soft ${isPhone ? "px-5 pt-2" : "px-7 pt-3"}`}
     >
       {items.map((t) => {
         const active = tab === t.id;
@@ -166,7 +164,7 @@ function ModalTabs({
             className={`-mb-px flex cursor-pointer items-center gap-1.5 border-none bg-transparent px-3.5 py-2.5 font-[inherit] text-[13px] font-semibold transition-colors ${
               active
                 ? "border-b-2 border-coral-500 text-coral-700 dark:text-coral-400"
-                : "border-b-2 border-transparent text-text-muted dark:text-dark-text-muted"
+                : "border-b-2 border-transparent text-text-muted"
             }`}
           >
             <t.Icon size={14} /> {t.label}
@@ -194,7 +192,7 @@ function ModalFooter({
   // the header so the action row can focus purely on what to do next.
   return (
     <div
-      className={`flex shrink-0 items-center justify-end gap-2.5 border-t border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg ${
+      className={`flex shrink-0 items-center justify-end gap-2.5 border-t border-border-soft bg-page-bg ${
         isPhone ? "px-5 py-3.5 pb-[max(env(safe-area-inset-bottom),14px)]" : "px-7 py-4"
       }`}
     >
@@ -267,7 +265,7 @@ function DraftResumeRow({ onPick }: { onPick: (f: File | null) => void }) {
             void clearDraft();
             setDraft(null);
           }}
-          className="cursor-pointer border-none bg-transparent font-[inherit] text-[10.5px] text-text-muted dark:text-dark-text-muted"
+          className="cursor-pointer border-none bg-transparent font-[inherit] text-[10.5px] text-text-muted"
         >
           Discard
         </button>
@@ -281,15 +279,13 @@ function DraftResumeRow({ onPick }: { onPick: (f: File | null) => void }) {
         {draft.thumbUrl ? (
           <img src={draft.thumbUrl} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-page-bg dark:bg-dark-page-bg">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-page-bg">
             <I.FileImage size={18} />
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[12.5px] font-semibold text-text dark:text-dark-text">
-            {draft.fileName}
-          </div>
-          <div className="text-[11px] text-text-muted dark:text-dark-text-muted">
+          <div className="truncate text-[12.5px] font-semibold text-text">{draft.fileName}</div>
+          <div className="text-[11px] text-text-muted">
             {draft.width} × {draft.height} · {ageLabel}
           </div>
         </div>
@@ -333,7 +329,7 @@ function RecentsRow({ onPick }: { onPick: (f: File | null) => void }) {
         <button
           type="button"
           onClick={() => void clearRecents()}
-          className="cursor-pointer border-none bg-transparent font-[inherit] text-[10.5px] text-text-muted dark:text-dark-text-muted"
+          className="cursor-pointer border-none bg-transparent font-[inherit] text-[10.5px] text-text-muted"
         >
           Clear
         </button>
@@ -342,7 +338,7 @@ function RecentsRow({ onPick }: { onPick: (f: File | null) => void }) {
         {items.slice(0, 8).map((r) => (
           <div
             key={r.id}
-            className="relative aspect-square overflow-hidden rounded-lg border border-border bg-page-bg dark:border-dark-border dark:bg-dark-page-bg"
+            className="relative aspect-square overflow-hidden rounded-lg border border-border bg-page-bg"
           >
             <button
               type="button"
@@ -414,7 +410,7 @@ function BlankTab({
               className={`relative flex cursor-pointer flex-col gap-2 rounded-2xl p-3 text-left font-[inherit] transition-[border-color,background-color,box-shadow] duration-150 ${
                 active
                   ? "border-2 border-coral-500 bg-coral-50 shadow-[0_0_0_3px_rgba(245,97,58,0.12)] dark:bg-coral-900/25"
-                  : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-coral-200 dark:bg-dark-surface dark:ring-dark-border"
+                  : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-coral-200"
               }`}
             >
               {active && (
@@ -428,15 +424,15 @@ function BlankTab({
               <div
                 className={`flex h-16 items-center justify-center rounded-lg ${
                   isCustom
-                    ? "border-[1.5px] border-dashed border-border bg-transparent dark:border-dark-border"
-                    : "border border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg"
+                    ? "border-[1.5px] border-dashed border-border bg-transparent"
+                    : "border border-border-soft bg-page-bg"
                 }`}
               >
                 {isCustom ? (
-                  <I.Plus size={22} className="text-text-muted dark:text-dark-text-muted" />
+                  <I.Plus size={22} className="text-text-muted" />
                 ) : (
                   <div
-                    className="rounded-xs border border-border bg-white dark:border-dark-border"
+                    className="rounded-xs border border-border bg-white"
                     style={{
                       width: p.w >= p.h ? 52 : 52 * (p.w / p.h),
                       height: p.h >= p.w ? 36 : 36 * (p.h / p.w),
@@ -446,15 +442,11 @@ function BlankTab({
                 )}
               </div>
               <div>
-                <div className="text-[13px] font-semibold text-text dark:text-dark-text">
-                  {p.name}
-                </div>
-                <div className="t-mono mt-px text-[11px] text-text-muted dark:text-dark-text-muted">
+                <div className="text-[13px] font-semibold text-text">{p.name}</div>
+                <div className="t-mono mt-px text-[11px] text-text-muted">
                   {p.w ? `${p.w} × ${p.h}` : "Set your own"}
                 </div>
-                <div className="mt-px text-[10.5px] text-text-muted dark:text-dark-text-muted">
-                  {p.hint}
-                </div>
+                <div className="mt-px text-[10.5px] text-text-muted">{p.hint}</div>
               </div>
             </button>
           );
@@ -467,18 +459,18 @@ function BlankTab({
           Background controls below. Wider viewports collapse the
           three groups back into a single flex-wrap row with the
           background pushed to the right via sm:ml-auto. */}
-      <div className="mt-4 flex flex-col gap-3 rounded-xl bg-page-bg p-3.5 dark:bg-dark-page-bg sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+      <div className="mt-4 flex flex-col gap-3 rounded-xl bg-page-bg p-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
         <div className="t-eyebrow t-eyebrow-slate text-[10px]">Custom</div>
         <div className="flex items-center gap-2 sm:gap-2.5">
           <DimensionInput label="W" value={customW} onChange={setCustomW} />
-          <I.X size={11} className="shrink-0 text-text-muted dark:text-dark-text-muted" />
+          <I.X size={11} className="shrink-0 text-text-muted" />
           <DimensionInput label="H" value={customH} onChange={setCustomH} />
-          <div className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted">
+          <div className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text-muted">
             px
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5 sm:ml-auto">
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted dark:text-dark-text-muted">
+          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted">
             <input
               type="checkbox"
               checked={bgEnabled}
@@ -493,7 +485,7 @@ function BlankTab({
               <ColorPicker value={bg} onChange={setBg} enableEyedropper={false} />
             </div>
           ) : (
-            <span className="t-mono rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[11px] text-text-muted dark:border-dark-border dark:bg-dark-page-bg dark:text-dark-text-muted">
+            <span className="t-mono rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[11px] text-text-muted">
               Transparent
             </span>
           )}
@@ -513,13 +505,13 @@ function DimensionInput({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="t-mono flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] dark:border-dark-border dark:bg-dark-surface">
-      <span className="text-[11px] text-text-muted dark:text-dark-text-muted">{label}</span>
+    <div className="t-mono flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px]">
+      <span className="text-[11px] text-text-muted">{label}</span>
       <input
         type="number"
         value={value}
         onChange={(e) => onChange(Math.max(1, Math.min(20000, +e.target.value || 0)))}
-        className="w-17.5 border-none bg-transparent font-[inherit] text-[13px] text-text outline-none dark:text-dark-text"
+        className="w-17.5 border-none bg-transparent font-[inherit] text-[13px] text-text outline-none"
       />
     </div>
   );

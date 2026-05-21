@@ -135,7 +135,7 @@ export function BorderPanel() {
                   className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
                     noneActive
                       ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                      : "border-border-soft bg-page-bg text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted"
+                      : "border-border-soft bg-page-bg text-text-muted"
                   }`}
                 >
                   None
@@ -153,7 +153,7 @@ export function BorderPanel() {
                   className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
                     active
                       ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                      : "border-border-soft bg-page-bg text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted"
+                      : "border-border-soft bg-page-bg text-text-muted"
                   }`}
                 >
                   {a.label}
@@ -169,12 +169,12 @@ export function BorderPanel() {
       </PropRow>
 
       {target && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11.5px] leading-relaxed text-text-muted">
           New size: {target.w} × {target.h}
         </div>
       )}
       {toolState.borderMode === 0 && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11.5px] leading-relaxed text-text-muted">
           Adds a uniform pad on every side. Layers shift with the image so a watermark stays in its
           corner.
         </div>

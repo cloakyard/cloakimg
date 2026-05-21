@@ -33,7 +33,7 @@ interface ModalFrameProps {
 }
 
 const DIALOG_BASE =
-  "relative flex w-full overflow-hidden border border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border dark:bg-dark-surface/85";
+  "relative flex w-full overflow-hidden border border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150";
 
 export function ModalFrame({
   onClose,

@@ -51,7 +51,7 @@ export function MobileToolFooter({ onCancel, onConfirm, centerAction }: Props) {
         type="button"
         onClick={onCancel}
         aria-label="Cancel"
-        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 font-[inherit] text-text-muted transition-colors hover:bg-page-bg active:scale-[0.95] dark:text-dark-text-muted"
+        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 font-[inherit] text-text-muted transition-colors hover:bg-page-bg active:scale-[0.95]"
       >
         <I.X size={20} stroke={2} />
       </button>
@@ -60,7 +60,7 @@ export function MobileToolFooter({ onCancel, onConfirm, centerAction }: Props) {
         <button
           type="button"
           onClick={centerAction.onClick}
-          className="flex flex-col items-center justify-center gap-0.5 cursor-pointer border-none bg-transparent px-3 py-1 font-[inherit] text-text dark:text-dark-text"
+          className="flex flex-col items-center justify-center gap-0.5 cursor-pointer border-none bg-transparent px-3 py-1 font-[inherit] text-text"
         >
           {centerAction.icon ? (
             <centerAction.icon

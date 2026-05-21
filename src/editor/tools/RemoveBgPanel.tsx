@@ -311,7 +311,7 @@ function AutoPanel({
   const meta = getTierById(quality);
   return (
     <>
-      <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+      <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
         <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
         On-device AI
       </div>
@@ -321,12 +321,10 @@ function AutoPanel({
           mid-detection because invalidating the in-flight cache to
           switch tiers would cancel the worker and confuse the user. */}
       <PropRow label="Model">
-        <div className="flex flex-1 items-center justify-between gap-2 text-[12.5px] text-text dark:text-dark-text">
+        <div className="flex flex-1 items-center justify-between gap-2 text-[12.5px] text-text">
           <span className="flex items-center gap-1.5">
             <span className="font-semibold">{meta.label}</span>
-            <span className="t-mono text-[11px] text-text-muted dark:text-dark-text-muted">
-              ~{meta.mb} MB
-            </span>
+            <span className="t-mono text-[11px] text-text-muted">~{meta.mb} MB</span>
             {modelCached && (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/70 bg-emerald-50 px-1.5 py-px text-[10px] font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
                 <I.Check size={9} stroke={2.5} /> Cached
@@ -385,7 +383,7 @@ function AutoPanel({
         />
       )}
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         {alreadyRemoved
           ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
           : readyForInstant
@@ -404,8 +402,8 @@ function AutoPanel({
 
 function CapabilityHints() {
   return (
-    <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
-      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+    <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.04em] text-text-muted uppercase">
         <I.Info size={12} /> What it detects
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11.5px] leading-snug">
@@ -415,13 +413,13 @@ function CapabilityHints() {
         <div className="flex items-center gap-1.5 font-semibold text-coral-700 dark:text-coral-300">
           <I.X size={13} stroke={2.5} /> Less reliable
         </div>
-        <ul className="list-none space-y-0.5 text-text-muted dark:text-dark-text-muted">
+        <ul className="list-none space-y-0.5 text-text-muted">
           <li>People, portraits</li>
           <li>Cats, dogs, animals</li>
           <li>Products, food</li>
           <li>Single clear subject</li>
         </ul>
-        <ul className="list-none space-y-0.5 text-text-muted dark:text-dark-text-muted">
+        <ul className="list-none space-y-0.5 text-text-muted">
           <li>Glass, smoke, water</li>
           <li>Multiple subjects</li>
           <li>Tiny / distant subjects</li>
@@ -484,7 +482,7 @@ function ChromaPanel({
             className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
               bgPickActive
                 ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-page-bg text-text-muted dark:bg-dark-page-bg dark:text-dark-text-muted"
+                : "bg-page-bg text-text-muted"
             }`}
             style={{ opacity: alreadyRemoved ? 0.5 : 1 }}
           >
@@ -494,7 +492,7 @@ function ChromaPanel({
           {bgSample && (
             <>
               <span
-                className="h-6 w-6 shrink-0 rounded-md border border-border dark:border-dark-border"
+                className="h-6 w-6 shrink-0 rounded-md border border-border"
                 style={{ background: bgSample }}
                 title={bgSample}
               />
@@ -502,7 +500,7 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8 dark:text-dark-text-muted dark:hover:bg-dark-page-bg"
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8"
               >
                 <I.X size={11} />
               </button>
@@ -538,7 +536,7 @@ function ChromaPanel({
           )}
         </button>
       )}
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         {alreadyRemoved
           ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
           : "Auto-detect tunes threshold + feather from the perimeter. Use Pick to click a specific colour on the image — useful when the subject and background share a similar tone."}

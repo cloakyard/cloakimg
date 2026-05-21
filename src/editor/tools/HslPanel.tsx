@@ -114,9 +114,7 @@ export function HslPanel() {
                   aria-pressed={active}
                   title={name}
                   className={`relative flex aspect-square cursor-pointer items-center justify-center rounded border p-0 ${
-                    active
-                      ? "border-coral-500 ring-2 ring-coral-500/40"
-                      : "border-border-soft dark:border-dark-border-soft"
+                    active ? "border-coral-500 ring-2 ring-coral-500/40" : "border-border-soft"
                   }`}
                   style={{ background: `hsl(${center}, 75%, 50%)` }}
                 >
@@ -131,7 +129,7 @@ export function HslPanel() {
               );
             })}
           </div>
-          <div className="mt-1.5 text-center text-[11px] font-semibold text-text-muted dark:text-dark-text-muted">
+          <div className="mt-1.5 text-center text-[11px] font-semibold text-text-muted">
             {HSL_BAND_NAMES[band]}
           </div>
         </PropRow>

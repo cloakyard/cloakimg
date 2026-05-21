@@ -55,7 +55,7 @@ export function Landing({ onStart, onIntent }: Props) {
           <h1 className="t-hero mx-auto mb-4.5 max-w-205">
             A photo editor that <em>respects your photos.</em>
           </h1>
-          <p className="t-subtitle mx-auto mb-7 max-w-160 dark:text-dark-text-muted">
+          <p className="t-subtitle mx-auto mb-7 max-w-160">
             Crop, redact, retouch and export — with on-device AI for{" "}
             <em>subject detection, background removal, smart crop, and portrait blur</em>. Models
             run in your browser. Your photo never leaves this tab.
@@ -74,7 +74,7 @@ export function Landing({ onStart, onIntent }: Props) {
               <I.ArrowRight size={16} /> Open editor
             </button>
           </div>
-          <div className="mt-5.5 flex flex-wrap justify-center gap-x-4.5 gap-y-2 text-[12.5px] font-medium text-text-muted dark:text-dark-text-muted">
+          <div className="mt-5.5 flex flex-wrap justify-center gap-x-4.5 gap-y-2 text-[12.5px] font-medium text-text-muted">
             <span className="flex items-center gap-1.5">
               <I.Lock size={13} /> Stays on your device
             </span>

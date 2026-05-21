@@ -74,7 +74,7 @@ export function App() {
 
 function EditorLoading() {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-page-bg dark:bg-dark-page-bg">
+    <div className="flex h-full w-full items-center justify-center bg-page-bg">
       <Spinner label="Loading editor…" />
     </div>
   );

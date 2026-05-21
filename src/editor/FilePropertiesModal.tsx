@@ -76,7 +76,7 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
       labelledBy="file-properties-title"
       dialogRef={dialogRef}
     >
-      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
             <I.FileImage size={16} />
@@ -92,7 +92,7 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
       </div>
 
       <div className="flex flex-col gap-3 px-5 py-4">
-        <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[12px] dark:bg-dark-page-bg">
+        <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[12px]">
           {rows.map((row) => (
             <PropRow key={row[1]} row={row} />
           ))}
@@ -101,14 +101,14 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
         {exifRows.length > 0 ? (
           <div>
             <div className="t-section-label mb-1.5">EXIF metadata</div>
-            <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[12px] dark:bg-dark-page-bg">
+            <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[12px]">
               {exifRows.map((row) => (
                 <PropRow key={row[1]} row={row} />
               ))}
             </div>
           </div>
         ) : (
-          <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          <div className="text-[11.5px] leading-relaxed text-text-muted">
             No EXIF metadata found. Screenshots, edited exports, and images stripped of metadata
             won't have any to read.
           </div>
@@ -116,7 +116,7 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
       </div>
 
       <div
-        className={`border-t border-border-soft text-right dark:border-dark-border-soft ${
+        className={`border-t border-border-soft text-right ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
@@ -131,15 +131,12 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
 function PropRow({ row }: { row: Row }) {
   const [Ic, k, v] = row;
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-border-soft py-1.5 last:border-b-0 dark:border-dark-border-soft">
-      <span className="flex items-center gap-1.5 text-text-muted dark:text-dark-text-muted">
-        <Ic size={12} className="shrink-0 self-center text-text-muted dark:text-dark-text-muted" />
+    <div className="flex items-baseline justify-between gap-3 border-b border-border-soft py-1.5 last:border-b-0">
+      <span className="flex items-center gap-1.5 text-text-muted">
+        <Ic size={12} className="shrink-0 self-center text-text-muted" />
         {k}
       </span>
-      <span
-        className="t-mono max-w-2/3 truncate text-right text-text dark:text-dark-text"
-        title={v}
-      >
+      <span className="t-mono max-w-2/3 truncate text-right text-text" title={v}>
         {v}
       </span>
     </div>

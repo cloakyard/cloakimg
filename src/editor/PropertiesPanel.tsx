@@ -35,11 +35,11 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // photo rather than walled-off panes. The trailing chevron from the
     // header was decorative (no collapse action) and removed.
     <div
-      className={`editor-paper flex shrink-0 flex-col overflow-hidden border-l border-border-soft bg-surface/60 dark:border-dark-border-soft dark:bg-dark-surface/60 ${
+      className={`editor-paper flex shrink-0 flex-col overflow-hidden border-l border-border-soft bg-surface/60 ${
         collapsed ? "w-72" : "w-82"
       }`}
     >
-      <div className="flex shrink-0 items-center gap-2.5 border-b border-border-soft px-4 py-3.5 dark:border-dark-border-soft">
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-border-soft px-4 py-3.5">
         <div className="flex h-7.5 w-7.5 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
           <Ic size={15} />
         </div>
@@ -62,7 +62,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
             onClick={() => void cancelCurrentTool()}
             title="Cancel changes (Esc)"
             aria-label="Cancel changes"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-text-muted transition-colors hover:bg-page-bg hover:text-text dark:text-dark-text-muted dark:hover:bg-dark-page-bg dark:hover:text-dark-text"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-text-muted transition-colors hover:bg-page-bg hover:text-text"
           >
             <I.X size={14} stroke={2} />
           </button>

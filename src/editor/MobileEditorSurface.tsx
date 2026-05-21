@@ -342,7 +342,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
             onClick={() => setMode("picker")}
             aria-label="Open tools"
             aria-expanded={expanded}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 border-none bg-transparent py-2.5 font-[inherit] text-text dark:text-dark-text"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 border-none bg-transparent py-2.5 font-[inherit] text-text"
             style={{ height: COLLAPSED_H }}
           >
             <I.Grid2x2 size={18} stroke={2} />
@@ -371,7 +371,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
             >
               <span
                 aria-hidden
-                className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:bg-dark-border dark:group-active:bg-dark-text-muted"
+                className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:group-active:bg-dark-text-muted"
               />
             </button>
 
@@ -439,7 +439,7 @@ function ToolGridCard({ tool, active, onClick }: CardProps) {
       className={`flex cursor-pointer flex-col items-center justify-start gap-1.5 rounded-xl border bg-transparent px-1 py-2.5 font-[inherit] transition-colors focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
         active
           ? "border-coral-500 bg-coral-50/50 text-coral-700 dark:bg-coral-900/20 dark:text-coral-300"
-          : "border-transparent text-text dark:text-dark-text"
+          : "border-transparent text-text"
       }`}
     >
       <Ic size={26} stroke={active ? 2 : 1.6} />

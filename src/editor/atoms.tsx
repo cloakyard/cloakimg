@@ -29,16 +29,12 @@ export function PropRow({ label, value, valueInput, children }: PropRowProps) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted dark:text-dark-text-muted">
+        <span className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted">
           {label}
         </span>
         {valueInput
           ? valueInput
-          : value && (
-              <span className="t-mono text-[11.5px] font-semibold text-text dark:text-dark-text">
-                {value}
-              </span>
-            )}
+          : value && <span className="t-mono text-[11.5px] font-semibold text-text">{value}</span>}
       </div>
       {children}
     </div>
@@ -125,7 +121,7 @@ export function NumericReadout({
       // clears the ~44 pt minimum without dominating desktop's denser
       // panel layout. The visible chip stays compact on hover-precise
       // pointers; only width / padding / type-size grow on coarse.
-      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px] dark:text-dark-text dark:hover:border-dark-border-soft dark:focus:bg-dark-page-bg"
+      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px]"
       aria-label="Edit value"
     />
   );
@@ -296,11 +292,11 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
       className={`relative flex h-4.5 items-center touch-none pointer-coarse:h-9 ${onChange ? "cursor-pointer" : "cursor-default"}`}
       title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
-      <div className="relative h-0.75 w-full rounded-sm bg-page-bg pointer-coarse:h-1 dark:bg-dark-page-bg">
+      <div className="relative h-0.75 w-full rounded-sm bg-page-bg pointer-coarse:h-1">
         <div
           ref={fillRef}
           className={`absolute top-0 left-0 h-full rounded-sm ${
-            accent ? "bg-coral-500" : "bg-text dark:bg-dark-text"
+            accent ? "bg-coral-500" : "bg-text"
           }`}
           style={{ width: `${value * 100}%` }}
         />
@@ -341,13 +337,13 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
   const slotPct = n > 0 ? 100 / n : 0;
   return (
     <div
-      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 [--seg-inset:2px] pointer-coarse:p-1 pointer-coarse:[--seg-inset:4px] dark:border-dark-border-soft dark:bg-dark-page-bg"
+      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 [--seg-inset:2px] pointer-coarse:p-1 pointer-coarse:[--seg-inset:4px]"
       style={style}
     >
       {n > 0 && (
         <span
           aria-hidden
-          className="pointer-events-none absolute rounded-[5px] bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-dark-surface"
+          className="pointer-events-none absolute rounded-[5px] bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
           style={{
             top: "var(--seg-inset)",
             bottom: "var(--seg-inset)",
@@ -372,9 +368,7 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             // colour on `isActive` so the active label snaps to the
             // foreground colour while the pill animates underneath.
             className={`relative z-1 flex-1 cursor-pointer rounded border-none bg-transparent px-2 py-1 text-center font-[inherit] text-[11px] font-semibold transition-colors pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
-              isActive
-                ? "text-text dark:text-dark-text"
-                : "text-text-muted dark:text-dark-text-muted"
+              isActive ? "text-text" : "text-text-muted"
             }`}
           >
             {o}
@@ -431,9 +425,7 @@ export function Spinner({ size = 36, label }: SpinnerProps) {
           className="text-coral-500 dark:text-coral-400"
         />
       </svg>
-      {label && (
-        <div className="text-[13px] text-text-muted dark:text-dark-text-muted">{label}</div>
-      )}
+      {label && <div className="text-[13px] text-text-muted">{label}</div>}
     </div>
   );
 }

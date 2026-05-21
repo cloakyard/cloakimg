@@ -208,7 +208,7 @@ function EditorShell() {
     <main
       onDragOver={onShellDragOver}
       onDrop={onShellDrop}
-      className="relative h-full w-full overflow-hidden font-sans text-text dark:text-dark-text"
+      className="relative h-full w-full overflow-hidden font-sans text-text"
     >
       {/* Animated backdrop, shared with the landing hero (see
           src/constants/grainient.ts). Skipped on phones: a 60fps
@@ -300,7 +300,7 @@ function EditorShell() {
 
 function LoadingBanner() {
   return (
-    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg dark:bg-dark-page-bg">
+    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg">
       <Spinner label="Loading image…" />
     </div>
   );
@@ -319,11 +319,11 @@ function BusyOverlay({ label }: { label: string }) {
       aria-live="polite"
     >
       <div
-        className="flex items-center gap-3 rounded-2xl border border-border-soft bg-surface/95 px-5 py-4 shadow-xl dark:border-dark-border dark:bg-dark-surface/95"
+        className="flex items-center gap-3 rounded-2xl border border-border-soft bg-surface/95 px-5 py-4 shadow-xl"
         style={{ boxShadow: "var(--shadow-modal)" }}
       >
         <Spinner size={22} />
-        <span className="text-[13px] font-medium text-text dark:text-dark-text">{label}</span>
+        <span className="text-[13px] font-medium text-text">{label}</span>
       </div>
     </div>
   );
@@ -332,10 +332,10 @@ function BusyOverlay({ label }: { label: string }) {
 function ErrorBanner({ message }: { message: string }) {
   const { exit } = useEditor();
   return (
-    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md dark:bg-dark-page-bg/90">
+    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md">
       <div
         role="alert"
-        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl dark:border-dark-border dark:bg-dark-surface"
+        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl"
       >
         <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-coral-500/12 text-coral-500">
           <span className="absolute inset-0 animate-ping rounded-full bg-coral-500/15" />
@@ -343,12 +343,12 @@ function ErrorBanner({ message }: { message: string }) {
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="text-[17px] font-semibold tracking-tight">Couldn't open this image</div>
-          <div className="text-[13px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          <div className="text-[13px] leading-relaxed text-text-muted">
             The file may be corrupted, in an unsupported format, or no longer available on this
             device.
           </div>
           {message && (
-            <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted">
+            <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted">
               {message}
             </div>
           )}

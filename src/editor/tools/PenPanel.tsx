@@ -151,7 +151,7 @@ export function PenPanel() {
           onChange={onStrokeWidth}
         />
       </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         {selected
           ? "Editing the selected path. Click an empty area on the canvas to deselect, or pick another tool to stop editing."
           : "Click to drop anchors; drag from a click to bend with bezier handles. Click the first anchor or press "}

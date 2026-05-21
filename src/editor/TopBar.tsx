@@ -76,7 +76,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         className={
           isMobile
             ? "flex h-16 shrink-0 items-center gap-1.5 px-3 py-3"
-            : "editor-paper flex h-16 shrink-0 items-center gap-3 border-b border-border-soft bg-surface/60 px-4 py-3 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface/60"
+            : "editor-paper flex h-16 shrink-0 items-center gap-3 border-b border-border-soft bg-surface/60 px-4 py-3 backdrop-blur-xl backdrop-saturate-150"
         }
       >
         <button
@@ -107,7 +107,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           </div>
         </button>
 
-        {!isMobile && <div className="h-4.5 w-px bg-border dark:bg-dark-border" />}
+        {!isMobile && <div className="h-4.5 w-px bg-border" />}
 
         {!isMobile && (
           <button
@@ -115,13 +115,13 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border-none bg-page-bg px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-page-bg dark:bg-dark-page-bg dark:hover:bg-dark-page-bg"
+            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border-none bg-page-bg px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-page-bg"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
             </span>
             {dimensions && (
-              <span className="t-mono ml-1 shrink-0 whitespace-nowrap text-[11px] text-text-muted dark:text-dark-text-muted">
+              <span className="t-mono ml-1 shrink-0 whitespace-nowrap text-[11px] text-text-muted">
                 · {dimensions}
               </span>
             )}
@@ -129,7 +129,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         )}
 
         {!isMobile && (
-          <div className="flex rounded-lg border border-border-soft bg-page-bg p-0.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
+          <div className="flex rounded-lg border border-border-soft bg-page-bg p-0.5">
             {(["single", "batch"] as const).map((m) => {
               const active = mode === m;
               return (
@@ -139,8 +139,8 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
                   onClick={() => setMode(m)}
                   className={`flex cursor-pointer items-center gap-1.5 rounded-md border-none px-3 py-1 font-[inherit] text-[11.5px] font-semibold capitalize ${
                     active
-                      ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-dark-surface dark:text-dark-text"
-                      : "bg-transparent text-text-muted dark:text-dark-text-muted"
+                      ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+                      : "bg-transparent text-text-muted"
                   }`}
                 >
                   {m === "batch" && <I.Layers size={11} />}
@@ -156,13 +156,13 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         {!isMobile && (
           <>
             <span
-              className="inline-flex items-center gap-1.5 text-[12px] text-text-muted dark:text-dark-text-muted"
+              className="inline-flex items-center gap-1.5 text-[12px] text-text-muted"
               title="Every edit stays on this device. No uploads, no telemetry, no AI."
             >
               <I.Shield size={13} stroke={2.25} className="text-coral-500 dark:text-coral-400" />
               Private
             </span>
-            <div className="h-4.5 w-px bg-border dark:bg-dark-border" />
+            <div className="h-4.5 w-px bg-border" />
           </>
         )}
 
@@ -199,10 +199,10 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           )}
         </div>
 
-        {!isMobile && <div className="h-4.5 w-px bg-border dark:bg-dark-border" />}
+        {!isMobile && <div className="h-4.5 w-px bg-border" />}
 
         {!isMobile && (
-          <div className="flex items-center gap-1 rounded-lg bg-page-bg p-0.5 dark:bg-dark-page-bg">
+          <div className="flex items-center gap-1 rounded-lg bg-page-bg p-0.5">
             <button
               type="button"
               className="btn btn-ghost btn-icon-xs"

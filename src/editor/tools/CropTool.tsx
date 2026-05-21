@@ -601,7 +601,7 @@ export function CropPanel() {
         type="button"
         onClick={() => void smartCrop()}
         disabled={smartBusy}
-        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px]"
         style={{ opacity: smartBusy ? 0.7 : 1 }}
       >
         {smartBusy ? (
@@ -683,7 +683,7 @@ export function CropPanel() {
               </>
             )}
           </button>
-          <p className="text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
+          <p className="text-[11px] leading-[1.45] text-text-muted">
             Or press Enter / switch tools. R resets the rect. Undo/Redo recover.
           </p>
         </>
@@ -811,8 +811,8 @@ function NumInput({
     else setDraft(String(value));
   };
   return (
-    <label className="flex items-center gap-1.5 rounded-md border border-border bg-page-bg px-2 py-1 text-[12px] dark:border-dark-border dark:bg-dark-page-bg">
-      <span className="text-text-muted dark:text-dark-text-muted">{label}</span>
+    <label className="flex items-center gap-1.5 rounded-md border border-border bg-page-bg px-2 py-1 text-[12px]">
+      <span className="text-text-muted">{label}</span>
       <input
         type="number"
         inputMode="numeric"
@@ -824,7 +824,7 @@ function NumInput({
             (e.currentTarget as HTMLInputElement).blur();
           }
         }}
-        className="t-mono w-full min-w-0 border-none bg-transparent p-0 font-[inherit] text-[12px] font-semibold text-text outline-none dark:text-dark-text"
+        className="t-mono w-full min-w-0 border-none bg-transparent p-0 font-[inherit] text-[12px] font-semibold text-text outline-none"
       />
     </label>
   );

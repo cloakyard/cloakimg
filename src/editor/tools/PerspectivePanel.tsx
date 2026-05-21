@@ -81,14 +81,14 @@ export function PerspectivePanel() {
 
   return (
     <>
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         {isMobile
           ? "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting."
           : "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting — then Apply to flatten it."}
       </div>
 
       {recommended && !degenerate && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11.5px] leading-relaxed text-text-muted">
           Output size: {recommended.w} × {recommended.h}
         </div>
       )}

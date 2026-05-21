@@ -65,12 +65,12 @@ export function EmojiPanel() {
           <div
             role="img"
             aria-label={`Selected emoji ${active}`}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-[28px] leading-none dark:border-dark-border dark:bg-dark-surface"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-[28px] leading-none"
             style={{ fontFamily: EMOJI_FONT_STACK }}
           >
             {active}
           </div>
-          <div className="text-[11.5px] leading-snug text-text-muted dark:text-dark-text-muted">
+          <div className="text-[11.5px] leading-snug text-text-muted">
             Click on the canvas to drop this emoji.
           </div>
         </div>
@@ -91,7 +91,7 @@ export function EmojiPanel() {
                 className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 text-[15px] leading-none ${
                   isActive
                     ? "border border-coral-500 bg-coral-500/10"
-                    : "border border-border bg-surface dark:border-dark-border dark:bg-dark-surface"
+                    : "border border-border bg-surface"
                 }`}
                 style={{ fontFamily: EMOJI_FONT_STACK }}
               >
@@ -117,7 +117,7 @@ export function EmojiPanel() {
                 className={`flex aspect-square cursor-pointer items-center justify-center rounded-md text-[20px] leading-none ${
                   isActive
                     ? "border-2 border-coral-500 bg-coral-500/10"
-                    : "border border-border bg-surface dark:border-dark-border dark:bg-dark-surface"
+                    : "border border-border bg-surface"
                 }`}
                 style={{ fontFamily: EMOJI_FONT_STACK }}
               >
@@ -144,7 +144,7 @@ export function EmojiPanel() {
             }}
             placeholder="🙂"
             aria-label="Paste any emoji"
-            className="h-8 min-w-0 flex-1 rounded-md border border-border bg-surface px-2 text-[14px] leading-none dark:border-dark-border dark:bg-dark-surface"
+            className="h-8 min-w-0 flex-1 rounded-md border border-border bg-surface px-2 text-[14px] leading-none"
             style={{ fontFamily: EMOJI_FONT_STACK }}
           />
           <button
@@ -158,7 +158,7 @@ export function EmojiPanel() {
         </div>
       </PropRow>
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         Pick from the grid or paste any emoji — including ones from your system picker (
         {navigator.platform.startsWith("Mac") ? "Cmd+Ctrl+Space" : "Win+."}). Drops as a layer you
         can drag, scale, and rotate.

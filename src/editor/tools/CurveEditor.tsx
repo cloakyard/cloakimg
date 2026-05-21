@@ -246,7 +246,7 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
   const reset = useCallback(() => onChange(IDENTITY_CURVE), [onChange]);
 
   return (
-    <div className="rounded-md border border-border-soft bg-page-bg p-1.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
+    <div className="rounded-md border border-border-soft bg-page-bg p-1.5">
       <svg
         ref={svgRef}
         viewBox="0 0 255 255"
@@ -337,7 +337,7 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
           );
         })}
       </svg>
-      <div className="mt-1 flex items-center justify-between text-text-muted dark:text-dark-text-muted">
+      <div className="mt-1 flex items-center justify-between text-text-muted">
         <span className="text-[10px] pointer-coarse:text-[11px]">
           {COARSE_POINTER
             ? "Tap to add · drag off edge to remove"

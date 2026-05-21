@@ -269,7 +269,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           keeps the title inline in the right column where it pairs with
           the form fields. */}
       {isMobile && (
-        <div className="flex items-center justify-between border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+        <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
               <I.Download size={15} />
@@ -339,7 +339,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             />
           </PropRow>
           {heicSupported && settings.format === 4 && (
-            <p className="-mt-2 text-[11px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
+            <p className="-mt-2 text-[11px] leading-[1.45] text-text-muted">
               HEIC export uses Safari's native encoder. For the same wide-gamut + small-file
               benefits in Chrome/Firefox, use AVIF.
             </p>
@@ -371,13 +371,13 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           <PropRow label="Resize to">
             <div className="flex items-center gap-1.5 text-[12.5px]">
               <DimInput label="W" value={targetW} onChange={(n) => onPatch({ width: n })} />
-              <I.X size={11} className="text-text-muted dark:text-dark-text-muted" />
+              <I.X size={11} className="text-text-muted" />
               <DimInput label="H" value={targetH} onChange={(n) => onPatch({ height: n })} />
             </div>
           </PropRow>
 
-          <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[11.5px] dark:bg-dark-page-bg">
-            <span className="text-text-muted dark:text-dark-text-muted">Estimated size</span>
+          <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[11.5px]">
+            <span className="text-text-muted">Estimated size</span>
             <span className="t-mono font-semibold">{formatBytesRough(estimate)}</span>
           </div>
 
@@ -415,7 +415,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
         <div
           className={`flex shrink-0 gap-2 ${
             isMobile
-              ? "border-t border-border-soft px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)] dark:border-dark-border-soft"
+              ? "border-t border-border-soft px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]"
               : "px-5.5 pb-5.5"
           }`}
         >
@@ -472,11 +472,11 @@ function MetadataSection({
   const body = (
     <div className="flex flex-col gap-2.5">
       {metaFields.length > 0 && (
-        <div className="t-mono rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[11px] leading-7 dark:border-dark-border-soft dark:bg-dark-surface">
+        <div className="t-mono rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[11px] leading-7">
           {metaFields.map(([k, v]) => (
             <div key={k} className="flex justify-between gap-2">
-              <span className="text-text-muted dark:text-dark-text-muted">{k}</span>
-              <span className="text-right text-text dark:text-dark-text">{v}</span>
+              <span className="text-text-muted">{k}</span>
+              <span className="text-right text-text">{v}</span>
             </div>
           ))}
         </div>
@@ -494,10 +494,10 @@ function MetadataSection({
 
   if (isMobile) {
     return (
-      <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-2.5 py-2.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-text dark:text-dark-text">
+      <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-2.5 py-2.5">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-text">
           <I.Tag size={12} /> Metadata
-          <span className="text-[10.5px] font-normal text-text-muted dark:text-dark-text-muted">
+          <span className="text-[10.5px] font-normal text-text-muted">
             {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
           </span>
         </div>
@@ -507,25 +507,25 @@ function MetadataSection({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg">
+    <div className="overflow-hidden rounded-lg border border-border-soft bg-page-bg">
       <button
         type="button"
         onClick={() => setMetaOpen((o) => !o)}
         aria-expanded={metaOpen}
-        className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-semibold text-text dark:text-dark-text ${
-          metaOpen ? "border-b border-border-soft dark:border-dark-border-soft" : ""
+        className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-semibold text-text ${
+          metaOpen ? "border-b border-border-soft" : ""
         }`}
       >
         <span className="inline-flex items-center gap-1.5">
           <I.Tag size={12} /> Metadata
-          <span className="text-[10.5px] font-normal text-text-muted dark:text-dark-text-muted">
+          <span className="text-[10.5px] font-normal text-text-muted">
             {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
           </span>
         </span>
         <I.ChevronDown
           size={14}
           stroke={2.25}
-          className="text-text-muted dark:text-dark-text-muted"
+          className="text-text-muted"
           style={{
             transform: metaOpen ? "rotate(180deg)" : "none",
             transition: "transform 120ms ease",
@@ -547,13 +547,13 @@ function DimInput({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 dark:border-dark-border dark:bg-dark-page-bg">
-      <span className="text-[10.5px] text-text-muted dark:text-dark-text-muted">{label}</span>
+    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5">
+      <span className="text-[10.5px] text-text-muted">{label}</span>
       <input
         type="number"
         value={value || ""}
         onChange={(e) => onChange(Math.max(1, +e.target.value || 0))}
-        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none dark:text-dark-text"
+        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none"
       />
     </div>
   );

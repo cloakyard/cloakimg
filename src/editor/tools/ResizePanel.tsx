@@ -167,18 +167,18 @@ export function ResizePanel() {
   return (
     <>
       <PropRow label="Preview">
-        <div className="flex items-center justify-between gap-2 rounded-lg bg-page-bg px-2.5 py-2 dark:bg-dark-page-bg">
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-page-bg px-2.5 py-2">
           <div
             role="img"
             aria-label="Source size"
-            className="checker relative shrink-0 overflow-hidden rounded-sm border border-border dark:border-dark-border"
+            className="checker relative shrink-0 overflow-hidden rounded-sm border border-border"
             style={{ width: sourceBox.w, height: sourceBox.h }}
           >
             {sourceThumbUrl && (
               <img src={sourceThumbUrl} alt="" className="h-full w-full object-cover" />
             )}
           </div>
-          <div className="flex flex-col items-center text-text-muted dark:text-dark-text-muted">
+          <div className="flex flex-col items-center text-text-muted">
             <I.ArrowRight size={14} />
             <span className="t-mono text-[10.5px] font-semibold">{pct}%</span>
           </div>
@@ -194,7 +194,7 @@ export function ResizePanel() {
           </div>
         </div>
         {doc && (
-          <div className="t-mono mt-1 text-center text-[10.5px] text-text-muted dark:text-dark-text-muted">
+          <div className="t-mono mt-1 text-center text-[10.5px] text-text-muted">
             {doc.width} × {doc.height} → {targetW} × {targetH} px
           </div>
         )}
@@ -210,7 +210,7 @@ export function ResizePanel() {
             className={`inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-md border p-0 ${
               toolState.resizeAspectLock
                 ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : "border-border bg-surface text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted"
+                : "border-border bg-surface text-text-muted"
             }`}
           >
             <I.Lock size={11} />
@@ -243,7 +243,7 @@ export function ResizePanel() {
         />
       </PropRow>
       {toolState.resizeQuality === 1 && (
-        <div className="text-[11px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11px] leading-relaxed text-text-muted">
           High runs a Lanczos-3 pass — sharper at moderate downscales, slower than Fast. Falls back
           to Fast automatically when the change is too small to benefit.
         </div>
@@ -314,13 +314,13 @@ function DimInput({
   label: string;
 }) {
   return (
-    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 text-[12.5px] dark:border-dark-border dark:bg-dark-page-bg">
-      <span className="text-[10.5px] text-text-muted dark:text-dark-text-muted">{label}</span>
+    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 text-[12.5px]">
+      <span className="text-[10.5px] text-text-muted">{label}</span>
       <input
         type="number"
         value={value}
         onChange={(e) => onChange(+e.target.value || 0)}
-        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none dark:text-dark-text"
+        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none"
       />
     </div>
   );

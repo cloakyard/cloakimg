@@ -39,7 +39,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
       aria-label="Batch drop zone"
       onDragOver={(e) => e.preventDefault()}
       onDrop={onDrop}
-      className={`flex-1 overflow-y-auto bg-page-bg dark:bg-dark-page-bg ${isMobile ? "p-3.5" : "p-6"}`}
+      className={`flex-1 overflow-y-auto bg-page-bg ${isMobile ? "p-3.5" : "p-6"}`}
     >
       <div className="mb-3.5 flex items-center justify-between">
         <div>
@@ -49,7 +49,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
               : `Batch · ${batchFiles.length} file${batchFiles.length === 1 ? "" : "s"}`}
           </div>
           {batchFiles.length > 0 && (
-            <div className="text-[11.5px] text-text-muted dark:text-dark-text-muted">
+            <div className="text-[11.5px] text-text-muted">
               {counts.progress} in progress · {counts.done} done · {counts.queued} queued
               {counts.error > 0 ? ` · ${counts.error} failed` : ""}
             </div>
@@ -83,7 +83,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
         )}
       </div>
 
-      <div className="relative mb-4 h-1 overflow-hidden rounded-sm bg-border dark:bg-dark-border">
+      <div className="relative mb-4 h-1 overflow-hidden rounded-sm bg-border">
         <div
           className="absolute top-0 bottom-0 left-0 bg-coral-500"
           style={{ width: `${progress * 100}%`, transition: "width 220ms ease" }}
@@ -118,7 +118,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
 
 function BatchThumb({ f }: { f: ReturnType<typeof useEditor>["batchFiles"][number] }) {
   return (
-    <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-surface dark:border-dark-border dark:bg-dark-surface">
+    <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-surface">
       {f.thumbUrl ? (
         <img
           src={f.thumbUrl}
@@ -127,7 +127,7 @@ function BatchThumb({ f }: { f: ReturnType<typeof useEditor>["batchFiles"][numbe
           style={{ filter: f.status === "queued" ? "opacity(0.6)" : "none" }}
         />
       ) : (
-        <div className="h-full w-full bg-page-bg dark:bg-dark-page-bg" />
+        <div className="h-full w-full bg-page-bg" />
       )}
       {f.status === "progress" && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/35">
@@ -276,16 +276,16 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
 
   return (
     <div
-      className={`editor-paper scroll-thin flex shrink-0 flex-col overflow-y-auto border-l border-border bg-surface dark:border-dark-border dark:bg-dark-surface ${
+      className={`editor-paper scroll-thin flex shrink-0 flex-col overflow-y-auto border-l border-border bg-surface ${
         collapsed ? "w-72" : "w-82"
       }`}
     >
-      <div className="border-b border-border-soft px-4 py-3.5 dark:border-dark-border-soft">
+      <div className="border-b border-border-soft px-4 py-3.5">
         <div className="t-eyebrow mb-1.5 text-[10px]">Recipe</div>
         <div className="text-sm font-semibold">
           Apply to {batchFiles.length === 0 ? "..." : `${batchFiles.length} files`}
         </div>
-        <div className="mt-0.75 text-[11.5px] text-text-muted dark:text-dark-text-muted">
+        <div className="mt-0.75 text-[11.5px] text-text-muted">
           Drag steps to reorder · click to expand parameters.
         </div>
       </div>
@@ -300,7 +300,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
               onDragStart={(e) => onDragStart(e, i)}
               onDragOver={onDragOver}
               onDrop={(e) => onDropStep(e, i)}
-              className="flex flex-col rounded-lg border border-border-soft bg-page-bg dark:border-dark-border-soft dark:bg-dark-page-bg"
+              className="flex flex-col rounded-lg border border-border-soft bg-page-bg"
               style={{ opacity: dragIdx === i ? 0.4 : 1 }}
             >
               <div className="flex items-stretch">
@@ -314,7 +314,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[12.5px] font-semibold">{meta.title}</span>
-                    <span className="block text-[10.5px] text-text-muted dark:text-dark-text-muted">
+                    <span className="block text-[10.5px] text-text-muted">
                       {describeStep(step)}
                     </span>
                   </span>
@@ -326,13 +326,13 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
                     if (expandedIdx === i) setExpandedIdx(null);
                   }}
                   aria-label="Remove step"
-                  className="cursor-pointer border-none bg-transparent px-2.5 py-0 text-text-muted dark:text-dark-text-muted"
+                  className="cursor-pointer border-none bg-transparent px-2.5 py-0 text-text-muted"
                 >
                   <I.X size={12} />
                 </button>
               </div>
               {expanded && (
-                <div className="border-t border-border-soft px-3 pb-3 dark:border-dark-border-soft">
+                <div className="border-t border-border-soft px-3 pb-3">
                   <StepEditor
                     step={step}
                     onChange={(next) =>
@@ -356,7 +356,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
           {addingOpen && (
             <div
               role="menu"
-              className="absolute right-0 left-0 z-20 overflow-hidden rounded-lg border border-border bg-surface dark:border-dark-border dark:bg-dark-surface"
+              className="absolute right-0 left-0 z-20 overflow-hidden rounded-lg border border-border bg-surface"
               style={{ top: "calc(100% + 4px)", boxShadow: "var(--shadow-float)" }}
             >
               {(["resize", "adjust", "filter", "strip-metadata", "convert"] as StepKind[]).map(
@@ -385,7 +385,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
         </li>
       </ul>
       <div className="flex-1" />
-      <div className="flex flex-col gap-2 border-t border-border-soft px-4 py-3.5 dark:border-dark-border-soft">
+      <div className="flex flex-col gap-2 border-t border-border-soft px-4 py-3.5">
         <button
           type="button"
           className="btn btn-primary btn-sm justify-center"
@@ -403,7 +403,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
             <I.Download size={12} /> Download all ({doneFiles.length}) as .zip
           </button>
         )}
-        <div className="text-center text-[10.5px] text-text-muted dark:text-dark-text-muted">
+        <div className="text-center text-[10.5px] text-text-muted">
           {batchFiles.length === 0
             ? "Drop files in the left panel to start"
             : "Done thumbnails become individual download links"}
@@ -480,14 +480,14 @@ function StepEditor({ step, onChange }: StepEditorProps) {
   }
   if (step.kind === "adjust") {
     return (
-      <div className="py-2 text-[11px] text-text-muted dark:text-dark-text-muted">
+      <div className="py-2 text-[11px] text-text-muted">
         Custom adjust vectors are edited via the Adjust tool. Tweak there, then re-create this step
         to capture the new values.
       </div>
     );
   }
   return (
-    <div className="py-2 text-[11px] text-text-muted dark:text-dark-text-muted">
+    <div className="py-2 text-[11px] text-text-muted">
       Strips GPS, camera info, and timestamps from the source EXIF on JPEG output.
     </div>
   );
@@ -505,7 +505,7 @@ interface NumberRowProps {
 function NumberRow({ label, value, min, max, suffix, onChange }: NumberRowProps) {
   return (
     <label className="flex items-center justify-between gap-2.5 py-1.5 text-[11.5px]">
-      <span className="text-text-muted dark:text-dark-text-muted">{label}</span>
+      <span className="text-text-muted">{label}</span>
       <span className="flex items-center gap-1">
         <input
           type="number"
@@ -517,11 +517,9 @@ function NumberRow({ label, value, min, max, suffix, onChange }: NumberRowProps)
             if (!Number.isFinite(n)) return;
             onChange(Math.max(min ?? n, Math.min(max ?? n, n)));
           }}
-          className="w-16 rounded border border-border bg-surface px-1.5 py-1 text-right font-mono text-[11.5px] text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text"
+          className="w-16 rounded border border-border bg-surface px-1.5 py-1 text-right font-mono text-[11.5px] text-text"
         />
-        {suffix && (
-          <span className="text-[10.5px] text-text-muted dark:text-dark-text-muted">{suffix}</span>
-        )}
+        {suffix && <span className="text-[10.5px] text-text-muted">{suffix}</span>}
       </span>
     </label>
   );
@@ -537,11 +535,11 @@ interface SelectRowProps {
 function SelectRow({ label, value, options, onChange }: SelectRowProps) {
   return (
     <label className="flex items-center justify-between gap-2.5 py-1.5 text-[11.5px]">
-      <span className="text-text-muted dark:text-dark-text-muted">{label}</span>
+      <span className="text-text-muted">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(+e.target.value)}
-        className="rounded border border-border bg-surface px-1.5 py-1 font-[inherit] text-[11.5px] text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text"
+        className="rounded border border-border bg-surface px-1.5 py-1 font-[inherit] text-[11.5px] text-text"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

@@ -73,20 +73,15 @@ body {
    backdrop mounted in UnifiedEditor (desktop only) so a hint of
    warmth bleeds through the chrome.
 
-   Alpha is tuned per-scheme: light needs 0.78 (the warm wash fades
-   fast against cream so we leave more headroom), dark holds at 0.84
-   (panels need more body to keep contrast on the near-black page).
-   saturate(180%) amplifies whatever colour is behind so the warm
-   cast reads even where the gradient field is faint. */
+   Alpha is tuned per-scheme via light-dark() — light needs 0.7 (the
+   warm wash fades fast against cream so we leave more headroom), dark
+   holds at 0.76 (panels need more body to keep contrast on the
+   near-black page). saturate(200%) amplifies whatever colour is behind
+   so the warm cast reads even where the gradient field is faint. */
 .editor-paper {
-  background: rgba(255, 255, 255, 0.7);
+  background: light-dark(rgba(255, 255, 255, 0.7), rgba(28, 24, 20, 0.76));
   backdrop-filter: blur(20px) saturate(200%);
   -webkit-backdrop-filter: blur(20px) saturate(200%);
-}
-@media (prefers-color-scheme: dark) {
-  .editor-paper {
-    background: rgba(28, 24, 20, 0.76);
-  }
 }
 /* On phones the backdrop-filter is the single biggest compositor cost
    in the editor — every slider tick or canvas re-paint forces the GPU
@@ -98,14 +93,9 @@ body {
    src/editor/breakpoints.ts — CSS can't read the JS constant directly. */
 @media (max-width: 760px) {
   .editor-paper {
-    background: rgba(255, 255, 255, 0.94);
+    background: light-dark(rgba(255, 255, 255, 0.94), rgb(28, 24, 20));
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-  }
-  @media (prefers-color-scheme: dark) {
-    .editor-paper {
-      background: rgb(28, 24, 20);
-    }
   }
   /* "Expansive canvas" treatment originally landed on mobile (May 2026)
      and now extends to desktop + tablet (May 2026 desktop redesign).

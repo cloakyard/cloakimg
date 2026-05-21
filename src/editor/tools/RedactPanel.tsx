@@ -294,13 +294,13 @@ export function RedactPanel() {
         </div>
       </PropRow>
       <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
-      <div className="text-[11px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11px] leading-relaxed text-text-muted">
         Pick one: Person redacts the whole subject silhouette; Faces redacts each detected face
         individually. Switching from one to the other replaces the previous bake. Detection runs
         locally — your image never leaves this device.
       </div>
 
-      <div className="my-1 h-px bg-border-soft dark:bg-dark-border-soft" />
+      <div className="my-1 h-px bg-border-soft" />
 
       <PropRow label="Mode">
         <Segment
@@ -338,7 +338,7 @@ export function RedactPanel() {
           onChange={(v) => patchTool("feather", v)}
         />
       </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         {isBrush
           ? `Drag along the canvas to paint ${styleLabel.toLowerCase()} redactions.`
           : `Drag a rectangle on the image to ${styleLabel.toLowerCase()} the region.`}
@@ -374,19 +374,17 @@ function SmartAnonymizeButton({
   // selected tier row). Inactive uses the soft border so the picker
   // reads as a single segmented control rather than two unrelated
   // buttons.
-  const borderClass = active
-    ? "border-coral-500 ring-2 ring-coral-500/30"
-    : "border-border-soft dark:border-dark-border-soft";
+  const borderClass = active ? "border-coral-500 ring-2 ring-coral-500/30" : "border-border-soft";
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      className={`flex cursor-pointer flex-col items-stretch gap-0.5 rounded-md border bg-page-bg px-2.5 py-2 text-left font-[inherit] dark:bg-dark-page-bg ${borderClass}`}
+      className={`flex cursor-pointer flex-col items-stretch gap-0.5 rounded-md border bg-page-bg px-2.5 py-2 text-left font-[inherit] ${borderClass}`}
       style={{ opacity: disabled && !busy ? 0.6 : 1 }}
     >
-      <div className="flex items-center justify-between gap-2 text-[12px] font-semibold text-text dark:text-dark-text">
+      <div className="flex items-center justify-between gap-2 text-[12px] font-semibold text-text">
         <span className="flex items-center gap-1.5">
           {busy ? (
             <InlineSpinner size={12} />
@@ -406,9 +404,7 @@ function SmartAnonymizeButton({
           <I.Check size={12} className="text-coral-500 dark:text-coral-400" aria-hidden />
         )}
       </div>
-      <span className="text-[10.5px] leading-snug text-text-muted dark:text-dark-text-muted">
-        {description}
-      </span>
+      <span className="text-[10.5px] leading-snug text-text-muted">{description}</span>
     </button>
   );
 }

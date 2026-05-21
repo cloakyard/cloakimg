@@ -71,10 +71,8 @@ export function Features() {
     <section className="mx-auto max-w-275 px-5 pt-2 pb-10 sm:px-8 sm:pt-4 sm:pb-16">
       <div className="mb-8 text-center sm:mb-12">
         <div className="t-eyebrow mb-2.5">Why CloakIMG</div>
-        <h2 className="t-display m-0 text-text dark:text-dark-text">
-          Everything you need, nothing you don&rsquo;t.
-        </h2>
-        <p className="t-subtitle mx-auto mt-3 max-w-140 dark:text-dark-text-muted">
+        <h2 className="t-display m-0 text-text">Everything you need, nothing you don&rsquo;t.</h2>
+        <p className="t-subtitle mx-auto mt-3 max-w-140">
           A modern photo editor that respects your privacy — built for people who care about their
           images and their craft.
         </p>
@@ -99,12 +97,10 @@ function FeatureItem({ icon, title, description }: Feature) {
         {icon}
       </span>
       <div className="min-w-0">
-        <div className="mb-1 text-[14.5px] font-semibold tracking-[-0.005em] text-text dark:text-dark-text">
+        <div className="mb-1 text-[14.5px] font-semibold tracking-[-0.005em] text-text">
           {title}
         </div>
-        <div className="text-[13.5px] leading-[1.55] text-text-muted dark:text-dark-text-muted">
-          {description}
-        </div>
+        <div className="text-[13.5px] leading-[1.55] text-text-muted">{description}</div>
       </div>
     </div>
   );

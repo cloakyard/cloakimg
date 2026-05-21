@@ -55,7 +55,7 @@ export function MobileMoreMenu({
       labelledBy="mobile-more-title"
       dialogRef={dialogRef}
     >
-      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div id="mobile-more-title" className="t-headline text-base">
           Actions
         </div>
@@ -94,7 +94,7 @@ export function MobileMoreMenu({
 }
 
 function Divider() {
-  return <div className="mx-2 h-px bg-border-soft/40 dark:bg-dark-border-soft/40" />;
+  return <div className="mx-2 h-px bg-border-soft/40" />;
 }
 
 interface MenuItemProps {
@@ -112,7 +112,7 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-xl border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 dark:text-dark-text ${
+      className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-xl border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
         active
           ? "bg-coral-50/70 dark:bg-coral-900/20"
           : "hover:bg-white/40 active:bg-white/55 dark:hover:bg-white/5 dark:active:bg-white/8"
@@ -120,9 +120,7 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
     >
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-          active
-            ? "text-coral-700 dark:text-coral-300"
-            : "text-text-muted dark:text-dark-text-muted"
+          active ? "text-coral-700 dark:text-coral-300" : "text-text-muted"
         }`}
       >
         <Icon size={17} stroke={2.1} />
@@ -130,7 +128,7 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-[13.5px] font-semibold">{label}</span>
         {hint && (
-          <span className="overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted dark:text-dark-text-muted">
+          <span className="overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted">
             {hint}
           </span>
         )}

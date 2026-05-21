@@ -56,7 +56,7 @@ export function Footer({ onPrivacy }: Props) {
               child to clip — no bug to work around. */}
           {/* How it works card — coral glow anchored top-right */}
           <div
-            className="relative flex flex-col rounded-2xl border border-border-soft bg-surface-glass p-5 backdrop-blur-md dark:border-dark-border-soft dark:bg-dark-surface-glass"
+            className="relative flex flex-col rounded-2xl border border-border-soft bg-surface-glass p-5 backdrop-blur-md"
             style={{
               backgroundImage:
                 "radial-gradient(280px 280px at 100% 0%, rgba(245, 97, 58, 0.18) 0%, rgba(245, 97, 58, 0.06) 38%, transparent 68%)",
@@ -74,12 +74,12 @@ export function Footer({ onPrivacy }: Props) {
                 <div className="t-eyebrow">How it works</div>
                 <span
                   translate="no"
-                  className="inline-flex shrink-0 items-center rounded-full border border-border-soft bg-slate-900/4 px-2 py-px font-mono text-[10px] tabular-nums tracking-tight text-text-muted dark:border-dark-border-soft dark:bg-white/5 dark:text-dark-text-muted"
+                  className="inline-flex shrink-0 items-center rounded-full border border-border-soft bg-slate-900/4 px-2 py-px font-mono text-[10px] tabular-nums tracking-tight text-text-muted dark:bg-white/5"
                 >
                   v{version}
                 </span>
               </div>
-              <h3 className="t-title mt-2 text-text sm:text-[19px] dark:text-dark-text">
+              <h3 className="t-title mt-2 text-text sm:text-[19px]">
                 From open to export, in three steps.
               </h3>
             </div>
@@ -93,10 +93,10 @@ export function Footer({ onPrivacy }: Props) {
                     {step.n}
                   </span>
                   <div className="min-w-0">
-                    <div className="text-[13px] font-semibold tracking-[-0.005em] text-text dark:text-dark-text">
+                    <div className="text-[13px] font-semibold tracking-[-0.005em] text-text">
                       {step.title}
                     </div>
-                    <div className="text-[12.5px] leading-[1.55] text-text-muted dark:text-dark-text-muted">
+                    <div className="text-[12.5px] leading-[1.55] text-text-muted">
                       {step.description}
                     </div>
                   </div>
@@ -110,7 +110,7 @@ export function Footer({ onPrivacy }: Props) {
             href={GITHUB_ORG_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative flex flex-col justify-between rounded-2xl border border-border-soft bg-surface-glass p-5 text-inherit no-underline backdrop-blur-md transition-colors hover:border-coral-500/45 dark:border-dark-border-soft dark:bg-dark-surface-glass"
+            className="group relative flex flex-col justify-between rounded-2xl border border-border-soft bg-surface-glass p-5 text-inherit no-underline backdrop-blur-md transition-colors hover:border-coral-500/45"
             style={{
               backgroundImage:
                 "radial-gradient(280px 280px at 0% 100%, rgba(245, 97, 58, 0.14) 0%, rgba(245, 97, 58, 0.05) 38%, transparent 68%)",
@@ -124,12 +124,12 @@ export function Footer({ onPrivacy }: Props) {
                   aria-hidden="true"
                   className="h-7 w-7 drop-shadow-sm"
                 />
-                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-text-muted dark:text-dark-text-muted">
+                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-text-muted">
                   Part of
                 </span>
               </div>
-              <h4 className="t-title mt-2.5 text-text dark:text-dark-text">Cloakyard</h4>
-              <p className="t-caption mt-1 dark:text-dark-text-muted">
+              <h4 className="t-title mt-2.5 text-text">Cloakyard</h4>
+              <p className="t-caption mt-1">
                 A family of privacy-focused tools that keep your data on your device.
               </p>
             </div>
@@ -145,14 +145,14 @@ export function Footer({ onPrivacy }: Props) {
         </div>
 
         {/* Slim attribution row */}
-        <div className="flex flex-col gap-2 border-t border-border-soft pt-4 text-[12.5px] text-text-muted sm:flex-row sm:items-center sm:gap-4 dark:border-dark-border-soft dark:text-dark-text-muted">
+        <div className="flex flex-col gap-2 border-t border-border-soft pt-4 text-[12.5px] text-text-muted sm:flex-row sm:items-center sm:gap-4">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
             <span>Built with care by</span>
             <a
               href={GITHUB_AUTHOR_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-text no-underline transition-colors hover:text-coral-600 dark:text-dark-text dark:hover:text-coral-400"
+              className="font-medium text-text no-underline transition-colors hover:text-coral-600 dark:hover:text-coral-400"
             >
               Sumit Sahoo
             </a>
@@ -163,7 +163,7 @@ export function Footer({ onPrivacy }: Props) {
                 <button
                   type="button"
                   onClick={onPrivacy}
-                  className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 font-[inherit] text-[12.5px] text-text-muted transition-colors hover:text-coral-600 dark:text-dark-text-muted dark:hover:text-coral-400"
+                  className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 font-[inherit] text-[12.5px] text-text-muted transition-colors hover:text-coral-600 dark:hover:text-coral-400"
                 >
                   <I.ShieldCheck size={14} />
                   Privacy
@@ -175,7 +175,7 @@ export function Footer({ onPrivacy }: Props) {
               href={GITHUB_LICENSE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-text-muted no-underline transition-colors hover:text-coral-600 dark:text-dark-text-muted dark:hover:text-coral-400"
+              className="inline-flex items-center gap-1 text-text-muted no-underline transition-colors hover:text-coral-600 dark:hover:text-coral-400"
             >
               <I.Scale size={14} />
               <span>MIT licensed</span>

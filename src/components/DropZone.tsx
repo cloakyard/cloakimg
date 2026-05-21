@@ -225,10 +225,10 @@ export function DropZone({
       onTouchEnd={clearGlow}
       onTouchCancel={clearGlow}
       style={{ touchAction: "manipulation" }}
-      className={`group relative overflow-hidden rounded-2xl border-2 border-dashed bg-surface/70 text-center transition-[border-color,background-color,transform] duration-200 dark:bg-dark-surface/70 ${
+      className={`group relative overflow-hidden rounded-2xl border-2 border-dashed bg-surface/70 text-center transition-[border-color,background-color,transform] duration-200 ${
         hover
           ? "scale-[1.005] border-coral-500 bg-coral-50/60 dark:bg-coral-900/30"
-          : "border-border dark:border-dark-border"
+          : "border-border"
       } ${isPhone ? "px-5 py-7" : "px-7 py-10"}`}
     >
       {/* Cursor / touch spotlight glow */}
@@ -279,7 +279,7 @@ export function DropZone({
               ? "bg-coral-100 text-coral-600 dark:bg-coral-900/50"
               : showSelected
                 ? "bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-page-bg text-text-muted group-hover:bg-coral-50 group-hover:text-coral-500 dark:bg-dark-page-bg dark:text-dark-text-muted dark:group-hover:bg-coral-900/30"
+                : "bg-page-bg text-text-muted group-hover:bg-coral-50 group-hover:text-coral-500 dark:group-hover:bg-coral-900/30"
           }`}
         >
           {previewLoading ? (
@@ -302,12 +302,12 @@ export function DropZone({
       )}
       <div
         className={`relative z-10 mb-1 text-base font-semibold transition-colors duration-200 ${
-          hover ? "text-coral-700 dark:text-coral-300" : "text-text dark:text-dark-text"
+          hover ? "text-coral-700 dark:text-coral-300" : "text-text"
         }`}
       >
         {showSelected ? selectedFile.name : title}
       </div>
-      <div className="relative z-10 mb-3.5 text-[13px] text-text-muted dark:text-dark-text-muted">
+      <div className="relative z-10 mb-3.5 text-[13px] text-text-muted">
         {showSelected
           ? `${(selectedFile.size / 1024).toFixed(0)} KB · ${selectedFile.type || "image"}`
           : subtitle}

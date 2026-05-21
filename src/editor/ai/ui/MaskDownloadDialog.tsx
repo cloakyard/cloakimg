@@ -83,7 +83,7 @@ export function MaskDownloadDialog({
           coral Triangle (error) so the visual state is clear at a
           glance, and the subtitle moved into the body so the header
           stays a single fixed-height row. */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <div
             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
@@ -102,7 +102,7 @@ export function MaskDownloadDialog({
       </div>
 
       <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
-        <p className="text-[13px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <p className="text-[13px] leading-relaxed text-text-muted">
           {error
             ? errorBody(errorKind)
             : "The model downloads once and is cached for future visits. Your image stays on this device."}
@@ -120,7 +120,7 @@ export function MaskDownloadDialog({
           the modal feels like a single component animating between
           download → error states, not two different dialogs. */}
       <div
-        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft dark:border-dark-border-soft ${
+        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
@@ -165,9 +165,7 @@ function ErrorBody({ message, suggestion }: { message: string; suggestion: strin
         <span className="min-w-0 flex-1 wrap-break-word">{message}</span>
       </div>
       {suggestion && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-          {suggestion}
-        </div>
+        <div className="text-[11.5px] leading-relaxed text-text-muted">{suggestion}</div>
       )}
     </div>
   );
