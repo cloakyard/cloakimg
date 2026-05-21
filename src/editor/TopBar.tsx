@@ -128,23 +128,31 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           </button>
         )}
 
+        {/* Single/Batch — V4 (May 2026) compressed to a small icon-led
+            segmented control. The prior chips were the largest visual
+            target in the toolbar despite Batch being a power-user
+            feature most sessions never touch; the tighter pair keeps
+            Batch one click away without dominating the chrome. */}
         {!isMobile && (
-          <div className="flex rounded-lg border border-border-soft bg-page-bg p-0.5">
+          <div className="flex rounded-md border border-border-soft bg-page-bg p-0.5">
             {(["single", "batch"] as const).map((m) => {
               const active = mode === m;
+              const Ic = m === "single" ? I.FileImage : I.Layers;
               return (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setMode(m)}
-                  className={`flex cursor-pointer items-center gap-1.5 rounded-md border-none px-3 py-1 font-[inherit] text-[11.5px] font-semibold capitalize ${
+                  title={m === "single" ? "Single photo" : "Batch"}
+                  aria-label={m === "single" ? "Single photo" : "Batch"}
+                  aria-pressed={active}
+                  className={`flex h-6 w-7 cursor-pointer items-center justify-center rounded-sm border-none font-[inherit] transition-colors ${
                     active
-                      ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-                      : "bg-transparent text-text-muted"
+                      ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+                      : "bg-transparent text-text-muted hover:text-text"
                   }`}
                 >
-                  {m === "batch" && <I.Layers size={11} />}
-                  {m}
+                  <Ic size={12} />
                 </button>
               );
             })}
@@ -153,18 +161,12 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
 
         <div className="flex-1" />
 
-        {!isMobile && (
-          <>
-            <span
-              className="inline-flex items-center gap-1.5 text-[12px] text-text-muted"
-              title="Every edit stays on this device. No uploads, no telemetry, no AI."
-            >
-              <I.Shield size={13} stroke={2.25} className="text-coral-500 dark:text-coral-400" />
-              Private
-            </span>
-            <div className="h-4.5 w-px bg-border" />
-          </>
-        )}
+        {/* V4 (May 2026) — the "Private" shield pill was decoration
+            inside the editor: the user has already chosen the tool, and
+            the brand mark + privacy framing on landing has already
+            established the contract. Stripping it tightens the toolbar
+            and lets undo / redo / zoom / compare carry the actionable
+            chrome unchallenged. */}
 
         <div className={`flex ${isMobile ? "gap-0" : "gap-0.5"}`}>
           <button

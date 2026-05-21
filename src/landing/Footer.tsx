@@ -44,24 +44,15 @@ export function Footer({ onPrivacy }: Props) {
     >
       <div className="mx-auto max-w-[1100px] px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-7">
         <div className="mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          {/* Bento cards. Corner glow is painted as a radial-gradient
-              background-image, not an absolute-positioned blurred
-              child div. The blurred-child approach hit an iOS Safari
-              bug — `overflow-hidden + rounded-2xl + backdrop-filter`
-              parent fails to clip a `filter: blur()` child to the
-              rounded corner, so the corner where the blob sat read as
-              squared off (isolation: isolate / transform: translateZ(0)
-              didn't help). A bg-image radial gradient produces the
-              same soft corner glow without introducing any filtered
-              child to clip — no bug to work around. */}
-          {/* How it works card — coral glow anchored top-right */}
-          <div
-            className="relative flex flex-col rounded-2xl border border-border-soft bg-surface-glass p-5 backdrop-blur-md"
-            style={{
-              backgroundImage:
-                "radial-gradient(280px 280px at 100% 0%, rgba(245, 97, 58, 0.18) 0%, rgba(245, 97, 58, 0.06) 38%, transparent 68%)",
-            }}
-          >
+          {/* Bento cards — V4 minimalist treatment (May 2026). The
+              prior cards each painted a 280 × 280 radial-gradient coral
+              glow in opposite corners. The corner glows were
+              decorative chrome that competed with the brand mark and
+              the eyebrow/title hierarchy inside each card; stripping
+              them lets the typography do the work and the cream page
+              flow through the glass-tinted surface uninterrupted. */}
+          {/* How it works card */}
+          <div className="relative flex flex-col rounded-2xl border border-border-soft bg-surface-glass p-5 backdrop-blur-md">
             <div className="relative">
               {/* Eyebrow + version pill sit on the same row inside the
                   "How it works" card — mirrors CloakPDF's footer where
@@ -105,16 +96,12 @@ export function Footer({ onPrivacy }: Props) {
             </ol>
           </div>
 
-          {/* Cloakyard family promo card — coral glow anchored bottom-left */}
+          {/* Cloakyard family promo card */}
           <a
             href={GITHUB_ORG_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative flex flex-col justify-between rounded-2xl border border-border-soft bg-surface-glass p-5 text-inherit no-underline backdrop-blur-md transition-colors hover:border-coral-500/45"
-            style={{
-              backgroundImage:
-                "radial-gradient(280px 280px at 0% 100%, rgba(245, 97, 58, 0.14) 0%, rgba(245, 97, 58, 0.05) 38%, transparent 68%)",
-            }}
           >
             <div className="relative">
               <div className="flex items-center gap-2.5">

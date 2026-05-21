@@ -61,7 +61,15 @@ export function HistoryScrubber() {
       <span className="t-section-label hidden tracking-[0.12em] text-text-muted/70 sm:inline">
         History
       </span>
-      <div className="scroll-thin flex max-w-full items-center gap-1 overflow-x-auto px-1 py-0.5">
+      {/* The horizontal scroller's `overflow-x-auto` implicitly forces
+          `overflow-y: auto` per CSS spec — which clips the active
+          thumb's `outline-offset-2 outline-2` ring (4 px outside the
+          button) at the scroller's content box, making every thumb
+          read as "flat-topped / flat-bottomed" cut-offs. Bumping the
+          vertical padding from py-0.5 to py-1.5 gives the outline a
+          6 px breathing buffer so the ring renders cleanly above and
+          below each thumb. */}
+      <div className="scroll-thin flex max-w-full items-center gap-1 overflow-x-auto px-1 py-1.5">
         {snapshot.map((entry, i) => {
           const active = i === cursor;
           return (

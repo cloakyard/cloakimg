@@ -54,20 +54,24 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
             title={tool.name}
             aria-label={tool.name}
             aria-pressed={active}
-            // `transition-all` + active-state scale gives the rail a
-            // gentle springy feedback on selection, matching the
-            // motion language of the mobile tool footer's morphing
-            // transitions. Hover lifts only the inactive buttons so
-            // the active state still reads as the canonical anchor.
-            className={`relative mx-auto my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-none p-0 transition-all duration-200 ease-out ${
+            // Active state — V4 (May 2026): one cue, the coral bar at
+            // the rail edge, plus a coral ink shift. The prior
+            // treatment painted four signals at once (background fill +
+            // inset ring + edge bar + scale-105); each made the
+            // selection harder to scan, not easier. A single sharp
+            // marker reads as the canonical "you are here" anchor.
+            className={`relative mx-auto my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 transition-colors duration-150 ease-out ${
               active
-                ? "scale-105 bg-coral-50 text-coral-700 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-transparent text-text-muted hover:bg-page-bg"
+                ? "text-coral-600 dark:text-coral-400"
+                : "text-text-muted hover:bg-page-bg hover:text-text"
             }`}
           >
             <Ic size={17} />
             {active && (
-              <span className="absolute top-[20%] -left-2 bottom-[20%] w-0.5 rounded-sm bg-coral-500" />
+              <span
+                aria-hidden="true"
+                className="absolute top-[18%] -left-2 bottom-[18%] w-[2.5px] rounded-r-sm bg-coral-500"
+              />
             )}
           </button>
         );

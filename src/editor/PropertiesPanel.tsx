@@ -16,7 +16,6 @@ export function PropertiesPanel({ collapsed = false }: Props) {
   const { toolState, cancelCurrentTool, canCancelCurrentTool } = useEditor();
   const { activeTool } = toolState;
   const tool = findTool(activeTool);
-  const Ic = tool.icon;
 
   return (
     // Sidebar widths (tablet vs desktop) were originally 240 / 280 px.
@@ -39,15 +38,20 @@ export function PropertiesPanel({ collapsed = false }: Props) {
         collapsed ? "w-72" : "w-82"
       }`}
     >
-      <div className="flex shrink-0 items-center gap-2.5 border-b border-border-soft px-4 py-3.5">
-        <div className="flex h-7.5 w-7.5 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
-          <Ic size={15} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[13.5px] font-semibold tracking-[-0.005em]">
+      {/* Header — V4 (May 2026): single-line rhythm. The prior layout
+          painted three echoes of the same fact — coral icon chip + tool
+          name + uppercase group caption — even though the active tool
+          rail button already tells the user which tool is selected.
+          Stripping the chip and stacking name + group inline gives the
+          panel a quieter chrome that defers to the controls below. */}
+      <div className="flex shrink-0 items-baseline gap-2 border-b border-border-soft px-4 py-3.5">
+        <div className="min-w-0 flex-1 truncate">
+          <span className="text-[14px] font-semibold tracking-[-0.01em] text-text">
             {tool.name}
-          </div>
-          <div className="t-section-label mt-px">{tool.group}</div>
+          </span>
+          <span className="ml-2 text-[11px] font-medium tracking-[0.04em] text-text-muted uppercase">
+            {tool.group}
+          </span>
         </div>
         {/* Cancel — desktop parity with mobile's ✕ tap in the
             MobileToolFooter. Visible only when the active tool has

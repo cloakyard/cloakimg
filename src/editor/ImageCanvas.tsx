@@ -388,10 +388,21 @@ export function ImageCanvas({
   // Tool-level commits (TextTool's edits, Crop's bake, etc.) still fire
   // their own labels — this catches Move-tool transforms and any other
   // free-form Fabric mutation.
+  //
+  // The crop overlay (cloak:cropOverlay) is intentionally excluded — it
+  // is a Fabric object that drags + scales like any other, but its
+  // commit lives in CropPanel.apply() under the label "Crop". Without
+  // this guard, every attempted crop-handle drag writes an extra
+  // "Edit layer" entry on top of the eventual "Crop" entry, which is
+  // the "history keeps piling up while I try to crop" symptom.
   useEffect(() => {
     const fc = fabricRef.current;
     if (!fc) return;
-    const onMod = () => commit("Edit layer");
+    const onMod = (opt: { target?: FabricObject }) => {
+      const kind = (opt.target as { cloakKind?: string } | undefined)?.cloakKind;
+      if (kind === "cloak:cropOverlay") return;
+      commit("Edit layer");
+    };
     fc.on("object:modified", onMod);
     return () => {
       fc.off("object:modified", onMod);
@@ -619,7 +630,25 @@ export function ImageCanvas({
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!doc) return;
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      // When Fabric owns the interaction (Crop / Move / Text-edit) and
+      // the user touched the Fabric upper canvas, DO NOT capture the
+      // pointer here. setPointerCapture on this container redirects
+      // every subsequent pointermove to *this element*, starving
+      // Fabric's upper-canvas listeners of the drag — the visible
+      // symptom is "crop handles you can grab but can't drag, and each
+      // tap piles another history entry." Pinch (size === 2),
+      // Space-pan, and middle-click-pan still need our capture, so the
+      // bail-out is scoped to single-pointer downs landing on the
+      // Fabric area with no React-owned gesture starting.
+      const intoFabric =
+        !!fabricInteractive &&
+        !!fabricHostRef.current?.contains(e.target as Node) &&
+        pointersRef.current.size === 0 &&
+        !spaceDown &&
+        e.button !== 1;
+      if (!intoFabric) {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      }
       const wasEmpty = pointersRef.current.size === 0;
       pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (wasEmpty) firstPointerDownTimeRef.current = performance.now();
@@ -676,7 +705,16 @@ export function ImageCanvas({
       const pt = toImagePoint(e, transform, doc.width, doc.height);
       onImagePointerDown?.(pt, e);
     },
-    [doc, onImagePointerDown, spaceDown, transform, view.panX, view.panY, view.zoom],
+    [
+      doc,
+      fabricInteractive,
+      onImagePointerDown,
+      spaceDown,
+      transform,
+      view.panX,
+      view.panY,
+      view.zoom,
+    ],
   );
 
   const onPointerMove = useCallback(
