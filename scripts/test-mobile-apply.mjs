@@ -254,11 +254,16 @@ const resizeSet = await page.evaluate((w) => {
   for (const inp of inputs) {
     const label = inp.closest("label")?.textContent ?? inp.getAttribute("aria-label") ?? "";
     if (/^\s*W\b|width/i.test(label)) {
-      const setter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        "value",
-      ).set;
-      setter.call(inp, String(w));
+      // React patches HTMLInputElement.prototype's `value` setter so it
+      // can intercept changes from JS. To make React treat this as a
+      // user-driven change (and re-run controlled-input bookkeeping)
+      // we have to dispatch through the ORIGINAL prototype setter, not
+      // the patched one. Call it directly off the descriptor so the
+      // unbound-method reference never escapes into a variable.
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set?.call(
+        inp,
+        String(w),
+      );
       inp.dispatchEvent(new Event("input", { bubbles: true }));
       inp.dispatchEvent(new Event("change", { bubbles: true }));
       inp.dispatchEvent(new Event("blur", { bubbles: true }));

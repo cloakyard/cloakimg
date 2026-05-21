@@ -8,6 +8,7 @@
 // the mutated defaults.
 
 import { FabricObject, IText } from "fabric";
+import { MOBILE_MAX_PX } from "./breakpoints";
 
 const CORAL = "#f5613a";
 /** Translucent coral used for the IText character-selection band and
@@ -39,7 +40,7 @@ const isCoarsePointer =
 const isPhone =
   typeof window !== "undefined" &&
   isCoarsePointer &&
-  Math.min(window.innerWidth, window.innerHeight) <= 760;
+  Math.min(window.innerWidth, window.innerHeight) <= MOBILE_MAX_PX;
 FabricObject.ownDefaults.cornerSize = isPhone ? 20 : isCoarsePointer ? 14 : 9;
 FabricObject.ownDefaults.touchCornerSize = isPhone ? 44 : isCoarsePointer ? 32 : 24;
 FabricObject.ownDefaults.borderScaleFactor = isPhone ? 2 : 1.4;

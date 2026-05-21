@@ -25,7 +25,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // optional progress / status cards — at 240 px those Segments
     // wrapped onto two lines and the panel started feeling cramped.
     // Bumped to 288 / 328 px: still leaves >440 px of canvas at the
-    // narrowest tablet breakpoint (760 px viewport − 72 px tool rail),
+    // narrowest tablet breakpoint (MOBILE_MAX_PX viewport − 72 px tool rail),
     // and gives every panel enough horizontal room to lay out cleanly
     // including the new subject scope row, the byte-readout progress
     // card, and the Selective-colour 8-band swatch grid.

@@ -28,6 +28,7 @@
 // transform handles when the Move tool is active.
 
 import { Canvas, type FabricObject, FabricImage, Point } from "fabric";
+import { MOBILE_MAX_PX } from "./breakpoints";
 import { get2DContext } from "./colorSpace";
 import { FABRIC_CANVAS_SELECTION } from "./fabricDefaults";
 import { MobileCompareButton } from "./MobileCompareButton";
@@ -784,7 +785,7 @@ export function ImageCanvas({
     twoFingerTapRef.current = null;
   }, []);
 
-  const isMobile = size.w > 0 && size.w < 760;
+  const isMobile = size.w > 0 && size.w < MOBILE_MAX_PX;
   const cursorStyle = cursor ?? (spaceDown ? (panRef.current ? "grabbing" : "grab") : "crosshair");
 
   return (

@@ -92,7 +92,10 @@ body {
    in the editor — every slider tick or canvas re-paint forces the GPU
    to re-blur the panels. Drop the blur on mobile and lean on a more
    opaque background instead; the visual difference is minimal but the
-   tap-to-update latency improves dramatically. */
+   tap-to-update latency improves dramatically.
+
+   Threshold (760 px) must stay in sync with MOBILE_MAX_PX in
+   src/editor/breakpoints.ts — CSS can't read the JS constant directly. */
 @media (max-width: 760px) {
   .editor-paper {
     background: rgba(255, 255, 255, 0.94);

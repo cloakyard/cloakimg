@@ -36,6 +36,7 @@ import {
 import { saveDraft } from "../landing/draft";
 import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
+import { MOBILE_MAX_PX, TABLET_MAX_PX } from "./breakpoints";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
 import { History, restoreCanvas } from "./history";
 import { aiLog } from "./ai/log";
@@ -257,8 +258,8 @@ const EditorReadCtx = createContext<EditorReadValue | null>(null);
 const Ctx = createContext<EditorContextValue | null>(null);
 
 function detectLayout(width: number): Layout {
-  if (width < 760) return "mobile";
-  if (width < 1180) return "tablet";
+  if (width < MOBILE_MAX_PX) return "mobile";
+  if (width < TABLET_MAX_PX) return "tablet";
   return "desktop";
 }
 
