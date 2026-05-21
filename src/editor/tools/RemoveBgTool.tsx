@@ -14,13 +14,22 @@
 
 import { useCallback } from "react";
 import { useEditor } from "../EditorContext";
-import type { ImagePoint } from "../ImageCanvas";
+import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
+import { useSubjectMask } from "../ai/useSubjectMask";
+import { paintMaskOverlay } from "./aiInspector";
 import { useRemoveBgPreview } from "./useRemoveBgPreview";
 
 export function RemoveBgTool() {
   const { toolState, patchTool, doc, historyVersion } = useEditor();
+  const subjectMask = useSubjectMask();
   const isChroma = toolState.bgMode === 1;
+  // Subscribe to mask state.version so the inspector overlay
+  // re-paints when the user runs detection or invalidates the cache.
+  // We read the cut via `peek()` inside the painter so we always get
+  // the freshest pointer; the version subscription is just the
+  // re-render trigger.
+  const maskVersion = subjectMask.state.version;
   const preview = useRemoveBgPreview(
     // Source is null in Auto mode so the preview hook stays idle and
     // doesn't allocate a downsample for a chroma keyer the user
@@ -56,10 +65,35 @@ export function RemoveBgTool() {
     [doc, isChroma, patchTool, toolState.bgPickActive],
   );
 
+  // AI Inspector overlay — Auto mode only, gated on the user's
+  // toolState toggle AND a cached mask. Reads the cut via peek() at
+  // paint time so the freshly-completed detection result lands without
+  // a stale closure capture. The `maskVersion` in the dep array bumps
+  // the callback identity on every mask state change so StageHost's
+  // identity check fires a re-paint.
+  const paintOverlay = useCallback(
+    (ctx: CanvasRenderingContext2D, t: Transform) => {
+      if (!toolState.aiInspector || isChroma || !doc) return;
+      const cut = subjectMask.peek();
+      if (!cut) return;
+      // Defensive: stale mask vs. doc dim drift would paint a
+      // misaligned overlay. Cheap guard via cached dims.
+      if (cut.width !== doc.working.width || cut.height !== doc.working.height) return;
+      // Reference maskVersion so re-renders triggered by detection
+      // landing actually pull a fresh peek(). The body doesn't need
+      // the value — its purpose is to invalidate the callback
+      // identity so StageHost's identity check fires a re-paint.
+      void maskVersion;
+      paintMaskOverlay(ctx, t, cut, doc.width, doc.height);
+    },
+    [toolState.aiInspector, isChroma, doc, subjectMask, maskVersion],
+  );
+
   useStageProps({
     previewCanvas: isChroma ? preview : null,
     cursor: isChroma && toolState.bgPickActive ? "crosshair" : undefined,
     onImagePointerDown: onPick,
+    paintOverlay,
   });
   return null;
 }

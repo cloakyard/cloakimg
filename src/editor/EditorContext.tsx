@@ -38,7 +38,7 @@ import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
 import { MOBILE_MAX_PX, TABLET_MAX_PX } from "./breakpoints";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
-import { History, restoreCanvas } from "./history";
+import { History, type HistoryEntrySnapshot, restoreCanvas } from "./history";
 import { aiLog } from "./ai/log";
 import { indexFor, resolvePreferredQuality } from "./ai/runtime/preferredQuality";
 import { shutdownAiWorker } from "./ai/runtime/runtime";
@@ -135,6 +135,18 @@ interface EditorContextValue {
    *  entries are stored as compressed WebP blobs and need a decode. */
   undo: () => Promise<void>;
   redo: () => Promise<void>;
+  /** Jump the cursor to an absolute history index. Used by the
+   *  History Scrubber to let the user click any thumb in the timeline
+   *  rather than mashing Cmd-Z. Internally loops undo()/redo() so it
+   *  pays the same per-step decode cost — the entry the user lands on
+   *  ends up with its pixels actually painted into doc.working. */
+  jumpToStep: (index: number) => Promise<void>;
+  /** Returns a fresh shallow snapshot of every history entry's
+   *  UI-relevant fields (label, thumb canvas, dims). Driven off
+   *  `historyVersion` so the scrubber re-renders whenever history
+   *  mutates. Returning a getter keeps the actions context's identity
+   *  stable. */
+  historyEntries: () => HistoryEntrySnapshot[];
   /** Roll the working canvas + Fabric scene back to the very first
    *  history entry (the original image at open time). Pushes a new
    *  "Reset" entry so the reset itself is undoable. Async for the
@@ -208,6 +220,8 @@ interface ActionsValue {
   historyDepth: EditorContextValue["historyDepth"];
   undo: EditorContextValue["undo"];
   redo: EditorContextValue["redo"];
+  jumpToStep: EditorContextValue["jumpToStep"];
+  historyEntries: EditorContextValue["historyEntries"];
   resetToOriginal: EditorContextValue["resetToOriginal"];
   openExport: EditorContextValue["openExport"];
   closeExport: EditorContextValue["closeExport"];
@@ -455,6 +469,18 @@ export function EditorProvider({
          *  this to assert the Cancel affordance is active without
          *  having to query the DOM for the Cancel button. */
         canCancelCurrentTool: boolean;
+        /** Live history-stack length. The History Scrubber probe
+         *  asserts that each commit adds an entry without having to
+         *  query the DOM thumb count. */
+        historyLength: () => number;
+        /** Drives a Scrubber jump from the probe — equivalent to
+         *  clicking a thumbnail at index `i`. Returns the promise so
+         *  the probe can await pixel restoration. */
+        jumpToStep: (i: number) => Promise<void>;
+        /** Labels of every entry in stack order. Lets the probe
+         *  validate that the visible scrubber matches the underlying
+         *  history without doing brittle DOM-scrapes. */
+        historyLabels: () => string[];
       };
     };
     w.__editorDebug = {
@@ -466,6 +492,9 @@ export function EditorProvider({
         toolState.activeTool !== "move" &&
         (pendingApplyRef.current !== null ||
           historyRef.current.currentIndex() > toolCheckpointRef.current),
+      historyLength: () => historyRef.current.entriesSnapshot().length,
+      jumpToStep: (i) => jumpToStepRef.current(i),
+      historyLabels: () => historyRef.current.entriesSnapshot().map((e) => e.label),
     };
     // commit() bumps doc identity via setDoc({...prev}), so this
     // effect re-runs on every history mutation. toolState in deps
@@ -684,6 +713,52 @@ export function EditorProvider({
     setHistoryVersion((v) => v + 1);
   }, [doc]);
 
+  /** Jump the cursor to an absolute history index by repeated undo() /
+   *  redo() calls. Clamped to [0, stackSize-1]. Each step pays the same
+   *  decode cost a manual undo would; for typical jumps (1–5 entries)
+   *  that's ~30–150 ms total which is well below the 200 ms perceived
+   *  threshold. Used by the History Scrubber to let the user click any
+   *  thumb in the timeline. */
+  const jumpToStep = useCallback(
+    async (targetIndex: number) => {
+      // Clamp early so a bad index from a stale UI snapshot is safe.
+      const stackLen = historyRef.current.entriesSnapshot().length;
+      if (stackLen === 0) return;
+      const target = Math.max(0, Math.min(targetIndex, stackLen - 1));
+      // Guard against runaway loops: a corrupt stack where undo/redo
+      // doesn't advance the cursor would otherwise spin forever.
+      let safety = stackLen + 2;
+      while (historyRef.current.currentIndex() < target && safety-- > 0) {
+        const before = historyRef.current.currentIndex();
+        // eslint-disable-next-line no-await-in-loop
+        await redo();
+        if (historyRef.current.currentIndex() === before) break;
+      }
+      while (historyRef.current.currentIndex() > target && safety-- > 0) {
+        const before = historyRef.current.currentIndex();
+        // eslint-disable-next-line no-await-in-loop
+        await undo();
+        if (historyRef.current.currentIndex() === before) break;
+      }
+    },
+    [redo, undo],
+  );
+
+  // Ref kept in sync with the latest `jumpToStep` identity so the
+  // earlier-declared `__editorDebug` effect can dispatch the live
+  // closure (same hoisting pattern as `patchToolRef` / `undoRef`).
+  const jumpToStepRef = useRef(jumpToStep);
+  jumpToStepRef.current = jumpToStep;
+
+  /** Stable accessor that returns a fresh snapshot of every entry's
+   *  UI-relevant fields (label, thumb canvas, dims). The scrubber
+   *  calls this on every `historyVersion` change to re-render its
+   *  thumbnail row. Returning a getter rather than a derived array
+   *  keeps `ActionsValue` identity stable — only `historyVersion`
+   *  (read off `EditorReadValue`) needs to change to trigger the
+   *  scrubber's re-render. */
+  const historyEntries = useCallback(() => historyRef.current.entriesSnapshot(), []);
+
   const resetToOriginal = useCallback(async () => {
     if (!doc) return;
     const base = historyRef.current.base();
@@ -861,6 +936,8 @@ export function EditorProvider({
       historyDepth,
       undo,
       redo,
+      jumpToStep,
+      historyEntries,
       resetToOriginal,
       openExport,
       closeExport,
@@ -889,6 +966,8 @@ export function EditorProvider({
       historyDepth,
       undo,
       redo,
+      jumpToStep,
+      historyEntries,
       resetToOriginal,
       openExport,
       closeExport,

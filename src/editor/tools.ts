@@ -6,9 +6,11 @@ import { I } from "../components/icons";
 
 export type ToolId =
   | "move"
+  | "tapfix"
   | "crop"
   | "perspective"
   | "adjust"
+  | "tod"
   | "levels"
   | "hsl"
   | "filter"
@@ -68,6 +70,11 @@ export const ALL_TOOLS: Tool[] = [
   // selection mode; Crop is the most-used edit on any photo; Perspective
   // is the niche straighten-tilted-shot tool.
   { id: "move", name: "Move", icon: I.Move, group: "select", tab: "fix" },
+  // Tap-to-fix — one tool, context-aware verbs. Sits between Move and
+  // Crop because the natural editing flow is "select a thing" → "do
+  // something to it"; we put the smart-action shortcut right next to
+  // Move so a quick fix doesn't require hunting through the rail.
+  { id: "tapfix", name: "Tap to fix", icon: I.Wand, group: "select", tab: "fix" },
   { id: "crop", name: "Crop & rotate", icon: I.Crop, group: "select", tab: "fix" },
   { id: "perspective", name: "Perspective", icon: I.Perspective, group: "select", tab: "fix" },
 
@@ -77,6 +84,10 @@ export const ALL_TOOLS: Tool[] = [
   // "Apply to: Whole / Subject / Background" scope inside the panel,
   // backed by the central subject-mask service.
   { id: "adjust", name: "Adjust", icon: I.Sliders, group: "tone", tab: "refine" },
+  // Time of day — single-axis "emotional" colour grade. Sits next to
+  // Filters because it's also a one-control quick-look tool; users
+  // either want the slider OR a preset, rarely both at once.
+  { id: "tod", name: "Time of day", icon: I.Sunburst, group: "tone", tab: "style" },
   { id: "filter", name: "Filters", icon: I.Wand, group: "tone", tab: "style" },
   { id: "levels", name: "Levels", icon: I.Levels, group: "tone", tab: "refine" },
   { id: "hsl", name: "Selective color", icon: I.Hsl, group: "tone", tab: "refine" },

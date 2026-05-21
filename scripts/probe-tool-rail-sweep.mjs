@@ -28,9 +28,11 @@ if (!existsSync(chromePath) || !existsSync(TEST_JPG)) {
 
 const TOOLS = [
   "Move",
+  "Tap to fix",
   "Crop",
   "Perspective",
   "Adjust",
+  "Time of day",
   "Filters",
   "Levels",
   "Selective",

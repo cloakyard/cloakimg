@@ -25,7 +25,9 @@ import { RedactTool } from "./tools/RedactTool";
 import { RemoveBgTool } from "./tools/RemoveBgTool";
 import { ShapesTool } from "./tools/ShapesTool";
 import { SpotHealTool } from "./tools/SpotHealTool";
+import { TapFixTool } from "./tools/TapFixTool";
 import { TextTool } from "./tools/TextTool";
+import { TimeOfDayTool } from "./tools/TimeOfDayTool";
 
 export function ToolStage() {
   const { toolState } = useEditor();
@@ -34,6 +36,8 @@ export function ToolStage() {
       return <CropTool />;
     case "adjust":
       return <AdjustTool />;
+    case "tod":
+      return <TimeOfDayTool />;
     case "levels":
       return <LevelsTool />;
     case "hsl":
@@ -70,6 +74,8 @@ export function ToolStage() {
       return <RemoveBgTool />;
     case "move":
       return <MoveTool />;
+    case "tapfix":
+      return <TapFixTool />;
     default:
       return <DefaultTool />;
   }

@@ -214,13 +214,30 @@ export function RedactPanel() {
       // The first call surfaces the consent dialog via the host;
       // requestExplicit awaits across that flow so we don't bounce
       // the user with a "tap again" UX.
-      const detected = faces.peek() ?? (await faces.requestExplicit());
+      const allDetected = faces.peek() ?? (await faces.requestExplicit());
       await yieldFrame();
+      // Confidence filter — the user's faceConfidence dial is the
+      // floor below which detections are ignored. Default 0.3 lets
+      // BlazeFace's natural noise floor through; raising it (e.g.
+      // 0.6) trades recall for precision when the AI Inspector shows
+      // false positives the user wants to skip.
+      const detected = allDetected.filter((f) => f.score >= toolState.faceConfidence);
 
       if (detected.length === 0) {
-        setSmartError(
-          "No faces detected in this image. Try a clearer photo, or use the manual Rect / Brush mode below.",
-        );
+        // Different copy depending on whether ANYTHING was detected:
+        // raising the dial too high is a fixable user error;
+        // detecting nothing at all is the model's problem.
+        if (allDetected.length === 0) {
+          setSmartError(
+            "No faces detected in this image. Try a clearer photo, or use the manual Rect / Brush mode below.",
+          );
+        } else {
+          setSmartError(
+            `Detected ${allDetected.length} face${allDetected.length === 1 ? "" : "s"} but all below your confidence floor (${Math.round(
+              toolState.faceConfidence * 100,
+            )}%). Lower the dial or turn on "See what the AI sees" to inspect.`,
+          );
+        }
         return;
       }
 
@@ -251,7 +268,15 @@ export function RedactPanel() {
     } finally {
       setSmartBusy(null);
     }
-  }, [commit, doc, faces, replaceIfSwitching, toolState.redactStrength, toolState.redactStyle]);
+  }, [
+    commit,
+    doc,
+    faces,
+    replaceIfSwitching,
+    toolState.faceConfidence,
+    toolState.redactStrength,
+    toolState.redactStyle,
+  ]);
 
   return (
     <>
@@ -294,6 +319,57 @@ export function RedactPanel() {
         </div>
       </PropRow>
       <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
+
+      {/* Face confidence dial — drives which detected faces actually
+          get anonymized + which ones show fully-opaque in the AI
+          Inspector overlay. The value is also the inspector's
+          "below-floor" line: faces with a score below it render dimmed
+          so the user can see exactly what they'd be excluding. */}
+      <PropRow label="Face confidence" value={`${Math.round(toolState.faceConfidence * 100)}%`}>
+        <Slider
+          value={toolState.faceConfidence}
+          accent
+          defaultValue={0.3}
+          onChange={(v) => patchTool("faceConfidence", v)}
+        />
+      </PropRow>
+
+      {/* AI Inspector — a single toggle that overlays the detected
+          face boxes + scores on the canvas. Sits below the dial so
+          the user reads "set a floor, then look at what passes" as
+          a single thought. Shared toggle with Remove BG so flipping
+          it once carries between tools. */}
+      <button
+        type="button"
+        onClick={() => patchTool("aiInspector", !toolState.aiInspector)}
+        aria-pressed={toolState.aiInspector}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold transition-colors pointer-coarse:py-2.5 pointer-coarse:text-[13px] ${
+          toolState.aiInspector
+            ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+            : "bg-page-bg text-text-muted hover:bg-page-bg/70"
+        }`}
+        title={
+          toolState.aiInspector
+            ? "Hide the detected face boxes"
+            : "Show detected face boxes with their confidence scores"
+        }
+      >
+        <span className="flex items-center gap-1.5">
+          <I.Sparkles size={12} /> See what the AI sees
+        </span>
+        <span
+          className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+            toolState.aiInspector ? "bg-coral-500" : "bg-text-muted/30"
+          }`}
+        >
+          <span
+            className={`h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${
+              toolState.aiInspector ? "translate-x-3" : "translate-x-0"
+            }`}
+          />
+        </span>
+      </button>
+
       <div className="text-[11px] leading-relaxed text-text-muted">
         Pick one: Person redacts the whole subject silhouette; Faces redacts each detected face
         individually. Switching from one to the other replaces the previous bake. Detection runs

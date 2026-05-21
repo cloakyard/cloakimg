@@ -32,6 +32,28 @@ export interface HistoryEntry {
    *  (`canvas.toJSON()` output). Null when no Fabric canvas is
    *  mounted or has nothing to serialise. */
   fabric: object | null;
+  /** Tiny preview (≤96 px long edge) used by the History Scrubber so
+   *  the user can "see" every step in the timeline rather than reading
+   *  labels. Generated synchronously on push (a 24 MP downsample to
+   *  ~96² is ~0.5 ms with high-quality smoothing) and held alongside
+   *  the entry for the entry's lifetime. NOT pool-backed — pool
+   *  canvases get recycled on release, but the thumb has to outlive
+   *  the entry's working canvas (which gets compressed to a blob and
+   *  released). */
+  thumb: HTMLCanvasElement | null;
+}
+
+/** Lightweight per-entry shape exposed to the UI scrubber so it can
+ *  render the timeline without holding a reference to the live entry
+ *  object (which the History class otherwise mutates). The thumb
+ *  canvas IS shared (DOM-attached <canvas> is cheap to hand out — the
+ *  scrubber just paints it into a CSS-sized container) but everything
+ *  else is a snapshot of the field at read time. */
+export interface HistoryEntrySnapshot {
+  label: string;
+  thumb: HTMLCanvasElement | null;
+  width: number;
+  height: number;
 }
 
 const COMPRESSED_FORMAT = "image/webp";
@@ -62,6 +84,7 @@ export class History {
       height: snap.height,
       layers: cloneLayers(layers),
       fabric,
+      thumb: makeThumb(snap),
     };
     this.stack.push(entry);
     // The first push after a clear becomes the pinned base.
@@ -117,6 +140,20 @@ export class History {
     return this.baseEntry;
   }
 
+  /** Shallow snapshot of every entry's UI-relevant fields. Returned in
+   *  stack order (base first, latest last). Used by the History
+   *  Scrubber to render a click-to-jump timeline without having to
+   *  reach into the live `HistoryEntry` objects this class otherwise
+   *  mutates during compression. */
+  entriesSnapshot(): HistoryEntrySnapshot[] {
+    return this.stack.map((e) => ({
+      label: e.label,
+      thumb: e.thumb,
+      width: e.width,
+      height: e.height,
+    }));
+  }
+
   clear() {
     for (const e of this.stack) this.dispose(e);
     this.stack = [];
@@ -132,6 +169,10 @@ export class History {
       releaseCanvas(e.canvas);
       e.canvas = null;
     }
+    // Thumbs are document-created canvases (not pool-backed); just
+    // drop the reference so the GC can reclaim them. The pinned base
+    // and live cursor entry stay alive via the stack itself.
+    e.thumb = null;
     e.blob = null;
   }
 }
@@ -157,6 +198,29 @@ export async function restoreCanvas(target: HTMLCanvasElement, entry: HistoryEnt
   } finally {
     bm?.close?.();
   }
+}
+
+/** Tiny ≤96 px-long-edge downsample used by the History Scrubber.
+ *  Uses a document-allocated canvas (not the pool) because thumbs are
+ *  retained for the entry's full lifetime; pool canvases get recycled
+ *  on release. High-quality smoothing — at 96² the cost is negligible
+ *  but the visual difference between nearest-neighbour and bilinear
+ *  is large at this size. */
+const THUMB_MAX_PX = 96;
+function makeThumb(src: HTMLCanvasElement): HTMLCanvasElement | null {
+  const long = Math.max(src.width, src.height);
+  if (long === 0) return null;
+  const ratio = long > THUMB_MAX_PX ? THUMB_MAX_PX / long : 1;
+  const w = Math.max(1, Math.round(src.width * ratio));
+  const h = Math.max(1, Math.round(src.height * ratio));
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d");
+  if (!ctx) return null;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(src, 0, 0, w, h);
+  return c;
 }
 
 function scheduleCompress(entry: HistoryEntry) {

@@ -20,6 +20,7 @@ import { EditorProvider, useEditor } from "./EditorContext";
 import "./fabricDefaults";
 import { ExportModal, type ExportSettings } from "./ExportModal";
 import { FilePropertiesModal } from "./FilePropertiesModal";
+import { HistoryScrubber } from "./HistoryScrubber";
 import { MaskConsentHost } from "./ai/ui/MaskConsentHost";
 import { DetectFaceConsentHost } from "./ai/capabilities/detect-face/ConsentHost";
 import { MobileEditorSurface } from "./MobileEditorSurface";
@@ -261,10 +262,19 @@ function EditorShell() {
               // hook bindings (no canvas of its own), so swapping tools
               // doesn't tear down the canvas. This is what eliminates
               // the flash on tool change.
-              <>
-                <StageHost />
-                <ToolStage />
-              </>
+              //
+              // HistoryScrubber sits below the canvas as a flex-shrink-0
+              // row so the canvas above it (flex-1) reclaims any space
+              // the scrubber doesn't use; when the scrubber returns null
+              // (no history yet, or mobile) the layout is identical to
+              // pre-scrubber chrome.
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <StageHost />
+                  <ToolStage />
+                </div>
+                <HistoryScrubber />
+              </div>
             )}
           </div>
 

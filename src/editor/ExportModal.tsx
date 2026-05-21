@@ -8,6 +8,7 @@ import { I } from "../components/icons";
 import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 import { PropRow, Segment, Slider, Spinner, ToggleSwitch } from "./atoms";
 import { useEditor } from "./EditorContext";
+import { PrivacyAuditCard } from "./PrivacyAuditCard";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 import {
   estimateBytes,
@@ -329,6 +330,18 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
                   Copy label flips to "Copied". */}
               <ModalCloseButton onClose={onClose} label="Close export" iconSize={14} />
             </div>
+          )}
+
+          {/* Pre-export Privacy Audit — surfaces visible faces +
+              GPS-in-EXIF before the user clicks Download. Sits ABOVE
+              the format/quality controls so the safety check is the
+              first thing they see. Hidden when there's no doc (the
+              modal is briefly visible during prepare). */}
+          {doc && (
+            <PrivacyAuditCard
+              stripGPS={toolState.meta.stripGPS}
+              onPatchMeta={(next) => patchTool("meta", { ...toolState.meta, ...next })}
+            />
           )}
 
           <PropRow label="Format">

@@ -191,14 +191,19 @@ if (!resetClicked) {
   fails++;
 } else {
   // Reset surfaces a ConfirmDialog — click "Reset" to confirm.
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 500));
   await page.evaluate(() => {
     const btn = Array.from(document.querySelectorAll("button")).find((b) =>
       /^Reset$/i.test((b.textContent ?? "").trim()),
     );
     btn?.click();
   });
-  await new Promise((r) => setTimeout(r, 1500));
+  // Reset under headless Chromium has been timing-flaky: 1500 ms was
+  // enough most runs but not all. Bumped to 3000 ms to remove the
+  // tail. resetToOriginal does an async restoreCanvas + setDoc +
+  // restoreFabricScene chain, so on slow hardware the dims check
+  // would fire before the new doc identity propagated.
+  await new Promise((r) => setTimeout(r, 3000));
   const afterReset = await dims();
   console.log(`  after reset: dims=${afterReset?.w}×${afterReset?.h}`);
   if (afterReset?.w !== baseDims?.w || afterReset?.h !== baseDims?.h) {

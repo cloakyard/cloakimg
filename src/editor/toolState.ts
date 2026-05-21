@@ -214,6 +214,32 @@ export interface ToolState {
    *    1 = medium (~84 MB fp16 model, sharper edges)
    *    2 = large  (~168 MB fp32 model, highest fidelity, tablet+) */
   bgQuality: number;
+  /** Subject-mask alpha threshold for Remove BG Auto + scoped tools.
+   *  The mask is an RGBA cut where alpha encodes per-pixel confidence
+   *  (0=background, 1=subject). At apply time pixels with alpha
+   *  ≥ `bgConfidence` are kept as subject; lower-confidence edges get
+   *  rounded down. Lower values are aggressive (keep uncertain
+   *  pixels), higher values are conservative (clean cut, may leave
+   *  wispy hair behind). Lightroom / Photoshop don't expose this knob
+   *  at all — the AI's certainty is hidden in their UI. We surface it. */
+  bgConfidence: number;
+  /** Minimum face-detection score (0..1) below which detected faces
+   *  are ignored by Smart Anonymize Faces and the AI Inspector
+   *  overlay. Defaults to 0.3 because BlazeFace's full-range model
+   *  routinely reports scores in the 0.3–0.6 band for real faces; a
+   *  higher floor would silently drop legitimate detections. The dial
+   *  lets the user trade recall vs precision for their specific scene. */
+  faceConfidence: number;
+  /** "Show me what the AI sees" toggle. When on:
+   *    • Remove BG Auto — paints the subject mask as a coral overlay
+   *      where the cut would land, with the uncertain-edge band shown
+   *      as a striped fringe.
+   *    • Redact (Smart anonymize Faces) — draws labelled boxes around
+   *      every detected face with its confidence score.
+   *  Single shared state so the toggle's identity follows the user
+   *  between tools — once they've turned the inspector on, they don't
+   *  need to re-enable it per panel. */
+  aiInspector: boolean;
 
   // Portrait blur — gaussian / lens / tilt-shift blur applied to the
   // background. The "blur the subject" mode used to live here too but
@@ -265,6 +291,16 @@ export interface ToolState {
   // order. Null until the tool seeds them to the image corners on
   // first open. Drag handles on the canvas mutate this.
   persCorners: [number, number][] | null;
+
+  /** Time-of-Day slider — a single 0..1 axis the user drags through
+   *  Dawn → Morning → Noon (0.5, identity) → Golden → Sunset → Night.
+   *  Internally composes temperature, exposure, saturation, and
+   *  contrast into a "look" matching that hour of day. Lightroom /
+   *  Photoshop don't ship anything like this — they expose the raw
+   *  knobs; CloakIMG exposes the emotional axis. The user can still
+   *  use Adjust afterward to fine-tune. Lives in its own slot so it
+   *  doesn't trample the manual adjust array on undo / redo. */
+  timeOfDay: number;
 }
 
 export const DEFAULT_TOOL_STATE: ToolState = {
@@ -367,6 +403,16 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   bgPickActive: false,
   bgMode: 0,
   bgQuality: 0,
+  // 0.5 = balanced; matches the centre of the dial and the alpha
+  // threshold the lib was implicitly using before we exposed the
+  // knob, so existing flows produce identical pixels with the dial
+  // untouched.
+  bgConfidence: 0.5,
+  // 0.3 = BlazeFace's natural noise floor — see the field comment in
+  // ToolState. Lower would surface false positives; higher silently
+  // drops real faces in difficult angles / lighting.
+  faceConfidence: 0.3,
+  aiInspector: false,
 
   // Default to Background scope so the moment the user touches the
   // strength slider, the bake targets the right region without
@@ -408,4 +454,8 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   borderAspect: 0,
 
   persCorners: null,
+
+  // 0.5 = identity (Noon). The slider's default lands here so opening
+  // the tool shows the original photo until the user actually drags.
+  timeOfDay: 0.5,
 };

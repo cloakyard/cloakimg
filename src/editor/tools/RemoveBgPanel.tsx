@@ -29,6 +29,7 @@ import { MaskReadyPill } from "../ai/ui/MaskReadyPill";
 import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { DetectionProgressCard } from "../ai/ui/DetectionStatus";
+import { applyAlphaThreshold } from "./aiInspector";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
 import { type BgQuality, getTierById } from "../ai/runtime/bgModels";
 import type { SmartRemoveProgress } from "../ai/runtime/segment";
@@ -138,6 +139,13 @@ export function RemoveBgPanel() {
         setBgError("The image changed during detection — try Remove again.");
         return;
       }
+      // Confidence threshold — map the user's 0..1 slider into the
+      // alpha cutoff used at apply time. Below the cutoff, pixels
+      // get fully transparent (treated as background); above, they
+      // keep their model-reported alpha. The default 0.5 reproduces
+      // the previous behaviour, so users who never touch the dial
+      // see identical output to the pre-dial version.
+      applyAlphaThreshold(cut, toolState.bgConfidence);
       copyInto(doc.working, cut);
       // The mask is now identical to the working canvas alpha-keyed,
       // so further scoped tools won't benefit from re-detecting.
@@ -155,7 +163,7 @@ export function RemoveBgPanel() {
     } finally {
       setApplying(false);
     }
-  }, [alreadyRemoved, commit, doc, patchTool, subjectMask]);
+  }, [alreadyRemoved, commit, doc, patchTool, subjectMask, toolState.bgConfidence]);
 
   const togglePick = useCallback(() => {
     patchTool("bgPickActive", !toolState.bgPickActive);
@@ -212,6 +220,14 @@ export function RemoveBgPanel() {
           warm={subjectMask.state.warm}
           modelCached={subjectMask.state.modelCached}
           maskReady={!!subjectMask.peek()}
+          // Confidence dial + AI Inspector toggle — both live in the
+          // AutoPanel since they only make sense against the U²-Net
+          // mask. Chroma mode has its own threshold knob (the
+          // colour-distance slider) and no AI to inspect.
+          bgConfidence={toolState.bgConfidence}
+          onPatchConfidence={(v) => patchTool("bgConfidence", v)}
+          aiInspector={toolState.aiInspector}
+          onToggleInspector={() => patchTool("aiInspector", !toolState.aiInspector)}
           // Only offer Cancel while the *central* detection is
           // running. The applying-to-canvas window after detection
           // resolves isn't cancellable in any honest sense — the
@@ -257,6 +273,20 @@ interface AutoProps {
   alreadyRemoved: boolean;
   busy: boolean;
   progress: SmartRemoveProgress | null;
+  /** Confidence threshold for the U²-Net cut. 0 = aggressive (keep
+   *  every pixel the model touched, even uncertain edges); 1 =
+   *  conservative (only super-confident subject pixels). Applied at
+   *  apply time, not preview — re-running mask thresholding live as
+   *  the user drags would mean re-reading the cut bitmap on every
+   *  tick. */
+  bgConfidence: number;
+  onPatchConfidence: (v: number) => void;
+  /** AI Inspector toggle — paints the model's mask as a coral
+   *  overlay so the user can see what would get cut before they
+   *  commit. Pairs with the Confidence dial: change the dial, watch
+   *  the overlay's coverage move. */
+  aiInspector: boolean;
+  onToggleInspector: () => void;
   /** Has detection ever completed in this session? Drives the
    *  "first-time download (cold)" vs "already downloaded (warm)" copy
    *  in the progress card. */
@@ -293,6 +323,10 @@ function AutoPanel({
   progress,
   warm,
   modelCached,
+  bgConfidence,
+  onPatchConfidence,
+  aiInspector,
+  onToggleInspector,
   onCancel,
   onChangeModel,
   onApply,
@@ -344,6 +378,54 @@ function AutoPanel({
       </PropRow>
 
       {!alreadyRemoved && !busy && <CapabilityHints />}
+
+      {/* Confidence dial — visible whenever Auto is the active mode,
+          irrespective of whether a mask has been computed yet (the
+          user can pre-set their preference before pressing Apply).
+          Disabled while the model is mid-detection because changing
+          it mid-flight would do nothing useful (the threshold is
+          applied at compositing time, not during inference). */}
+      <PropRow label="Confidence" value={`${Math.round(bgConfidence * 100)}%`}>
+        <Slider value={bgConfidence} accent defaultValue={0.5} onChange={onPatchConfidence} />
+      </PropRow>
+
+      {/* AI Inspector toggle — a row button that flips the overlay
+          on/off and surfaces a one-liner explanation when active so
+          users know what they're looking at. Disabled when there's
+          nothing to inspect yet (no cached mask, alreadyRemoved). */}
+      <button
+        type="button"
+        onClick={onToggleInspector}
+        disabled={busy || alreadyRemoved || !maskReady}
+        aria-pressed={aiInspector}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[13px] ${
+          aiInspector
+            ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+            : "bg-page-bg text-text-muted hover:bg-page-bg/70"
+        }`}
+        title={
+          maskReady
+            ? aiInspector
+              ? "Hide the AI's view"
+              : "Tint the photo to show what the AI sees as the subject"
+            : "Run Apply once to compute the mask, then toggle the inspector to inspect it"
+        }
+      >
+        <span className="flex items-center gap-1.5">
+          <I.Sparkles size={12} /> See what the AI sees
+        </span>
+        <span
+          className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+            aiInspector ? "bg-coral-500" : "bg-text-muted/30"
+          }`}
+        >
+          <span
+            className={`h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${
+              aiInspector ? "translate-x-3" : "translate-x-0"
+            }`}
+          />
+        </span>
+      </button>
 
       {/* "Mask ready" pill — when the cut is already cached for this
           image (some other smart-action ran first), Apply is instant.
