@@ -30,11 +30,11 @@ const ROW_TYPES: Record<string, { Icon: typeof I.Type; label: string }> = {
   "cloak:watermarkImage": { Icon: I.Stamp, label: "Image watermark" },
   "cloak:drawStroke": { Icon: I.Pen, label: "Stroke" },
   "cloak:shape": { Icon: I.Square, label: "Shape" },
-  "cloak:sticker": { Icon: I.Heart, label: "Sticker" },
+  "cloak:emoji": { Icon: I.Smile, label: "Emoji" },
   "cloak:image": { Icon: I.FileImage, label: "Image" },
 };
 
-const FILTERABLE_KINDS = new Set(["cloak:watermarkImage", "cloak:sticker", "cloak:image"]);
+const FILTERABLE_KINDS = new Set(["cloak:watermarkImage", "cloak:image"]);
 
 export function LayersList() {
   const { getFabricCanvas, commit } = useEditor();

@@ -33,7 +33,12 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
   const items = withSeparators();
 
   return (
-    <div className="editor-paper no-scrollbar flex w-18 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface py-2 dark:border-dark-border dark:bg-dark-surface">
+    // Border softened from `border-border` → `border-border-soft` and the
+    // surface dropped to a glass tint (V3 desktop redesign): with the
+    // canvas matte now sharing `--page-bg` with the rest of the editor,
+    // a hard rail divider made the rail feel walled-off from the photo.
+    // Soft border + translucent surface lets the cream flow through.
+    <div className="editor-paper no-scrollbar flex w-18 shrink-0 flex-col overflow-y-auto border-r border-border-soft bg-surface/60 py-2 dark:border-dark-border-soft dark:bg-dark-surface/60">
       {items.map((item) => {
         if (item.sep) {
           return (
@@ -54,10 +59,15 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
             title={tool.name}
             aria-label={tool.name}
             aria-pressed={active}
-            className={`relative mx-auto my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-none p-0 ${
+            // `transition-all` + active-state scale gives the rail a
+            // gentle springy feedback on selection, matching the
+            // motion language of the mobile tool footer's morphing
+            // transitions. Hover lifts only the inactive buttons so
+            // the active state still reads as the canonical anchor.
+            className={`relative mx-auto my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-none p-0 transition-all duration-200 ease-out ${
               active
-                ? "bg-coral-50 text-coral-700 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-transparent text-text-muted dark:text-dark-text-muted"
+                ? "scale-105 bg-coral-50 text-coral-700 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30 dark:text-coral-300"
+                : "bg-transparent text-text-muted hover:bg-page-bg dark:text-dark-text-muted dark:hover:bg-dark-page-bg"
             }`}
           >
             <Ic size={17} />

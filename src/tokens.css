@@ -35,7 +35,16 @@
   --color-border-soft: rgba(231, 225, 218, 0.7);
   --color-text: #1e1a16;
   --color-text-muted: #6b6258;
-  --color-canvas-bg: #2a2620;
+  /* `--color-canvas-bg` used to be the dark photo-workbench coffee
+     (#2a2620) so the editor read as a Photoshop-style matte around
+     the image. The V3 mobile redesign unified the matte with
+     `--color-page-bg` so the photo "floats" in cream and the surface
+     reads as one airy continuous plane; the May 2026 desktop redesign
+     extends that treatment to desktop + tablet too. Anything that
+     genuinely wants the old dark frame (e.g. the landing photo card,
+     which is marketing chrome, not editor chrome) hard-codes its own
+     colour instead of inheriting this token. */
+  --color-canvas-bg: var(--color-page-bg);
   --color-checker-a: #efece7;
   --color-checker-b: #e2dcd2;
 
@@ -48,7 +57,10 @@
   --color-dark-border-soft: rgba(255, 255, 255, 0.08);
   --color-dark-text: #f5efe8;
   --color-dark-text-muted: #a39788;
-  --color-dark-canvas-bg: #0a0908;
+  /* See note on `--color-canvas-bg` — dark mode also collapses the
+     canvas matte onto `--color-dark-page-bg` so the photo floats in
+     the same near-black as the surrounding chrome. */
+  --color-dark-canvas-bg: var(--color-dark-page-bg);
   --color-dark-checker-a: #1a1714;
   --color-dark-checker-b: #221d18;
 
@@ -135,7 +147,8 @@
 
   --focus-ring: rgba(245, 97, 58, 0.22);
 
-  --canvas-bg: #2a2620;
+  /* Legacy bridge — kept in sync with `--color-canvas-bg` above. */
+  --canvas-bg: var(--page-bg);
   --checker-a: #efece7;
   --checker-b: #e2dcd2;
 
@@ -168,7 +181,7 @@
     --border-soft: rgba(255, 255, 255, 0.08);
     --text: #f5efe8;
     --text-muted: #a39788;
-    --canvas-bg: #0a0908;
+    --canvas-bg: var(--page-bg);
     --checker-a: #1a1714;
     --checker-b: #221d18;
   }

@@ -104,22 +104,13 @@ body {
       background: rgb(28, 24, 20);
     }
   }
-  /* "Expansive canvas" treatment (May 2026 mobile redesign): on phones,
-     the canvas matte stops being the dark photo-workbench colour and
-     matches the page background instead. The photo then floats in the
-     same cream as the surrounding chrome — colour continuity makes the
-     editor feel airier without changing any geometry, and the tonal
-     break that used to draw the eye to the edge of the matte goes
-     away. Desktop/tablet keep the dark matte (Photoshop / Lightroom
-     parity for users who treat the surface as a "photo workbench"). */
-  :root {
-    --canvas-bg: var(--page-bg);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --canvas-bg: var(--page-bg);
-    }
-  }
+  /* "Expansive canvas" treatment originally landed on mobile (May 2026)
+     and now extends to desktop + tablet (May 2026 desktop redesign).
+     The canvas matte token (`--canvas-bg`) is unified onto
+     `--page-bg` in tokens.css, so there's no breakpoint-specific
+     override needed here anymore. Anything that wants the old dark
+     photo-workbench frame (Landing's marketing photo card) hard-codes
+     its own colour. */
 }
 
 /* Mobile bottom sheet — animate the slot's *height* so the drawer's
@@ -191,5 +182,31 @@ body {
   50% {
     transform: translateX(-3px);
     opacity: 1;
+  }
+}
+
+/* Properties panel cross-fade on desktop tool switch (V3 desktop
+   redesign): when the user clicks a new tool in the rail the scroll
+   container remounts (key={activeTool}) which jumps the new panel in
+   instantly. This animation gives a brief opacity + translateY ease
+   so the swap feels intentional rather than abrupt, matching the
+   motion language of the mobile editor surface's morphing card. */
+@keyframes ci-panel-in {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.panel-fade-in {
+  animation: ci-panel-in 180ms ease-out;
+}
+/* Honor reduced-motion: skip the slide, keep the fade only. */
+@media (prefers-reduced-motion: reduce) {
+  .panel-fade-in {
+    animation: none;
   }
 }

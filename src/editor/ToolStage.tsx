@@ -13,6 +13,7 @@ import { BorderTool } from "./tools/BorderTool";
 import { ColorPickerTool } from "./tools/ColorPickerTool";
 import { CropTool } from "./tools/CropTool";
 import { DrawTool } from "./tools/DrawTool";
+import { EmojiTool } from "./tools/EmojiTool";
 import { FilterTool } from "./tools/FilterTool";
 import { FrameTool } from "./tools/FrameTool";
 import { HslTool } from "./tools/HslTool";
@@ -24,7 +25,6 @@ import { RedactTool } from "./tools/RedactTool";
 import { RemoveBgTool } from "./tools/RemoveBgTool";
 import { ShapesTool } from "./tools/ShapesTool";
 import { SpotHealTool } from "./tools/SpotHealTool";
-import { StickerTool } from "./tools/StickerTool";
 import { TextTool } from "./tools/TextTool";
 
 export function ToolStage() {
@@ -60,8 +60,8 @@ export function ToolStage() {
       return <ShapesTool />;
     case "pen":
       return <PenTool />;
-    case "sticker":
-      return <StickerTool />;
+    case "emoji":
+      return <EmojiTool />;
     case "image":
       return <ImageTool />;
     case "frame":

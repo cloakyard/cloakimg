@@ -63,7 +63,22 @@ export function Footer({ onPrivacy }: Props) {
             }}
           >
             <div className="relative">
-              <div className="t-eyebrow">How it works</div>
+              {/* Eyebrow + version pill sit on the same row inside the
+                  "How it works" card — mirrors CloakPDF's footer where
+                  the build version anchors the bento's brand
+                  identity (left card == product story). Previously the
+                  pill lived in the Cloakyard card, which made the
+                  family-promo card carry product-specific metadata it
+                  shouldn't own. */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="t-eyebrow">How it works</div>
+                <span
+                  translate="no"
+                  className="inline-flex shrink-0 items-center rounded-full border border-border-soft bg-slate-900/4 px-2 py-px font-mono text-[10px] tabular-nums tracking-tight text-text-muted dark:border-dark-border-soft dark:bg-white/5 dark:text-dark-text-muted"
+                >
+                  v{version}
+                </span>
+              </div>
               <h3 className="t-title mt-2 text-text sm:text-[19px] dark:text-dark-text">
                 From open to export, in three steps.
               </h3>
@@ -102,20 +117,15 @@ export function Footer({ onPrivacy }: Props) {
             }}
           >
             <div className="relative">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <img
-                    src="/icons/cloakyard.svg"
-                    alt=""
-                    aria-hidden="true"
-                    className="h-7 w-7 drop-shadow-sm"
-                  />
-                  <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-text-muted dark:text-dark-text-muted">
-                    Part of
-                  </span>
-                </div>
-                <span className="inline-flex shrink-0 items-center rounded-full border border-border-soft bg-slate-900/4 px-2 py-px font-mono text-[10px] tabular-nums tracking-tight text-text-muted dark:border-dark-border-soft dark:bg-white/5 dark:text-dark-text-muted">
-                  CloakIMG v{version}
+              <div className="flex items-center gap-2.5">
+                <img
+                  src="/icons/cloakyard.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-7 w-7 drop-shadow-sm"
+                />
+                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-text-muted dark:text-dark-text-muted">
+                  Part of
                 </span>
               </div>
               <h4 className="t-title mt-2.5 text-text dark:text-dark-text">Cloakyard</h4>

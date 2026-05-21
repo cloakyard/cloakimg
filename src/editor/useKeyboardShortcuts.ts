@@ -28,7 +28,7 @@ const TOOL_KEY_MAP: Record<string, ToolId> = {
   n: "pen",
   w: "mark",
   u: "shapes",
-  k: "sticker",
+  k: "emoji",
   i: "color",
   e: "frame",
   s: "resize",

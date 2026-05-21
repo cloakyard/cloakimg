@@ -92,13 +92,23 @@ export function Landing({ onStart, onIntent }: Props) {
         </section>
 
         <section className="mx-auto max-w-275 px-5 pb-15 sm:px-8 sm:pb-25">
-          {/* Photo frame: outer card has a dark `bg-canvas-bg` matte
-              that reads as the photo's frame. Padding sets the
-              frame's thickness; inner radius matches outer minus the
-              padding so the two corners feel concentric. */}
+          {/* Photo frame: outer card has a dark coffee matte that
+              reads as the photo's frame. Padding sets the frame's
+              thickness; inner radius matches outer minus the padding
+              so the two corners feel concentric.
+
+              Uses a hard-coded coffee colour rather than
+              `bg-canvas-bg` — the editor surfaces' canvas matte was
+              unified onto `--page-bg` (cream) in the V3 redesign, but
+              this landing card is marketing chrome and keeps the
+              original dark photo-frame treatment for visual contrast
+              against the cream page. */}
           <div
-            className="card overflow-hidden bg-canvas-bg p-3 sm:p-4"
-            style={{ boxShadow: "0 30px 60px -20px rgba(30,18,10,0.20)" }}
+            className="card overflow-hidden p-3 sm:p-4"
+            style={{
+              background: "#2a2620",
+              boxShadow: "0 30px 60px -20px rgba(30,18,10,0.20)",
+            }}
           >
             <SamplePhoto
               aspect="16/10"

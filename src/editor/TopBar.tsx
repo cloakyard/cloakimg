@@ -62,18 +62,21 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   return (
     <>
       <div
-        // Desktop keeps the glass-toolbar treatment (translucent surface,
-        // backdrop blur, hairline border) so the photo workbench reads
-        // with deliberate chrome around it. Mobile drops every one of
-        // those — V3 minimalist — so the cream page-bg flows from above
-        // the logo through the canvas matte and out to the pill below
-        // without any tonal break. Brand mark + wordmark match the
-        // desktop sizes so the app's identity is proper-sized rather
+        // Desktop keeps a glass-toolbar treatment (translucent surface,
+        // backdrop blur) so the photo workbench reads with deliberate
+        // chrome around it, but the V3 desktop redesign softened the
+        // bottom border from `border-border` to `border-border-soft`
+        // and dropped the surface opacity to 0.6 so the cream page-bg
+        // flows up through the chrome. Mobile drops every one of those
+        // entirely — V3 minimalist — so the cream flows from above the
+        // logo through the canvas matte and out to the pill below
+        // without any tonal break. Brand mark + wordmark match across
+        // breakpoints so the app's identity is proper-sized rather
         // than apologetic at the top of the screen.
         className={
           isMobile
             ? "flex h-16 shrink-0 items-center gap-1.5 px-3 py-3"
-            : "editor-paper flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface/85 px-4 py-3 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border dark:bg-dark-surface/85"
+            : "editor-paper flex h-16 shrink-0 items-center gap-3 border-b border-border-soft bg-surface/60 px-4 py-3 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface/60"
         }
       >
         <button

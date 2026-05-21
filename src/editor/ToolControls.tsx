@@ -23,7 +23,7 @@ import { ColorPickerPanel } from "./tools/ColorPickerPanel";
 import { ImagePanel } from "./tools/ImagePanel";
 import { MovePanel } from "./tools/MovePanel";
 import { ShapesPanel } from "./tools/ShapesPanel";
-import { StickerPanel } from "./tools/StickerPanel";
+import { EmojiPanel } from "./tools/EmojiPanel";
 import { SpotHealPanel } from "./tools/SpotHealPanel";
 import { RemoveBgPanel } from "./tools/RemoveBgPanel";
 
@@ -60,8 +60,8 @@ export function ToolControls() {
       return <ShapesPanel />;
     case "pen":
       return <PenPanel />;
-    case "sticker":
-      return <StickerPanel />;
+    case "emoji":
+      return <EmojiPanel />;
     case "image":
       return <ImagePanel />;
     case "frame":

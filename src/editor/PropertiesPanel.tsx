@@ -2,7 +2,6 @@
 // Shows the active tool's icon + name + group header on top, then
 // renders ToolControls below.
 
-import { I } from "../components/icons";
 import { useEditor } from "./EditorContext";
 import { LayersList } from "./LayersList";
 import { findTool } from "./tools";
@@ -29,8 +28,13 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // and gives every panel enough horizontal room to lay out cleanly
     // including the new subject scope row, the byte-readout progress
     // card, and the Selective-colour 8-band swatch grid.
+    // Border softened to `border-border-soft` and surface dropped to a
+    // glass tint (V3 desktop redesign): mirrors the ToolRail treatment
+    // so both sides of the canvas feel like floating chrome around the
+    // photo rather than walled-off panes. The trailing chevron from the
+    // header was decorative (no collapse action) and removed.
     <div
-      className={`editor-paper flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface dark:border-dark-border dark:bg-dark-surface ${
+      className={`editor-paper flex shrink-0 flex-col overflow-hidden border-l border-border-soft bg-surface/60 dark:border-dark-border-soft dark:bg-dark-surface/60 ${
         collapsed ? "w-72" : "w-82"
       }`}
     >
@@ -42,7 +46,6 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           <div className="text-[13.5px] font-semibold tracking-[-0.005em]">{tool.name}</div>
           <div className="t-section-label mt-px">{tool.group}</div>
         </div>
-        <I.ChevronDown size={14} className="text-text-muted dark:text-dark-text-muted" />
       </div>
 
       {/* `key={activeTool}` remounts the scroll container on every tool
@@ -61,7 +64,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           own vertical scroll. */}
       <div
         key={activeTool}
-        className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
+        className="panel-fade-in scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
       >
         <ToolControls />
       </div>

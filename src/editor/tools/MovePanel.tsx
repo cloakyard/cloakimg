@@ -1,6 +1,6 @@
 // MovePanel.tsx — Property panel for the Move tool. The Move tool
 // flips Fabric's selection layer on so the user can pick up text /
-// shapes / stickers / placed images and drag, scale, or rotate them.
+// shapes / emoji / placed images and drag, scale, or rotate them.
 // It does *not* move the underlying photo — that's intentional, since
 // the photo serves as the canvas, not as a layer.
 //
@@ -23,7 +23,7 @@ const KIND_LABEL: Record<string, string> = {
   "cloak:watermarkImage": "Image watermark",
   "cloak:drawStroke": "Stroke",
   "cloak:shape": "Shape",
-  "cloak:sticker": "Sticker",
+  "cloak:emoji": "Emoji",
   "cloak:image": "Image",
 };
 
@@ -88,7 +88,7 @@ export function MovePanel() {
         <div className="text-[12px] leading-relaxed text-text dark:text-dark-text">
           {layerCount === 0 ? (
             <>
-              Tap a layer to pick it up. There aren't any yet — add text, a shape, a sticker, or
+              Tap a layer to pick it up. There aren't any yet — add text, a shape, an emoji, or
               place an image, then come back here to drag, scale, or rotate it.
             </>
           ) : activeLabel ? (
@@ -100,9 +100,9 @@ export function MovePanel() {
             </>
           ) : (
             <>
-              Tap any text / shape / sticker / image layer to select it, then drag to move or use
-              the handles to resize and rotate. The background photo isn't moveable — use Crop or
-              Resize for that.
+              Tap any text / shape / emoji / image layer to select it, then drag to move or use the
+              handles to resize and rotate. The background photo isn't moveable — use Crop or Resize
+              for that.
             </>
           )}
         </div>

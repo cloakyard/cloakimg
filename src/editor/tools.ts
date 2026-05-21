@@ -21,7 +21,7 @@ export type ToolId =
   | "text"
   | "mark"
   | "shapes"
-  | "sticker"
+  | "emoji"
   | "image"
   | "color"
   | "frame"
@@ -101,13 +101,13 @@ export const ALL_TOOLS: Tool[] = [
   //     core).
   //   • Shapes next (arrows + boxes are the second-most-used
   //     screenshot tool).
-  //   • Draw (freehand highlight) before Sticker (decorative).
+  //   • Draw (freehand highlight) before Emoji (decorative).
   //   • Watermark / Pen / Place image tail because they're either
   //     niche, vector-power-user, or compositing-power-user.
   { id: "text", name: "Text", icon: I.Type, group: "mark", tab: "style" },
   { id: "shapes", name: "Shapes", icon: I.Square, group: "mark", tab: "style" },
   { id: "draw", name: "Draw", icon: I.Brush, group: "mark", tab: "style" },
-  { id: "sticker", name: "Stickers", icon: I.Heart, group: "mark", tab: "style" },
+  { id: "emoji", name: "Emoji", icon: I.Smile, group: "mark", tab: "style" },
   { id: "mark", name: "Watermark", icon: I.Stamp, group: "mark", tab: "style" },
   { id: "pen", name: "Pen", icon: I.Pen, group: "mark", tab: "style" },
   { id: "image", name: "Place image", icon: I.FileImage, group: "mark", tab: "style" },

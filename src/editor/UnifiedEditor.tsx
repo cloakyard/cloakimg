@@ -216,11 +216,11 @@ function EditorShell() {
               //      progresses through collapsed → picker → tool with
               //      content cross-fading inside the same card. In-flow
               //      so the canvas reflows as it grows.
-              // The mobile canvas matte uses the page-bg colour rather
-              // than the dark photo-workbench `--canvas-bg` from
-              // tokens.css (override in style.css's mobile @media
-              // block) so the photo floats in cream and the editor
-              // reads as one continuous airy surface.
+              // The canvas matte now uses `--page-bg` across every
+              // breakpoint (May 2026 desktop redesign — unified with
+              // the original mobile treatment in tokens.css) so the
+              // photo floats in cream and the editor reads as one
+              // continuous airy surface.
               <div className="flex min-h-0 flex-1 flex-col">
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   <StageHost />

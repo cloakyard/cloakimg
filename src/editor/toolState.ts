@@ -174,12 +174,12 @@ export interface ToolState {
   penFill: string;
   penStrokeWidth: number;
 
-  // Sticker
-  stickerKind: number; // index into STICKERS
-  /** ID of the user-uploaded sticker selected in the panel; takes
-   *  priority over `stickerKind` when set. Cleared when the user
-   *  picks a built-in sticker again. */
-  customStickerId: string | null;
+  // Emoji — selected glyph (single grapheme cluster) that the
+  // EmojiTool drops on canvas click. The panel writes whichever
+  // emoji the user picked from the grid or pasted into the custom
+  // input; the tool just lays it out as a FabricText using the
+  // platform's colour-emoji font.
+  emojiChar: string;
 
   // Frame (border around the image)
   frameWidth: number; // image-space pixels — inset border thickness
@@ -345,13 +345,12 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   penFill: "transparent",
   penStrokeWidth: 2,
 
-  stickerKind: 0,
-  customStickerId: null,
+  emojiChar: "😀",
 
   // 0 = "no frame yet" — the FramePanel seeds a proportional default
   // (~3 % of the shorter image side) the first time the user opens
   // the tool on a given image, so the result scales sensibly across
-  // anything from a 400-px sticker to a 6 kpx photo.
+  // anything from a 400-px badge to a 6 kpx photo.
   frameWidth: 0,
   frameColor: "#ffffff",
   frameStyle: 0,
