@@ -2,10 +2,9 @@
 // CloakPDF renders this as a full page; CloakIMG keeps the landing
 // surface free of routes, so we surface the same copy in a modal.
 
-import { useEffect } from "react";
 import { I } from "../components/icons";
 import { GITHUB_ISSUES_URL, GITHUB_REPO_DISPLAY, GITHUB_REPO_URL } from "../constants/links";
-import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
+import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
 
 interface Props {
   isPhone: boolean;
@@ -13,16 +12,20 @@ interface Props {
 }
 
 export function PrivacyModal({ isPhone, onClose }: Props) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
     <ModalFrame onClose={onClose} bottomSheet={isPhone} labelledBy="privacy-title">
+      <PrivacyBody onClose={onClose} />
+    </ModalFrame>
+  );
+}
+
+function PrivacyBody({ onClose }: { onClose: () => void }) {
+  const animatedClose = useModalClose();
+  // Wrap in an arrow that drops the click event — animatedClose's
+  // optional `onSettled` arg would otherwise receive the MouseEvent.
+  const dismiss = () => (animatedClose ? animatedClose() : onClose());
+  return (
+    <>
       <div className="flex items-start gap-4 px-6 pt-6 pb-3 sm:px-7 sm:pt-7">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300">
           <I.ShieldCheck size={20} />
@@ -140,11 +143,11 @@ export function PrivacyModal({ isPhone, onClose }: Props) {
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-border-soft px-6 py-4 sm:px-7">
-        <button type="button" onClick={onClose} className="btn btn-primary btn-sm">
+        <button type="button" onClick={dismiss} className="btn btn-primary btn-sm">
           Got it
         </button>
       </div>
-    </ModalFrame>
+    </>
   );
 }
 

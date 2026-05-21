@@ -210,6 +210,18 @@ if (!resetClicked) {
     console.error("FAIL: reset did not restore original dims");
     fails++;
   }
+  // Reset should wipe the timeline so the scrubber matches a fresh
+  // upload (length 1, just the "Open" base). The previous behavior
+  // pushed a "Reset" entry on top of the existing chain, which left
+  // every discarded edit visible — contradicting the feature's intent.
+  const historyAfterReset = await page.evaluate(
+    () => window.__editorDebug?.historyLength?.() ?? -1,
+  );
+  console.log(`  history length after reset: ${historyAfterReset}`);
+  if (historyAfterReset !== 1) {
+    console.error(`FAIL: expected history length 1 after reset, got ${historyAfterReset}`);
+    fails++;
+  }
 }
 
 // ── Scenario 3: Export flow opens + previews ─────────────────────

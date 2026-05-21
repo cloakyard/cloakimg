@@ -774,7 +774,17 @@ export function EditorProvider({
     // out of date — drop it so the next scoped tool re-detects.
     invalidateSubjectMask();
     invalidateFaceDetection();
-    historyRef.current.push("Reset", doc.working, base.layers, base.fabric);
+    // Wipe the entire timeline and re-establish a fresh "Open" base
+    // from the just-restored doc. The prior treatment pushed a "Reset"
+    // entry on top of the existing chain, which left every edit the
+    // user just discarded still visible in the History Scrubber —
+    // confusing on a feature whose intent is "back to square one".
+    // canReset reads as `canUndo || canRedo`, so after this push (with
+    // both false) the Reset button correctly disables itself.
+    // (Verified by probe-export-and-history: historyLength is 1 after
+    // reset, matching a fresh upload.)
+    historyRef.current.clear();
+    historyRef.current.push("Open", doc.working, base.layers, base.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
 

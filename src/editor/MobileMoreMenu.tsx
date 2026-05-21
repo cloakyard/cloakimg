@@ -10,9 +10,9 @@
 // Renders as a bottom sheet via the shared ModalFrame for visual
 // consistency with the other editor modals.
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { I } from "../components/icons";
-import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
+import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 
 type IconComponent = (typeof I)[keyof typeof I];
@@ -38,14 +38,6 @@ export function MobileMoreMenu({
   useFocusReturn(true);
   useFocusTrap(dialogRef, true);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
     <ModalFrame
       onClose={onClose}
@@ -55,6 +47,35 @@ export function MobileMoreMenu({
       labelledBy="mobile-more-title"
       dialogRef={dialogRef}
     >
+      <MoreMenuBody
+        fileName={fileName}
+        hasDoc={hasDoc}
+        canReset={canReset}
+        onShowFileProps={onShowFileProps}
+        onReset={onReset}
+        onClose={onClose}
+      />
+    </ModalFrame>
+  );
+}
+
+function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, onClose }: Props) {
+  // Route the menu-item dismissals through the animated lifecycle. The
+  // sheet has to play its slide-down before unmount or the dismiss
+  // feels abrupt — every item triggers an action AND closes the menu.
+  // The animated close accepts an onSettled callback that fires AFTER
+  // the slide-down completes, which is how Reset preserves its
+  // "close before showing the confirm dialog" UX invariant.
+  const animatedClose = useModalClose();
+  const dismiss = (after?: () => void) => {
+    if (animatedClose) animatedClose(after);
+    else {
+      onClose();
+      after?.();
+    }
+  };
+  return (
+    <>
       <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div id="mobile-more-title" className="t-headline text-base">
           Actions
@@ -73,8 +94,11 @@ export function MobileMoreMenu({
           hint={hasDoc ? fileName : "No file loaded"}
           disabled={!hasDoc}
           onClick={() => {
+            // Open the file-properties modal immediately so it slides
+            // in while this menu slides out — the visual handoff feels
+            // like one continuous gesture.
             onShowFileProps();
-            onClose();
+            dismiss();
           }}
         />
         <Divider />
@@ -84,12 +108,14 @@ export function MobileMoreMenu({
           hint="Restore the original image"
           disabled={!canReset}
           onClick={() => {
-            onClose();
-            onReset();
+            // Dismiss first, THEN run reset (which opens a confirm
+            // dialog in the parent) — preserves the prior contract
+            // that the menu fully closes before the confirm appears.
+            dismiss(onReset);
           }}
         />
       </div>
-    </ModalFrame>
+    </>
   );
 }
 

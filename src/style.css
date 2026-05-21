@@ -203,3 +203,109 @@ body {
     animation: none;
   }
 }
+
+/* ── Modal motion (May 2026) ───────────────────────────────────
+   Every dialog in the app routes through ModalFrame; the open /
+   close motion lives here so the visual language is one system.
+
+   Two surfaces:
+     • backdrop (the dimmed/blurred full-bleed pane)
+     • dialog  (the glass card itself — bottom-sheet on mobile,
+                centered card on desktop)
+
+   The backdrop is a pure opacity crossfade so the page behind the
+   modal doesn't flicker. The dialog uses transform + opacity only
+   (the hallmark rule for performance: never animate layout). iOS-
+   inspired easing — fast at the start, soft at the settle — comes
+   from the --ease-out-ios / --ease-in-ios tokens so the rest of
+   the app can lean on the same curves. */
+@keyframes ci-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ci-modal-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ci-modal-card-in {
+  from {
+    transform: translateY(12px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes ci-modal-card-out {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+@keyframes ci-modal-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes ci-modal-sheet-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.ci-modal-backdrop-enter {
+  animation: ci-modal-backdrop-in var(--dur-base) var(--ease-out-ios) both;
+}
+.ci-modal-backdrop-exit {
+  animation: ci-modal-backdrop-out var(--dur-fast) var(--ease-in-ios) both;
+}
+.ci-modal-card-enter {
+  animation: ci-modal-card-in var(--dur-modal) var(--ease-out-ios) both;
+}
+.ci-modal-card-exit {
+  animation: ci-modal-card-out var(--dur-fast) var(--ease-in-ios) both;
+}
+.ci-modal-sheet-enter {
+  animation: ci-modal-sheet-in var(--dur-sheet) var(--ease-out-ios) both;
+}
+.ci-modal-sheet-exit {
+  animation: ci-modal-sheet-out var(--dur-base) var(--ease-in-ios) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ci-modal-backdrop-enter,
+  .ci-modal-backdrop-exit,
+  .ci-modal-card-enter,
+  .ci-modal-card-exit,
+  .ci-modal-sheet-enter,
+  .ci-modal-sheet-exit {
+    /* Drop spatial motion but keep a short opacity crossfade so the
+       transition still reads as deliberate. */
+    animation-name: ci-modal-backdrop-in;
+    animation-duration: 120ms;
+  }
+  .ci-modal-backdrop-exit,
+  .ci-modal-card-exit,
+  .ci-modal-sheet-exit {
+    animation-name: ci-modal-backdrop-out;
+  }
+}

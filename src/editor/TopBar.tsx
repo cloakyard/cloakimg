@@ -297,7 +297,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         <ConfirmDialog
           layout={layout}
           title="Reset all edits?"
-          message="This restores the original image and discards every adjustment, layer, and tool change you've made. This can't be undone."
+          message="This restores the original image and discards every adjustment, layer, and tool change you've made. Your entire edit history will be wiped — there's no undo after this."
           confirmLabel="Reset"
           cancelLabel="Keep editing"
           icon={I.Refresh}

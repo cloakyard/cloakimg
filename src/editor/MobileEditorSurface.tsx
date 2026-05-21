@@ -75,7 +75,15 @@ const FOOTER_H = 56;
 // V3.5 dropped the crossfade layers (which needed FADE_OUT / FADE_IN
 // timings) in favour of in-flow content + measured height — the
 // geometry morph itself carries the visual transition now.
-const MORPH_MS = 360;
+//
+// V4 (May 2026): timing + easing align with the modal motion tokens
+// in tokens.css. The same `--ease-out-ios` curve drives modals,
+// sheets, and this morphing surface, so the app reads as one
+// coordinated motion system. Slightly slower base than the prior 360
+// because the expand-from-text gesture wants enough travel to register
+// as physical — a 280 ms version felt rushed when the picker grid
+// raced up from below the canvas.
+const MORPH_MS = 380;
 const EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 const DRAG_DISMISS_PX = 100;
@@ -378,8 +386,12 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
             <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <div ref={setContentRef}>
                 {mode === "picker" ? (
+                  // panel-fade-in carries a tiny opacity + translateY
+                  // settle so the grid lands as one coordinated motion
+                  // with the surrounding sheet morph, instead of
+                  // popping in flat.
                   <div
-                    className="grid grid-cols-4 gap-x-1 gap-y-3 px-4 pt-1"
+                    className="panel-fade-in grid grid-cols-4 gap-x-1 gap-y-3 px-4 pt-1"
                     style={{ paddingBottom: "1rem" }}
                   >
                     {tools.map((tool) => (
@@ -395,7 +407,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                   <>
                     <div
                       key={toolState.activeTool}
-                      className="flex flex-col gap-4 px-4 pt-1.5 pb-3"
+                      className="panel-fade-in flex flex-col gap-4 px-4 pt-1.5 pb-3"
                     >
                       <ToolControls />
                     </div>

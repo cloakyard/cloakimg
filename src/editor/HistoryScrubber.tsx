@@ -68,8 +68,14 @@ export function HistoryScrubber() {
           read as "flat-topped / flat-bottomed" cut-offs. Bumping the
           vertical padding from py-0.5 to py-1.5 gives the outline a
           6 px breathing buffer so the ring renders cleanly above and
-          below each thumb. */}
-      <div className="scroll-thin flex max-w-full items-center gap-1 overflow-x-auto px-1 py-1.5">
+          below each thumb.
+          The horizontal `gap` matters for the same reason: the active
+          outline reaches 4 px beyond each side of its button, and
+          gap-1 (4 px) lands the outline exactly at the neighbour's
+          edge — they appeared to bleed into one another. gap-2.5
+          (10 px) gives ~3 px of clear space on each side of the ring
+          so each thumb reads as its own card. */}
+      <div className="scroll-thin flex max-w-full items-center gap-2.5 overflow-x-auto px-1 py-1.5">
         {snapshot.map((entry, i) => {
           const active = i === cursor;
           return (
@@ -96,15 +102,14 @@ export function HistoryScrubber() {
               style={{ width: THUMB_PX, height: THUMB_PX }}
             >
               <ThumbCanvas thumb={entry.thumb} />
-              {/* Index pip — tiny number in the bottom-right so the
-                  user can also reference "go back 3 steps" without
-                  having to count thumbs. Visible only on the active
-                  entry to avoid clutter on long timelines. */}
-              {active && (
-                <span className="t-mono pointer-events-none absolute right-0 bottom-0 rounded-tl-md bg-coral-500 px-1 text-[9px] leading-none text-white">
-                  {i}
-                </span>
-              )}
+              {/* The prior treatment dropped a coral "step number" pip
+                  in the bottom-right of the active thumb. With the
+                  active thumb already wearing a 4 px coral outline-ring
+                  (outline-offset-2 + outline-2), the pip's bottom-right
+                  corner clipped against that ring and read as a visual
+                  overlap. The ring itself is enough "you are here" —
+                  step counts live on the title attribute and aria-label
+                  for users who need to reference them. */}
             </button>
           );
         })}

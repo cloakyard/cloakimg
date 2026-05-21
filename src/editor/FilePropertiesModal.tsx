@@ -4,9 +4,9 @@
 // available), MIME / format, EXIF metadata (extracted across JPEG /
 // HEIC / AVIF / WebP / PNG / TIFF), and layer count.
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { I } from "../components/icons";
-import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
+import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
 import { useEditor } from "./EditorContext";
 import { exifToFields } from "./tools/exif";
 import type { Layout } from "./types";
@@ -27,16 +27,6 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusReturn(true);
   useFocusTrap(dialogRef, true);
-
-  // Esc closes — paired with the trap so keyboard users can dismiss
-  // the dialog without hunting for the close button.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   if (!doc) return null;
 
@@ -76,6 +66,31 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
       labelledBy="file-properties-title"
       dialogRef={dialogRef}
     >
+      <FilePropertiesBody rows={rows} exifRows={exifRows} isMobile={isMobile} onClose={onClose} />
+    </ModalFrame>
+  );
+}
+
+function FilePropertiesBody({
+  rows,
+  exifRows,
+  isMobile,
+  onClose,
+}: {
+  rows: Row[];
+  exifRows: Row[];
+  isMobile: boolean;
+  onClose: () => void;
+}) {
+  // Route the Close button through ModalFrame's animated lifecycle so
+  // the dialog slides / scales away on dismiss instead of disappearing
+  // instantly. Esc + backdrop click + X are already handled there.
+  // Wrap in an arrow so the click event isn't accidentally passed as
+  // animatedClose's `onSettled` callback.
+  const animatedClose = useModalClose();
+  const dismiss = () => (animatedClose ? animatedClose() : onClose());
+  return (
+    <>
       <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
@@ -120,11 +135,11 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
-        <button type="button" className="btn btn-primary btn-sm" onClick={onClose}>
+        <button type="button" className="btn btn-primary btn-sm" onClick={dismiss}>
           Close
         </button>
       </div>
-    </ModalFrame>
+    </>
   );
 }
 

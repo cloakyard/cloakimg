@@ -70,15 +70,15 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
     onConfirm({ kind: "blank", w, h, background: bgEnabled ? bg : null });
   }, [bg, bgEnabled, customH, customW, onConfirm, presetIdx, tab, uploadFile]);
 
-  // Esc to close
+  // Enter shortcut; Esc is owned centrally by ModalFrame so closing
+  // routes through the animated slide-down lifecycle.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
       if (e.key === "Enter" && (uploadFile || tab === "blank")) handleConfirm();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleConfirm, onCancel, tab, uploadFile]);
+  }, [handleConfirm, tab, uploadFile]);
 
   const canConfirm = tab === "upload" ? !!uploadFile : true;
 

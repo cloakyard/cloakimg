@@ -7,7 +7,7 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { I } from "../components/icons";
-import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
+import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
 import type { Layout } from "./types";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 
@@ -36,25 +36,10 @@ export function ConfirmDialog({
 }: Props) {
   const isMobile = layout === "mobile";
   const dialogRef = useRef<HTMLDivElement>(null);
-  const confirmRef = useRef<HTMLButtonElement>(null);
   useFocusReturn(true);
   useFocusTrap(dialogRef, true);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-      else if (e.key === "Enter") onConfirm();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel, onConfirm]);
-
-  // Land focus on the confirm action so Enter triggers it and screen
-  // readers announce the consequence first.
-  useEffect(() => {
-    confirmRef.current?.focus();
-  }, []);
-
+  // Esc is handled centrally by ModalFrame so it routes through the
+  // animated-close lifecycle. The Enter shortcut stays here.
   return (
     <ModalFrame
       onClose={onCancel}
@@ -64,6 +49,63 @@ export function ConfirmDialog({
       labelledBy="confirm-dialog-title"
       dialogRef={dialogRef}
     >
+      <ConfirmDialogBody
+        title={title}
+        message={message}
+        confirmLabel={confirmLabel}
+        cancelLabel={cancelLabel}
+        Icon={Icon}
+        isMobile={isMobile}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+      />
+    </ModalFrame>
+  );
+}
+
+interface BodyProps {
+  title: string;
+  message: ReactNode;
+  confirmLabel: string;
+  cancelLabel: string;
+  Icon: IconComponent;
+  isMobile: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function ConfirmDialogBody({
+  title,
+  message,
+  confirmLabel,
+  cancelLabel,
+  Icon,
+  isMobile,
+  onConfirm,
+  onCancel,
+}: BodyProps) {
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  // Route both the X-button and the explicit Cancel through the
+  // animated-close lifecycle of the surrounding ModalFrame so the
+  // dialog slides / fades away instead of vanishing instantly.
+  // Wrap so the click event isn't accidentally passed as `onSettled`.
+  const animatedClose = useModalClose();
+  const dismiss = () => (animatedClose ? animatedClose() : onCancel());
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") onConfirm();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onConfirm]);
+
+  useEffect(() => {
+    confirmRef.current?.focus();
+  }, []);
+
+  return (
+    <>
       <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
@@ -83,7 +125,7 @@ export function ConfirmDialog({
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={dismiss}>
           {cancelLabel}
         </button>
         <button
@@ -95,6 +137,6 @@ export function ConfirmDialog({
           {confirmLabel}
         </button>
       </div>
-    </ModalFrame>
+    </>
   );
 }

@@ -67,13 +67,9 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusReturn(true);
   useFocusTrap(dialogRef, true);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  // Esc handling lives in ModalFrame so it routes through the animated
+  // close lifecycle — removing the duplicate here lets the sheet slide
+  // down on Esc instead of vanishing instantly.
 
   // setTimeout(0) — not queueMicrotask — so the browser gets a chance
   // to paint the modal between mount and the (potentially heavy)
