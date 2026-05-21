@@ -595,6 +595,23 @@ html {
   background: light-dark(rgba(100, 116, 139, 0.5), rgba(255, 255, 255, 0.28));
 }
 
+/* Touch devices: drop the always-visible 6px bar so the platform's
+   native overlay scrollbar takes over — it fades in only during an
+   active scroll, fades out at rest. The classic bar above is correct
+   for hover-precise pointers (mouse / trackpad) where a visible thumb
+   doubles as a "this can scroll" affordance, but on a phone it just
+   plants a stationary stripe down the edge of every bottom sheet. */
+@media (pointer: coarse) {
+  .scroll-thin {
+    scrollbar-width: none;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
 /* Hide horizontal scrollbar on mobile toolbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

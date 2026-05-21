@@ -40,6 +40,15 @@ interface KeyframeDeltas {
 interface Keyframe {
   t: number;
   label: string;
+  /** Short hint shown next to the active label in the panel. Picked
+   *  so a user scanning the dial gets a feel for the moment without
+   *  having to think about Kelvin or exposure stops. */
+  caption: string;
+  /** Representative sky color for the gradient + thumb on the dial.
+   *  These are *display* colors, not photo edits — the actual look
+   *  comes from `deltas`. Tuned so the strip reads as a believable
+   *  day arc: pale cool blue → warm white → amber → red → indigo. */
+  color: string;
   deltas: KeyframeDeltas;
 }
 
@@ -52,16 +61,32 @@ export const KEYFRAMES: readonly Keyframe[] = [
   {
     t: 0.0,
     label: "Dawn",
+    caption: "Cool, hazy, soft contrast",
+    color: "#a6b4c4",
     deltas: { temp: -0.18, exposure: -0.08, shadows: 0.12, contrast: -0.08, saturation: -0.1 },
   },
   // Morning: clean neutral light, faintly cool, slight exposure lift.
-  { t: 0.2, label: "Morning", deltas: { temp: -0.06, exposure: 0.04, saturation: -0.02 } },
+  {
+    t: 0.2,
+    label: "Morning",
+    caption: "Clean light, slightly cool",
+    color: "#cce0ee",
+    deltas: { temp: -0.06, exposure: 0.04, saturation: -0.02 },
+  },
   // Noon: identity. All deltas zero.
-  { t: 0.5, label: "Noon", deltas: {} },
+  {
+    t: 0.5,
+    label: "Noon",
+    caption: "Neutral baseline — no edit",
+    color: "#eef2f6",
+    deltas: {},
+  },
   // Golden: warm amber wash, gentle highlight roll-off, +saturation.
   {
     t: 0.7,
     label: "Golden",
+    caption: "Warm amber, gentle vibrance",
+    color: "#f5b66a",
     deltas: { temp: 0.16, highlights: -0.06, saturation: 0.1, vibrance: 0.08, vignette: 0.06 },
   },
   // Sunset: deeper warm tones, lifted shadows for that "rim-light"
@@ -69,6 +94,8 @@ export const KEYFRAMES: readonly Keyframe[] = [
   {
     t: 0.85,
     label: "Sunset",
+    caption: "Deep amber, lifted shadows",
+    color: "#c25433",
     deltas: {
       temp: 0.26,
       exposure: -0.04,
@@ -82,6 +109,8 @@ export const KEYFRAMES: readonly Keyframe[] = [
   {
     t: 1.0,
     label: "Night",
+    caption: "Cool, dim, muted color",
+    color: "#1f2a4a",
     deltas: { temp: -0.22, exposure: -0.22, saturation: -0.18, contrast: 0.05, vignette: 0.15 },
   },
 ];

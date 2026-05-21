@@ -9,6 +9,12 @@
 // edit. This pill collapses the loop to a single press-and-hold gesture:
 // press to peek the source, lift to return.
 //
+// A second, power-user gesture lives directly on the canvas:
+// resting two fingers on the photo for ~420 ms also flips the compare
+// state. Both gestures call the same `setCompareActive` setter, so the
+// pill below visibly reflects either path (label flips to "Original",
+// background turns coral) and lifting either input releases.
+//
 // The canvas swap itself is driven by `compareActive` in EditorContext
 // (existing rendering path in ImageCanvas), so this component does not
 // touch image pixels — it just owns the gesture surface and toggles
@@ -45,7 +51,9 @@ export function MobileCompareButton({ compareActive, setCompareActive }: Props) 
         onPointerLeave={release}
         onPointerCancel={release}
         aria-label={
-          compareActive ? "Showing original — release to return" : "Hold to compare with original"
+          compareActive
+            ? "Showing original — release to return"
+            : "Hold this pill, or rest two fingers on the photo, to compare with the original"
         }
         aria-pressed={compareActive}
         className="flex cursor-pointer touch-none items-center gap-1.5 rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white select-none active:scale-[0.96]"

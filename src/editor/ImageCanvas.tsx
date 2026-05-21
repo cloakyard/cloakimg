@@ -182,6 +182,28 @@ export function ImageCanvas({
     startPanX: number;
     startPanY: number;
   } | null>(null);
+  // Two-finger long-press → compare. Mobile-only gesture: rest two
+  // fingers on the canvas, stay still for TWO_FINGER_HOLD_MS, and the
+  // editor flips to the original-photo view (same `compareActive` flag
+  // the pill at top-left uses). Lifting either finger or moving by more
+  // than HOLD_MOVE_PX releases the compare. Threshold is comfortably
+  // longer than the two-finger-tap window (280 ms) so the two gestures
+  // never collide: a quick lift fires undo, a sustained hold reveals
+  // the original.
+  const TWO_FINGER_HOLD_MS = 420;
+  const HOLD_MOVE_PX = 12;
+  const compareHoldRef = useRef<{
+    startMidX: number;
+    startMidY: number;
+    startDist: number;
+    timerId: number | null;
+    armed: boolean;
+  } | null>(null);
+  // Stable ref to setCompareActive so the gesture handlers can call it
+  // from setTimeout callbacks without invalidating the useCallback
+  // dependency lists below.
+  const setCompareActiveRef = useRef(setCompareActive);
+  setCompareActiveRef.current = setCompareActive;
 
   // Resize observer — keep the canvas filling the container.
   useLayoutEffect(() => {
@@ -685,6 +707,33 @@ export function ImageCanvas({
           } else {
             twoFingerTapRef.current = null;
           }
+          // Arm the two-finger long-press → compare gesture. Both
+          // fingers must stay roughly still for TWO_FINGER_HOLD_MS;
+          // the timer flips compareActive on. The pointermove handler
+          // cancels this if either finger drifts, and pointerup
+          // cancels + releases compareActive if the timer already
+          // fired. We always arm here (even if the tap session was
+          // rejected above by the gap rule) — the gap rule guards a
+          // *quick* gesture, but a deliberate two-finger hold a few
+          // hundred ms after a single-finger gesture is still a
+          // legitimate compare request.
+          if (compareHoldRef.current?.timerId != null) {
+            window.clearTimeout(compareHoldRef.current.timerId);
+          }
+          const timerId = window.setTimeout(() => {
+            const ref = compareHoldRef.current;
+            if (!ref) return;
+            ref.armed = true;
+            ref.timerId = null;
+            setCompareActiveRef.current(true);
+          }, TWO_FINGER_HOLD_MS);
+          compareHoldRef.current = {
+            startMidX,
+            startMidY,
+            startDist,
+            timerId,
+            armed: false,
+          };
           panRef.current = null;
         }
         return;
@@ -740,6 +789,22 @@ export function ImageCanvas({
             const distDelta = Math.abs(dist - tap.startDist);
             if (movedMid > 10 || distDelta > 10) tap.valid = false;
           }
+          // Same rule for the long-press → compare gesture. If either
+          // finger drifts beyond HOLD_MOVE_PX before the hold timer
+          // fires, the user is pinching / panning — clear the timer.
+          // If the hold has already armed compareActive, treat any
+          // significant drift as a release so a quick re-pinch doesn't
+          // get stuck in compare mode.
+          const hold = compareHoldRef.current;
+          if (hold) {
+            const movedMid = Math.hypot(midX - hold.startMidX, midY - hold.startMidY);
+            const distDelta = Math.abs(dist - hold.startDist);
+            if (movedMid > HOLD_MOVE_PX || distDelta > HOLD_MOVE_PX) {
+              if (hold.timerId != null) window.clearTimeout(hold.timerId);
+              if (hold.armed) setCompareActiveRef.current(false);
+              compareHoldRef.current = null;
+            }
+          }
           // Drive zoom + pan together: pinch ratio scales the zoom,
           // midpoint translation pans the canvas. Two-finger pan is
           // the touch equivalent of Space-drag on desktop, useful
@@ -773,6 +838,16 @@ export function ImageCanvas({
   const onPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       pointersRef.current.delete(e.pointerId);
+      // Any finger lift while a two-finger long-press is in progress
+      // ends the gesture: clear a pending timer, release compare if
+      // it had already armed. Mirrors the desktop hold-to-compare
+      // button's pointerup release.
+      const hold = compareHoldRef.current;
+      if (hold && pointersRef.current.size < 2) {
+        if (hold.timerId != null) window.clearTimeout(hold.timerId);
+        if (hold.armed) setCompareActiveRef.current(false);
+        compareHoldRef.current = null;
+      }
       if (pinchRef.current && pointersRef.current.size < 2) {
         pinchRef.current = null;
         // If the second finger lifts within the tap window with neither
@@ -821,6 +896,15 @@ export function ImageCanvas({
     // System gestures cancel any pending two-finger-tap — we'd rather
     // skip the undo than fire it for an interrupted touch.
     twoFingerTapRef.current = null;
+    // Same for the two-finger long-press compare gesture — drop any
+    // pending timer and release if it had armed, so a backgrounded
+    // tab / iOS control-center pull never leaves compare stuck on.
+    const hold = compareHoldRef.current;
+    if (hold) {
+      if (hold.timerId != null) window.clearTimeout(hold.timerId);
+      if (hold.armed) setCompareActiveRef.current(false);
+      compareHoldRef.current = null;
+    }
   }, []);
 
   const isMobile = size.w > 0 && size.w < MOBILE_MAX_PX;

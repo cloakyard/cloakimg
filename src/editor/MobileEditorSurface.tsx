@@ -386,12 +386,16 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
             <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <div ref={setContentRef}>
                 {mode === "picker" ? (
-                  // panel-fade-in carries a tiny opacity + translateY
-                  // settle so the grid lands as one coordinated motion
-                  // with the surrounding sheet morph, instead of
-                  // popping in flat.
+                  // No panel-fade-in here. A transform-based animation
+                  // on the scroller's direct content is a known iOS
+                  // Safari quirk that breaks momentum scroll for the
+                  // first finger touch after mount — users reported
+                  // "can't scroll the tool picker" once the fade was
+                  // added. The outer sheet morph already carries the
+                  // motion; the picker grid lands on a calm fade by
+                  // virtue of the sheet's own enter animation.
                   <div
-                    className="panel-fade-in grid grid-cols-4 gap-x-1 gap-y-3 px-4 pt-1"
+                    className="grid grid-cols-4 gap-x-1 gap-y-3 px-4 pt-1"
                     style={{ paddingBottom: "1rem" }}
                   >
                     {tools.map((tool) => (
@@ -407,7 +411,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                   <>
                     <div
                       key={toolState.activeTool}
-                      className="panel-fade-in flex flex-col gap-4 px-4 pt-1.5 pb-3"
+                      className="flex flex-col gap-4 px-4 pt-1.5 pb-3"
                     >
                       <ToolControls />
                     </div>

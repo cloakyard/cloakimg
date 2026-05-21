@@ -481,6 +481,13 @@ export function EditorProvider({
          *  validate that the visible scrubber matches the underlying
          *  history without doing brittle DOM-scrapes. */
         historyLabels: () => string[];
+        /** True when the editor is currently rendering the original
+         *  source pixels instead of the edited canvas. Set by either
+         *  the desktop hold-to-compare button, the (now-hidden on
+         *  mobile) compare pill, or the two-finger long-press canvas
+         *  gesture. Mobile gesture probes read this to confirm the
+         *  hold actually engaged. */
+        compareActive: boolean;
       };
     };
     w.__editorDebug = {
@@ -495,14 +502,16 @@ export function EditorProvider({
       historyLength: () => historyRef.current.entriesSnapshot().length,
       jumpToStep: (i) => jumpToStepRef.current(i),
       historyLabels: () => historyRef.current.entriesSnapshot().map((e) => e.label),
+      compareActive,
     };
     // commit() bumps doc identity via setDoc({...prev}), so this
     // effect re-runs on every history mutation. toolState in deps
     // re-runs on every patchTool so the test can read the latest
     // crop / adjust / etc. values. pendingApplyVersion / toolCheckpoint
     // / historyVersion are deps so the test-visible canCancelCurrentTool
-    // snapshot stays current.
-  }, [doc, toolState, pendingApplyVersion, toolCheckpoint, historyVersion]);
+    // snapshot stays current. compareActive must re-run so the gesture
+    // probe sees the post-hold value.
+  }, [doc, toolState, pendingApplyVersion, toolCheckpoint, historyVersion, compareActive]);
 
   // Revoke any outstanding batch blob URLs (thumb + result) when the
   // editor unmounts. Without this, leaving the editor with a populated
