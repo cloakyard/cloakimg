@@ -3,7 +3,7 @@
 // the grid is taller than the sheet's content area, so the inner
 // scroller must accept vertical pans.
 
-import { existsSync, mkdtempSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";

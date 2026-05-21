@@ -488,6 +488,11 @@ export function EditorProvider({
          *  gesture. Mobile gesture probes read this to confirm the
          *  hold actually engaged. */
         compareActive: boolean;
+        /** The current `doc.working` canvas reference. Used by the
+         *  bake-timing benchmark probe so it can run real bake
+         *  functions against the user's loaded photo without having
+         *  to reach into Fabric's internal canvases. */
+        docWorking: HTMLCanvasElement | null;
       };
     };
     w.__editorDebug = {
@@ -503,6 +508,7 @@ export function EditorProvider({
       jumpToStep: (i) => jumpToStepRef.current(i),
       historyLabels: () => historyRef.current.entriesSnapshot().map((e) => e.label),
       compareActive,
+      docWorking: doc ? doc.working : null,
     };
     // commit() bumps doc identity via setDoc({...prev}), so this
     // effect re-runs on every history mutation. toolState in deps

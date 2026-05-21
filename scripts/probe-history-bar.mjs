@@ -2,7 +2,7 @@
 // bug. Open the editor, commit two trivial Adjust changes (so the
 // scrubber unhides), then screenshot.
 
-import { existsSync, mkdtempSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
