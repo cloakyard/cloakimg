@@ -114,28 +114,77 @@ export function bakeHsl(src: HTMLCanvasElement, p: HslParams): HTMLCanvasElement
   const img = ctx.getImageData(0, 0, out.width, out.height);
   const data = img.data;
   const lut = buildHslLUT(p);
+  // Pre-scan the LUT for hues whose dh/ds/dl are all near-zero. Users
+  // typically only push 1–2 bands at a time, leaving the other 6
+  // contributing nothing. Pixels whose hue falls into a null band can
+  // skip the hslToRgb round-trip entirely (the costly half of the
+  // loop). nullHue[i] is true ⇒ the LUT is identity for hue `i`.
+  const nullHue = new Uint8Array(360);
+  for (let h = 0; h < 360; h++) {
+    if (
+      Math.abs(lut.dh[h] ?? 0) < 1e-4 &&
+      Math.abs(lut.ds[h] ?? 0) < 1e-4 &&
+      Math.abs(lut.dl[h] ?? 0) < 1e-4
+    ) {
+      nullHue[h] = 1;
+    }
+  }
+  // Inlined rgbToHsl below to avoid the 3-element tuple allocation per
+  // pixel — at 2 M pixels per preview that's 2 M short-lived arrays.
+  const SAT_GATE_EPS = 1e-4;
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i] ?? 0;
     const g = data[i + 1] ?? 0;
     const b = data[i + 2] ?? 0;
-    const hsl = rgbToHsl(r, g, b);
-    let h = hsl[0];
-    let s = hsl[1];
-    let l = hsl[2];
-    // Saturation gates the effect: pixels with no chroma (pure greys)
-    // are colour-agnostic; shifting their hue is meaningless and
-    // pushing their saturation tints them on a single channel which
-    // looks broken. Fade the shifts in as saturation rises.
-    const gate = Math.min(1, s * 4);
+    // Fast-path 1: pure grey → no chroma, no possible shift.
+    if (r === g && g === b) continue;
+    const rn = r / 255;
+    const gn = g / 255;
+    const bn = b / 255;
+    const max = rn > gn ? (rn > bn ? rn : bn) : gn > bn ? gn : bn;
+    const min = rn < gn ? (rn < bn ? rn : bn) : gn < bn ? gn : bn;
+    const l = (max + min) * 0.5;
+    const d = max - min;
+    // d===0 caught by the grey fast-path above; still guard for
+    // floating-point safety.
+    if (d === 0) continue;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    // Fast-path 2: gate vanishes for near-zero saturation.
+    const gate = s * 4 < 1 ? s * 4 : 1;
+    if (gate < SAT_GATE_EPS) continue;
+    let h: number;
+    if (max === rn) h = (gn - bn) / d + (gn < bn ? 6 : 0);
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+    h *= 60;
     const idx = (((h | 0) % 360) + 360) % 360;
-    h = (h + (lut.dh[idx] ?? 0) * gate) % 360;
-    if (h < 0) h += 360;
-    s = clamp01(s + (lut.ds[idx] ?? 0) * gate * Math.max(0.15, s));
-    l = clamp01(l + (lut.dl[idx] ?? 0) * gate);
-    const rgb = hslToRgb(h, s, l);
-    data[i] = rgb[0];
-    data[i + 1] = rgb[1];
-    data[i + 2] = rgb[2];
+    // Fast-path 3: the LUT is identity for this pixel's hue.
+    if (nullHue[idx]) continue;
+    const dh = lut.dh[idx] ?? 0;
+    const ds = lut.ds[idx] ?? 0;
+    const dl = lut.dl[idx] ?? 0;
+    let h2 = (h + dh * gate) % 360;
+    if (h2 < 0) h2 += 360;
+    const s2 = clamp01(s + ds * gate * (s < 0.15 ? 0.15 : s));
+    const l2 = clamp01(l + dl * gate);
+    // Inlined hslToRgb. s2===0 produces a pure grey, which is already
+    // the input pixel's luminance — fall back to the grey writeback.
+    if (s2 === 0) {
+      const v = (l2 * 255 + 0.5) | 0;
+      data[i] = v;
+      data[i + 1] = v;
+      data[i + 2] = v;
+      continue;
+    }
+    const q = l2 < 0.5 ? l2 * (1 + s2) : l2 + s2 - l2 * s2;
+    const pV = 2 * l2 - q;
+    const hk = h2 / 360;
+    const rOut = hueToChannel(pV, q, hk + 1 / 3);
+    const gOut = hueToChannel(pV, q, hk);
+    const bOut = hueToChannel(pV, q, hk - 1 / 3);
+    data[i] = (rOut * 255 + 0.5) | 0;
+    data[i + 1] = (gOut * 255 + 0.5) | 0;
+    data[i + 2] = (bOut * 255 + 0.5) | 0;
   }
   ctx.putImageData(img, 0, 0);
   return out;
@@ -145,39 +194,10 @@ function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
-/** RGB 0..255 → [hue 0..360, sat 0..1, lum 0..1]. */
-function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-  const rn = r / 255;
-  const gn = g / 255;
-  const bn = b / 255;
-  const max = Math.max(rn, gn, bn);
-  const min = Math.min(rn, gn, bn);
-  const l = (max + min) / 2;
-  if (max === min) return [0, 0, l];
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h = 0;
-  if (max === rn) h = (gn - bn) / d + (gn < bn ? 6 : 0);
-  else if (max === gn) h = (bn - rn) / d + 2;
-  else h = (rn - gn) / d + 4;
-  h *= 60;
-  return [h, s, l];
-}
-
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  if (s === 0) {
-    const v = Math.round(l * 255);
-    return [v, v, v];
-  }
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const hk = h / 360;
-  const r = hueToChannel(p, q, hk + 1 / 3);
-  const g = hueToChannel(p, q, hk);
-  const b = hueToChannel(p, q, hk - 1 / 3);
-  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}
-
+/** One of HSL's standard six-segment hue→channel ramps. Kept as a
+ *  standalone helper because the bake loop calls it three times per
+ *  non-skipped pixel — pulling it out keeps the inner loop readable
+ *  without changing the inlined call-site cost. */
 function hueToChannel(p: number, q: number, t: number): number {
   if (t < 0) t += 1;
   if (t > 1) t -= 1;

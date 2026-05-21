@@ -18,7 +18,7 @@ import { useCallback, useEffect } from "react";
 import { I } from "../../components/icons";
 import { PropRow, Segment, Slider, ToggleSwitch } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import type { MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -43,7 +43,9 @@ const LENS_OPTIONS: LensKind[] = ["gaussian", "lens", "tilt-shift"];
 const LENS_LABELS = LENS_OPTIONS.map((k) => LENS_KIND_LABELS[k]);
 
 export function BgBlurPanel() {
-  const { toolState, patchTool, doc, commit } = useEditor();
+  const toolState = useToolState();
+  const { patchTool, commit } = useEditorActions();
+  const { doc } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   // 0 (whole) or 2 (background). The Subject scope (1) used to live
   // here; we coerce any leftover value-1 doc state to 2 so old saved

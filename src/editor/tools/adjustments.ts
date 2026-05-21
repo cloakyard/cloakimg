@@ -176,6 +176,25 @@ export async function bakeAdjustAsync(
   const tempB = -v.temp * 25;
   const grainAmount = grain * 40;
 
+  // Per-stage activity flags. Cheap multiplies+adds at identity (e.g.
+  // `(r - 128) * 1 + 128` is a no-op but still 3 ops × 2 M pixels) add
+  // up to several ms per bake on lower-end phones. Gating the stages
+  // by their respective deltas turns single-slider drags into a
+  // near-skip — only the moved slider's pass runs the inner work.
+  const expoActive = expo !== 1;
+  const conActive = con !== 1;
+  const shHiActive = sh !== 0 || hi !== 0;
+  const whActive = wh !== 0;
+  const blActive = bl !== 0;
+  const satActive = sat !== 1;
+  const vibActive = vib !== 0;
+  const tempActive = tempR !== 0;
+  // The leading `lum` calculation only matters if a downstream stage
+  // consumes it. None of {exposure, contrast, temp, grain, curve LUT}
+  // touch luminance — skipping the multiply-add chain when no
+  // lum-dependent stage is active saves ~4 ops per pixel.
+  const needsLum = shHiActive || whActive || blActive;
+
   const w = out.width;
   const h = out.height;
   const CHUNK_ROWS = 64;
@@ -189,44 +208,51 @@ export async function bakeAdjustAsync(
       let g = data[i + 1] ?? 0;
       let b = data[i + 2] ?? 0;
 
-      r *= expo;
-      g *= expo;
-      b *= expo;
-
-      r = (r - 128) * con + 128;
-      g = (g - 128) * con + 128;
-      b = (b - 128) * con + 128;
-
-      const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
-      const shadowMask = Math.max(0, 1 - lum / 128);
-      const highlightMask = Math.max(0, (lum - 128) / 128);
-      const sAdjust = sh * 60 * shadowMask;
-      const hAdjust = -hi * 60 * highlightMask;
-      r += sAdjust + hAdjust;
-      g += sAdjust + hAdjust;
-      b += sAdjust + hAdjust;
-
-      if (wh !== 0) {
-        const m = Math.max(0, (lum - 200) / 55);
-        r += wh * 30 * m;
-        g += wh * 30 * m;
-        b += wh * 30 * m;
-      }
-      if (bl !== 0) {
-        const m = Math.max(0, (60 - lum) / 60);
-        r -= bl * 30 * m;
-        g -= bl * 30 * m;
-        b -= bl * 30 * m;
+      if (expoActive) {
+        r *= expo;
+        g *= expo;
+        b *= expo;
       }
 
-      if (sat !== 1) {
+      if (conActive) {
+        r = (r - 128) * con + 128;
+        g = (g - 128) * con + 128;
+        b = (b - 128) * con + 128;
+      }
+
+      if (needsLum) {
+        const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
+        if (shHiActive) {
+          const shadowMask = Math.max(0, 1 - lum / 128);
+          const highlightMask = Math.max(0, (lum - 128) / 128);
+          const sAdjust = sh * 60 * shadowMask;
+          const hAdjust = -hi * 60 * highlightMask;
+          r += sAdjust + hAdjust;
+          g += sAdjust + hAdjust;
+          b += sAdjust + hAdjust;
+        }
+        if (whActive) {
+          const m = Math.max(0, (lum - 200) / 55);
+          r += wh * 30 * m;
+          g += wh * 30 * m;
+          b += wh * 30 * m;
+        }
+        if (blActive) {
+          const m = Math.max(0, (60 - lum) / 60);
+          r -= bl * 30 * m;
+          g -= bl * 30 * m;
+          b -= bl * 30 * m;
+        }
+      }
+
+      if (satActive) {
         const lum2 = r * 0.2126 + g * 0.7152 + b * 0.0722;
         r = lum2 + (r - lum2) * sat;
         g = lum2 + (g - lum2) * sat;
         b = lum2 + (b - lum2) * sat;
       }
 
-      if (vib !== 0) {
+      if (vibActive) {
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
         const sNow = max === 0 ? 0 : (max - min) / max;
@@ -237,7 +263,7 @@ export async function bakeAdjustAsync(
         b = lum3 + (b - lum3) * factor;
       }
 
-      if (tempR !== 0) {
+      if (tempActive) {
         r += tempR;
         b += tempB;
       }
@@ -323,57 +349,68 @@ export function bakeAdjust(
 
   const grainAmount = grain * 40; // 0..40 units of noise
 
+  // Per-stage activity flags — see bakeAdjustAsync for the rationale.
+  // Single-slider drags become near-skips when only one stage runs.
+  const expoActive = expo !== 1;
+  const conActive = con !== 1;
+  const shHiActive = sh !== 0 || hi !== 0;
+  const whActive = wh !== 0;
+  const blActive = bl !== 0;
+  const satActive = sat !== 1;
+  const vibActive = vib !== 0;
+  const tempActive = tempR !== 0;
+  const needsLum = shHiActive || whActive || blActive;
+
   for (let i = 0; i < data.length; i += 4) {
     let r = data[i] ?? 0;
     let g = data[i + 1] ?? 0;
     let b = data[i + 2] ?? 0;
 
-    // exposure
-    r *= expo;
-    g *= expo;
-    b *= expo;
-
-    // contrast around 128
-    r = (r - 128) * con + 128;
-    g = (g - 128) * con + 128;
-    b = (b - 128) * con + 128;
-
-    // luminance for highlights / shadows / vibrance
-    const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
-
-    // shadows boost dark, highlights pull bright
-    const shadowMask = Math.max(0, 1 - lum / 128);
-    const highlightMask = Math.max(0, (lum - 128) / 128);
-    const sAdjust = sh * 60 * shadowMask;
-    const hAdjust = -hi * 60 * highlightMask;
-    r += sAdjust + hAdjust;
-    g += sAdjust + hAdjust;
-    b += sAdjust + hAdjust;
-
-    // whites / blacks
-    if (wh !== 0) {
-      const m = Math.max(0, (lum - 200) / 55);
-      r += wh * 30 * m;
-      g += wh * 30 * m;
-      b += wh * 30 * m;
-    }
-    if (bl !== 0) {
-      const m = Math.max(0, (60 - lum) / 60);
-      r -= bl * 30 * m;
-      g -= bl * 30 * m;
-      b -= bl * 30 * m;
+    if (expoActive) {
+      r *= expo;
+      g *= expo;
+      b *= expo;
     }
 
-    // saturation
-    if (sat !== 1) {
+    if (conActive) {
+      r = (r - 128) * con + 128;
+      g = (g - 128) * con + 128;
+      b = (b - 128) * con + 128;
+    }
+
+    if (needsLum) {
+      const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
+      if (shHiActive) {
+        const shadowMask = Math.max(0, 1 - lum / 128);
+        const highlightMask = Math.max(0, (lum - 128) / 128);
+        const sAdjust = sh * 60 * shadowMask;
+        const hAdjust = -hi * 60 * highlightMask;
+        r += sAdjust + hAdjust;
+        g += sAdjust + hAdjust;
+        b += sAdjust + hAdjust;
+      }
+      if (whActive) {
+        const m = Math.max(0, (lum - 200) / 55);
+        r += wh * 30 * m;
+        g += wh * 30 * m;
+        b += wh * 30 * m;
+      }
+      if (blActive) {
+        const m = Math.max(0, (60 - lum) / 60);
+        r -= bl * 30 * m;
+        g -= bl * 30 * m;
+        b -= bl * 30 * m;
+      }
+    }
+
+    if (satActive) {
       const lum2 = r * 0.2126 + g * 0.7152 + b * 0.0722;
       r = lum2 + (r - lum2) * sat;
       g = lum2 + (g - lum2) * sat;
       b = lum2 + (b - lum2) * sat;
     }
 
-    // vibrance — boost less-saturated pixels more
-    if (vib !== 0) {
+    if (vibActive) {
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
       const sNow = max === 0 ? 0 : (max - min) / max;
@@ -384,13 +421,11 @@ export function bakeAdjust(
       b = lum3 + (b - lum3) * factor;
     }
 
-    // temp
-    if (tempR !== 0) {
+    if (tempActive) {
       r += tempR;
       b += tempB;
     }
 
-    // grain — additive symmetric noise
     if (grainAmount > 0) {
       const n = (Math.random() - 0.5) * grainAmount;
       r += n;

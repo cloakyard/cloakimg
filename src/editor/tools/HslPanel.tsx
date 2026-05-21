@@ -7,7 +7,7 @@ import { useCallback, useMemo } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -25,7 +25,9 @@ import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 
 export function HslPanel() {
-  const { toolState, patchTool, doc, commit } = useEditor();
+  const toolState = useToolState();
+  const { patchTool, commit } = useEditorActions();
+  const { doc } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   const band = toolState.hslBand;
   const scope = (toolState.hslScope as MaskScope) ?? 0;
