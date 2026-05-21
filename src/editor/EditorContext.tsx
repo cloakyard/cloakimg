@@ -397,11 +397,20 @@ export function EditorProvider({
       __editorDebug?: {
         docDims: { w: number; h: number } | null;
         toolState: typeof toolState;
+        // Test-only escape hatch for probes that can't (or won't)
+        // drive the Slider/Segment atoms via real PointerEvents —
+        // mainly bgBlur / adjust / filter visual regression scripts
+        // that need to set sub-pixel-precise values without fighting
+        // setPointerCapture under headless Chromium. Routed through a
+        // ref so this effect can run before `patchTool` is declared
+        // below; the call site reads the live value at invoke time.
+        patchTool: <K extends keyof ToolState>(key: K, value: ToolState[K]) => void;
       };
     };
     w.__editorDebug = {
       docDims: doc ? { w: doc.width, h: doc.height } : null,
       toolState,
+      patchTool: (key, value) => patchToolRef.current(key, value),
     };
     // commit() bumps doc identity via setDoc({...prev}), so this
     // effect re-runs on every history mutation. toolState in deps
@@ -469,6 +478,12 @@ export function EditorProvider({
   const patchTool = useCallback(<K extends keyof ToolState>(key: K, value: ToolState[K]) => {
     setToolState((prev) => ({ ...prev, [key]: value }));
   }, []);
+  // Ref kept in sync with the latest `patchTool` identity so the
+  // `__editorDebug` effect above (which can't import patchTool by name
+  // — it runs earlier in render order) routes through a stable shim.
+  // See the test-only `__editorDebug.patchTool` comment for context.
+  const patchToolRef = useRef(patchTool);
+  patchToolRef.current = patchTool;
 
   // Run a (potentially main-thread-blocking) operation behind a busy
   // spinner. Two rAF passes ensure the spinner has actually painted

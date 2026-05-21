@@ -1,14 +1,22 @@
 // bgBlur.ts — Portrait-mode-style depth-of-field blur, with optional
-// lens-shape simulation and subject-aware progressive falloff.
+// lens-shape simulation and subject-aware continuous DOF falloff.
 //
 // Three lens kinds:
 //   • "gaussian" — straight Canvas `filter: blur(Npx)`. Cheapest,
 //     shows up at <1 ms on a 1-MP preview.
-//   • "lens"      — multi-pass radial bokeh approximation: stack 3
-//     gaussian blurs at 0.6×, 1.0×, 1.6× of the requested radius and
-//     average them. Mimics the soft, slightly-circular highlights a
-//     wide-aperture lens produces on out-of-focus point sources, at a
-//     fraction of the cost of a true bokeh kernel.
+//   • "lens"      — gamma-space bokeh approximation. The source is
+//     squared (pseudo-linearised via Canvas's `multiply` blend), blurred
+//     in that space, then square-rooted back to sRGB through an SVG
+//     `feComponentTransfer` filter. The squaring step preserves a
+//     highlight's relative weight through averaging, so a bright pixel
+//     surrounded by darker ones blooms outward as a disc-like spot when
+//     un-squared — that's the perceptual signature of real wide-aperture
+//     bokeh (point sources turn into uniform "balls" of light). Compared
+//     to averaging three gaussians at different radii (the previous
+//     implementation, which mathematically just produced a slightly-
+//     wider still-peak-centred gaussian) this gives a visible bokeh
+//     character on photos with specular highlights / window lights /
+//     city night scenes, at roughly the same cost.
 //   • "tilt-shift" — sharp horizontal band through the centre of the
 //     subject, falling off to full blur at top + bottom. Reads as the
 //     classic miniature-photography effect.
@@ -16,17 +24,21 @@
 // Progressive blur is layered on top: when enabled, blur strength
 // scales with distance from the subject silhouette. Pixels right at
 // the edge get a small-radius blur; pixels far from the subject get
-// the full requested radius. We approximate this without an EDT by
-// pre-baking three blurred copies of the source (small / medium /
-// large radius), then mixing them according to the dilated mask.
+// the full requested radius. We approximate this without a true
+// distance transform by stacking pre-blurred copies of the source at
+// progressively smaller radii and masking each with a progressively
+// narrower blurred mask — the natural gaussian falloff of each mask
+// produces a continuous gradient in the transition zone, vs. the
+// 2-step "floor + mid + sharp" staircase the older implementation
+// shipped.
 //
 // All three kinds preserve the central subject-mask service contract:
 // when this tool runs after the user has scoped Adjust / Filter / etc.
 // to the subject, the cut is already cached and the bake is just a
 // few drawImage compositions.
 
-import { acquireCanvas, releaseCanvas } from "../doc";
 import { applyMaskScope, getSubjectBBox, type MaskScope } from "../ai/subjectMask";
+import { acquireCanvas, releaseCanvas } from "../doc";
 
 /** Map slider 0..1 → blur radius in CSS pixels. 0 = no blur (returns
  *  source unchanged); 1 = 40 px which reads as a very strong portrait
@@ -47,7 +59,7 @@ export const LENS_KIND_LABELS: Record<LensKind, string> = {
 
 export const LENS_KIND_HINTS: Record<LensKind, string> = {
   gaussian: "Even gaussian blur — fastest and reads naturally on most photos.",
-  lens: "Multi-pass bokeh that mimics a wide-aperture lens. Slightly slower.",
+  lens: "Gamma-space bokeh: highlights bloom outward like a wide-aperture lens.",
   "tilt-shift": "Sharp band through the subject; strong blur top + bottom.",
 };
 
@@ -154,29 +166,128 @@ function bakeGaussian(src: HTMLCanvasElement, radius: number): HTMLCanvasElement
   return out;
 }
 
-// ── Lens (multi-pass bokeh approximation) ─────────────────────────
+// ── Lens (gamma-space bokeh) ──────────────────────────────────────
 
-/** True bokeh would convolve with a disc kernel (~O(r²) per pixel);
- *  we approximate it by stacking three gaussians at different radii
- *  and averaging. The eye reads the soft falloff and slightly puffier
- *  highlights as "lens-y" without the cost. */
-function bakeLensBlur(src: HTMLCanvasElement, radius: number): HTMLCanvasElement {
-  const out = acquireCanvas(src.width, src.height);
-  const ctx = out.getContext("2d");
-  if (!ctx) return out;
-  // Three passes blended additively at 1/3 each. globalAlpha pairs
-  // with source-over so each pass contributes a third — equivalent to
-  // averaging three blurred copies.
-  const passes = [radius * 0.6, radius, radius * 1.4];
-  ctx.clearRect(0, 0, out.width, out.height);
-  ctx.globalAlpha = 1 / passes.length;
-  for (const r of passes) {
-    ctx.filter = `blur(${r}px)`;
-    ctx.drawImage(src, 0, 0);
+/** SVG filter id used to square-root pixel values back to sRGB after
+ *  the gamma-space blur. Mounted once into `document` on first call. */
+const SQRT_FILTER_ID = "cloak-bg-blur-sqrt";
+let svgFilterMounted = false;
+
+/** Inject a one-time hidden `<svg><filter>` defining a per-channel
+ *  square-root component-transfer. Canvas's `ctx.filter` accepts
+ *  `url(#id)` references against the host document; this is the
+ *  standard pattern for using `feComponentTransfer` (no equivalent
+ *  exists in the `filter:` shorthand grammar). Headless contexts
+ *  (jsdom in unit tests) skip the mount and the lens path falls back
+ *  silently — the bake still returns a valid canvas, just without the
+ *  square-root step, which can't be observed because jsdom's canvas
+ *  doesn't render anyway. */
+function ensureSqrtFilter(): void {
+  if (svgFilterMounted || typeof document === "undefined") return;
+  svgFilterMounted = true;
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  // Off-screen, zero-sized, hidden from a11y tree — just a host for
+  // the filter definition.
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.style.position = "absolute";
+  svg.style.overflow = "hidden";
+  svg.style.pointerEvents = "none";
+  const defs = document.createElementNS(NS, "defs");
+  const filter = document.createElementNS(NS, "filter");
+  filter.setAttribute("id", SQRT_FILTER_ID);
+  // `sRGB` interpolation keeps Canvas's drawImage behaviour predictable
+  // (the bake is already 8-bit sRGB throughout — switching to linearRGB
+  // here would re-encode the input and double-process gamma).
+  filter.setAttribute("color-interpolation-filters", "sRGB");
+  const fct = document.createElementNS(NS, "feComponentTransfer");
+  for (const ch of ["R", "G", "B"]) {
+    const f = document.createElementNS(NS, `feFunc${ch}`);
+    f.setAttribute("type", "gamma");
+    // exponent < 1 lifts midtones — value 0.5 is the per-channel
+    // square-root (cancelling the squaring done by `multiply`).
+    f.setAttribute("exponent", "0.5");
+    fct.appendChild(f);
   }
-  ctx.globalAlpha = 1;
-  ctx.filter = "none";
+  filter.appendChild(fct);
+  defs.appendChild(filter);
+  svg.appendChild(defs);
+  document.body.appendChild(svg);
+}
+
+/** Gamma-space bokeh: square pixel values (linearise), blur in that
+ *  space, then square-root back to sRGB. Highlights that would normally
+ *  be averaged-down to mid-tones by linear blurring stay relatively
+ *  brighter through the squared blur and bloom outward when un-squared
+ *  — mimicking the way out-of-focus highlights become disc-shaped on a
+ *  wide-aperture lens. */
+function bakeLensBlur(src: HTMLCanvasElement, radius: number): HTMLCanvasElement {
+  ensureSqrtFilter();
+
+  // 1. Square the source: draw src, then redraw on top with
+  //    globalCompositeOperation = "multiply" → each output channel
+  //    becomes src * src per pixel. This is the cheap "linearise"
+  //    step. (We use `multiply` rather than e.g. an SVG gamma=2.0
+  //    pre-filter because the blend mode is a single GPU op vs.
+  //    parsing + applying a filter chain.)
+  const linear = acquireCanvas(src.width, src.height);
+  const lctx = linear.getContext("2d");
+  if (!lctx) return cloneCanvas(src);
+  lctx.drawImage(src, 0, 0);
+  lctx.globalCompositeOperation = "multiply";
+  lctx.drawImage(src, 0, 0);
+  lctx.globalCompositeOperation = "source-over";
+
+  // 2. Gaussian blur in pseudo-linear space. The radius scales the
+  //    same way as the gaussian path, so a slider tick maps to a
+  //    perceptually-similar blur amount across lens kinds.
+  const blurred = acquireCanvas(src.width, src.height);
+  const bctx = blurred.getContext("2d");
+  if (!bctx) {
+    releaseCanvas(linear);
+    return cloneCanvas(src);
+  }
+  bctx.filter = `blur(${radius}px)`;
+  bctx.drawImage(linear, 0, 0);
+  bctx.filter = "none";
+  releaseCanvas(linear);
+
+  // 3. Square-root back to sRGB via the mounted SVG filter. When the
+  //    filter isn't mounted (headless env), fall back to identity so
+  //    the bake still completes — the visual won't be observed there.
+  const out = acquireCanvas(src.width, src.height);
+  const octx = out.getContext("2d");
+  if (!octx) {
+    releaseCanvas(blurred);
+    return cloneCanvas(src);
+  }
+  if (svgFilterMounted) {
+    octx.filter = `url(#${SQRT_FILTER_ID})`;
+    octx.drawImage(blurred, 0, 0);
+    octx.filter = "none";
+  } else {
+    // Mid-darkened fallback: at least returns the blurred linearised
+    // surface so the layered DOF path above doesn't crash on a null
+    // canvas. Visual fidelity is lost but only in environments that
+    // can't render Canvas anyway.
+    octx.drawImage(blurred, 0, 0);
+  }
+  releaseCanvas(blurred);
   return out;
+}
+
+/** Acquire a pooled canvas and copy `src` into it. Used as the
+ *  fallback return when a context acquisition fails mid-bake — keeps
+ *  the caller's "release the result" contract honest without leaking
+ *  intermediate pooled canvases. */
+function cloneCanvas(src: HTMLCanvasElement): HTMLCanvasElement {
+  const copy = acquireCanvas(src.width, src.height);
+  const ctx = copy.getContext("2d");
+  if (ctx) ctx.drawImage(src, 0, 0);
+  return copy;
 }
 
 // ── Tilt-shift (horizontal band) ──────────────────────────────────
@@ -258,15 +369,36 @@ function bakeTiltShift(
   return out;
 }
 
-// ── Progressive falloff ───────────────────────────────────────────
+// ── Progressive falloff (continuous DOF) ──────────────────────────
 
-/** Compose a "depth-of-field" frame where blur strength ramps with
- *  distance from the subject. We use canvas-native blur on the *mask*
- *  itself to approximate a distance transform — a heavily-blurred
- *  alpha mask reads as "distance from edge" from 0 at far away to 1
- *  on the subject. We then composite the original (subject), a light
- *  blur (near-subject ring), and the strong blur (far) using that
- *  ramp as alpha. */
+/** Each tier is one ring of the depth-of-field gradient — a pre-blurred
+ *  copy of the source paired with the mask-blur radius that gates which
+ *  pixels see it. Tiers further from the subject use bigger source-blur
+ *  radii and wider halos; closer tiers use smaller blurs and tighter
+ *  halos. Stacked in order (far first, then near), each painted on top
+ *  of the previous, the cumulative composite reads as a smooth radius
+ *  gradient because the halos overlap in the transition zone. */
+interface DofTier {
+  /** Source blur radius (px) for this tier. */
+  blurRadius: number;
+  /** Mask blur radius (px) — controls how wide this tier's halo
+   *  extends past the subject silhouette. Narrower than the previous
+   *  tier so the tier paints "closer to the subject" than its parent. */
+  maskBlur: number;
+}
+
+/** Compose a continuous-DOF frame where blur strength ramps with
+ *  distance from the subject. Replaces the older two-step "floor +
+ *  mid + sharp" implementation: we now stack 3 progressive tiers
+ *  (full / mid / near radius) each masked by its own blurred ramp,
+ *  plus the sharp subject on top. Each ramp's natural gaussian alpha
+ *  falloff blends smoothly into the layer beneath it, so the
+ *  perceived radius changes continuously across the halo rather than
+ *  jumping between two discrete depths.
+ *
+ *  `strongBlurred` is the already-baked full-radius source — passed
+ *  in so we can reuse it as the floor instead of running a fourth
+ *  blur pass. */
 function composeProgressive(
   src: HTMLCanvasElement,
   strongBlurred: HTMLCanvasElement,
@@ -277,39 +409,35 @@ function composeProgressive(
   const ctx = out.getContext("2d");
   if (!ctx) return out;
 
-  // 1. Far layer: paint the strong blur first; this is the floor.
+  // 1. Floor: full-radius blur everywhere. This is what the user sees
+  //    far from the subject, and what every subsequent tier paints on
+  //    top of in the near-subject halo.
   ctx.drawImage(strongBlurred, 0, 0);
 
-  // 2. Medium layer: lighter blur at ~50 % radius, masked by a
-  //    blurred-mask ramp that fades towards the edge of the subject.
-  //    The blur on the mask itself is what produces the smooth depth
-  //    falloff — wide blur = wider transition halo around the subject.
-  const ramp = acquireCanvas(src.width, src.height);
-  const rctx = ramp.getContext("2d");
-  if (rctx) {
-    // Wider mask blur = softer transition; tied to the requested
-    // radius so a stronger background blur also gets a longer falloff.
-    const rampRadius = Math.max(8, radius * 1.2);
-    rctx.filter = `blur(${rampRadius}px)`;
-    rctx.drawImage(mask, 0, 0, src.width, src.height);
-    rctx.filter = "none";
+  // 2. Progressive tiers, far → near. Each tier's halo (the alpha
+  //    coverage of its blurred mask) sits inside the previous tier's
+  //    halo, so the cumulative paint produces a smooth radius
+  //    gradient: 100 % at the outer edge of the far halo, dropping
+  //    through the per-tier blurRadius values as we approach the
+  //    subject, landing at 0 % (sharp) on the subject itself.
+  //
+  //    The mask-blur radii are tied to the source-blur radius so a
+  //    stronger background blur gets a proportionally longer falloff
+  //    (matches the perceptual cue that wider apertures produce both
+  //    more bokeh AND a softer transition into focus). A floor of
+  //    6–14 px keeps the halos visible even at low blur strengths.
+  const tiers: DofTier[] = [
+    { blurRadius: radius * 0.65, maskBlur: Math.max(14, radius * 1.8) },
+    { blurRadius: radius * 0.35, maskBlur: Math.max(10, radius * 1.0) },
+    { blurRadius: radius * 0.12, maskBlur: Math.max(6, radius * 0.4) },
+  ];
+  for (const tier of tiers) {
+    paintTier(ctx, src, mask, tier);
   }
-  // Mid blur copy
-  const mid = acquireCanvas(src.width, src.height);
-  const mctx = mid.getContext("2d");
-  if (mctx) {
-    mctx.filter = `blur(${radius * 0.4}px)`;
-    mctx.drawImage(src, 0, 0);
-    mctx.filter = "none";
-    mctx.globalCompositeOperation = "destination-in";
-    mctx.drawImage(ramp, 0, 0);
-    mctx.globalCompositeOperation = "source-over";
-    ctx.drawImage(mid, 0, 0);
-  }
-  releaseCanvas(mid);
 
-  // 3. Sharp subject: copy the original masked by the un-blurred
-  //    cut so the subject lands on top crisp.
+  // 3. Sharp subject on top via the hard (un-blurred) mask. This is
+  //    the "in-focus" layer — fully sharp source where the mask is
+  //    opaque, transparent elsewhere so the tiers below show through.
   const sharp = acquireCanvas(src.width, src.height);
   const shctx = sharp.getContext("2d");
   if (shctx) {
@@ -320,8 +448,43 @@ function composeProgressive(
     ctx.drawImage(sharp, 0, 0);
   }
   releaseCanvas(sharp);
-  releaseCanvas(ramp);
   return out;
+}
+
+/** Paint one DOF tier onto the destination context. The tier is built
+ *  as `src blurred at tier.blurRadius`, then alpha-masked by the
+ *  subject mask blurred at `tier.maskBlur`. Done in a scratch canvas
+ *  so we can use `destination-in` for the alpha mask without touching
+ *  the destination's existing pixels. */
+function paintTier(
+  destCtx: CanvasRenderingContext2D,
+  src: HTMLCanvasElement,
+  mask: HTMLCanvasElement,
+  tier: DofTier,
+): void {
+  const scratch = acquireCanvas(src.width, src.height);
+  const sctx = scratch.getContext("2d");
+  if (!sctx) {
+    releaseCanvas(scratch);
+    return;
+  }
+  // 1. Blur the source at this tier's radius.
+  sctx.filter = `blur(${tier.blurRadius}px)`;
+  sctx.drawImage(src, 0, 0);
+  sctx.filter = "none";
+  // 2. Cut by this tier's halo (the mask blurred wider than the source).
+  //    `destination-in` keeps the scratch pixels only where the next
+  //    draw has alpha — i.e. the halo defines visibility of this tier.
+  sctx.globalCompositeOperation = "destination-in";
+  sctx.filter = `blur(${tier.maskBlur}px)`;
+  sctx.drawImage(mask, 0, 0, src.width, src.height);
+  sctx.filter = "none";
+  sctx.globalCompositeOperation = "source-over";
+  // 3. Paint the masked tier on top of whatever's already in dest. The
+  //    halo's natural alpha falloff blends this tier smoothly into the
+  //    coarser layer below.
+  destCtx.drawImage(scratch, 0, 0);
+  releaseCanvas(scratch);
 }
 
 // ── Mask bbox (downsample-bounded) ────────────────────────────────
