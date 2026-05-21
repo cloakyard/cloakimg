@@ -72,6 +72,19 @@ interface EditorContextValue {
   toolState: ToolState;
   patchTool: <K extends keyof ToolState>(key: K, value: ToolState[K]) => void;
   setActiveTool: (id: ToolState["activeTool"]) => void;
+  /** Cancel the current tool session: discard any pending apply, undo
+   *  back to the history depth recorded when the tool was entered, and
+   *  return to the Move tool. Mirrors mobile's ✕ action (the rollback
+   *  semantics MobileEditorSurface.handleCancel implements) so desktop
+   *  users have an equivalent escape hatch. No-op when there's nothing
+   *  to cancel (no pending apply AND no commits since tool entry). */
+  cancelCurrentTool: () => Promise<void>;
+  /** True when the active tool has something a cancel would actually
+   *  roll back — either a registered pending apply, or one or more
+   *  commits since tool entry. Drives the visibility of the
+   *  PropertiesPanel's Cancel button + the Esc-key handler in
+   *  EditorShell. */
+  canCancelCurrentTool: boolean;
   /** Tools with preview state (Adjust, Filter, Frame, RemoveBg, Crop)
    *  register a callback that bakes pending edits into history. The
    *  callback is invoked automatically before a tool change so unapplied
@@ -177,6 +190,7 @@ interface EditorContextValue {
 interface ActionsValue {
   patchTool: EditorContextValue["patchTool"];
   setActiveTool: EditorContextValue["setActiveTool"];
+  cancelCurrentTool: EditorContextValue["cancelCurrentTool"];
   setView: EditorContextValue["setView"];
   setMode: EditorContextValue["setMode"];
   setLayers: EditorContextValue["setLayers"];
@@ -221,6 +235,11 @@ interface EditorReadValue {
   canUndo: boolean;
   canRedo: boolean;
   canReset: boolean;
+  /** True when the active tool has a pending apply registered OR has
+   *  committed something since it was entered, so the Cancel action
+   *  has work to do. Drives the Cancel button in the PropertiesPanel
+   *  header + the Esc-key handler in EditorShell. */
+  canCancelCurrentTool: boolean;
   exportOpen: boolean;
   batchFiles: BatchFile[];
   recipe: RecipeStep[];
@@ -340,13 +359,35 @@ export function EditorProvider({
   // Crop) register a flush callback so unapplied edits bake into
   // history when the user switches tools, instead of vanishing.
   const pendingApplyRef = useRef<(() => void | Promise<void>) | null>(null);
+  // Bumps whenever the pendingApplyRef's null/non-null state flips so
+  // `canCancelCurrentTool` (derived from `pendingApplyRef.current !==
+  // null`) re-evaluates. Without this bump, register/clear updates the
+  // ref silently and the Cancel button stays stale (it's a useMemo
+  // dep, not the ref itself). Defined here at the top of the provider
+  // so registerPendingApply and flushPendingApply can both bump it.
+  const [pendingApplyVersion, setPendingApplyVersion] = useState(0);
+  // Hoisted above the __editorDebug effect so that effect can read the
+  // current checkpoint when publishing the test snapshot. setActiveTool
+  // / cancelCurrentTool (declared later) write through both this ref
+  // and the matching React state, mirroring the historyRef +
+  // historyVersion pattern.
+  const toolCheckpointRef = useRef<number>(0);
+  const [toolCheckpoint, setToolCheckpoint] = useState<number>(0);
   const registerPendingApply = useCallback((fn: (() => void | Promise<void>) | null) => {
+    const wasNull = pendingApplyRef.current === null;
+    const isNull = fn === null;
     pendingApplyRef.current = fn;
+    // Only bump on the null/non-null boundary — slider drags that
+    // re-register the SAME apply closure shouldn't churn renders.
+    if (wasNull !== isNull) setPendingApplyVersion((v) => v + 1);
   }, []);
   const flushPendingApply = useCallback(async (): Promise<void> => {
     const fn = pendingApplyRef.current;
-    pendingApplyRef.current = null;
-    if (fn) await fn();
+    if (fn) {
+      pendingApplyRef.current = null;
+      setPendingApplyVersion((v) => v + 1);
+      await fn();
+    }
   }, []);
 
   // Fabric scene hand-off — preserves IText / shapes / images / etc.
@@ -405,18 +446,33 @@ export function EditorProvider({
         // ref so this effect can run before `patchTool` is declared
         // below; the call site reads the live value at invoke time.
         patchTool: <K extends keyof ToolState>(key: K, value: ToolState[K]) => void;
+        /** Live history-stack cursor. Tests assert that a tool-switch
+         *  or apply actually wrote an entry by comparing this before
+         *  and after. */
+        historyDepth: () => number;
+        /** True when `canCancelCurrentTool` would be true. Tests use
+         *  this to assert the Cancel affordance is active without
+         *  having to query the DOM for the Cancel button. */
+        canCancelCurrentTool: boolean;
       };
     };
     w.__editorDebug = {
       docDims: doc ? { w: doc.width, h: doc.height } : null,
       toolState,
       patchTool: (key, value) => patchToolRef.current(key, value),
+      historyDepth: () => historyRef.current.currentIndex(),
+      canCancelCurrentTool:
+        toolState.activeTool !== "move" &&
+        (pendingApplyRef.current !== null ||
+          historyRef.current.currentIndex() > toolCheckpointRef.current),
     };
     // commit() bumps doc identity via setDoc({...prev}), so this
     // effect re-runs on every history mutation. toolState in deps
     // re-runs on every patchTool so the test can read the latest
-    // crop / adjust / etc. values.
-  }, [doc, toolState]);
+    // crop / adjust / etc. values. pendingApplyVersion / toolCheckpoint
+    // / historyVersion are deps so the test-visible canCancelCurrentTool
+    // snapshot stays current.
+  }, [doc, toolState, pendingApplyVersion, toolCheckpoint, historyVersion]);
 
   // Revoke any outstanding batch blob URLs (thumb + result) when the
   // editor unmounts. Without this, leaving the editor with a populated
@@ -510,24 +566,62 @@ export function EditorProvider({
     });
   }, []);
 
+  // (toolCheckpointRef / toolCheckpoint declared earlier next to the
+  // pending-apply hooks so the test-only __editorDebug effect can read
+  // the checkpoint when publishing its snapshot.)
+
   const setActiveTool = useCallback(
-    (id: ToolState["activeTool"]) => {
-      // Capture the pending bake before switching tools so the user's
-      // unapplied edits carry forward, but defer running it behind a
-      // busy spinner so a heavy full-resolution bake (e.g. a Filter
-      // preset on a 24 MP photo, ~1–3 s on mobile) doesn't make the
-      // tool-switch tap feel unresponsive. Without runBusy the user
-      // would tap, see nothing change, and assume the button is
-      // broken; with it, the new panel paints + a coral spinner
-      // shows during the freeze, then both clear once the bake
-      // commits.
+    async (id: ToolState["activeTool"]) => {
+      // Capture and await the pending bake BEFORE switching tools.
+      // Previously we set the new tool synchronously and fired the
+      // bake async via `void runBusy(...)`, which let React unmount
+      // the outgoing tool's stage hook before the apply ran — and
+      // tools that read Fabric overlays in their apply (Crop's
+      // `findCropRect`) found nothing because the unmount cleanup
+      // had already removed those overlays. Awaiting here keeps the
+      // outgoing tool mounted for the duration of the bake; the
+      // spinner mounts immediately so the click still feels
+      // responsive. Mirrors mobile's `handleClose` flow.
       const pending = pendingApplyRef.current;
       pendingApplyRef.current = null;
+      setPendingApplyVersion((v) => v + 1);
+      if (pending) await runBusy("Applying…", pending);
       setToolState((prev) => ({ ...prev, activeTool: id }));
-      if (pending) void runBusy("Applying…", pending);
+      // Record the history depth at tool entry so a subsequent
+      // cancel knows how far to rewind. We sample AFTER the pending
+      // bake commits so the apply's commit is "above" the
+      // checkpoint, not "before" it (apply was triggered by the
+      // outgoing tool, not the incoming one).
+      const depth = historyRef.current.currentIndex();
+      toolCheckpointRef.current = depth;
+      setToolCheckpoint(depth);
     },
     [runBusy],
   );
+
+  const cancelCurrentTool = useCallback(async () => {
+    // Discard any pending apply first — otherwise the subsequent
+    // setActiveTool("move") below would happily bake the very work
+    // the user just asked to throw away (its internal apply flush
+    // runs unconditionally). This mirrors mobile's `handleCancel`.
+    pendingApplyRef.current = null;
+    setPendingApplyVersion((v) => v + 1);
+    const checkpoint = toolCheckpointRef.current;
+    // Loop undo() until we're back at the checkpoint. Bail out if
+    // undo doesn't advance (corrupt history / nothing to undo) so
+    // we never spin here.
+    while (historyRef.current.currentIndex() > checkpoint) {
+      const before = historyRef.current.currentIndex();
+      // eslint-disable-next-line no-await-in-loop
+      await undoRef.current();
+      if (historyRef.current.currentIndex() === before) break;
+    }
+    // Drop back to Move. Bypass `setActiveTool` (which would await a
+    // pending apply we just cleared, harmless but extra work).
+    setToolState((prev) => ({ ...prev, activeTool: "move" }));
+    toolCheckpointRef.current = historyRef.current.currentIndex();
+    setToolCheckpoint(toolCheckpointRef.current);
+  }, []);
 
   const setLayers = useCallback((l: Layer[] | ((prev: Layer[]) => Layer[])) => {
     setLayersState((prev) => (typeof l === "function" ? l(prev) : l));
@@ -572,6 +666,11 @@ export function EditorProvider({
     restoreFabricScene(fabricCanvasRef.current, entry.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
+  // Ref kept in sync with the latest `undo` identity so callbacks
+  // declared earlier in render order (notably `cancelCurrentTool`) can
+  // dispatch the live closure. Same pattern as `patchToolRef`.
+  const undoRef = useRef(undo);
+  undoRef.current = undo;
 
   const redo = useCallback(async () => {
     if (!doc) return;
@@ -744,6 +843,7 @@ export function EditorProvider({
     () => ({
       patchTool,
       setActiveTool,
+      cancelCurrentTool,
       setView,
       setMode,
       setLayers,
@@ -774,6 +874,7 @@ export function EditorProvider({
     [
       patchTool,
       setActiveTool,
+      cancelCurrentTool,
       setLayers,
       runBusy,
       registerPendingApply,
@@ -821,6 +922,17 @@ export function EditorProvider({
       canRedo: historyVersion >= 0 && historyRef.current.canRedo(),
       canReset:
         historyVersion >= 0 && (historyRef.current.canUndo() || historyRef.current.canRedo()),
+      // The active tool has rollback-able work when EITHER there's a
+      // pending apply still in the slot (slider was dragged but not
+      // baked yet) OR the user has committed at least one history
+      // entry since entering the tool (Draw stroke, manual Apply tap,
+      // Add text, etc.). `toolState.activeTool !== "move"` gates the
+      // affordance to actual tool sessions — being parked on Move
+      // with old commits below isn't cancellable.
+      canCancelCurrentTool:
+        toolState.activeTool !== "move" &&
+        pendingApplyVersion >= 0 &&
+        (pendingApplyRef.current !== null || historyRef.current.currentIndex() > toolCheckpoint),
       exportOpen,
       batchFiles,
       recipe,
@@ -843,6 +955,9 @@ export function EditorProvider({
       recipe,
       batchRunning,
       compareActive,
+      pendingApplyVersion,
+      toolCheckpoint,
+      toolState.activeTool,
     ],
   );
 

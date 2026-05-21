@@ -2,6 +2,7 @@
 // Shows the active tool's icon + name + group header on top, then
 // renders ToolControls below.
 
+import { I } from "../components/icons";
 import { useEditor } from "./EditorContext";
 import { LayersList } from "./LayersList";
 import { findTool } from "./tools";
@@ -12,7 +13,7 @@ interface Props {
 }
 
 export function PropertiesPanel({ collapsed = false }: Props) {
-  const { toolState } = useEditor();
+  const { toolState, cancelCurrentTool, canCancelCurrentTool } = useEditor();
   const { activeTool } = toolState;
   const tool = findTool(activeTool);
   const Ic = tool.icon;
@@ -42,10 +43,30 @@ export function PropertiesPanel({ collapsed = false }: Props) {
         <div className="flex h-7.5 w-7.5 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
           <Ic size={15} />
         </div>
-        <div className="flex-1">
-          <div className="text-[13.5px] font-semibold tracking-[-0.005em]">{tool.name}</div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[13.5px] font-semibold tracking-[-0.005em]">
+            {tool.name}
+          </div>
           <div className="t-section-label mt-px">{tool.group}</div>
         </div>
+        {/* Cancel — desktop parity with mobile's ✕ tap in the
+            MobileToolFooter. Visible only when the active tool has
+            actual rollback-able work (a pending apply OR commits since
+            tool entry). Tapping discards the pending bake, rolls
+            history back to the tool-entry checkpoint, and parks the
+            user back on Move. Esc is the keyboard equivalent (wired
+            in EditorShell). */}
+        {canCancelCurrentTool && (
+          <button
+            type="button"
+            onClick={() => void cancelCurrentTool()}
+            title="Cancel changes (Esc)"
+            aria-label="Cancel changes"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-text-muted transition-colors hover:bg-page-bg hover:text-text dark:text-dark-text-muted dark:hover:bg-dark-page-bg dark:hover:text-dark-text"
+          >
+            <I.X size={14} stroke={2} />
+          </button>
+        )}
       </div>
 
       {/* `key={activeTool}` remounts the scroll container on every tool

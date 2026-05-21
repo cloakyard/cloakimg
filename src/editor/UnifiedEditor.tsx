@@ -70,6 +70,8 @@ function EditorShell() {
     toolState,
     patchTool,
     setActiveTool,
+    cancelCurrentTool,
+    canCancelCurrentTool,
     setView,
     loading,
     busyLabel,
@@ -106,6 +108,31 @@ function EditorShell() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [redo, undo]);
+
+  // Esc on desktop/tablet → cancel the current tool session. Mirrors
+  // mobile's ✕ tap (which `MobileEditorSurface` already wires up
+  // separately on its expanded-sheet listener). Skipped when:
+  //   • The active tool has no rollback-able work (`canCancelCurrentTool`
+  //     is false) — Esc shouldn't blank a clean session.
+  //   • The user is typing in an input / textarea / Fabric IText editor
+  //     — Esc there cancels the input edit, not the whole tool.
+  //   • A modal is open (Export, FileProps, Privacy) — they own their
+  //     own Esc handling and should take priority.
+  useEffect(() => {
+    if (isMobile) return;
+    if (!canCancelCurrentTool) return;
+    if (exportOpen || filePropsOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      e.preventDefault();
+      void cancelCurrentTool();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobile, canCancelCurrentTool, exportOpen, filePropsOpen, cancelCurrentTool]);
 
   const resetZoom = useCallback(
     (target: "fit" | "100") => {

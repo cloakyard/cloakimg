@@ -6,7 +6,7 @@
 // (alpha=0) regions show the canvas-bg through, giving the user a
 // real-time WYSIWYG of what Apply will produce.
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
 import { removeBackground } from "./removeBg";
 
@@ -29,11 +29,39 @@ export function useRemoveBgPreview(
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const versionRef = useRef<unknown>(null);
   const [preview, setPreview] = useState<HTMLCanvasElement | null>(null);
+  // Track the currently-published preview canvas in a ref so we can
+  // release it synchronously, ONCE, before each setPreview. React
+  // StrictMode double-invokes useState updaters in dev to flag impurity;
+  // if releaseCanvas lived inside the updater it would push the same
+  // canvas onto the pool twice, and a future acquireCanvas would hand
+  // duplicate elements out to two consumers — breaking the live preview.
+  // The four other preview hooks (useAdjustPreview / useLevelsPreview /
+  // useHslPreview / useBgBlurPreview) all use this pattern; this hook
+  // previously bypassed it (releaseCanvas inside the updater) and was
+  // hidden by the fact that StrictMode-doubled invocations cancel out
+  // in production builds. See CLAUDE.md → "Critical gotcha: live preview
+  // hooks + canvas pool + StrictMode".
+  const publishedCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
+
+  // Helper: release the currently-published preview canvas back to the
+  // pool, then clear setState — both done as a single synchronous step
+  // OUTSIDE any updater function. Used by the "no source / off /
+  // identity" exits and by unmount cleanup. Wrapped in useCallback with
+  // empty deps so the effects that depend on it don't re-fire on every
+  // render of the parent panel.
+  const clearPublished = useCallback(() => {
+    const pub = publishedCanvasRef.current;
+    if (pub !== null) {
+      releaseCanvas(pub);
+      publishedCanvasRef.current = null;
+    }
+    setPreview(null);
+  }, []);
 
   useEffect(() => {
     if (!source) {
-      setPreview(null);
+      clearPublished();
       return;
     }
     // No preview until the user has actually engaged with the tool —
@@ -43,7 +71,7 @@ export function useRemoveBgPreview(
     // people expected the BG-removed result to be the *outcome* of an
     // explicit action, not a default state.
     if (threshold === 0 && feather === 0 && !sampleHex) {
-      setPreview(null);
+      clearPublished();
       return;
     }
     // Rebuild the downsampled cache when either the canvas identity
@@ -98,31 +126,33 @@ export function useRemoveBgPreview(
         console.error("[useRemoveBgPreview] keyer failed", err);
         if (cleared) releaseCanvas(cleared);
         if (out) releaseCanvas(out);
-        setPreview((prev) => {
-          if (prev) releaseCanvas(prev);
-          return null;
-        });
+        clearPublished();
         return;
       }
       const result = out;
-      setPreview((prev) => {
-        if (prev) releaseCanvas(prev);
-        return result;
-      });
+      // Release the previously-published canvas BEFORE setPreview so
+      // the side effect doesn't live inside the updater — see
+      // publishedCanvasRef declaration for the full rationale.
+      const pub = publishedCanvasRef.current;
+      if (pub && pub !== result) releaseCanvas(pub);
+      publishedCanvasRef.current = result;
+      setPreview(result);
     });
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
-  }, [feather, source, threshold, sampleHex, invalidationKey]);
+  }, [feather, source, threshold, sampleHex, invalidationKey, clearPublished]);
 
   // Drop the last preview on unmount so the pool reclaims the canvas.
+  // Release happens via the ref-tracked publishedCanvasRef, NOT inside
+  // a setPreview updater — see publishedCanvasRef declaration for the
+  // StrictMode rationale.
   useEffect(() => {
     return () => {
-      setPreview((prev) => {
-        if (prev) releaseCanvas(prev);
-        return null;
-      });
+      const pub = publishedCanvasRef.current;
+      if (pub) releaseCanvas(pub);
+      publishedCanvasRef.current = null;
     };
   }, []);
 
