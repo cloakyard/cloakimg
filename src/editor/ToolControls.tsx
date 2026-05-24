@@ -23,8 +23,10 @@ import { ColorPickerPanel } from "./tools/ColorPickerPanel";
 import { ImagePanel } from "./tools/ImagePanel";
 import { MovePanel } from "./tools/MovePanel";
 import { ShapesPanel } from "./tools/ShapesPanel";
-import { StickerPanel } from "./tools/StickerPanel";
+import { EmojiPanel } from "./tools/EmojiPanel";
 import { SpotHealPanel } from "./tools/SpotHealPanel";
+import { TapFixPanel } from "./tools/TapFixPanel";
+import { TimeOfDayPanel } from "./tools/TimeOfDayPanel";
 import { RemoveBgPanel } from "./tools/RemoveBgPanel";
 
 export function ToolControls() {
@@ -32,12 +34,16 @@ export function ToolControls() {
   switch (toolState.activeTool) {
     case "move":
       return <MovePanel />;
+    case "tapfix":
+      return <TapFixPanel />;
     case "crop":
       return <CropPanel />;
     case "resize":
       return <ResizePanel />;
     case "adjust":
       return <AdjustPanel />;
+    case "tod":
+      return <TimeOfDayPanel />;
     case "levels":
       return <LevelsPanel />;
     case "hsl":
@@ -60,8 +66,8 @@ export function ToolControls() {
       return <ShapesPanel />;
     case "pen":
       return <PenPanel />;
-    case "sticker":
-      return <StickerPanel />;
+    case "emoji":
+      return <EmojiPanel />;
     case "image":
       return <ImagePanel />;
     case "frame":

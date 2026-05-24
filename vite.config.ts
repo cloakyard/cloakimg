@@ -158,7 +158,15 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   lint: {
-    ignorePatterns: ["handoff-readonly/**"],
+    ignorePatterns: [
+      "handoff-readonly/**",
+      // Vendored skill bundles — third-party UI for Hallmark, mirrored
+      // to both `.claude/` (Claude Code) and `.agents/` (Agent SDK).
+      // The bundled `main.js` files trip catch-param + floating-
+      // promise rules that we don't enforce on third-party code.
+      ".claude/skills/**",
+      ".agents/skills/**",
+    ],
     options: { typeAware: true, typeCheck: true },
   },
   test: {

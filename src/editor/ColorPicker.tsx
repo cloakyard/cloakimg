@@ -67,7 +67,7 @@ export function ColorPicker({
         aria-label={label ?? "Pick a color"}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-page-bg py-1.5 pr-2.5 pl-1.5 font-[inherit] text-inherit dark:border-dark-border dark:bg-dark-page-bg"
+        className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-page-bg py-1.5 pr-2.5 pl-1.5 font-[inherit] text-inherit"
         style={swatchStyle}
       >
         <span
@@ -79,7 +79,7 @@ export function ColorPicker({
         <span className="t-mono flex-1 text-left text-xs font-semibold tracking-[0.02em]">
           {value.toUpperCase()}
         </span>
-        <I.ChevronDown size={13} className="text-text-muted dark:text-dark-text-muted" />
+        <I.ChevronDown size={13} className="text-text-muted" />
       </button>
       {open && anchorRef.current && (
         <ColorPopover
@@ -217,7 +217,7 @@ function ColorPopover({ anchor, value, onChange, onClose, enableEyedropper }: Po
       ref={containerRef}
       role="dialog"
       aria-label="Color picker"
-      className="fixed z-200 flex w-60 flex-col gap-2.5 rounded-xl border border-border bg-surface p-3 dark:border-dark-border dark:bg-dark-surface"
+      className="fixed z-200 flex w-60 flex-col gap-2.5 rounded-xl border border-border bg-surface p-3"
       style={{
         top: pos.top,
         left: pos.left,
@@ -240,7 +240,7 @@ function ColorPopover({ anchor, value, onChange, onClose, enableEyedropper }: Po
           onKeyDown={onHexKey}
           spellCheck={false}
           aria-label="Hex value"
-          className="flex-1 rounded-md border border-border bg-page-bg px-2 py-1.5 font-mono text-xs text-text dark:border-dark-border dark:bg-dark-page-bg dark:text-dark-text"
+          className="flex-1 rounded-md border border-border bg-page-bg px-2 py-1.5 font-mono text-xs text-text"
         />
         <RGBInputs rgb={rgb} onChange={(next) => onChange(rgbToHex(next))} />
       </div>
@@ -254,7 +254,7 @@ function ColorPopover({ anchor, value, onChange, onClose, enableEyedropper }: Po
                 type="button"
                 aria-label={`Use ${c}`}
                 onClick={() => onChange(c)}
-                className="checker relative h-5.5 w-5.5 cursor-pointer overflow-hidden rounded border border-border p-0 dark:border-dark-border"
+                className="checker relative h-5.5 w-5.5 cursor-pointer overflow-hidden rounded border border-border p-0"
               >
                 <span className="absolute inset-0" style={{ background: c }} />
               </button>
@@ -408,10 +408,7 @@ function RGBInputs({ rgb, onChange }: { rgb: RGB; onChange: (next: RGB) => void 
   return (
     <div className="flex gap-1">
       {fields.map(([k, l]) => (
-        <label
-          key={k}
-          className="flex flex-col items-center gap-px text-[9px] text-text-muted dark:text-dark-text-muted"
-        >
+        <label key={k} className="flex flex-col items-center gap-px text-[9px] text-text-muted">
           <span>{l}</span>
           <input
             type="number"
@@ -423,7 +420,7 @@ function RGBInputs({ rgb, onChange }: { rgb: RGB; onChange: (next: RGB) => void 
               onChange({ ...rgb, [k]: n });
             }}
             aria-label={l}
-            className="w-9 rounded border border-border bg-page-bg p-1 text-center font-mono text-[11px] text-text dark:border-dark-border dark:bg-dark-page-bg dark:text-dark-text"
+            className="w-9 rounded border border-border bg-page-bg p-1 text-center font-mono text-[11px] text-text"
           />
         </label>
       ))}

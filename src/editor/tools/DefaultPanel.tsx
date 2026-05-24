@@ -29,7 +29,7 @@ export function DefaultPanel() {
           onChange={(i) => patchTool("genericMode", i)}
         />
       </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         Click on the canvas to apply the tool, or drag to paint a region.
       </div>
     </>

@@ -39,9 +39,10 @@ describe("MobileCompareButton", () => {
     const { rerender } = render(
       <MobileCompareButton compareActive={false} setCompareActive={() => undefined} />,
     );
-    expect(
-      screen.getByRole("button", { name: /Hold to compare with original/i }),
-    ).toBeInTheDocument();
+    // Idle label mentions BOTH dismiss affordances: hold the pill, or
+    // rest two fingers on the photo. Either path flips `compareActive`.
+    expect(screen.getByRole("button", { name: /Hold this pill/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /two fingers on the photo/i })).toBeInTheDocument();
     rerender(<MobileCompareButton compareActive={true} setCompareActive={() => undefined} />);
     expect(
       screen.getByRole("button", { name: /Showing original — release to return/i }),

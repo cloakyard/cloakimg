@@ -28,6 +28,7 @@
 // transform handles when the Move tool is active.
 
 import { Canvas, type FabricObject, FabricImage, Point } from "fabric";
+import { MOBILE_MAX_PX } from "./breakpoints";
 import { get2DContext } from "./colorSpace";
 import { FABRIC_CANVAS_SELECTION } from "./fabricDefaults";
 import { MobileCompareButton } from "./MobileCompareButton";
@@ -181,6 +182,28 @@ export function ImageCanvas({
     startPanX: number;
     startPanY: number;
   } | null>(null);
+  // Two-finger long-press → compare. Mobile-only gesture: rest two
+  // fingers on the canvas, stay still for TWO_FINGER_HOLD_MS, and the
+  // editor flips to the original-photo view (same `compareActive` flag
+  // the pill at top-left uses). Lifting either finger or moving by more
+  // than HOLD_MOVE_PX releases the compare. Threshold is comfortably
+  // longer than the two-finger-tap window (280 ms) so the two gestures
+  // never collide: a quick lift fires undo, a sustained hold reveals
+  // the original.
+  const TWO_FINGER_HOLD_MS = 420;
+  const HOLD_MOVE_PX = 12;
+  const compareHoldRef = useRef<{
+    startMidX: number;
+    startMidY: number;
+    startDist: number;
+    timerId: number | null;
+    armed: boolean;
+  } | null>(null);
+  // Stable ref to setCompareActive so the gesture handlers can call it
+  // from setTimeout callbacks without invalidating the useCallback
+  // dependency lists below.
+  const setCompareActiveRef = useRef(setCompareActive);
+  setCompareActiveRef.current = setCompareActive;
 
   // Resize observer — keep the canvas filling the container.
   useLayoutEffect(() => {
@@ -387,10 +410,21 @@ export function ImageCanvas({
   // Tool-level commits (TextTool's edits, Crop's bake, etc.) still fire
   // their own labels — this catches Move-tool transforms and any other
   // free-form Fabric mutation.
+  //
+  // The crop overlay (cloak:cropOverlay) is intentionally excluded — it
+  // is a Fabric object that drags + scales like any other, but its
+  // commit lives in CropPanel.apply() under the label "Crop". Without
+  // this guard, every attempted crop-handle drag writes an extra
+  // "Edit layer" entry on top of the eventual "Crop" entry, which is
+  // the "history keeps piling up while I try to crop" symptom.
   useEffect(() => {
     const fc = fabricRef.current;
     if (!fc) return;
-    const onMod = () => commit("Edit layer");
+    const onMod = (opt: { target?: FabricObject }) => {
+      const kind = (opt.target as { cloakKind?: string } | undefined)?.cloakKind;
+      if (kind === "cloak:cropOverlay") return;
+      commit("Edit layer");
+    };
     fc.on("object:modified", onMod);
     return () => {
       fc.off("object:modified", onMod);
@@ -618,7 +652,25 @@ export function ImageCanvas({
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!doc) return;
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      // When Fabric owns the interaction (Crop / Move / Text-edit) and
+      // the user touched the Fabric upper canvas, DO NOT capture the
+      // pointer here. setPointerCapture on this container redirects
+      // every subsequent pointermove to *this element*, starving
+      // Fabric's upper-canvas listeners of the drag — the visible
+      // symptom is "crop handles you can grab but can't drag, and each
+      // tap piles another history entry." Pinch (size === 2),
+      // Space-pan, and middle-click-pan still need our capture, so the
+      // bail-out is scoped to single-pointer downs landing on the
+      // Fabric area with no React-owned gesture starting.
+      const intoFabric =
+        !!fabricInteractive &&
+        !!fabricHostRef.current?.contains(e.target as Node) &&
+        pointersRef.current.size === 0 &&
+        !spaceDown &&
+        e.button !== 1;
+      if (!intoFabric) {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      }
       const wasEmpty = pointersRef.current.size === 0;
       pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (wasEmpty) firstPointerDownTimeRef.current = performance.now();
@@ -655,6 +707,33 @@ export function ImageCanvas({
           } else {
             twoFingerTapRef.current = null;
           }
+          // Arm the two-finger long-press → compare gesture. Both
+          // fingers must stay roughly still for TWO_FINGER_HOLD_MS;
+          // the timer flips compareActive on. The pointermove handler
+          // cancels this if either finger drifts, and pointerup
+          // cancels + releases compareActive if the timer already
+          // fired. We always arm here (even if the tap session was
+          // rejected above by the gap rule) — the gap rule guards a
+          // *quick* gesture, but a deliberate two-finger hold a few
+          // hundred ms after a single-finger gesture is still a
+          // legitimate compare request.
+          if (compareHoldRef.current?.timerId != null) {
+            window.clearTimeout(compareHoldRef.current.timerId);
+          }
+          const timerId = window.setTimeout(() => {
+            const ref = compareHoldRef.current;
+            if (!ref) return;
+            ref.armed = true;
+            ref.timerId = null;
+            setCompareActiveRef.current(true);
+          }, TWO_FINGER_HOLD_MS);
+          compareHoldRef.current = {
+            startMidX,
+            startMidY,
+            startDist,
+            timerId,
+            armed: false,
+          };
           panRef.current = null;
         }
         return;
@@ -675,7 +754,16 @@ export function ImageCanvas({
       const pt = toImagePoint(e, transform, doc.width, doc.height);
       onImagePointerDown?.(pt, e);
     },
-    [doc, onImagePointerDown, spaceDown, transform, view.panX, view.panY, view.zoom],
+    [
+      doc,
+      fabricInteractive,
+      onImagePointerDown,
+      spaceDown,
+      transform,
+      view.panX,
+      view.panY,
+      view.zoom,
+    ],
   );
 
   const onPointerMove = useCallback(
@@ -700,6 +788,22 @@ export function ImageCanvas({
             const movedMid = Math.hypot(midX - tap.startMidX, midY - tap.startMidY);
             const distDelta = Math.abs(dist - tap.startDist);
             if (movedMid > 10 || distDelta > 10) tap.valid = false;
+          }
+          // Same rule for the long-press → compare gesture. If either
+          // finger drifts beyond HOLD_MOVE_PX before the hold timer
+          // fires, the user is pinching / panning — clear the timer.
+          // If the hold has already armed compareActive, treat any
+          // significant drift as a release so a quick re-pinch doesn't
+          // get stuck in compare mode.
+          const hold = compareHoldRef.current;
+          if (hold) {
+            const movedMid = Math.hypot(midX - hold.startMidX, midY - hold.startMidY);
+            const distDelta = Math.abs(dist - hold.startDist);
+            if (movedMid > HOLD_MOVE_PX || distDelta > HOLD_MOVE_PX) {
+              if (hold.timerId != null) window.clearTimeout(hold.timerId);
+              if (hold.armed) setCompareActiveRef.current(false);
+              compareHoldRef.current = null;
+            }
           }
           // Drive zoom + pan together: pinch ratio scales the zoom,
           // midpoint translation pans the canvas. Two-finger pan is
@@ -734,6 +838,16 @@ export function ImageCanvas({
   const onPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       pointersRef.current.delete(e.pointerId);
+      // Any finger lift while a two-finger long-press is in progress
+      // ends the gesture: clear a pending timer, release compare if
+      // it had already armed. Mirrors the desktop hold-to-compare
+      // button's pointerup release.
+      const hold = compareHoldRef.current;
+      if (hold && pointersRef.current.size < 2) {
+        if (hold.timerId != null) window.clearTimeout(hold.timerId);
+        if (hold.armed) setCompareActiveRef.current(false);
+        compareHoldRef.current = null;
+      }
       if (pinchRef.current && pointersRef.current.size < 2) {
         pinchRef.current = null;
         // If the second finger lifts within the tap window with neither
@@ -782,9 +896,18 @@ export function ImageCanvas({
     // System gestures cancel any pending two-finger-tap — we'd rather
     // skip the undo than fire it for an interrupted touch.
     twoFingerTapRef.current = null;
+    // Same for the two-finger long-press compare gesture — drop any
+    // pending timer and release if it had armed, so a backgrounded
+    // tab / iOS control-center pull never leaves compare stuck on.
+    const hold = compareHoldRef.current;
+    if (hold) {
+      if (hold.timerId != null) window.clearTimeout(hold.timerId);
+      if (hold.armed) setCompareActiveRef.current(false);
+      compareHoldRef.current = null;
+    }
   }, []);
 
-  const isMobile = size.w > 0 && size.w < 760;
+  const isMobile = size.w > 0 && size.w < MOBILE_MAX_PX;
   const cursorStyle = cursor ?? (spaceDown ? (panRef.current ? "grabbing" : "grab") : "crosshair");
 
   return (
@@ -806,16 +929,12 @@ export function ImageCanvas({
         filter: cssFilter ?? undefined,
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-          pointerEvents: "none",
-        }}
-      />
+      {/* The "Photoshop workbench" dot grid (white 4%-alpha dots on
+          the prior `#2a2620` dark matte) was removed in the May 2026
+          minimalist redesign — the canvas matte is now `--page-bg`
+          (cream / near-black), so white dots disappear on cream but
+          read as visible noise on the dark page. The intent of the
+          redesign is "focus on the image," so the grid goes away. */}
       {doc && (
         <div
           aria-hidden
@@ -888,12 +1007,23 @@ function CanvasHints({
   setCompareActive: (active: boolean) => void;
 }) {
   const displayZoom = Math.round(zoom * fitScale * 100);
+  // Mobile canvas overlays (the "Hold to compare" pill + the zoom-%
+  // badge) are intentionally suppressed in the V2 redesign — they
+  // floated ON the photo and pulled the eye away from the image,
+  // breaking the "expansive cream canvas" aesthetic the redesign is
+  // built around. Compare lives in the More menu; zoom uses pinch
+  // gestures (the badge was redundant with the visible zoom level).
+  // Desktop keeps both because the larger viewport absorbs the chrome
+  // without crowding the photo work area.
+  const showMobileCanvasOverlays = false;
   return (
     <>
-      {isMobile && hasDoc && (
+      {isMobile && hasDoc && showMobileCanvasOverlays && (
         <MobileCompareButton compareActive={compareActive} setCompareActive={setCompareActive} />
       )}
-      {isMobile && <MobileZoomControl displayZoom={displayZoom} onZoomChange={onZoomChange} />}
+      {isMobile && showMobileCanvasOverlays && (
+        <MobileZoomControl displayZoom={displayZoom} onZoomChange={onZoomChange} />
+      )}
       {!isMobile && (
         <div
           style={{

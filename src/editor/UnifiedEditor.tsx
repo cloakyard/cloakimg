@@ -6,11 +6,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
-import { Grainient } from "../components/Grainient";
 import { I } from "../components/icons";
-import { GRAINIENT_DARK, GRAINIENT_LIGHT, GRAINIENT_MOTION } from "../constants/grainient";
 import type { StartChoice } from "../landing/StartModal";
-import { usePrefersDark } from "../utils/usePrefersDark";
 import { Spinner } from "./atoms";
 import { BatchCanvas, BatchPanel } from "./BatchView";
 import { EditorProvider, useEditor } from "./EditorContext";
@@ -20,12 +17,13 @@ import { EditorProvider, useEditor } from "./EditorContext";
 import "./fabricDefaults";
 import { ExportModal, type ExportSettings } from "./ExportModal";
 import { FilePropertiesModal } from "./FilePropertiesModal";
+import { HistoryScrubber } from "./HistoryScrubber";
 import { MaskConsentHost } from "./ai/ui/MaskConsentHost";
 import { DetectFaceConsentHost } from "./ai/capabilities/detect-face/ConsentHost";
-import { MobileSheet } from "./MobileSheet";
+import { MobileEditorSurface } from "./MobileEditorSurface";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
-import { ToolRail, MobileToolbar } from "./ToolRail";
+import { ToolRail } from "./ToolRail";
 import { ToolStage } from "./ToolStage";
 import { TopBar } from "./TopBar";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
@@ -70,6 +68,8 @@ function EditorShell() {
     toolState,
     patchTool,
     setActiveTool,
+    cancelCurrentTool,
+    canCancelCurrentTool,
     setView,
     loading,
     busyLabel,
@@ -84,8 +84,6 @@ function EditorShell() {
   } = useEditor();
   const isMobile = layout === "mobile";
   const isTablet = layout === "tablet";
-  const isDark = usePrefersDark();
-  const grainientPalette = isDark ? GRAINIENT_DARK : GRAINIENT_LIGHT;
 
   const [exportSettings, setExportSettings] = useState<ExportSettings>({
     format: 2, // WebP
@@ -106,6 +104,31 @@ function EditorShell() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [redo, undo]);
+
+  // Esc on desktop/tablet → cancel the current tool session. Mirrors
+  // mobile's ✕ tap (which `MobileEditorSurface` already wires up
+  // separately on its expanded-sheet listener). Skipped when:
+  //   • The active tool has no rollback-able work (`canCancelCurrentTool`
+  //     is false) — Esc shouldn't blank a clean session.
+  //   • The user is typing in an input / textarea / Fabric IText editor
+  //     — Esc there cancels the input edit, not the whole tool.
+  //   • A modal is open (Export, FileProps, Privacy) — they own their
+  //     own Esc handling and should take priority.
+  useEffect(() => {
+    if (isMobile) return;
+    if (!canCancelCurrentTool) return;
+    if (exportOpen || filePropsOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      e.preventDefault();
+      void cancelCurrentTool();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobile, canCancelCurrentTool, exportOpen, filePropsOpen, cancelCurrentTool]);
 
   const resetZoom = useCallback(
     (target: "fit" | "100") => {
@@ -181,18 +204,16 @@ function EditorShell() {
     <main
       onDragOver={onShellDragOver}
       onDrop={onShellDrop}
-      className="relative h-full w-full overflow-hidden font-sans text-text dark:text-dark-text"
+      className="relative h-full w-full overflow-hidden font-sans text-text"
     >
-      {/* Animated backdrop, shared with the landing hero (see
-          src/constants/grainient.ts). Skipped on phones: a 60fps
-          WebGL render loop competes with the editor canvas for GPU
-          time and shows up as visible lag on phone Safari. The
-          editor surface reads cleanly against bg-canvas-bg without
-          it; the warm cast is a nice-to-have desktop affordance. */}
-      {!isMobile && (
-        <Grainient className="grainient-fixed" {...GRAINIENT_MOTION} {...grainientPalette} />
-      )}
-      <div className="relative z-1 flex h-full w-full flex-col">
+      {/* Editor backdrop is solid `--page-bg` cream on every breakpoint
+          (May 2026 minimalist redesign). The Grainient animation that
+          used to wash the desktop chrome has been removed — it
+          competed with the photo for attention and the cream page now
+          reads as one calm continuous surface from the brand mark all
+          the way to the rail / panel chrome. Landing keeps the
+          Grainient as marketing chrome. */}
+      <div className="relative flex h-full w-full flex-col">
         <TopBar onShowFileProps={() => setFilePropsOpen(true)} />
 
         {error && <ErrorBanner message={error} />}
@@ -208,16 +229,25 @@ function EditorShell() {
             {mode === "batch" ? (
               <BatchCanvas isMobile={isMobile} />
             ) : isMobile ? (
-              // On mobile, the canvas + drawer share a single sub-container
-              // so the drawer's `max-h: 50%` resolves against just those two
-              // (not including the toolbar). The matte gets rounded bottom
-              // corners to visually mirror the drawer's rounded top.
+              // Mobile single-mode chrome (V3.3 "unified surface" redesign,
+              // May 2026):
+              //   ┌─ Canvas (StageHost + ToolStage) — fills the column;
+              //   │  shrinks to fit above the surface when expanded.
+              //   └─ MobileEditorSurface — single morphing shell that
+              //      progresses through collapsed → picker → tool with
+              //      content cross-fading inside the same card. In-flow
+              //      so the canvas reflows as it grows.
+              // The canvas matte now uses `--page-bg` across every
+              // breakpoint (May 2026 desktop redesign — unified with
+              // the original mobile treatment in tokens.css) so the
+              // photo floats in cream and the editor reads as one
+              // continuous airy surface.
               <div className="flex min-h-0 flex-1 flex-col">
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-2xl">
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   <StageHost />
                   <ToolStage />
                 </div>
-                {mode === "single" && <MobileSheet />}
+                {mode === "single" && <MobileEditorSurface />}
               </div>
             ) : (
               // StageHost mounts the live ImageCanvas + Fabric instance
@@ -225,13 +255,19 @@ function EditorShell() {
               // hook bindings (no canvas of its own), so swapping tools
               // doesn't tear down the canvas. This is what eliminates
               // the flash on tool change.
-              <>
-                <StageHost />
-                <ToolStage />
-              </>
-            )}
-            {isMobile && mode === "single" && (
-              <MobileToolbar activeTool={toolState.activeTool} onSelect={setActiveTool} />
+              //
+              // HistoryScrubber sits below the canvas as a flex-shrink-0
+              // row so the canvas above it (flex-1) reclaims any space
+              // the scrubber doesn't use; when the scrubber returns null
+              // (no history yet, or mobile) the layout is identical to
+              // pre-scrubber chrome.
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <StageHost />
+                  <ToolStage />
+                </div>
+                <HistoryScrubber />
+              </div>
             )}
           </div>
 
@@ -267,7 +303,7 @@ function EditorShell() {
 
 function LoadingBanner() {
   return (
-    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg dark:bg-dark-page-bg">
+    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg">
       <Spinner label="Loading image…" />
     </div>
   );
@@ -286,11 +322,11 @@ function BusyOverlay({ label }: { label: string }) {
       aria-live="polite"
     >
       <div
-        className="flex items-center gap-3 rounded-2xl border border-border-soft bg-surface/95 px-5 py-4 shadow-xl dark:border-dark-border dark:bg-dark-surface/95"
+        className="flex items-center gap-3 rounded-2xl border border-border-soft bg-surface/95 px-5 py-4 shadow-xl"
         style={{ boxShadow: "var(--shadow-modal)" }}
       >
         <Spinner size={22} />
-        <span className="text-[13px] font-medium text-text dark:text-dark-text">{label}</span>
+        <span className="text-[13px] font-medium text-text">{label}</span>
       </div>
     </div>
   );
@@ -299,10 +335,10 @@ function BusyOverlay({ label }: { label: string }) {
 function ErrorBanner({ message }: { message: string }) {
   const { exit } = useEditor();
   return (
-    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md dark:bg-dark-page-bg/90">
+    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md">
       <div
         role="alert"
-        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl dark:border-dark-border dark:bg-dark-surface"
+        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl"
       >
         <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-coral-500/12 text-coral-500">
           <span className="absolute inset-0 animate-ping rounded-full bg-coral-500/15" />
@@ -310,12 +346,12 @@ function ErrorBanner({ message }: { message: string }) {
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="text-[17px] font-semibold tracking-tight">Couldn't open this image</div>
-          <div className="text-[13px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          <div className="text-[13px] leading-relaxed text-text-muted">
             The file may be corrupted, in an unsupported format, or no longer available on this
             device.
           </div>
           {message && (
-            <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted">
+            <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted">
               {message}
             </div>
           )}

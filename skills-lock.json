@@ -13,6 +13,12 @@
       "skillPath": "plugins/cesdk/skills/explain/SKILL.md",
       "computedHash": "74d61231265cd68500656142ae4bb25a4591acfc64120e1851b1b5751ed4309c"
     },
+    "hallmark": {
+      "source": "nutlope/hallmark",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "5c0fa3fe0dd99fd3016ac120a1b5f425c6f93ce1d2f1c531b19e34361e532d6f"
+    },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",

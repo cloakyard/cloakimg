@@ -17,7 +17,7 @@ interface Props {
 
 export function AiSectionHeader({ label = "Smart adjustments" }: Props) {
   return (
-    <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+    <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
       <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
       {label}
     </div>

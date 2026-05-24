@@ -166,13 +166,9 @@ export function FilterPanel() {
                       type="button"
                       onClick={() => patchTool("filterPreset", index)}
                       aria-pressed={active}
-                      className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 dark:bg-dark-page-bg ${
+                      className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 ${
                         isMobile ? "w-18 shrink-0" : ""
-                      } ${
-                        active
-                          ? "border-2 border-coral-500"
-                          : "border border-border dark:border-dark-border"
-                      }`}
+                      } ${active ? "border-2 border-coral-500" : "border border-border"}`}
                     >
                       {thumbUrl ? (
                         <img

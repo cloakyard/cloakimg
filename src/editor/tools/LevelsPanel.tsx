@@ -6,7 +6,7 @@ import { useCallback, useMemo } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -16,7 +16,9 @@ import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 
 export function LevelsPanel() {
-  const { toolState, patchTool, doc, commit } = useEditor();
+  const toolState = useToolState();
+  const { patchTool, commit } = useEditorActions();
+  const { doc } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   const scope = (toolState.levelsScope as MaskScope) ?? 0;
 
@@ -102,7 +104,7 @@ export function LevelsPanel() {
       <AiSectionHeader />
       <MaskScopeRow scope={toolState.levelsScope} onScope={(i) => patchTool("levelsScope", i)} />
       <ScopeGate disabled={gated}>
-        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11.5px] leading-relaxed text-text-muted">
           Pull the input black up to crush shadows, the white down to clip highlights, and the
           midtone slider to lift or darken the middle of the curve.
         </div>

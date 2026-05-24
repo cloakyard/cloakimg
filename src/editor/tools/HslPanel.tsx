@@ -7,7 +7,7 @@ import { useCallback, useMemo } from "react";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -25,7 +25,9 @@ import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 
 export function HslPanel() {
-  const { toolState, patchTool, doc, commit } = useEditor();
+  const toolState = useToolState();
+  const { patchTool, commit } = useEditorActions();
+  const { doc } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   const band = toolState.hslBand;
   const scope = (toolState.hslScope as MaskScope) ?? 0;
@@ -114,9 +116,7 @@ export function HslPanel() {
                   aria-pressed={active}
                   title={name}
                   className={`relative flex aspect-square cursor-pointer items-center justify-center rounded border p-0 ${
-                    active
-                      ? "border-coral-500 ring-2 ring-coral-500/40"
-                      : "border-border-soft dark:border-dark-border-soft"
+                    active ? "border-coral-500 ring-2 ring-coral-500/40" : "border-border-soft"
                   }`}
                   style={{ background: `hsl(${center}, 75%, 50%)` }}
                 >
@@ -131,7 +131,7 @@ export function HslPanel() {
               );
             })}
           </div>
-          <div className="mt-1.5 text-center text-[11px] font-semibold text-text-muted dark:text-dark-text-muted">
+          <div className="mt-1.5 text-center text-[11px] font-semibold text-text-muted">
             {HSL_BAND_NAMES[band]}
           </div>
         </PropRow>

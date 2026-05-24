@@ -4,17 +4,31 @@
    coral ("Sunset Coral").
 
    This file is the Tailwind v4 entry point: `@import "tailwindcss"`
-   pulls in core utilities, `@theme { ... }` defines design tokens that
-   Tailwind reads as utilities (e.g. `--color-coral-500` exposes
-   `bg-coral-500`, `text-coral-500`), and `@custom-variant dark`
-   wires the `dark:` modifier to the OS-level color preference. */
+   pulls in core utilities and `@theme { ... }` defines design tokens
+   that Tailwind reads as utilities (e.g. `--color-coral-500` exposes
+   `bg-coral-500`, `text-coral-500`).
+
+   Light / dark theming is done with CSS-level `light-dark()` rather
+   than a `@custom-variant dark` chain of `dark:bg-dark-foo` utilities.
+   `color-scheme: light dark` on `:root` (see below) tells the browser
+   we render in both modes, and every theme-aware token below is
+   declared as `light-dark(light_value, dark_value)`. Tailwind utilities
+   then auto-switch at paint time — components write `bg-surface` once
+   and the browser resolves to the correct mode without the JSX paying
+   the cost of pairing every utility with a `dark:` sibling. */
 
 @import "tailwindcss";
 
+/* `dark:` utility variant — still needed for *cross-palette* overrides
+   that can't be expressed as a single `light-dark()` (e.g.
+   `bg-coral-50 dark:bg-coral-900/30`, where the two modes use entirely
+   different palette steps). For *mode-paired* tokens (surface, text,
+   border, page-bg, …) prefer the `light-dark()` definitions below —
+   they let the JSX drop the `dark:` sibling entirely. */
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
 @theme {
-  /* ── Coral — primary accent ─────────────────────────────── */
+  /* ── Coral — primary accent (mode-invariant) ─────────────── */
   --color-coral-50: #fff5f1;
   --color-coral-100: #ffe4d8;
   --color-coral-200: #ffc8b0;
@@ -26,38 +40,39 @@
   --color-coral-800: #8a2914;
   --color-coral-900: #5c1c0e;
 
-  /* ── Surfaces & text — light ─────────────────────────────── */
-  --color-surface: #ffffff;
-  --color-surface-glass: rgba(255, 255, 255, 0.78);
-  --color-surface-card: rgba(255, 255, 255, 0.65);
-  --color-page-bg: #faf7f4;
-  --color-border: #e7e1da;
-  --color-border-soft: rgba(231, 225, 218, 0.7);
-  --color-text: #1e1a16;
-  --color-text-muted: #6b6258;
-  --color-canvas-bg: #2a2620;
-  --color-checker-a: #efece7;
-  --color-checker-b: #e2dcd2;
+  /* ── Surfaces & text — auto-switching via light-dark() ─────
+     Each token resolves to its first argument in light mode and
+     second in dark mode, gated on `color-scheme: light dark` (set on
+     :root below). This collapses what used to be parallel
+     `--color-X` / `--color-dark-X` pairs into a single source of truth
+     — components no longer need `dark:bg-dark-surface` siblings. */
+  --color-surface: light-dark(#ffffff, #1c1814);
+  --color-surface-glass: light-dark(rgba(255, 255, 255, 0.78), rgba(28, 24, 20, 0.78));
+  --color-surface-card: light-dark(rgba(255, 255, 255, 0.65), rgba(28, 24, 20, 0.62));
+  --color-page-bg: light-dark(#faf7f4, #0e0c0a);
+  --color-border: light-dark(#e7e1da, #2e2823);
+  --color-border-soft: light-dark(rgba(231, 225, 218, 0.7), rgba(255, 255, 255, 0.08));
+  --color-text: light-dark(#1e1a16, #f5efe8);
+  --color-text-muted: light-dark(#6b6258, #a39788);
+  /* `--color-canvas-bg` used to be the dark photo-workbench coffee
+     (#2a2620) so the editor read as a Photoshop-style matte around
+     the image. The V3 mobile redesign unified the matte with
+     `--color-page-bg` so the photo "floats" in cream and the surface
+     reads as one airy continuous plane; the May 2026 desktop redesign
+     extends that treatment to desktop + tablet too. Anything that
+     genuinely wants the old dark frame (e.g. the landing photo card,
+     which is marketing chrome, not editor chrome) hard-codes its own
+     colour instead of inheriting this token. */
+  --color-canvas-bg: var(--color-page-bg);
+  --color-checker-a: light-dark(#efece7, #1a1714);
+  --color-checker-b: light-dark(#e2dcd2, #221d18);
 
-  /* ── Surfaces & text — dark (paired) ─────────────────────── */
-  --color-dark-surface: #1c1814;
-  --color-dark-surface-glass: rgba(28, 24, 20, 0.78);
-  --color-dark-surface-card: rgba(28, 24, 20, 0.62);
-  --color-dark-page-bg: #0e0c0a;
-  --color-dark-border: #2e2823;
-  --color-dark-border-soft: rgba(255, 255, 255, 0.08);
-  --color-dark-text: #f5efe8;
-  --color-dark-text-muted: #a39788;
-  --color-dark-canvas-bg: #0a0908;
-  --color-dark-checker-a: #1a1714;
-  --color-dark-checker-b: #221d18;
-
-  /* ── Status ──────────────────────────────────────────────── */
+  /* ── Status (mode-invariant) ─────────────────────────────── */
   --color-danger: #dc2626;
   --color-warning: #d97706;
   --color-success: #059669;
 
-  /* ── Sunset palette (landing background) ─────────────────── */
+  /* ── Sunset palette (landing background, mode-invariant) ─── */
   --color-sunset-coral: #f5613a;
   --color-sunset-amber: #ffb37a;
   --color-sunset-peach: #ffd9b8;
@@ -77,31 +92,54 @@
   --radius-2xl: 20px;
   --radius-3xl: 28px;
 
+  /* ── Motion ──────────────────────────────────────────────────
+     iOS-inspired easing tokens. `--ease-out-ios` is the canonical
+     iOS sheet-and-modal curve (Apple's UIView.AnimationCurve.easeOut
+     reverse-engineered as a cubic-bezier); it starts fast and settles
+     softly without overshoot. `--ease-in-ios` is its mirror for exits.
+     The morphing mobile tool surface and every modal share these so
+     the app's motion language reads as one system. */
+  --ease-out-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in-ios: cubic-bezier(0.6, 0, 0.32, 0.4);
+  --ease-in-out-ios: cubic-bezier(0.5, 0, 0.2, 1);
+
+  --dur-fast: 180ms;
+  --dur-base: 240ms;
+  --dur-modal: 320ms;
+  --dur-sheet: 360ms;
+
   /* ── Shadows ─────────────────────────────────────────────── */
   --shadow-card-rest: 0 0 0 1px rgba(15, 23, 42, 0.05);
   --shadow-card-hover: 0 4px 14px -2px rgba(30, 18, 10, 0.1), 0 2px 4px -2px rgba(30, 18, 10, 0.06);
   --shadow-modal: 0 10px 24px -10px rgba(15, 23, 42, 0.15);
-  --shadow-cta: 0 1px 2px rgba(245, 97, 58, 0.3);
+  --shadow-cta: 0 1px 2px color-mix(in srgb, var(--color-coral-500) 30%, transparent);
   --shadow-float: 0 12px 32px -8px rgba(30, 18, 10, 0.18), 0 2px 6px rgba(30, 18, 10, 0.06);
 }
 
 /* ── Legacy CSS-var bridge ──────────────────────────────────
-   While the migration is in flight, components written with
-   `var(--text)`, `var(--coral-500)`, etc. keep working. Once every
-   component reads from Tailwind utilities (Phase FX-3) this whole
-   block goes away and the @theme block above becomes the single
-   source of truth. */
+   Components written before the Tailwind v4 migration read these
+   short-name vars (e.g. `var(--text)`, `var(--coral-500)`). They alias
+   the @theme tokens so all mode-aware values come from a single
+   source. Once every component reads from Tailwind utilities the
+   bridge can be deleted. */
 :root {
-  --coral-50: #fff5f1;
-  --coral-100: #ffe4d8;
-  --coral-200: #ffc8b0;
-  --coral-300: #ffa483;
-  --coral-400: #ff7d54;
-  --coral-500: #f5613a;
-  --coral-600: #e54a22;
-  --coral-700: #b8371a;
-  --coral-800: #8a2914;
-  --coral-900: #5c1c0e;
+  /* Enables light-dark() resolution in @theme. Without `color-scheme`
+     light-dark() always returns the light branch — the dark side
+     wouldn't paint even under `(prefers-color-scheme: dark)`. Also
+     opts UA-rendered chrome (scrollbar gutter, form widget defaults,
+     date pickers) into dark mode without a separate media query. */
+  color-scheme: light dark;
+
+  --coral-50: var(--color-coral-50);
+  --coral-100: var(--color-coral-100);
+  --coral-200: var(--color-coral-200);
+  --coral-300: var(--color-coral-300);
+  --coral-400: var(--color-coral-400);
+  --coral-500: var(--color-coral-500);
+  --coral-600: var(--color-coral-600);
+  --coral-700: var(--color-coral-700);
+  --coral-800: var(--color-coral-800);
+  --coral-900: var(--color-coral-900);
 
   --slate-50: #f8fafc;
   --slate-100: #f1f5f9;
@@ -114,30 +152,31 @@
   --slate-800: #1e293b;
   --slate-900: #0f172a;
 
-  --surface: #ffffff;
-  --surface-glass: rgba(255, 255, 255, 0.78);
-  --surface-card: rgba(255, 255, 255, 0.65);
-  --page-bg: #faf7f4;
-  --border: #e7e1da;
-  --border-soft: rgba(231, 225, 218, 0.7);
-  --text: #1e1a16;
-  --text-muted: #6b6258;
+  --surface: var(--color-surface);
+  --surface-glass: var(--color-surface-glass);
+  --surface-card: var(--color-surface-card);
+  --page-bg: var(--color-page-bg);
+  --border: var(--color-border);
+  --border-soft: var(--color-border-soft);
+  --text: var(--color-text);
+  --text-muted: var(--color-text-muted);
 
-  --danger: #dc2626;
-  --warning: #d97706;
-  --success: #059669;
+  --danger: var(--color-danger);
+  --warning: var(--color-warning);
+  --success: var(--color-success);
 
-  --sunset-coral: #f5613a;
-  --sunset-amber: #ffb37a;
-  --sunset-peach: #ffd9b8;
-  --sunset-rose: #ff9a8b;
-  --sunset-gold: #ffc966;
+  --sunset-coral: var(--color-sunset-coral);
+  --sunset-amber: var(--color-sunset-amber);
+  --sunset-peach: var(--color-sunset-peach);
+  --sunset-rose: var(--color-sunset-rose);
+  --sunset-gold: var(--color-sunset-gold);
 
-  --focus-ring: rgba(245, 97, 58, 0.22);
+  --focus-ring: color-mix(in srgb, var(--coral-500) 22%, transparent);
 
-  --canvas-bg: #2a2620;
-  --checker-a: #efece7;
-  --checker-b: #e2dcd2;
+  /* Legacy bridge — kept in sync with `--color-canvas-bg` above. */
+  --canvas-bg: var(--color-canvas-bg);
+  --checker-a: var(--color-checker-a);
+  --checker-b: var(--color-checker-b);
 
   --r-sm: 8px;
   --r-md: 12px;
@@ -154,24 +193,8 @@
   --shadow-card-rest: 0 0 0 1px rgba(15, 23, 42, 0.05);
   --shadow-card-hover: 0 4px 14px -2px rgba(30, 18, 10, 0.1), 0 2px 4px -2px rgba(30, 18, 10, 0.06);
   --shadow-modal: 0 10px 24px -10px rgba(15, 23, 42, 0.15);
-  --shadow-cta: 0 1px 2px rgba(245, 97, 58, 0.3);
+  --shadow-cta: 0 1px 2px color-mix(in srgb, var(--coral-500) 30%, transparent);
   --shadow-float: 0 12px 32px -8px rgba(30, 18, 10, 0.18), 0 2px 6px rgba(30, 18, 10, 0.06);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface: #1c1814;
-    --surface-glass: rgba(28, 24, 20, 0.78);
-    --surface-card: rgba(28, 24, 20, 0.62);
-    --page-bg: #0e0c0a;
-    --border: #2e2823;
-    --border-soft: rgba(255, 255, 255, 0.08);
-    --text: #f5efe8;
-    --text-muted: #a39788;
-    --canvas-bg: #0a0908;
-    --checker-a: #1a1714;
-    --checker-b: #221d18;
-  }
 }
 
 /* ── Base reset / page chrome ─────────────────────────────── */
@@ -211,11 +234,11 @@ body {
   accent-color: var(--coral-500);
 }
 ::selection {
-  background: rgba(245, 97, 58, 0.28);
+  background: color-mix(in srgb, var(--coral-500) 28%, transparent);
   color: inherit;
 }
 ::-moz-selection {
-  background: rgba(245, 97, 58, 0.28);
+  background: color-mix(in srgb, var(--coral-500) 28%, transparent);
   color: inherit;
 }
 
@@ -230,13 +253,10 @@ body {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--coral-600);
+  /* Coral hue shifts lighter in dark mode so the eyebrow keeps a
+     comparable optical weight against the near-black page. */
+  color: light-dark(var(--coral-600), var(--coral-400));
   font-feature-settings: "tnum";
-}
-@media (prefers-color-scheme: dark) {
-  .t-eyebrow {
-    color: var(--coral-400);
-  }
 }
 .t-eyebrow-slate {
   color: var(--slate-500);
@@ -445,37 +465,23 @@ body {
   color: var(--text-muted);
 }
 .btn-ghost:hover {
-  background: rgba(15, 23, 42, 0.04);
+  /* Slate hover ink in light mode, white ink in dark — same intent,
+     paint-time switched via light-dark() so we keep the rule single. */
+  background: light-dark(rgba(15, 23, 42, 0.04), rgba(255, 255, 255, 0.06));
   color: var(--text);
-}
-@media (prefers-color-scheme: dark) {
-  .btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--dark-text, #f5efe8);
-  }
 }
 /* Outline coral variant — for primary-looking actions that should
    not compete with the brand mark for top-bar attention. Same coral
    identity, much lighter visual weight than .btn-primary's solid fill. */
 .btn-outline-coral {
   background: transparent;
-  color: var(--coral-600);
-  border: 1.5px solid var(--coral-500);
+  color: light-dark(var(--coral-600), var(--coral-300));
+  border: 1.5px solid light-dark(var(--coral-500), var(--coral-400));
 }
 .btn-outline-coral:hover {
-  background: var(--coral-50);
-  border-color: var(--coral-600);
+  background: light-dark(var(--coral-50), color-mix(in srgb, var(--coral-500) 12%, transparent));
+  border-color: light-dark(var(--coral-600), var(--coral-300));
   transform: translateY(-1px);
-}
-@media (prefers-color-scheme: dark) {
-  .btn-outline-coral {
-    color: var(--coral-300);
-    border-color: var(--coral-400);
-  }
-  .btn-outline-coral:hover {
-    background: rgba(245, 97, 58, 0.12);
-    border-color: var(--coral-300);
-  }
 }
 .btn-icon {
   width: 36px;
@@ -552,14 +558,16 @@ body {
    creates a visible gutter to the right of the sticky header. By
    leaving the WebKit width unset, macOS keeps its overlay scrollbar
    (no gutter) while Windows/Linux still get a slim styled bar from
-   `scrollbar-width: thin`. */
+   `scrollbar-width: thin`. Track stays transparent in both modes;
+   thumb hue picks up the page-bg via light-dark() so the bar fades
+   into the chrome instead of sitting on top of it. */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-color: light-dark(rgba(100, 116, 139, 0.35), rgba(255, 255, 255, 0.18)) transparent;
 }
 .scroll-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-color: light-dark(rgba(100, 116, 139, 0.35), rgba(255, 255, 255, 0.18)) transparent;
   /* No `overscroll-behavior` here. It used to be `contain` on this
      class, but that bled onto horizontal-only preset rows in
      FilterPanel / ColorPickerPanel / FrameTool, where it blocked
@@ -580,24 +588,27 @@ html {
   background: transparent;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
+  background: light-dark(rgba(100, 116, 139, 0.3), rgba(255, 255, 255, 0.15));
   border-radius: 9999px;
 }
 .scroll-thin::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+  background: light-dark(rgba(100, 116, 139, 0.5), rgba(255, 255, 255, 0.28));
 }
-@media (prefers-color-scheme: dark) {
-  html {
-    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
-  }
+
+/* Touch devices: drop the always-visible 6px bar so the platform's
+   native overlay scrollbar takes over — it fades in only during an
+   active scroll, fades out at rest. The classic bar above is correct
+   for hover-precise pointers (mouse / trackpad) where a visible thumb
+   doubles as a "this can scroll" affordance, but on a phone it just
+   plants a stationary stripe down the edge of every bottom sheet. */
+@media (pointer: coarse) {
   .scroll-thin {
-    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    scrollbar-width: none;
   }
-  .scroll-thin::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-  }
-  .scroll-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.28);
+  .scroll-thin::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
 }
 
@@ -621,7 +632,7 @@ html {
   color: white;
   position: relative;
   box-shadow:
-    0 2px 6px rgba(245, 97, 58, 0.3),
+    0 2px 6px color-mix(in srgb, var(--coral-500) 30%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 .logo-wordmark {

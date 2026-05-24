@@ -304,6 +304,14 @@ export const I = {
       d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"
     />
   ),
+  Smile: (p: P) => (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+      <line x1="9" x2="9.01" y1="9" y2="9" />
+      <line x1="15" x2="15.01" y1="9" y2="9" />
+    </Icon>
+  ),
   SpeechBubble: (p: P) => (
     <Icon
       {...p}
@@ -549,6 +557,29 @@ export const I = {
       <path d="M19 5 L16.5 7.5 M19 5 H16.5 M19 5 V7.5" />
       <path d="M5 19 L7.5 16.5 M5 19 H7.5 M5 19 V16.5" />
       <path d="M19 19 L16.5 16.5 M19 19 H16.5 M19 19 V16.5" />
+    </Icon>
+  ),
+  MoreHorizontal: (p: P) => (
+    <Icon {...p}>
+      <circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </Icon>
+  ),
+  Grid2x2: (p: P) => (
+    <Icon {...p}>
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1" />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1" />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1" />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1" />
+    </Icon>
+  ),
+  Share: (p: P) => (
+    <Icon {...p}>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
     </Icon>
   ),
 };

@@ -13,10 +13,9 @@ interface Props {
 }
 
 export function PropertiesPanel({ collapsed = false }: Props) {
-  const { toolState } = useEditor();
+  const { toolState, cancelCurrentTool, canCancelCurrentTool } = useEditor();
   const { activeTool } = toolState;
   const tool = findTool(activeTool);
-  const Ic = tool.icon;
 
   return (
     // Sidebar widths (tablet vs desktop) were originally 240 / 280 px.
@@ -25,24 +24,52 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // optional progress / status cards — at 240 px those Segments
     // wrapped onto two lines and the panel started feeling cramped.
     // Bumped to 288 / 328 px: still leaves >440 px of canvas at the
-    // narrowest tablet breakpoint (760 px viewport − 72 px tool rail),
+    // narrowest tablet breakpoint (MOBILE_MAX_PX viewport − 72 px tool rail),
     // and gives every panel enough horizontal room to lay out cleanly
     // including the new subject scope row, the byte-readout progress
     // card, and the Selective-colour 8-band swatch grid.
+    // V5 (May 2026 minimalist desktop redesign) — like the ToolRail
+    // opposite, the panel no longer carries its own surface or
+    // backdrop blur. Controls sit directly on cream; only a soft
+    // left divider separates them from the canvas.
     <div
-      className={`editor-paper flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface dark:border-dark-border dark:bg-dark-surface ${
+      className={`flex shrink-0 flex-col overflow-hidden border-l border-border-soft ${
         collapsed ? "w-72" : "w-82"
       }`}
     >
-      <div className="flex shrink-0 items-center gap-2.5 border-b border-border-soft px-4 py-3.5 dark:border-dark-border-soft">
-        <div className="flex h-7.5 w-7.5 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
-          <Ic size={15} />
+      {/* Header — V4 (May 2026): single-line rhythm. The prior layout
+          painted three echoes of the same fact — coral icon chip + tool
+          name + uppercase group caption — even though the active tool
+          rail button already tells the user which tool is selected.
+          Stripping the chip and stacking name + group inline gives the
+          panel a quieter chrome that defers to the controls below. */}
+      <div className="flex shrink-0 items-baseline gap-2 border-b border-border-soft px-4 py-3.5">
+        <div className="min-w-0 flex-1 truncate">
+          <span className="text-[14px] font-semibold tracking-[-0.01em] text-text">
+            {tool.name}
+          </span>
+          <span className="ml-2 text-[11px] font-medium tracking-[0.04em] text-text-muted uppercase">
+            {tool.group}
+          </span>
         </div>
-        <div className="flex-1">
-          <div className="text-[13.5px] font-semibold tracking-[-0.005em]">{tool.name}</div>
-          <div className="t-section-label mt-px">{tool.group}</div>
-        </div>
-        <I.ChevronDown size={14} className="text-text-muted dark:text-dark-text-muted" />
+        {/* Cancel — desktop parity with mobile's ✕ tap in the
+            MobileToolFooter. Visible only when the active tool has
+            actual rollback-able work (a pending apply OR commits since
+            tool entry). Tapping discards the pending bake, rolls
+            history back to the tool-entry checkpoint, and parks the
+            user back on Move. Esc is the keyboard equivalent (wired
+            in EditorShell). */}
+        {canCancelCurrentTool && (
+          <button
+            type="button"
+            onClick={() => void cancelCurrentTool()}
+            title="Cancel changes (Esc)"
+            aria-label="Cancel changes"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-text-muted transition-colors hover:bg-surface hover:text-text"
+          >
+            <I.X size={14} stroke={2} />
+          </button>
+        )}
       </div>
 
       {/* `key={activeTool}` remounts the scroll container on every tool
@@ -61,7 +88,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           own vertical scroll. */}
       <div
         key={activeTool}
-        className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
+        className="panel-fade-in scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
       >
         <ToolControls />
       </div>

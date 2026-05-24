@@ -23,7 +23,7 @@ export function SpotHealPanel() {
           onChange={(v) => patchTool("feather", v)}
         />
       </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         Click on a spot to heal it from neighbouring pixels.
       </div>
     </>

@@ -177,7 +177,7 @@ export function ImagePanel() {
   return (
     <>
       <PropRow label="Add an image">
-        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs dark:border-dark-border dark:bg-dark-page-bg">
+        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs">
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
@@ -193,7 +193,7 @@ export function ImagePanel() {
         </label>
       </PropRow>
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         Drop an image to add a new layer. Drag handles to scale or rotate; use Layers to reorder.
       </div>
 
@@ -205,9 +205,7 @@ export function ImagePanel() {
             </div>
           </PropRow>
           <div className="mt-1.5">
-            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted dark:text-dark-text-muted">
-              Align
-            </div>
+            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted">Align</div>
             <div className="grid grid-cols-3 gap-1.5">
               <ReorderButton label="Center H" onClick={() => center("h")} />
               <ReorderButton label="Center V" onClick={() => center("v")} />
@@ -215,18 +213,14 @@ export function ImagePanel() {
             </div>
           </div>
           <div className="mt-1.5">
-            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted dark:text-dark-text-muted">
-              Size to canvas
-            </div>
+            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted">Size to canvas</div>
             <div className="grid grid-cols-2 gap-1.5">
               <ReorderButton label="Fit" onClick={() => fitOrFill("fit")} />
               <ReorderButton label="Fill" onClick={() => fitOrFill("fill")} />
             </div>
           </div>
           <div className="mt-1.5">
-            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted dark:text-dark-text-muted">
-              Layer order
-            </div>
+            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted">Layer order</div>
             <div className="grid grid-cols-2 gap-1.5">
               <ReorderButton label="To front" onClick={() => reorder("front")} />
               <ReorderButton label="Forward" onClick={() => reorder("forward")} />
@@ -245,7 +239,7 @@ function ReorderButton({ label, onClick }: { label: string; onClick: () => void 
     <button
       type="button"
       onClick={onClick}
-      className="cursor-pointer rounded-md border border-border bg-surface px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text"
+      className="cursor-pointer rounded-md border border-border bg-surface px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text"
     >
       {label}
     </button>

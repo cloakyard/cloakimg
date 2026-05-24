@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { PropRow, Segment } from "../atoms";
+import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import { lanczosResampleAsync } from "./lanczos";
 import { I } from "../../components/icons";
 
@@ -19,7 +20,8 @@ const LONG_EDGE_PRESETS = [
 const FIT = ["Fit", "Fill", "Stretch"] as const;
 
 export function ResizePanel() {
-  const { doc, toolState, patchTool, commit, runBusy } = useEditor();
+  const { doc, toolState, patchTool, commit, runBusy, layout } = useEditor();
+  const isMobile = layout === "mobile";
   const [fit, setFit] = useState(0);
   const [resizing, setResizing] = useState(false);
 
@@ -123,6 +125,16 @@ export function ResizePanel() {
   const targetW = toolState.resizeW;
   const targetH = toolState.resizeH;
 
+  // Auto-bake on tool switch — wires the same `apply` into the
+  // pending-apply slot the EditorContext flushes when the active tool
+  // changes. Without this, the mobile MobileEditorSurface ✓ tap (which
+  // resets activeTool to Move and triggers the flush) would close the
+  // tool without ever performing the resize. The `dirty` gate keeps a
+  // no-op tool peek from spuriously baking the original dimensions
+  // back into history.
+  const dirty = !!doc && (targetW !== doc.width || targetH !== doc.height || fit !== 0);
+  useApplyOnToolSwitch(apply, dirty);
+
   // Cached small preview of the working canvas (~96 px long edge), so
   // the panel can show the user *what* their resize is shrinking. We
   // re-thumb only when the source canvas reference changes.
@@ -155,18 +167,18 @@ export function ResizePanel() {
   return (
     <>
       <PropRow label="Preview">
-        <div className="flex items-center justify-between gap-2 rounded-lg bg-page-bg px-2.5 py-2 dark:bg-dark-page-bg">
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-page-bg px-2.5 py-2">
           <div
             role="img"
             aria-label="Source size"
-            className="checker relative shrink-0 overflow-hidden rounded-sm border border-border dark:border-dark-border"
+            className="checker relative shrink-0 overflow-hidden rounded-sm border border-border"
             style={{ width: sourceBox.w, height: sourceBox.h }}
           >
             {sourceThumbUrl && (
               <img src={sourceThumbUrl} alt="" className="h-full w-full object-cover" />
             )}
           </div>
-          <div className="flex flex-col items-center text-text-muted dark:text-dark-text-muted">
+          <div className="flex flex-col items-center text-text-muted">
             <I.ArrowRight size={14} />
             <span className="t-mono text-[10.5px] font-semibold">{pct}%</span>
           </div>
@@ -182,7 +194,7 @@ export function ResizePanel() {
           </div>
         </div>
         {doc && (
-          <div className="t-mono mt-1 text-center text-[10.5px] text-text-muted dark:text-dark-text-muted">
+          <div className="t-mono mt-1 text-center text-[10.5px] text-text-muted">
             {doc.width} × {doc.height} → {targetW} × {targetH} px
           </div>
         )}
@@ -198,7 +210,7 @@ export function ResizePanel() {
             className={`inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-md border p-0 ${
               toolState.resizeAspectLock
                 ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : "border-border bg-surface text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted"
+                : "border-border bg-surface text-text-muted"
             }`}
           >
             <I.Lock size={11} />
@@ -231,20 +243,26 @@ export function ResizePanel() {
         />
       </PropRow>
       {toolState.resizeQuality === 1 && (
-        <div className="text-[11px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11px] leading-relaxed text-text-muted">
           High runs a Lanczos-3 pass — sharper at moderate downscales, slower than Fast. Falls back
           to Fast automatically when the change is too small to benefit.
         </div>
       )}
-      <button
-        type="button"
-        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
-        onClick={() => void apply()}
-        disabled={resizing}
-        aria-busy={resizing}
-      >
-        <I.Check size={12} /> {resizing ? "Resizing…" : "Apply resize"}
-      </button>
+      {/* Apply resize — desktop / tablet only. On mobile the
+          MobileEditorSurface footer's ✓ is the universal commit; the
+          auto-bake registered above runs the resize when the user taps
+          ✓, so the visible button is redundant chrome. */}
+      {!isMobile && (
+        <button
+          type="button"
+          className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          onClick={() => void apply()}
+          disabled={resizing}
+          aria-busy={resizing}
+        >
+          <I.Check size={12} /> {resizing ? "Resizing…" : "Apply resize"}
+        </button>
+      )}
     </>
   );
 }
@@ -296,13 +314,13 @@ function DimInput({
   label: string;
 }) {
   return (
-    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 text-[12.5px] dark:border-dark-border dark:bg-dark-page-bg">
-      <span className="text-[10.5px] text-text-muted dark:text-dark-text-muted">{label}</span>
+    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 text-[12.5px]">
+      <span className="text-[10.5px] text-text-muted">{label}</span>
       <input
         type="number"
         value={value}
         onChange={(e) => onChange(+e.target.value || 0)}
-        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none dark:text-dark-text"
+        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none"
       />
     </div>
   );

@@ -18,7 +18,7 @@ import { useCallback, useEffect } from "react";
 import { I } from "../../components/icons";
 import { PropRow, Segment, Slider, ToggleSwitch } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
-import { useEditor } from "../EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import type { MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -43,7 +43,9 @@ const LENS_OPTIONS: LensKind[] = ["gaussian", "lens", "tilt-shift"];
 const LENS_LABELS = LENS_OPTIONS.map((k) => LENS_KIND_LABELS[k]);
 
 export function BgBlurPanel() {
-  const { toolState, patchTool, doc, commit } = useEditor();
+  const toolState = useToolState();
+  const { patchTool, commit } = useEditorActions();
+  const { doc } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   // 0 (whole) or 2 (background). The Subject scope (1) used to live
   // here; we coerce any leftover value-1 doc state to 2 so old saved
@@ -150,7 +152,7 @@ export function BgBlurPanel() {
     <>
       {/* AI section header — sparkle indicates this panel uses the
           on-device subject model when targeting the background. */}
-      <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+      <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
         <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
         Subject-aware lens
       </div>
@@ -179,9 +181,7 @@ export function BgBlurPanel() {
         <PropRow label="Lens">
           <Segment options={LENS_LABELS} active={Math.max(0, lensIndex)} onChange={handleLens} />
         </PropRow>
-        <div className="text-[11px] leading-snug text-text-muted dark:text-dark-text-muted">
-          {LENS_KIND_HINTS[lens]}
-        </div>
+        <div className="text-[11px] leading-snug text-text-muted">{LENS_KIND_HINTS[lens]}</div>
 
         <PropRow label="Strength" value={`${radiusPx} px`}>
           {/* defaultValue=0.4 keeps the dblclick "snap to a sensible
@@ -216,7 +216,7 @@ export function BgBlurPanel() {
           Reset
         </button>
 
-        <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <div className="text-[11.5px] leading-relaxed text-text-muted">
           {scope === 2
             ? progressive
               ? "Subject stays crisp; the background blur ramps softer near the subject and stronger toward the edges of the frame."

@@ -204,9 +204,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="cloak-eb-title"
-        className="absolute inset-0 z-[200] flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md dark:bg-dark-page-bg/90"
+        className="absolute inset-0 z-[200] flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md"
       >
-        <div className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl dark:border-dark-border dark:bg-dark-surface">
+        <div className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl">
           <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-coral-500/12 text-coral-500">
             <span className="absolute inset-0 animate-ping rounded-full bg-coral-500/15" />
             <I.Triangle size={26} stroke={1.75} />
@@ -215,11 +215,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div id="cloak-eb-title" className="text-[17px] font-semibold tracking-tight">
               {title}
             </div>
-            <div className="text-[13px] leading-relaxed text-text-muted dark:text-dark-text-muted">
-              {description}
-            </div>
+            <div className="text-[13px] leading-relaxed text-text-muted">{description}</div>
             {error.message && (
-              <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted">
+              <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted">
                 {error.message}
               </div>
             )}
@@ -274,10 +272,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         }}
       >
         <div
-          className="relative flex max-h-[92svh] w-full flex-col overflow-hidden rounded-t-3xl border border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150 sm:max-h-[min(820px,calc(100svh-48px))] sm:max-w-160 sm:rounded-3xl dark:border-dark-border dark:bg-dark-surface/85"
+          className="relative flex max-h-[92svh] w-full flex-col overflow-hidden rounded-t-3xl border border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150 sm:max-h-[min(820px,calc(100svh-48px))] sm:max-w-160 sm:rounded-3xl"
           style={{ boxShadow: "var(--shadow-modal)" }}
         >
-          <div className="flex shrink-0 items-start gap-3 border-b border-border-soft px-5 pt-5 pb-4 sm:gap-3.5 sm:px-6 sm:pt-6 dark:border-dark-border-soft">
+          <div className="flex shrink-0 items-start gap-3 border-b border-border-soft px-5 pt-5 pb-4 sm:gap-3.5 sm:px-6 sm:pt-6">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
               <I.AlertTriangle size={20} stroke={2.25} />
             </span>
@@ -285,7 +283,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <h2 id="ci-error-title" className="t-headline text-[17px] sm:text-[18px]">
                 {title}
               </h2>
-              <p className="mt-1 text-[12.5px] leading-[1.5] text-text-muted sm:text-[13px] dark:text-dark-text-muted">
+              <p className="mt-1 text-[12.5px] leading-[1.5] text-text-muted sm:text-[13px]">
                 Your image is still on this device — nothing was uploaded. Send the details below
                 and we'll fix the bug.
               </p>
@@ -294,14 +292,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
           <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
             <div className="flex shrink-0 items-center justify-between gap-2">
-              <span className="t-eyebrow text-[10px] text-text-muted dark:text-dark-text-muted">
-                Error details
-              </span>
+              <span className="t-eyebrow text-[10px] text-text-muted">Error details</span>
               <button
                 type="button"
                 onClick={this.handleCopy}
                 aria-label="Copy error details"
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1 text-[11.5px] font-medium text-text-muted transition-colors hover:border-border hover:text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted dark:hover:text-dark-text"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1 text-[11.5px] font-medium text-text-muted transition-colors hover:border-border hover:text-text"
               >
                 {copied ? (
                   <>
@@ -318,13 +314,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
             <pre
               id="ci-error-details"
-              className="t-mono m-0 rounded-lg border border-border-soft bg-page-bg p-3 text-[11.5px] leading-[1.55] break-words whitespace-pre-wrap text-text dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+              className="t-mono m-0 rounded-lg border border-border-soft bg-page-bg p-3 text-[11.5px] leading-[1.55] break-words whitespace-pre-wrap text-text"
             >
               {details}
             </pre>
           </div>
 
-          <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border-soft bg-page-bg/55 px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)] sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-4 sm:pb-4 dark:border-dark-border-soft dark:bg-dark-page-bg/55">
+          <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border-soft bg-page-bg/55 px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)] sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-4 sm:pb-4">
             <a
               href={issueUrl}
               target="_blank"

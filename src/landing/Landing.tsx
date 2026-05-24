@@ -55,7 +55,7 @@ export function Landing({ onStart, onIntent }: Props) {
           <h1 className="t-hero mx-auto mb-4.5 max-w-205">
             A photo editor that <em>respects your photos.</em>
           </h1>
-          <p className="t-subtitle mx-auto mb-7 max-w-160 dark:text-dark-text-muted">
+          <p className="t-subtitle mx-auto mb-7 max-w-160">
             Crop, redact, retouch and export — with on-device AI for{" "}
             <em>subject detection, background removal, smart crop, and portrait blur</em>. Models
             run in your browser. Your photo never leaves this tab.
@@ -74,39 +74,48 @@ export function Landing({ onStart, onIntent }: Props) {
               <I.ArrowRight size={16} /> Open editor
             </button>
           </div>
-          <div className="mt-5.5 flex flex-wrap justify-center gap-x-4.5 gap-y-2 text-[12.5px] font-medium text-text-muted dark:text-dark-text-muted">
+          {/* Trust strip — V4 (May 2026): condensed from a 4-pill
+              line to a 3-item dot-separated row. On phones the prior
+              layout stacked into 4 vertical rows, eating the fold;
+              the new strip wraps to at most 2 rows even at 320 px.
+              Privacy + offline + open-source are the three claims that
+              matter; "no sign-in" is implied by "stays on device". */}
+          <div className="mt-5.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[12.5px] font-medium text-text-muted">
             <span className="flex items-center gap-1.5">
               <I.Lock size={13} /> Stays on your device
             </span>
-            <span className="flex items-center gap-1.5">
-              <I.Sparkles size={13} className="text-coral-500 dark:text-coral-400" /> AI runs
-              in-browser (WebGPU)
+            <span aria-hidden="true" className="text-text-muted/40">
+              ·
             </span>
             <span className="flex items-center gap-1.5">
-              <I.Refresh size={13} /> Works offline after first load
+              <I.Sparkles size={13} className="text-coral-500 dark:text-coral-400" />
+              On-device AI
+            </span>
+            <span aria-hidden="true" className="text-text-muted/40">
+              ·
             </span>
             <span className="flex items-center gap-1.5">
-              <I.Check size={13} /> No sign-in, no telemetry
+              <I.Refresh size={13} /> Works offline
             </span>
           </div>
         </section>
 
         <section className="mx-auto max-w-275 px-5 pb-15 sm:px-8 sm:pb-25">
-          {/* Photo frame: outer card has a dark `bg-canvas-bg` matte
-              that reads as the photo's frame. Padding sets the
-              frame's thickness; inner radius matches outer minus the
-              padding so the two corners feel concentric. */}
-          <div
-            className="card overflow-hidden bg-canvas-bg p-3 sm:p-4"
-            style={{ boxShadow: "0 30px 60px -20px rgba(30,18,10,0.20)" }}
-          >
+          {/* Photo frame — V4 minimalist treatment (May 2026).
+              The prior dark coffee matte + heavy 0 30px 60px shadow
+              competed with the sunset grainient for visual weight
+              against the cream page. V4 swaps the matte for a hairline
+              card on the same paper tone as the page and uses a single
+              soft shadow on the photo itself, so the sunset is what
+              the eye lands on. */}
+          <div className="overflow-hidden rounded-3xl border border-border-soft bg-surface/60 p-2 backdrop-blur-sm sm:p-2.5">
             <SamplePhoto
               aspect="16/10"
               variant="sunset"
               style={{
                 width: "100%",
-                borderRadius: "var(--r-xl)",
-                boxShadow: "0 12px 32px -8px rgba(0,0,0,0.4)",
+                borderRadius: "var(--r-2xl)",
+                boxShadow: "0 8px 24px -10px rgba(30,18,10,0.18)",
               }}
             />
           </div>

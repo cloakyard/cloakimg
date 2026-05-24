@@ -84,8 +84,8 @@ export function DetectionProgressCard({
   const rawLabel = progress?.label ?? fallbackLabel ?? "Detecting subject…";
   const label = isIndeterminate && rawLabel === "Preparing model…" ? "Connecting…" : rawLabel;
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
-      <div className="flex items-center justify-between gap-2 text-[12px] font-medium text-text dark:text-dark-text">
+    <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2 text-[12px] font-medium text-text">
         <span className="flex min-w-0 items-center gap-1.5">
           <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
           <span className="truncate">{label}</span>
@@ -97,7 +97,7 @@ export function DetectionProgressCard({
         )}
       </div>
       <div
-        className="relative h-2 w-full overflow-hidden rounded-full bg-surface dark:bg-dark-surface"
+        className="relative h-2 w-full overflow-hidden rounded-full bg-surface"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -123,7 +123,7 @@ export function DetectionProgressCard({
         />
       </div>
       {!warm && total > 0 && !isInference && (
-        <div className="flex items-center justify-between gap-2 text-[10.75px] text-text-muted dark:text-dark-text-muted">
+        <div className="flex items-center justify-between gap-2 text-[10.75px] text-text-muted">
           <span className="t-mono">
             {formatMb(bytes)} / {formatMb(total)}
           </span>
@@ -131,7 +131,7 @@ export function DetectionProgressCard({
         </div>
       )}
       {(warm || isInference) && (
-        <div className="text-[10.75px] text-text-muted dark:text-dark-text-muted">
+        <div className="text-[10.75px] text-text-muted">
           Running on this device. The image never leaves your browser.
         </div>
       )}
@@ -140,7 +140,7 @@ export function DetectionProgressCard({
           single muted bar and nothing else, which is what the user
           flagged as "nothing happens". */}
       {isIndeterminate && !warm && total === 0 && (
-        <div className="text-[10.75px] text-text-muted dark:text-dark-text-muted">
+        <div className="text-[10.75px] text-text-muted">
           Spinning up the on-device model. This is a one-time download — cached for next time.
         </div>
       )}
@@ -231,12 +231,10 @@ export function DetectionPausedChip({ onResume }: PausedProps) {
   return (
     <div
       role="status"
-      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px] dark:border-dark-border-soft dark:bg-dark-page-bg"
+      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px]"
     >
       <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
-      <span className="min-w-0 flex-1 text-text-muted dark:text-dark-text-muted">
-        Detection paused.
-      </span>
+      <span className="min-w-0 flex-1 text-text-muted">Detection paused.</span>
       <button
         type="button"
         onClick={onResume}

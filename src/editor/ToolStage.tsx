@@ -13,6 +13,7 @@ import { BorderTool } from "./tools/BorderTool";
 import { ColorPickerTool } from "./tools/ColorPickerTool";
 import { CropTool } from "./tools/CropTool";
 import { DrawTool } from "./tools/DrawTool";
+import { EmojiTool } from "./tools/EmojiTool";
 import { FilterTool } from "./tools/FilterTool";
 import { FrameTool } from "./tools/FrameTool";
 import { HslTool } from "./tools/HslTool";
@@ -24,8 +25,9 @@ import { RedactTool } from "./tools/RedactTool";
 import { RemoveBgTool } from "./tools/RemoveBgTool";
 import { ShapesTool } from "./tools/ShapesTool";
 import { SpotHealTool } from "./tools/SpotHealTool";
-import { StickerTool } from "./tools/StickerTool";
+import { TapFixTool } from "./tools/TapFixTool";
 import { TextTool } from "./tools/TextTool";
+import { TimeOfDayTool } from "./tools/TimeOfDayTool";
 
 export function ToolStage() {
   const { toolState } = useEditor();
@@ -34,6 +36,8 @@ export function ToolStage() {
       return <CropTool />;
     case "adjust":
       return <AdjustTool />;
+    case "tod":
+      return <TimeOfDayTool />;
     case "levels":
       return <LevelsTool />;
     case "hsl":
@@ -60,8 +64,8 @@ export function ToolStage() {
       return <ShapesTool />;
     case "pen":
       return <PenTool />;
-    case "sticker":
-      return <StickerTool />;
+    case "emoji":
+      return <EmojiTool />;
     case "image":
       return <ImageTool />;
     case "frame":
@@ -70,6 +74,8 @@ export function ToolStage() {
       return <RemoveBgTool />;
     case "move":
       return <MoveTool />;
+    case "tapfix":
+      return <TapFixTool />;
     default:
       return <DefaultTool />;
   }

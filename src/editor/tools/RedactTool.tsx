@@ -12,15 +12,23 @@ import { useCallback, useRef, useState } from "react";
 import { useEditor } from "../EditorContext";
 import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
+import { useDetectFaces } from "../ai/capabilities/detect-face/hook";
+import { paintFaceBoxes } from "./aiInspector";
 import type { Rect } from "./cropMath";
 import { applyRedaction, drawRedactPreview, type RedactStyle } from "./redact";
 
 export function RedactTool() {
   const { doc, toolState, commit } = useEditor();
+  const faces = useDetectFaces();
   const [pendingRect, setPendingRect] = useState<Rect | null>(null);
   const [stamps, setStamps] = useState<{ x: number; y: number }[]>([]);
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const isBrush = toolState.redactMode === 1;
+  // Subscribe to the face-detect service's state version so the
+  // inspector overlay re-paints when detection finishes / the cache
+  // invalidates. Same trick as RemoveBgTool — the value isn't used
+  // inside paintOverlay, only its identity for re-render triggering.
+  const faceVersion = faces.state.version;
 
   // Convert the brush slider (0..1) to a paint radius in image-space px.
   // Multiplies by image's short edge so the brush feels right on phone
@@ -117,6 +125,22 @@ export function RedactTool() {
 
   const paintOverlay = useCallback(
     (ctx: CanvasRenderingContext2D, t: Transform) => {
+      // AI Inspector — paints labelled face bboxes when toggled on
+      // AND the face-detection service has results cached for this
+      // image. Doesn't trigger detection (that's the user's job via
+      // Smart Anonymize Faces); just makes the existing inference
+      // visible. Below-threshold faces are dimmed so the user can
+      // see what the faceConfidence dial is filtering out.
+      if (toolState.aiInspector) {
+        const detected = faces.peek();
+        if (detected && detected.length > 0) {
+          paintFaceBoxes(ctx, t, detected, toolState.faceConfidence);
+        }
+        // The faceVersion subscription is here so re-renders fire on
+        // detection completion / invalidation; the body doesn't need
+        // the literal value.
+        void faceVersion;
+      }
       if (isBrush) {
         if (stamps.length === 0) return;
         const r = brushRadius() * t.scale;
@@ -156,9 +180,13 @@ export function RedactTool() {
     [
       brushRadius,
       doc,
+      faces,
+      faceVersion,
       isBrush,
       pendingRect,
       stamps,
+      toolState.aiInspector,
+      toolState.faceConfidence,
       toolState.redactStrength,
       toolState.redactStyle,
     ],

@@ -95,7 +95,7 @@ export function CapabilityConsentDialog({
       maxWidth="max-w-130"
       labelledBy="cloak-capability-consent-title"
     >
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
             <I.Sparkles size={16} />
@@ -108,12 +108,12 @@ export function CapabilityConsentDialog({
       </div>
 
       <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
-        <p className="text-[13px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+        <p className="text-[13px] leading-relaxed text-text-muted">
           {switchMode ? family.consent.switchBody : family.consent.body}
         </p>
 
         <div className="flex flex-col gap-1.5">
-          <div className="text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+          <div className="text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
             Pick a model size
           </div>
           {visibleTiers.map((tier) => {
@@ -125,30 +125,22 @@ export function CapabilityConsentDialog({
                 type="button"
                 onClick={() => setPicked(tier.id)}
                 aria-pressed={active}
-                className={`flex w-full cursor-pointer items-start gap-3 rounded-xl border bg-page-bg px-3 py-2.5 text-left dark:bg-dark-page-bg ${
-                  active
-                    ? "border-coral-500 ring-2 ring-coral-500/30"
-                    : "border-border-soft dark:border-dark-border-soft"
+                className={`flex w-full cursor-pointer items-start gap-3 rounded-xl border bg-page-bg px-3 py-2.5 text-left ${
+                  active ? "border-coral-500 ring-2 ring-coral-500/30" : "border-border-soft"
                 }`}
               >
                 <span
                   aria-hidden
                   className={`mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                    active
-                      ? "border-coral-500 bg-coral-500"
-                      : "border-border dark:border-dark-border"
+                    active ? "border-coral-500 bg-coral-500" : "border-border"
                   }`}
                 >
                   {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="text-[12.5px] font-semibold text-text dark:text-dark-text">
-                      {tier.label}
-                    </span>
-                    <span className="t-mono text-[11px] text-text-muted dark:text-dark-text-muted">
-                      ~{tier.mb} MB
-                    </span>
+                    <span className="text-[12.5px] font-semibold text-text">{tier.label}</span>
+                    <span className="t-mono text-[11px] text-text-muted">~{tier.mb} MB</span>
                     {tier.recommended && !cached && (
                       <span className="rounded-full border border-coral-300/70 bg-coral-50 px-1.5 py-px text-[10px] font-semibold text-coral-700 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
                         Recommended
@@ -160,10 +152,10 @@ export function CapabilityConsentDialog({
                       </span>
                     )}
                   </span>
-                  <span className="mt-1 block text-[11.5px] leading-snug text-text dark:text-dark-text">
+                  <span className="mt-1 block text-[11.5px] leading-snug text-text">
                     {tier.strength}
                   </span>
-                  <span className="mt-0.5 block text-[11px] leading-snug text-text-muted dark:text-dark-text-muted">
+                  <span className="mt-0.5 block text-[11px] leading-snug text-text-muted">
                     {tier.tradeoff}
                   </span>
                 </span>
@@ -172,11 +164,11 @@ export function CapabilityConsentDialog({
           })}
         </div>
 
-        <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2 dark:border-dark-border-soft dark:bg-dark-page-bg">
-          <div className="mb-1 flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase dark:text-dark-text-muted">
+        <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2">
+          <div className="mb-1 flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
             <I.ShieldCheck size={11} /> Privacy
           </div>
-          <ul className="m-0 list-none space-y-0.5 p-0 text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+          <ul className="m-0 list-none space-y-0.5 p-0 text-[11.5px] leading-relaxed text-text-muted">
             {family.consent.privacy.map((line, i) => (
               <li key={i}>· {line}</li>
             ))}
@@ -185,7 +177,7 @@ export function CapabilityConsentDialog({
       </div>
 
       <div
-        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft dark:border-dark-border-soft ${
+        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >

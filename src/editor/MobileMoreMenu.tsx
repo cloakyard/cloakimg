@@ -10,9 +10,9 @@
 // Renders as a bottom sheet via the shared ModalFrame for visual
 // consistency with the other editor modals.
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { I } from "../components/icons";
-import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
+import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 
 type IconComponent = (typeof I)[keyof typeof I];
@@ -38,14 +38,6 @@ export function MobileMoreMenu({
   useFocusReturn(true);
   useFocusTrap(dialogRef, true);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
     <ModalFrame
       onClose={onClose}
@@ -55,7 +47,36 @@ export function MobileMoreMenu({
       labelledBy="mobile-more-title"
       dialogRef={dialogRef}
     >
-      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4 dark:border-dark-border-soft">
+      <MoreMenuBody
+        fileName={fileName}
+        hasDoc={hasDoc}
+        canReset={canReset}
+        onShowFileProps={onShowFileProps}
+        onReset={onReset}
+        onClose={onClose}
+      />
+    </ModalFrame>
+  );
+}
+
+function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, onClose }: Props) {
+  // Route the menu-item dismissals through the animated lifecycle. The
+  // sheet has to play its slide-down before unmount or the dismiss
+  // feels abrupt — every item triggers an action AND closes the menu.
+  // The animated close accepts an onSettled callback that fires AFTER
+  // the slide-down completes, which is how Reset preserves its
+  // "close before showing the confirm dialog" UX invariant.
+  const animatedClose = useModalClose();
+  const dismiss = (after?: () => void) => {
+    if (animatedClose) animatedClose(after);
+    else {
+      onClose();
+      after?.();
+    }
+  };
+  return (
+    <>
+      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div id="mobile-more-title" className="t-headline text-base">
           Actions
         </div>
@@ -73,8 +94,11 @@ export function MobileMoreMenu({
           hint={hasDoc ? fileName : "No file loaded"}
           disabled={!hasDoc}
           onClick={() => {
+            // Open the file-properties modal immediately so it slides
+            // in while this menu slides out — the visual handoff feels
+            // like one continuous gesture.
             onShowFileProps();
-            onClose();
+            dismiss();
           }}
         />
         <Divider />
@@ -84,17 +108,19 @@ export function MobileMoreMenu({
           hint="Restore the original image"
           disabled={!canReset}
           onClick={() => {
-            onClose();
-            onReset();
+            // Dismiss first, THEN run reset (which opens a confirm
+            // dialog in the parent) — preserves the prior contract
+            // that the menu fully closes before the confirm appears.
+            dismiss(onReset);
           }}
         />
       </div>
-    </ModalFrame>
+    </>
   );
 }
 
 function Divider() {
-  return <div className="mx-2 h-px bg-border-soft/40 dark:bg-dark-border-soft/40" />;
+  return <div className="mx-2 h-px bg-border-soft/40" />;
 }
 
 interface MenuItemProps {
@@ -112,7 +138,7 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-xl border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 dark:text-dark-text ${
+      className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-xl border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
         active
           ? "bg-coral-50/70 dark:bg-coral-900/20"
           : "hover:bg-white/40 active:bg-white/55 dark:hover:bg-white/5 dark:active:bg-white/8"
@@ -120,9 +146,7 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
     >
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-          active
-            ? "text-coral-700 dark:text-coral-300"
-            : "text-text-muted dark:text-dark-text-muted"
+          active ? "text-coral-700 dark:text-coral-300" : "text-text-muted"
         }`}
       >
         <Icon size={17} stroke={2.1} />
@@ -130,7 +154,7 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-[13.5px] font-semibold">{label}</span>
         {hint && (
-          <span className="overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted dark:text-dark-text-muted">
+          <span className="overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted">
             {hint}
           </span>
         )}

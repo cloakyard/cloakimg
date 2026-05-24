@@ -85,19 +85,15 @@ export function ReloadPrompt() {
       aria-live="polite"
     >
       <div
-        className="relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-2xl border border-border-soft bg-surface/85 p-4 text-text backdrop-blur-xl backdrop-saturate-150 sm:w-auto sm:min-w-80 dark:border-dark-border dark:bg-dark-surface/85 dark:text-dark-text"
+        className="relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-2xl border border-border-soft bg-surface/85 p-4 text-text backdrop-blur-xl backdrop-saturate-150 sm:w-auto sm:min-w-80"
         style={{ boxShadow: "var(--shadow-modal)" }}
       >
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300">
           <Icon size={16} />
         </div>
         <div className="min-w-0 flex-1 pt-0.5">
-          <p className="text-[13px] font-semibold tracking-[-0.01em] text-text dark:text-dark-text">
-            {title}
-          </p>
-          <p className="mt-0.5 text-[12px] leading-[1.45] text-text-muted dark:text-dark-text-muted">
-            {body}
-          </p>
+          <p className="text-[13px] font-semibold tracking-[-0.01em] text-text">{title}</p>
+          <p className="mt-0.5 text-[12px] leading-[1.45] text-text-muted">{body}</p>
           {needRefresh && (
             <div className="mt-3 flex items-center justify-end gap-2">
               <button type="button" onClick={close} className="btn btn-ghost btn-sm">
@@ -113,7 +109,7 @@ export function ReloadPrompt() {
           type="button"
           onClick={close}
           aria-label="Dismiss"
-          className="-mt-1 -mr-1 inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-muted transition-colors hover:bg-slate-900/6 hover:text-text dark:text-dark-text-muted dark:hover:bg-white/10 dark:hover:text-dark-text"
+          className="-mt-1 -mr-1 inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-muted transition-colors hover:bg-slate-900/6 hover:text-text dark:hover:bg-white/10"
         >
           <I.X size={14} />
         </button>

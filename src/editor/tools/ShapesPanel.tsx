@@ -52,7 +52,7 @@ export function ShapesPanel() {
   return (
     <>
       <PropRow label="Shape">
-        <div className="grid grid-cols-5 gap-1 rounded-md border border-border-soft bg-page-bg p-0.75 dark:border-dark-border-soft dark:bg-dark-page-bg sm:grid-cols-6">
+        <div className="grid grid-cols-5 gap-1 rounded-md border border-border-soft bg-page-bg p-0.75 sm:grid-cols-6">
           {SHAPE_KINDS.map((s, i) => {
             const Ic = s.Icon;
             const active = i === kind;
@@ -66,8 +66,8 @@ export function ShapesPanel() {
                 aria-pressed={active}
                 className={`flex h-8 cursor-pointer items-center justify-center rounded border-none p-0 sm:h-7 ${
                   active
-                    ? "bg-surface text-coral-600 shadow-[0_1px_2px_rgba(0,0,0,0.08)] dark:bg-dark-surface dark:text-coral-400"
-                    : "bg-transparent text-text-muted dark:text-dark-text-muted"
+                    ? "bg-surface text-coral-600 shadow-[0_1px_2px_rgba(0,0,0,0.08)] dark:text-coral-400"
+                    : "bg-transparent text-text-muted"
                 }`}
               >
                 <Ic size={15} />
@@ -99,9 +99,7 @@ export function ShapesPanel() {
         />
       </PropRow>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11.5px] font-medium text-text-muted dark:text-dark-text-muted">
-          Lock aspect
-        </span>
+        <span className="text-[11.5px] font-medium text-text-muted">Lock aspect</span>
         <ToggleSwitch
           on={toolState.shapeLockAspect}
           onChange={(next) => patchTool("shapeLockAspect", next)}
@@ -145,7 +143,7 @@ export function ShapesPanel() {
         </PropRow>
       )}
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted dark:text-dark-text-muted">
+      <div className="text-[11.5px] leading-relaxed text-text-muted">
         Drag on the canvas to create. Click a shape to select; corners scale, the rotation handle
         rotates.
       </div>

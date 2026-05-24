@@ -123,7 +123,7 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
  *  on a stuck download. */
 function DetectionConsentChip() {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px] font-medium text-text-muted dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text-muted">
+    <div className="flex items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px] font-medium text-text-muted">
       <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
       <span className="min-w-0 flex-1">Approve the on-device model to continue.</span>
     </div>

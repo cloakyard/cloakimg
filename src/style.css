@@ -68,44 +68,20 @@ body {
   }
 }
 
-/* Translucent glass aesthetic for editor chrome panels. Replaces the
-   prior film-grain stipple — panels now layer over the Grainient
-   backdrop mounted in UnifiedEditor (desktop only) so a hint of
-   warmth bleeds through the chrome.
-
-   Alpha is tuned per-scheme: light needs 0.78 (the warm wash fades
-   fast against cream so we leave more headroom), dark holds at 0.84
-   (panels need more body to keep contrast on the near-black page).
-   saturate(180%) amplifies whatever colour is behind so the warm
-   cast reads even where the gradient field is faint. */
-.editor-paper {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(200%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%);
-}
-@media (prefers-color-scheme: dark) {
-  .editor-paper {
-    background: rgba(28, 24, 20, 0.76);
-  }
-}
+/* `.editor-paper` (glass-tinted chrome panels) was removed in the
+   May 2026 minimalist desktop redesign — TopBar, ToolRail, and
+   PropertiesPanel now sit directly on `--page-bg` (cream) with
+   hairline soft borders, matching mobile. The Grainient backdrop
+   that the translucent panels layered over has also been removed
+   from the editor; landing still uses it as marketing chrome. */
 /* On phones the backdrop-filter is the single biggest compositor cost
    in the editor — every slider tick or canvas re-paint forces the GPU
    to re-blur the panels. Drop the blur on mobile and lean on a more
    opaque background instead; the visual difference is minimal but the
-   tap-to-update latency improves dramatically. */
-@media (max-width: 760px) {
-  .editor-paper {
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  @media (prefers-color-scheme: dark) {
-    .editor-paper {
-      background: rgb(28, 24, 20);
-    }
-  }
-}
+   tap-to-update latency improves dramatically.
 
+   Threshold (760 px) must stay in sync with MOBILE_MAX_PX in
+   src/editor/breakpoints.ts — CSS can't read the JS constant directly. */
 /* Mobile bottom sheet — animate the slot's *height* so the drawer's
    space above the toolbar genuinely extends/collapses. Translate-based
    transitions made it look like the toolbar itself was sliding (the
@@ -175,5 +151,137 @@ body {
   50% {
     transform: translateX(-3px);
     opacity: 1;
+  }
+}
+
+/* Properties panel cross-fade on desktop tool switch (V3 desktop
+   redesign): when the user clicks a new tool in the rail the scroll
+   container remounts (key={activeTool}) which jumps the new panel in
+   instantly. This animation gives a brief opacity + translateY ease
+   so the swap feels intentional rather than abrupt, matching the
+   motion language of the mobile editor surface's morphing card. */
+@keyframes ci-panel-in {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.panel-fade-in {
+  animation: ci-panel-in 180ms ease-out;
+}
+/* Honor reduced-motion: skip the slide, keep the fade only. */
+@media (prefers-reduced-motion: reduce) {
+  .panel-fade-in {
+    animation: none;
+  }
+}
+
+/* ── Modal motion (May 2026) ───────────────────────────────────
+   Every dialog in the app routes through ModalFrame; the open /
+   close motion lives here so the visual language is one system.
+
+   Two surfaces:
+     • backdrop (the dimmed/blurred full-bleed pane)
+     • dialog  (the glass card itself — bottom-sheet on mobile,
+                centered card on desktop)
+
+   The backdrop is a pure opacity crossfade so the page behind the
+   modal doesn't flicker. The dialog uses transform + opacity only
+   (the hallmark rule for performance: never animate layout). iOS-
+   inspired easing — fast at the start, soft at the settle — comes
+   from the --ease-out-ios / --ease-in-ios tokens so the rest of
+   the app can lean on the same curves. */
+@keyframes ci-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ci-modal-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ci-modal-card-in {
+  from {
+    transform: translateY(12px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes ci-modal-card-out {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+@keyframes ci-modal-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes ci-modal-sheet-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.ci-modal-backdrop-enter {
+  animation: ci-modal-backdrop-in var(--dur-base) var(--ease-out-ios) both;
+}
+.ci-modal-backdrop-exit {
+  animation: ci-modal-backdrop-out var(--dur-fast) var(--ease-in-ios) both;
+}
+.ci-modal-card-enter {
+  animation: ci-modal-card-in var(--dur-modal) var(--ease-out-ios) both;
+}
+.ci-modal-card-exit {
+  animation: ci-modal-card-out var(--dur-fast) var(--ease-in-ios) both;
+}
+.ci-modal-sheet-enter {
+  animation: ci-modal-sheet-in var(--dur-sheet) var(--ease-out-ios) both;
+}
+.ci-modal-sheet-exit {
+  animation: ci-modal-sheet-out var(--dur-base) var(--ease-in-ios) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ci-modal-backdrop-enter,
+  .ci-modal-backdrop-exit,
+  .ci-modal-card-enter,
+  .ci-modal-card-exit,
+  .ci-modal-sheet-enter,
+  .ci-modal-sheet-exit {
+    /* Drop spatial motion but keep a short opacity crossfade so the
+       transition still reads as deliberate. */
+    animation-name: ci-modal-backdrop-in;
+    animation-duration: 120ms;
+  }
+  .ci-modal-backdrop-exit,
+  .ci-modal-card-exit,
+  .ci-modal-sheet-exit {
+    animation-name: ci-modal-backdrop-out;
   }
 }

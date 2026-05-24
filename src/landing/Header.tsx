@@ -15,7 +15,7 @@ interface Props {
 
 export function Header({ right }: Props) {
   return (
-    <header className="sticky top-0 z-50 flex items-center gap-3.5 border-b border-border-soft bg-surface-glass px-4 py-3 backdrop-blur-2xl backdrop-saturate-150 dark:border-dark-border-soft dark:bg-dark-surface-glass">
+    <header className="sticky top-0 z-50 flex items-center gap-3.5 border-b border-border-soft bg-surface-glass px-4 py-3 backdrop-blur-2xl backdrop-saturate-150">
       <div className="flex items-center gap-2.5">
         <BrandMark size={40} />
         <div className="logo-wordmark" style={{ fontSize: 19, letterSpacing: "-0.025em" }}>
@@ -25,20 +25,20 @@ export function Header({ right }: Props) {
       <div className="flex-1" />
       {right ?? (
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 px-1 text-[12.5px] font-medium tracking-tight text-text-muted whitespace-nowrap dark:text-dark-text-muted">
+          <span className="flex items-center gap-1.5 px-1 text-[12.5px] font-medium tracking-tight text-text-muted whitespace-nowrap">
             <I.ShieldCheck size={14} stroke={2} />
             <span className="sm:hidden">Private</span>
             <span className="hidden sm:inline lg:hidden">100% Private</span>
             <span className="hidden lg:inline">100% Private · Open Source</span>
           </span>
-          <span aria-hidden="true" className="h-5 w-px bg-border dark:bg-dark-border" />
+          <span aria-hidden="true" className="h-5 w-px bg-border" />
           <a
             href={GITHUB_REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View source on GitHub"
             title="View source on GitHub"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-text-muted no-underline transition-colors hover:bg-slate-900/5 hover:text-text dark:text-dark-text-muted dark:hover:bg-white/5 dark:hover:text-dark-text"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-text-muted no-underline transition-colors hover:bg-slate-900/5 hover:text-text dark:hover:bg-white/5"
           >
             <I.Github size={18} />
           </a>

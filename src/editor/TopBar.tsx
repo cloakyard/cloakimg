@@ -62,19 +62,23 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   return (
     <>
       <div
-        // Glassmorphism — translucent surface + backdrop-blur so the
-        // canvas / grainient backdrop tints the bar slightly. Matches
-        // the bottom MobileToolbar so chrome reads as a single
-        // floating layer around the photo.
-        className={`editor-paper flex h-16 shrink-0 items-center border-b border-border bg-surface/85 py-3 backdrop-blur-xl backdrop-saturate-150 dark:border-dark-border dark:bg-dark-surface/85 ${
-          isMobile ? "gap-1.5 px-2.5" : "gap-3 px-4"
-        }`}
+        // V5 (May 2026 desktop minimalist redesign) — desktop drops the
+        // glass surface and backdrop blur and sits directly on cream,
+        // but keeps a hairline soft bottom divider so the toolbar still
+        // reads as its own band above the canvas. Mobile is fully
+        // chrome-free — no divider — so the brand mark, canvas, and
+        // collapsed Tools pill flow as one continuous plane.
+        className={
+          isMobile
+            ? "flex h-16 shrink-0 items-center gap-1.5 px-3 py-3"
+            : "flex h-16 shrink-0 items-center gap-3 border-b border-border-soft px-4 py-3"
+        }
       >
         <button
           type="button"
           onClick={onLogoClick}
           aria-label="Back to start"
-          className="flex cursor-pointer items-center gap-2.5 border-none bg-transparent p-0 font-[inherit] text-inherit"
+          className="flex cursor-pointer items-center gap-2 border-none bg-transparent p-0 font-[inherit] text-inherit"
         >
           <BrandMark
             size={40}
@@ -82,12 +86,23 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               filter: "drop-shadow(0 2px 6px rgba(245, 97, 58, 0.28))",
             }}
           />
-          <div className="logo-wordmark" style={{ fontSize: 19, letterSpacing: "-0.025em" }}>
+          {/* Brand mark + wordmark sized identically across breakpoints
+              in V3 — the prior mobile-shrunk treatment made the editor
+              feel apologetic at the top of the screen. With the TopBar
+              chrome stripped on mobile, full-size branding sits cleanly
+              on the cream page. */}
+          <div
+            className="logo-wordmark"
+            style={{
+              fontSize: 19,
+              letterSpacing: "-0.025em",
+            }}
+          >
             Cloak<span>IMG</span>
           </div>
         </button>
 
-        {!isMobile && <div className="h-4.5 w-px bg-border dark:bg-dark-border" />}
+        {!isMobile && <div className="h-4.5 w-px bg-border" />}
 
         {!isMobile && (
           <button
@@ -95,36 +110,44 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border-none bg-page-bg px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-page-bg dark:bg-dark-page-bg dark:hover:bg-dark-page-bg"
+            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-surface"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
             </span>
             {dimensions && (
-              <span className="t-mono ml-1 shrink-0 whitespace-nowrap text-[11px] text-text-muted dark:text-dark-text-muted">
+              <span className="t-mono ml-1 shrink-0 whitespace-nowrap text-[11px] text-text-muted">
                 · {dimensions}
               </span>
             )}
           </button>
         )}
 
+        {/* Single/Batch — V4 (May 2026) compressed to a small icon-led
+            segmented control. The prior chips were the largest visual
+            target in the toolbar despite Batch being a power-user
+            feature most sessions never touch; the tighter pair keeps
+            Batch one click away without dominating the chrome. */}
         {!isMobile && (
-          <div className="flex rounded-lg border border-border-soft bg-page-bg p-0.5 dark:border-dark-border-soft dark:bg-dark-page-bg">
+          <div className="flex rounded-md border border-border-soft p-0.5">
             {(["single", "batch"] as const).map((m) => {
               const active = mode === m;
+              const Ic = m === "single" ? I.FileImage : I.Layers;
               return (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setMode(m)}
-                  className={`flex cursor-pointer items-center gap-1.5 rounded-md border-none px-3 py-1 font-[inherit] text-[11.5px] font-semibold capitalize ${
+                  title={m === "single" ? "Single photo" : "Batch"}
+                  aria-label={m === "single" ? "Single photo" : "Batch"}
+                  aria-pressed={active}
+                  className={`flex h-6 w-7 cursor-pointer items-center justify-center rounded-sm border-none font-[inherit] transition-colors ${
                     active
-                      ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-dark-surface dark:text-dark-text"
-                      : "bg-transparent text-text-muted dark:text-dark-text-muted"
+                      ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+                      : "bg-transparent text-text-muted hover:text-text"
                   }`}
                 >
-                  {m === "batch" && <I.Layers size={11} />}
-                  {m}
+                  <Ic size={12} />
                 </button>
               );
             })}
@@ -133,18 +156,12 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
 
         <div className="flex-1" />
 
-        {!isMobile && (
-          <>
-            <span
-              className="inline-flex items-center gap-1.5 text-[12px] text-text-muted dark:text-dark-text-muted"
-              title="Every edit stays on this device. No uploads, no telemetry, no AI."
-            >
-              <I.Shield size={13} stroke={2.25} className="text-coral-500 dark:text-coral-400" />
-              Private
-            </span>
-            <div className="h-4.5 w-px bg-border dark:bg-dark-border" />
-          </>
-        )}
+        {/* V4 (May 2026) — the "Private" shield pill was decoration
+            inside the editor: the user has already chosen the tool, and
+            the brand mark + privacy framing on landing has already
+            established the contract. Stripping it tightens the toolbar
+            and lets undo / redo / zoom / compare carry the actionable
+            chrome unchallenged. */}
 
         <div className={`flex ${isMobile ? "gap-0" : "gap-0.5"}`}>
           <button
@@ -179,10 +196,10 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           )}
         </div>
 
-        {!isMobile && <div className="h-4.5 w-px bg-border dark:bg-dark-border" />}
+        {!isMobile && <div className="h-4.5 w-px bg-border" />}
 
         {!isMobile && (
-          <div className="flex items-center gap-1 rounded-lg bg-page-bg p-0.5 dark:bg-dark-page-bg">
+          <div className="flex items-center gap-1 rounded-lg border border-border-soft p-0.5">
             <button
               type="button"
               className="btn btn-ghost btn-icon-xs"
@@ -226,20 +243,37 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           </button>
         )}
 
-        <button
-          type="button"
-          className={
-            isMobile
-              ? "btn btn-ghost btn-icon text-coral-600 dark:text-coral-400"
-              : "btn btn-outline-coral btn-sm"
-          }
-          onClick={openExport}
-          aria-label="Export"
-          title="Export"
-        >
-          <I.Download size={isMobile ? 18 : 13} />
-          {!isMobile && "Export"}
-        </button>
+        {/* Desktop keeps Export as the brand-coloured CTA in the TopBar.
+            On mobile the V3 minimalist redesign collapses the prior
+            3-way bottom nav (Looks · Tools · Export) into a single
+            floating Tools pill, so Export gets surfaced here as a
+            ghost icon button — one tap away from the canvas idle view
+            without competing with the pill for the bottom margin. */}
+        {!isMobile && (
+          <button
+            type="button"
+            className="btn btn-outline-coral btn-sm"
+            onClick={openExport}
+            aria-label="Export"
+            title="Export"
+          >
+            <I.Download size={13} />
+            Export
+          </button>
+        )}
+
+        {isMobile && (
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon"
+            aria-label="Export"
+            title="Export"
+            disabled={!doc}
+            onClick={openExport}
+          >
+            <I.Download size={17} />
+          </button>
+        )}
 
         {isMobile && (
           <button
@@ -258,7 +292,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         <ConfirmDialog
           layout={layout}
           title="Reset all edits?"
-          message="This restores the original image and discards every adjustment, layer, and tool change you've made. This can't be undone."
+          message="This restores the original image and discards every adjustment, layer, and tool change you've made. Your entire edit history will be wiped — there's no undo after this."
           confirmLabel="Reset"
           cancelLabel="Keep editing"
           icon={I.Refresh}

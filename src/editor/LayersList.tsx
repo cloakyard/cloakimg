@@ -30,11 +30,11 @@ const ROW_TYPES: Record<string, { Icon: typeof I.Type; label: string }> = {
   "cloak:watermarkImage": { Icon: I.Stamp, label: "Image watermark" },
   "cloak:drawStroke": { Icon: I.Pen, label: "Stroke" },
   "cloak:shape": { Icon: I.Square, label: "Shape" },
-  "cloak:sticker": { Icon: I.Heart, label: "Sticker" },
+  "cloak:emoji": { Icon: I.Smile, label: "Emoji" },
   "cloak:image": { Icon: I.FileImage, label: "Image" },
 };
 
-const FILTERABLE_KINDS = new Set(["cloak:watermarkImage", "cloak:sticker", "cloak:image"]);
+const FILTERABLE_KINDS = new Set(["cloak:watermarkImage", "cloak:image"]);
 
 export function LayersList() {
   const { getFabricCanvas, commit } = useEditor();
@@ -168,7 +168,7 @@ export function LayersList() {
   const ordered = rows.slice().reverse();
 
   return (
-    <div className="shrink-0 border-t border-border-soft px-4 pt-2.5 pb-4 dark:border-dark-border-soft">
+    <div className="shrink-0 border-t border-border-soft px-4 pt-2.5 pb-4">
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
@@ -183,7 +183,7 @@ export function LayersList() {
           }}
         />
         Layers
-        <span className="ml-auto text-text-muted dark:text-dark-text-muted">{rows.length}</span>
+        <span className="ml-auto text-text-muted">{rows.length}</span>
       </button>
       {!collapsed && (
         <div className="scroll-thin mt-2 flex max-h-44 flex-col gap-0.5 overflow-y-auto">
@@ -258,7 +258,7 @@ function LayerRow({
         className={`flex cursor-grab items-center gap-2 rounded-md px-1.5 py-1 focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
           selected
             ? "bg-coral-50 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30"
-            : "bg-transparent hover:bg-page-bg dark:hover:bg-dark-page-bg"
+            : "bg-transparent hover:bg-border-soft"
         }`}
       >
         <button
@@ -269,20 +269,16 @@ function LayerRow({
           }}
           aria-label={row.visible ? "Hide layer" : "Show layer"}
           title={row.visible ? "Hide layer" : "Show layer"}
-          className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8 dark:hover:bg-dark-page-bg ${
-            row.visible
-              ? "text-text dark:text-dark-text"
-              : "text-text-muted opacity-50 dark:text-dark-text-muted"
+          className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-border-soft pointer-coarse:h-8 pointer-coarse:w-8 ${
+            row.visible ? "text-text" : "text-text-muted opacity-50"
           }`}
         >
           {row.visible ? <I.Eye size={13} /> : <I.EyeOff size={13} />}
         </button>
-        <Ic size={12} className="shrink-0 text-text-muted dark:text-dark-text-muted" />
+        <Ic size={12} className="shrink-0 text-text-muted" />
         <span
           className={`min-w-0 flex-1 overflow-hidden text-[11.5px] whitespace-nowrap text-ellipsis ${
-            selected
-              ? "font-semibold text-coral-700 dark:text-coral-300"
-              : "font-medium text-text dark:text-dark-text"
+            selected ? "font-semibold text-coral-700 dark:text-coral-300" : "font-medium text-text"
           }`}
         >
           {row.label}
@@ -300,7 +296,7 @@ function LayerRow({
             className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none p-0 pointer-coarse:h-8 pointer-coarse:w-8 ${
               filtersOpen
                 ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-transparent text-text-muted hover:bg-page-bg dark:text-dark-text-muted dark:hover:bg-dark-page-bg"
+                : "bg-transparent text-text-muted hover:bg-border-soft"
             }`}
           >
             <I.Wand size={12} />
@@ -314,7 +310,7 @@ function LayerRow({
           }}
           aria-label="Delete layer"
           title="Delete layer"
-          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-page-bg hover:text-text pointer-coarse:h-8 pointer-coarse:w-8 dark:text-dark-text-muted dark:hover:bg-dark-page-bg dark:hover:text-dark-text"
+          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-border-soft hover:text-text pointer-coarse:h-8 pointer-coarse:w-8"
         >
           <I.X size={11} />
         </button>

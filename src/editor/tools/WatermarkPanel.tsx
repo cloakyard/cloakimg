@@ -259,7 +259,7 @@ export function WatermarkPanel() {
             type="text"
             value={toolState.watermarkText}
             onChange={(e) => patchTool("watermarkText", e.target.value)}
-            className="w-full rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text dark:border-dark-border dark:bg-dark-page-bg dark:text-dark-text"
+            className="w-full rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text"
           />
         </PropRow>
       )}
@@ -273,7 +273,7 @@ export function WatermarkPanel() {
       )}
       {isImage && (
         <PropRow label="Image">
-          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs dark:border-dark-border dark:bg-dark-page-bg">
+          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs">
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
@@ -285,7 +285,7 @@ export function WatermarkPanel() {
                 <img
                   src={toolState.watermarkImageDataUrl}
                   alt=""
-                  className="h-7 w-7 rounded-xs bg-surface object-contain dark:bg-dark-surface"
+                  className="h-7 w-7 rounded-xs bg-surface object-contain"
                 />
                 <span className="flex-1">Replace image…</span>
               </>
@@ -308,7 +308,7 @@ export function WatermarkPanel() {
           type="button"
           onClick={() => void smartPlace()}
           disabled={smartBusy}
-          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] dark:border-dark-border-soft dark:bg-dark-page-bg dark:text-dark-text"
+          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px]"
           style={{ opacity: smartBusy ? 0.7 : 1 }}
         >
           {smartBusy ? (
@@ -336,7 +336,7 @@ export function WatermarkPanel() {
                 className={`cursor-pointer rounded-md border px-1 py-2 font-[inherit] text-[11px] font-semibold ${
                   active
                     ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                    : "border-border bg-surface text-text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-muted"
+                    : "border-border bg-surface text-text-muted"
                 }`}
               >
                 {p.label}

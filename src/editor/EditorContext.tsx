@@ -36,8 +36,9 @@ import {
 import { saveDraft } from "../landing/draft";
 import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
+import { MOBILE_MAX_PX, TABLET_MAX_PX } from "./breakpoints";
 import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
-import { History, restoreCanvas } from "./history";
+import { History, type HistoryEntrySnapshot, restoreCanvas } from "./history";
 import { aiLog } from "./ai/log";
 import { indexFor, resolvePreferredQuality } from "./ai/runtime/preferredQuality";
 import { shutdownAiWorker } from "./ai/runtime/runtime";
@@ -72,6 +73,19 @@ interface EditorContextValue {
   toolState: ToolState;
   patchTool: <K extends keyof ToolState>(key: K, value: ToolState[K]) => void;
   setActiveTool: (id: ToolState["activeTool"]) => void;
+  /** Cancel the current tool session: discard any pending apply, undo
+   *  back to the history depth recorded when the tool was entered, and
+   *  return to the Move tool. Mirrors mobile's ✕ action (the rollback
+   *  semantics MobileEditorSurface.handleCancel implements) so desktop
+   *  users have an equivalent escape hatch. No-op when there's nothing
+   *  to cancel (no pending apply AND no commits since tool entry). */
+  cancelCurrentTool: () => Promise<void>;
+  /** True when the active tool has something a cancel would actually
+   *  roll back — either a registered pending apply, or one or more
+   *  commits since tool entry. Drives the visibility of the
+   *  PropertiesPanel's Cancel button + the Esc-key handler in
+   *  EditorShell. */
+  canCancelCurrentTool: boolean;
   /** Tools with preview state (Adjust, Filter, Frame, RemoveBg, Crop)
    *  register a callback that bakes pending edits into history. The
    *  callback is invoked automatically before a tool change so unapplied
@@ -110,10 +124,29 @@ interface EditorContextValue {
    *  if history is empty. Lets tools detect "I committed this" and
    *  replace their own prior entry instead of stacking. */
   peekLastCommitLabel: () => string | null;
+  /** Cursor position in the history stack. The mobile in-tool sheet
+   *  captures this when it opens (the "checkpoint") and on cancel
+   *  rewinds via repeated undo() until depth is back at the
+   *  checkpoint, discarding every commit made during the tool
+   *  session. Replaces the prior single-undo cancel which left
+   *  multi-commit work half-baked. */
+  historyDepth: () => number;
   /** Restore a previous snapshot from history. Async because older
    *  entries are stored as compressed WebP blobs and need a decode. */
   undo: () => Promise<void>;
   redo: () => Promise<void>;
+  /** Jump the cursor to an absolute history index. Used by the
+   *  History Scrubber to let the user click any thumb in the timeline
+   *  rather than mashing Cmd-Z. Internally loops undo()/redo() so it
+   *  pays the same per-step decode cost — the entry the user lands on
+   *  ends up with its pixels actually painted into doc.working. */
+  jumpToStep: (index: number) => Promise<void>;
+  /** Returns a fresh shallow snapshot of every history entry's
+   *  UI-relevant fields (label, thumb canvas, dims). Driven off
+   *  `historyVersion` so the scrubber re-renders whenever history
+   *  mutates. Returning a getter keeps the actions context's identity
+   *  stable. */
+  historyEntries: () => HistoryEntrySnapshot[];
   /** Roll the working canvas + Fabric scene back to the very first
    *  history entry (the original image at open time). Pushes a new
    *  "Reset" entry so the reset itself is undoable. Async for the
@@ -170,6 +203,7 @@ interface EditorContextValue {
 interface ActionsValue {
   patchTool: EditorContextValue["patchTool"];
   setActiveTool: EditorContextValue["setActiveTool"];
+  cancelCurrentTool: EditorContextValue["cancelCurrentTool"];
   setView: EditorContextValue["setView"];
   setMode: EditorContextValue["setMode"];
   setLayers: EditorContextValue["setLayers"];
@@ -183,8 +217,11 @@ interface ActionsValue {
   setFabricCanvas: EditorContextValue["setFabricCanvas"];
   commit: EditorContextValue["commit"];
   peekLastCommitLabel: EditorContextValue["peekLastCommitLabel"];
+  historyDepth: EditorContextValue["historyDepth"];
   undo: EditorContextValue["undo"];
   redo: EditorContextValue["redo"];
+  jumpToStep: EditorContextValue["jumpToStep"];
+  historyEntries: EditorContextValue["historyEntries"];
   resetToOriginal: EditorContextValue["resetToOriginal"];
   openExport: EditorContextValue["openExport"];
   closeExport: EditorContextValue["closeExport"];
@@ -213,6 +250,11 @@ interface EditorReadValue {
   canUndo: boolean;
   canRedo: boolean;
   canReset: boolean;
+  /** True when the active tool has a pending apply registered OR has
+   *  committed something since it was entered, so the Cancel action
+   *  has work to do. Drives the Cancel button in the PropertiesPanel
+   *  header + the Esc-key handler in EditorShell. */
+  canCancelCurrentTool: boolean;
   exportOpen: boolean;
   batchFiles: BatchFile[];
   recipe: RecipeStep[];
@@ -230,8 +272,8 @@ const EditorReadCtx = createContext<EditorReadValue | null>(null);
 const Ctx = createContext<EditorContextValue | null>(null);
 
 function detectLayout(width: number): Layout {
-  if (width < 760) return "mobile";
-  if (width < 1180) return "tablet";
+  if (width < MOBILE_MAX_PX) return "mobile";
+  if (width < TABLET_MAX_PX) return "tablet";
   return "desktop";
 }
 
@@ -332,13 +374,35 @@ export function EditorProvider({
   // Crop) register a flush callback so unapplied edits bake into
   // history when the user switches tools, instead of vanishing.
   const pendingApplyRef = useRef<(() => void | Promise<void>) | null>(null);
+  // Bumps whenever the pendingApplyRef's null/non-null state flips so
+  // `canCancelCurrentTool` (derived from `pendingApplyRef.current !==
+  // null`) re-evaluates. Without this bump, register/clear updates the
+  // ref silently and the Cancel button stays stale (it's a useMemo
+  // dep, not the ref itself). Defined here at the top of the provider
+  // so registerPendingApply and flushPendingApply can both bump it.
+  const [pendingApplyVersion, setPendingApplyVersion] = useState(0);
+  // Hoisted above the __editorDebug effect so that effect can read the
+  // current checkpoint when publishing the test snapshot. setActiveTool
+  // / cancelCurrentTool (declared later) write through both this ref
+  // and the matching React state, mirroring the historyRef +
+  // historyVersion pattern.
+  const toolCheckpointRef = useRef<number>(0);
+  const [toolCheckpoint, setToolCheckpoint] = useState<number>(0);
   const registerPendingApply = useCallback((fn: (() => void | Promise<void>) | null) => {
+    const wasNull = pendingApplyRef.current === null;
+    const isNull = fn === null;
     pendingApplyRef.current = fn;
+    // Only bump on the null/non-null boundary — slider drags that
+    // re-register the SAME apply closure shouldn't churn renders.
+    if (wasNull !== isNull) setPendingApplyVersion((v) => v + 1);
   }, []);
   const flushPendingApply = useCallback(async (): Promise<void> => {
     const fn = pendingApplyRef.current;
-    pendingApplyRef.current = null;
-    if (fn) await fn();
+    if (fn) {
+      pendingApplyRef.current = null;
+      setPendingApplyVersion((v) => v + 1);
+      await fn();
+    }
   }, []);
 
   // Fabric scene hand-off — preserves IText / shapes / images / etc.
@@ -375,6 +439,85 @@ export function EditorProvider({
     }, 1500);
     return () => window.clearTimeout(handle);
   }, [doc, historyVersion]);
+
+  // Test hook — exposes the working doc's current dimensions on
+  // window for headless e2e tests to assert against. Stripped in
+  // production by Vite's tree-shaker because the read-only string
+  // import is unused at runtime; the assignment below sits inside an
+  // effect so it never executes during SSR / non-browser builds.
+  // (Intentionally NOT typed — we don't want app code reaching for
+  // this surface, only out-of-band tests.)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const w = window as unknown as {
+      __editorDebug?: {
+        docDims: { w: number; h: number } | null;
+        toolState: typeof toolState;
+        // Test-only escape hatch for probes that can't (or won't)
+        // drive the Slider/Segment atoms via real PointerEvents —
+        // mainly bgBlur / adjust / filter visual regression scripts
+        // that need to set sub-pixel-precise values without fighting
+        // setPointerCapture under headless Chromium. Routed through a
+        // ref so this effect can run before `patchTool` is declared
+        // below; the call site reads the live value at invoke time.
+        patchTool: <K extends keyof ToolState>(key: K, value: ToolState[K]) => void;
+        /** Live history-stack cursor. Tests assert that a tool-switch
+         *  or apply actually wrote an entry by comparing this before
+         *  and after. */
+        historyDepth: () => number;
+        /** True when `canCancelCurrentTool` would be true. Tests use
+         *  this to assert the Cancel affordance is active without
+         *  having to query the DOM for the Cancel button. */
+        canCancelCurrentTool: boolean;
+        /** Live history-stack length. The History Scrubber probe
+         *  asserts that each commit adds an entry without having to
+         *  query the DOM thumb count. */
+        historyLength: () => number;
+        /** Drives a Scrubber jump from the probe — equivalent to
+         *  clicking a thumbnail at index `i`. Returns the promise so
+         *  the probe can await pixel restoration. */
+        jumpToStep: (i: number) => Promise<void>;
+        /** Labels of every entry in stack order. Lets the probe
+         *  validate that the visible scrubber matches the underlying
+         *  history without doing brittle DOM-scrapes. */
+        historyLabels: () => string[];
+        /** True when the editor is currently rendering the original
+         *  source pixels instead of the edited canvas. Set by either
+         *  the desktop hold-to-compare button, the (now-hidden on
+         *  mobile) compare pill, or the two-finger long-press canvas
+         *  gesture. Mobile gesture probes read this to confirm the
+         *  hold actually engaged. */
+        compareActive: boolean;
+        /** The current `doc.working` canvas reference. Used by the
+         *  bake-timing benchmark probe so it can run real bake
+         *  functions against the user's loaded photo without having
+         *  to reach into Fabric's internal canvases. */
+        docWorking: HTMLCanvasElement | null;
+      };
+    };
+    w.__editorDebug = {
+      docDims: doc ? { w: doc.width, h: doc.height } : null,
+      toolState,
+      patchTool: (key, value) => patchToolRef.current(key, value),
+      historyDepth: () => historyRef.current.currentIndex(),
+      canCancelCurrentTool:
+        toolState.activeTool !== "move" &&
+        (pendingApplyRef.current !== null ||
+          historyRef.current.currentIndex() > toolCheckpointRef.current),
+      historyLength: () => historyRef.current.entriesSnapshot().length,
+      jumpToStep: (i) => jumpToStepRef.current(i),
+      historyLabels: () => historyRef.current.entriesSnapshot().map((e) => e.label),
+      compareActive,
+      docWorking: doc ? doc.working : null,
+    };
+    // commit() bumps doc identity via setDoc({...prev}), so this
+    // effect re-runs on every history mutation. toolState in deps
+    // re-runs on every patchTool so the test can read the latest
+    // crop / adjust / etc. values. pendingApplyVersion / toolCheckpoint
+    // / historyVersion are deps so the test-visible canCancelCurrentTool
+    // snapshot stays current. compareActive must re-run so the gesture
+    // probe sees the post-hold value.
+  }, [doc, toolState, pendingApplyVersion, toolCheckpoint, historyVersion, compareActive]);
 
   // Revoke any outstanding batch blob URLs (thumb + result) when the
   // editor unmounts. Without this, leaving the editor with a populated
@@ -436,6 +579,12 @@ export function EditorProvider({
   const patchTool = useCallback(<K extends keyof ToolState>(key: K, value: ToolState[K]) => {
     setToolState((prev) => ({ ...prev, [key]: value }));
   }, []);
+  // Ref kept in sync with the latest `patchTool` identity so the
+  // `__editorDebug` effect above (which can't import patchTool by name
+  // — it runs earlier in render order) routes through a stable shim.
+  // See the test-only `__editorDebug.patchTool` comment for context.
+  const patchToolRef = useRef(patchTool);
+  patchToolRef.current = patchTool;
 
   // Run a (potentially main-thread-blocking) operation behind a busy
   // spinner. Two rAF passes ensure the spinner has actually painted
@@ -462,30 +611,69 @@ export function EditorProvider({
     });
   }, []);
 
+  // (toolCheckpointRef / toolCheckpoint declared earlier next to the
+  // pending-apply hooks so the test-only __editorDebug effect can read
+  // the checkpoint when publishing its snapshot.)
+
   const setActiveTool = useCallback(
-    (id: ToolState["activeTool"]) => {
-      // Capture the pending bake before switching tools so the user's
-      // unapplied edits carry forward, but defer running it behind a
-      // busy spinner so a heavy full-resolution bake (e.g. a Filter
-      // preset on a 24 MP photo, ~1–3 s on mobile) doesn't make the
-      // tool-switch tap feel unresponsive. Without runBusy the user
-      // would tap, see nothing change, and assume the button is
-      // broken; with it, the new panel paints + a coral spinner
-      // shows during the freeze, then both clear once the bake
-      // commits.
+    async (id: ToolState["activeTool"]) => {
+      // Capture and await the pending bake BEFORE switching tools.
+      // Previously we set the new tool synchronously and fired the
+      // bake async via `void runBusy(...)`, which let React unmount
+      // the outgoing tool's stage hook before the apply ran — and
+      // tools that read Fabric overlays in their apply (Crop's
+      // `findCropRect`) found nothing because the unmount cleanup
+      // had already removed those overlays. Awaiting here keeps the
+      // outgoing tool mounted for the duration of the bake; the
+      // spinner mounts immediately so the click still feels
+      // responsive. Mirrors mobile's `handleClose` flow.
       const pending = pendingApplyRef.current;
       pendingApplyRef.current = null;
+      setPendingApplyVersion((v) => v + 1);
+      if (pending) await runBusy("Applying…", pending);
       setToolState((prev) => ({ ...prev, activeTool: id }));
-      if (pending) void runBusy("Applying…", pending);
+      // Record the history depth at tool entry so a subsequent
+      // cancel knows how far to rewind. We sample AFTER the pending
+      // bake commits so the apply's commit is "above" the
+      // checkpoint, not "before" it (apply was triggered by the
+      // outgoing tool, not the incoming one).
+      const depth = historyRef.current.currentIndex();
+      toolCheckpointRef.current = depth;
+      setToolCheckpoint(depth);
     },
     [runBusy],
   );
+
+  const cancelCurrentTool = useCallback(async () => {
+    // Discard any pending apply first — otherwise the subsequent
+    // setActiveTool("move") below would happily bake the very work
+    // the user just asked to throw away (its internal apply flush
+    // runs unconditionally). This mirrors mobile's `handleCancel`.
+    pendingApplyRef.current = null;
+    setPendingApplyVersion((v) => v + 1);
+    const checkpoint = toolCheckpointRef.current;
+    // Loop undo() until we're back at the checkpoint. Bail out if
+    // undo doesn't advance (corrupt history / nothing to undo) so
+    // we never spin here.
+    while (historyRef.current.currentIndex() > checkpoint) {
+      const before = historyRef.current.currentIndex();
+      // eslint-disable-next-line no-await-in-loop
+      await undoRef.current();
+      if (historyRef.current.currentIndex() === before) break;
+    }
+    // Drop back to Move. Bypass `setActiveTool` (which would await a
+    // pending apply we just cleared, harmless but extra work).
+    setToolState((prev) => ({ ...prev, activeTool: "move" }));
+    toolCheckpointRef.current = historyRef.current.currentIndex();
+    setToolCheckpoint(toolCheckpointRef.current);
+  }, []);
 
   const setLayers = useCallback((l: Layer[] | ((prev: Layer[]) => Layer[])) => {
     setLayersState((prev) => (typeof l === "function" ? l(prev) : l));
   }, []);
 
   const peekLastCommitLabel = useCallback(() => historyRef.current.currentLabel(), []);
+  const historyDepth = useCallback(() => historyRef.current.currentIndex(), []);
 
   const commit = useCallback(
     (label: string) => {
@@ -523,6 +711,11 @@ export function EditorProvider({
     restoreFabricScene(fabricCanvasRef.current, entry.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
+  // Ref kept in sync with the latest `undo` identity so callbacks
+  // declared earlier in render order (notably `cancelCurrentTool`) can
+  // dispatch the live closure. Same pattern as `patchToolRef`.
+  const undoRef = useRef(undo);
+  undoRef.current = undo;
 
   const redo = useCallback(async () => {
     if (!doc) return;
@@ -534,6 +727,52 @@ export function EditorProvider({
     restoreFabricScene(fabricCanvasRef.current, entry.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
+
+  /** Jump the cursor to an absolute history index by repeated undo() /
+   *  redo() calls. Clamped to [0, stackSize-1]. Each step pays the same
+   *  decode cost a manual undo would; for typical jumps (1–5 entries)
+   *  that's ~30–150 ms total which is well below the 200 ms perceived
+   *  threshold. Used by the History Scrubber to let the user click any
+   *  thumb in the timeline. */
+  const jumpToStep = useCallback(
+    async (targetIndex: number) => {
+      // Clamp early so a bad index from a stale UI snapshot is safe.
+      const stackLen = historyRef.current.entriesSnapshot().length;
+      if (stackLen === 0) return;
+      const target = Math.max(0, Math.min(targetIndex, stackLen - 1));
+      // Guard against runaway loops: a corrupt stack where undo/redo
+      // doesn't advance the cursor would otherwise spin forever.
+      let safety = stackLen + 2;
+      while (historyRef.current.currentIndex() < target && safety-- > 0) {
+        const before = historyRef.current.currentIndex();
+        // eslint-disable-next-line no-await-in-loop
+        await redo();
+        if (historyRef.current.currentIndex() === before) break;
+      }
+      while (historyRef.current.currentIndex() > target && safety-- > 0) {
+        const before = historyRef.current.currentIndex();
+        // eslint-disable-next-line no-await-in-loop
+        await undo();
+        if (historyRef.current.currentIndex() === before) break;
+      }
+    },
+    [redo, undo],
+  );
+
+  // Ref kept in sync with the latest `jumpToStep` identity so the
+  // earlier-declared `__editorDebug` effect can dispatch the live
+  // closure (same hoisting pattern as `patchToolRef` / `undoRef`).
+  const jumpToStepRef = useRef(jumpToStep);
+  jumpToStepRef.current = jumpToStep;
+
+  /** Stable accessor that returns a fresh snapshot of every entry's
+   *  UI-relevant fields (label, thumb canvas, dims). The scrubber
+   *  calls this on every `historyVersion` change to re-render its
+   *  thumbnail row. Returning a getter rather than a derived array
+   *  keeps `ActionsValue` identity stable — only `historyVersion`
+   *  (read off `EditorReadValue`) needs to change to trigger the
+   *  scrubber's re-render. */
+  const historyEntries = useCallback(() => historyRef.current.entriesSnapshot(), []);
 
   const resetToOriginal = useCallback(async () => {
     if (!doc) return;
@@ -550,7 +789,17 @@ export function EditorProvider({
     // out of date — drop it so the next scoped tool re-detects.
     invalidateSubjectMask();
     invalidateFaceDetection();
-    historyRef.current.push("Reset", doc.working, base.layers, base.fabric);
+    // Wipe the entire timeline and re-establish a fresh "Open" base
+    // from the just-restored doc. The prior treatment pushed a "Reset"
+    // entry on top of the existing chain, which left every edit the
+    // user just discarded still visible in the History Scrubber —
+    // confusing on a feature whose intent is "back to square one".
+    // canReset reads as `canUndo || canRedo`, so after this push (with
+    // both false) the Reset button correctly disables itself.
+    // (Verified by probe-export-and-history: historyLength is 1 after
+    // reset, matching a fresh upload.)
+    historyRef.current.clear();
+    historyRef.current.push("Open", doc.working, base.layers, base.fabric);
     setHistoryVersion((v) => v + 1);
   }, [doc]);
 
@@ -695,6 +944,7 @@ export function EditorProvider({
     () => ({
       patchTool,
       setActiveTool,
+      cancelCurrentTool,
       setView,
       setMode,
       setLayers,
@@ -708,8 +958,11 @@ export function EditorProvider({
       setFabricCanvas,
       commit,
       peekLastCommitLabel,
+      historyDepth,
       undo,
       redo,
+      jumpToStep,
+      historyEntries,
       resetToOriginal,
       openExport,
       closeExport,
@@ -724,6 +977,7 @@ export function EditorProvider({
     [
       patchTool,
       setActiveTool,
+      cancelCurrentTool,
       setLayers,
       runBusy,
       registerPendingApply,
@@ -734,8 +988,11 @@ export function EditorProvider({
       setFabricCanvas,
       commit,
       peekLastCommitLabel,
+      historyDepth,
       undo,
       redo,
+      jumpToStep,
+      historyEntries,
       resetToOriginal,
       openExport,
       closeExport,
@@ -770,6 +1027,17 @@ export function EditorProvider({
       canRedo: historyVersion >= 0 && historyRef.current.canRedo(),
       canReset:
         historyVersion >= 0 && (historyRef.current.canUndo() || historyRef.current.canRedo()),
+      // The active tool has rollback-able work when EITHER there's a
+      // pending apply still in the slot (slider was dragged but not
+      // baked yet) OR the user has committed at least one history
+      // entry since entering the tool (Draw stroke, manual Apply tap,
+      // Add text, etc.). `toolState.activeTool !== "move"` gates the
+      // affordance to actual tool sessions — being parked on Move
+      // with old commits below isn't cancellable.
+      canCancelCurrentTool:
+        toolState.activeTool !== "move" &&
+        pendingApplyVersion >= 0 &&
+        (pendingApplyRef.current !== null || historyRef.current.currentIndex() > toolCheckpoint),
       exportOpen,
       batchFiles,
       recipe,
@@ -792,6 +1060,9 @@ export function EditorProvider({
       recipe,
       batchRunning,
       compareActive,
+      pendingApplyVersion,
+      toolCheckpoint,
+      toolState.activeTool,
     ],
   );
 
