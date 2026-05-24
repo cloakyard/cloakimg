@@ -226,15 +226,47 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
     setExportError(null);
     try {
       const result = await exportDoc(doc, layers, settings, toolState.meta, getFabricCanvas());
+
+      // iOS Safari path: prefer the Web Share API with a File payload.
+      // The native share sheet routes to Save to Photos / Save to Files
+      // without navigating the current tab. The `<a download>` fallback
+      // below is unreliable on iOS — Safari either ignores `download`
+      // and navigates the current tab to the blob URL, or evicts the
+      // editor tab from memory while the system download UI is up. In
+      // both cases the user returns to a re-mounted SPA and lands on
+      // the start screen with their working image gone.
+      const file = new File([result.blob], result.fileName, { type: result.blob.type });
+      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] });
+          void clearDraft();
+          onClose();
+          return;
+        } catch (err) {
+          // AbortError = the user dismissed the share sheet; keep the
+          // modal + draft open so they can pick a different format /
+          // quality and retry. Any other error: fall through to the
+          // anchor path so the user still ends up with their file.
+          if (err instanceof Error && err.name === "AbortError") return;
+        }
+      }
+
       const url = URL.createObjectURL(result.blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = result.fileName;
+      // target="_blank" + rel="noopener" — defends the editor tab on
+      // browsers that don't honour the `download` attribute (older iOS
+      // Safari) by opening the file in a new tab instead of navigating
+      // the current one away from the editor.
+      a.target = "_blank";
+      a.rel = "noopener";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      // Give the browser a tick to start the download before revoking.
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      // Long revoke so iOS Safari's system download UI has time to
+      // finish reading the blob before it disappears.
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
       // Successful export → drop the auto-saved draft, otherwise the
       // landing page would offer to "resume" something the user has
       // already shipped. The browser's own download UI is the success
