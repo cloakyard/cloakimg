@@ -929,16 +929,12 @@ export function ImageCanvas({
         filter: cssFilter ?? undefined,
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-          pointerEvents: "none",
-        }}
-      />
+      {/* The "Photoshop workbench" dot grid (white 4%-alpha dots on
+          the prior `#2a2620` dark matte) was removed in the May 2026
+          minimalist redesign — the canvas matte is now `--page-bg`
+          (cream / near-black), so white dots disappear on cream but
+          read as visible noise on the dark page. The intent of the
+          redesign is "focus on the image," so the grid goes away. */}
       {doc && (
         <div
           aria-hidden
