@@ -103,7 +103,14 @@ export function EmojiPanel() {
       </PropRow>
 
       <PropRow label={category.label}>
-        <div className="grid max-h-65 grid-cols-8 gap-1 overflow-y-auto pr-0.5">
+        {/* No inner `max-h + overflow-y-auto` — the parent tool-controls
+            scroller (PropertiesPanel on desktop, MobileEditorSurface's
+            sheet on mobile) already owns the vertical scroll. A nested
+            vertical scroller stole touch gestures on mobile and forced
+            users to disambiguate which scrollbar they were trying to
+            engage. Letting the grid grow to its natural height collapses
+            the editor to a single vertical scroll surface. */}
+        <div className="grid grid-cols-8 gap-1">
           {category.items.map((char) => {
             const isActive = char === active;
             return (
