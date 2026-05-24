@@ -258,7 +258,7 @@ function LayerRow({
         className={`flex cursor-grab items-center gap-2 rounded-md px-1.5 py-1 focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
           selected
             ? "bg-coral-50 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30"
-            : "bg-transparent hover:bg-page-bg"
+            : "bg-transparent hover:bg-border-soft"
         }`}
       >
         <button
@@ -269,7 +269,7 @@ function LayerRow({
           }}
           aria-label={row.visible ? "Hide layer" : "Show layer"}
           title={row.visible ? "Hide layer" : "Show layer"}
-          className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8 ${
+          className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-border-soft pointer-coarse:h-8 pointer-coarse:w-8 ${
             row.visible ? "text-text" : "text-text-muted opacity-50"
           }`}
         >
@@ -296,7 +296,7 @@ function LayerRow({
             className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none p-0 pointer-coarse:h-8 pointer-coarse:w-8 ${
               filtersOpen
                 ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-transparent text-text-muted hover:bg-page-bg"
+                : "bg-transparent text-text-muted hover:bg-border-soft"
             }`}
           >
             <I.Wand size={12} />
@@ -310,7 +310,7 @@ function LayerRow({
           }}
           aria-label="Delete layer"
           title="Delete layer"
-          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-page-bg hover:text-text pointer-coarse:h-8 pointer-coarse:w-8"
+          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-border-soft hover:text-text pointer-coarse:h-8 pointer-coarse:w-8"
         >
           <I.X size={11} />
         </button>

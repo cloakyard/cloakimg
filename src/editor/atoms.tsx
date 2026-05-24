@@ -292,7 +292,7 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
       className={`relative flex h-4.5 items-center touch-none pointer-coarse:h-9 ${onChange ? "cursor-pointer" : "cursor-default"}`}
       title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
-      <div className="relative h-0.75 w-full rounded-sm bg-page-bg pointer-coarse:h-1">
+      <div className="relative h-0.75 w-full rounded-sm bg-border-soft pointer-coarse:h-1">
         <div
           ref={fillRef}
           className={`absolute top-0 left-0 h-full rounded-sm ${

@@ -62,21 +62,16 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   return (
     <>
       <div
-        // Desktop keeps a glass-toolbar treatment (translucent surface,
-        // backdrop blur) so the photo workbench reads with deliberate
-        // chrome around it, but the V3 desktop redesign softened the
-        // bottom border from `border-border` to `border-border-soft`
-        // and dropped the surface opacity to 0.6 so the cream page-bg
-        // flows up through the chrome. Mobile drops every one of those
-        // entirely — V3 minimalist — so the cream flows from above the
-        // logo through the canvas matte and out to the pill below
-        // without any tonal break. Brand mark + wordmark match across
-        // breakpoints so the app's identity is proper-sized rather
-        // than apologetic at the top of the screen.
+        // V5 (May 2026 desktop minimalist redesign) — desktop drops the
+        // glass surface and backdrop blur and sits directly on cream,
+        // but keeps a hairline soft bottom divider so the toolbar still
+        // reads as its own band above the canvas. Mobile is fully
+        // chrome-free — no divider — so the brand mark, canvas, and
+        // collapsed Tools pill flow as one continuous plane.
         className={
           isMobile
             ? "flex h-16 shrink-0 items-center gap-1.5 px-3 py-3"
-            : "editor-paper flex h-16 shrink-0 items-center gap-3 border-b border-border-soft bg-surface/60 px-4 py-3 backdrop-blur-xl backdrop-saturate-150"
+            : "flex h-16 shrink-0 items-center gap-3 border-b border-border-soft px-4 py-3"
         }
       >
         <button
@@ -115,7 +110,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border-none bg-page-bg px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-page-bg"
+            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-surface"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
@@ -134,7 +129,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             feature most sessions never touch; the tighter pair keeps
             Batch one click away without dominating the chrome. */}
         {!isMobile && (
-          <div className="flex rounded-md border border-border-soft bg-page-bg p-0.5">
+          <div className="flex rounded-md border border-border-soft p-0.5">
             {(["single", "batch"] as const).map((m) => {
               const active = mode === m;
               const Ic = m === "single" ? I.FileImage : I.Layers;
@@ -204,7 +199,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         {!isMobile && <div className="h-4.5 w-px bg-border" />}
 
         {!isMobile && (
-          <div className="flex items-center gap-1 rounded-lg bg-page-bg p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-border-soft p-0.5">
             <button
               type="button"
               className="btn btn-ghost btn-icon-xs"

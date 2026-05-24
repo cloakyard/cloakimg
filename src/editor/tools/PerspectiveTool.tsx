@@ -51,17 +51,12 @@ export function PerspectiveTool() {
         number,
         number,
       ][];
-      // Dim the area outside the quad so the user can read the area
-      // they're rectifying. Use evenodd to punch the quad through the
-      // full-canvas rect.
+      // No "dim outside" wash — the canvas matte is cream `--page-bg`
+      // (May 2026 minimalist redesign) and tinting it grey breaks the
+      // continuous photo-floats-on-cream surface. The coral quad
+      // outline + handles below carry enough signal for the user to
+      // see which region will be rectified.
       ctx.save();
-      ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
-      ctx.beginPath();
-      ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      ctx.moveTo(sP[0]?.[0] ?? 0, sP[0]?.[1] ?? 0);
-      for (let i = 1; i < 4; i++) ctx.lineTo(sP[i]?.[0] ?? 0, sP[i]?.[1] ?? 0);
-      ctx.closePath();
-      ctx.fill("evenodd");
 
       // Quad outline.
       ctx.strokeStyle = "rgba(245, 97, 58, 0.9)"; // coral-500

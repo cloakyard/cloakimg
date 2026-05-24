@@ -28,13 +28,12 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // and gives every panel enough horizontal room to lay out cleanly
     // including the new subject scope row, the byte-readout progress
     // card, and the Selective-colour 8-band swatch grid.
-    // Border softened to `border-border-soft` and surface dropped to a
-    // glass tint (V3 desktop redesign): mirrors the ToolRail treatment
-    // so both sides of the canvas feel like floating chrome around the
-    // photo rather than walled-off panes. The trailing chevron from the
-    // header was decorative (no collapse action) and removed.
+    // V5 (May 2026 minimalist desktop redesign) — like the ToolRail
+    // opposite, the panel no longer carries its own surface or
+    // backdrop blur. Controls sit directly on cream; only a soft
+    // left divider separates them from the canvas.
     <div
-      className={`editor-paper flex shrink-0 flex-col overflow-hidden border-l border-border-soft bg-surface/60 ${
+      className={`flex shrink-0 flex-col overflow-hidden border-l border-border-soft ${
         collapsed ? "w-72" : "w-82"
       }`}
     >
@@ -66,7 +65,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
             onClick={() => void cancelCurrentTool()}
             title="Cancel changes (Esc)"
             aria-label="Cancel changes"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-text-muted transition-colors hover:bg-page-bg hover:text-text"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-text-muted transition-colors hover:bg-surface hover:text-text"
           >
             <I.X size={14} stroke={2} />
           </button>

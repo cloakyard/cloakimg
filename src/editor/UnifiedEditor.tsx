@@ -6,11 +6,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
-import { Grainient } from "../components/Grainient";
 import { I } from "../components/icons";
-import { GRAINIENT_DARK, GRAINIENT_LIGHT, GRAINIENT_MOTION } from "../constants/grainient";
 import type { StartChoice } from "../landing/StartModal";
-import { usePrefersDark } from "../utils/usePrefersDark";
 import { Spinner } from "./atoms";
 import { BatchCanvas, BatchPanel } from "./BatchView";
 import { EditorProvider, useEditor } from "./EditorContext";
@@ -87,8 +84,6 @@ function EditorShell() {
   } = useEditor();
   const isMobile = layout === "mobile";
   const isTablet = layout === "tablet";
-  const isDark = usePrefersDark();
-  const grainientPalette = isDark ? GRAINIENT_DARK : GRAINIENT_LIGHT;
 
   const [exportSettings, setExportSettings] = useState<ExportSettings>({
     format: 2, // WebP
@@ -211,16 +206,14 @@ function EditorShell() {
       onDrop={onShellDrop}
       className="relative h-full w-full overflow-hidden font-sans text-text"
     >
-      {/* Animated backdrop, shared with the landing hero (see
-          src/constants/grainient.ts). Skipped on phones: a 60fps
-          WebGL render loop competes with the editor canvas for GPU
-          time and shows up as visible lag on phone Safari. The
-          editor surface reads cleanly against bg-canvas-bg without
-          it; the warm cast is a nice-to-have desktop affordance. */}
-      {!isMobile && (
-        <Grainient className="grainient-fixed" {...GRAINIENT_MOTION} {...grainientPalette} />
-      )}
-      <div className="relative z-1 flex h-full w-full flex-col">
+      {/* Editor backdrop is solid `--page-bg` cream on every breakpoint
+          (May 2026 minimalist redesign). The Grainient animation that
+          used to wash the desktop chrome has been removed — it
+          competed with the photo for attention and the cream page now
+          reads as one calm continuous surface from the brand mark all
+          the way to the rail / panel chrome. Landing keeps the
+          Grainient as marketing chrome. */}
+      <div className="relative flex h-full w-full flex-col">
         <TopBar onShowFileProps={() => setFilePropsOpen(true)} />
 
         {error && <ErrorBanner message={error} />}
