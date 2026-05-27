@@ -14,6 +14,21 @@ export default defineConfig({
   server: {
     allowedHosts: true,
   },
+  // Pre-bundle the heavy, lazily-loaded dependencies at dev-server
+  // startup. These are imported only inside the AI worker
+  // (`@huggingface/transformers`), a lazy main-thread runner
+  // (`@mediapipe/tasks-vision` for face detection), or on first HEIC
+  // open (`libheif-js`) — so Vite's dep optimizer doesn't discover them
+  // until the user first triggers that path. When it discovers a new
+  // dep mid-session it logs "optimized dependencies changed. reloading"
+  // and force-reloads the tab; because the editor's chosen document
+  // lives in in-memory React state, that reload silently bounced the
+  // user back to the landing page the first time they downloaded ANY
+  // model. Pre-including them here means they're optimized before the
+  // app mounts, so the first model download no longer reloads the tab.
+  optimizeDeps: {
+    include: ["@huggingface/transformers", "@mediapipe/tasks-vision", "libheif-js"],
+  },
   plugins: [
     react(),
     tailwindcss(),

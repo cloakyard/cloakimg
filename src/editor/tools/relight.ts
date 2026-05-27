@@ -1,0 +1,174 @@
+// relight.ts — Depth-aware directional relight bake.
+//
+// Treats the on-device depth map as a height-field, derives a per-pixel
+// surface normal from its gradient, and shades each pixel by a point
+// light the user positions over the photo (the draggable sun). The
+// result is form-aware: surfaces facing the light brighten, surfaces
+// turned away fall into shadow, and a soft distance falloff puts a
+// believable hot-spot under the sun. A warmth control tints the lit
+// side warm and the shadow side cool, the way real sunlight does.
+//
+// Pure CPU, single pass over precomputed Float arrays — same cost class
+// as bakeAdjust, so it runs on the downsampled preview every drag and at
+// full resolution once on apply.
+
+import { acquireCanvas, releaseCanvas } from "../doc";
+
+export interface RelightParams {
+  /** Sun position in normalized image space (0..1). */
+  sunX: number;
+  sunY: number;
+  /** Light height 0..1 → Z component of the light vector. Low = grazing
+   *  side-light (strong directional shading); high = top-down (even). */
+  elevation: number;
+  /** Overall relight strength 0..1. 0 = identity (bake skipped). */
+  intensity: number;
+  /** 0..1, 0.5 = neutral. >0.5 warms the lit side / cools shadows. */
+  warmth: number;
+}
+
+/** How hard the depth gradient bends the surface normal. Higher = more
+ *  pronounced relief on textured / detailed scenes. */
+const RELIEF = 5.5;
+/** Distance falloff radius for the point light, in normalized units. */
+const REACH = 0.85;
+/** Peak brightening / darkening swing at intensity 1. */
+const STRENGTH = 0.9;
+/** Warm/cool tint gain (0..255 channel units) per unit of shade swing. */
+const WARMTH_K = 55;
+
+export function isRelightIdentity(p: RelightParams): boolean {
+  return p.intensity <= 0;
+}
+
+/** Read a depth canvas as a 0..1 luminance Float array sized to (w, h).
+ *  Resizes via the canvas pool when the depth map's dimensions differ
+ *  from the target (e.g. preview bakes against a downsampled source). */
+function readDepth(depthCanvas: HTMLCanvasElement, w: number, h: number): Float32Array {
+  let sampleCanvas = depthCanvas;
+  let temp: HTMLCanvasElement | null = null;
+  if (depthCanvas.width !== w || depthCanvas.height !== h) {
+    temp = acquireCanvas(w, h);
+    const tctx = temp.getContext("2d");
+    if (!tctx) {
+      // Fall back to a flat field — relight degrades to a soft global
+      // gradient rather than throwing.
+      const flat = new Float32Array(w * h);
+      flat.fill(0.5);
+      return flat;
+    }
+    tctx.imageSmoothingEnabled = true;
+    tctx.imageSmoothingQuality = "high";
+    tctx.drawImage(depthCanvas, 0, 0, w, h);
+    sampleCanvas = temp;
+  }
+  const ctx = sampleCanvas.getContext("2d");
+  const out = new Float32Array(w * h);
+  if (ctx) {
+    const data = ctx.getImageData(0, 0, w, h).data;
+    for (let i = 0, p = 0; p < out.length; i += 4, p++) {
+      out[p] = (data[i] ?? 0) / 255;
+    }
+  } else {
+    out.fill(0.5);
+  }
+  // Hand the resize scratch back to the pool — the Float array is the
+  // only thing we keep.
+  if (temp) releaseCanvas(temp);
+  return out;
+}
+
+/** Relight `source` using `depthCanvas`. Returns a fresh pooled canvas
+ *  (caller releases it). The source is left untouched. Assumes a
+ *  non-identity params set — callers gate on `isRelightIdentity`. */
+export function bakeRelight(
+  source: HTMLCanvasElement,
+  depthCanvas: HTMLCanvasElement,
+  p: RelightParams,
+): HTMLCanvasElement {
+  const w = source.width;
+  const h = source.height;
+  const out = acquireCanvas(w, h);
+  const sctx = source.getContext("2d");
+  const octx = out.getContext("2d");
+  if (!sctx || !octx) return out;
+
+  const img = sctx.getImageData(0, 0, w, h);
+  const depth = readDepth(depthCanvas, w, h);
+  relightPixels(img.data, depth, w, h, p);
+  octx.putImageData(img, 0, 0);
+  return out;
+}
+
+/** Pure shading core — mutates `px` (RGBA) in place using the `depth`
+ *  height-field. Extracted from `bakeRelight` so the lighting maths can
+ *  be unit-tested without a canvas 2D context (jsdom lacks one). */
+export function relightPixels(
+  px: Uint8ClampedArray,
+  depth: Float32Array,
+  w: number,
+  h: number,
+  p: RelightParams,
+): void {
+  // Light Z grows with elevation: grazing (0.25) → top-down (2.0).
+  const lz = 0.25 + p.elevation * 1.75;
+  const invW = w > 1 ? 1 / (w - 1) : 0;
+  const invH = h > 1 ? 1 / (h - 1) : 0;
+  const k = p.intensity * STRENGTH;
+
+  for (let y = 0; y < h; y++) {
+    const yUp = y > 0 ? y - 1 : y;
+    const yDn = y < h - 1 ? y + 1 : y;
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      const xL = x > 0 ? x - 1 : x;
+      const xR = x < w - 1 ? x + 1 : x;
+
+      // Surface normal from the depth gradient (height-field).
+      const dzdx = depth[y * w + xR]! - depth[y * w + xL]!;
+      const dzdy = depth[yDn * w + x]! - depth[yUp * w + x]!;
+      let nx = -dzdx * RELIEF;
+      let ny = -dzdy * RELIEF;
+      let nz = 1;
+      const nLen = Math.hypot(nx, ny, nz) || 1;
+      nx /= nLen;
+      ny /= nLen;
+      nz /= nLen;
+
+      // Point-light direction (toward the sun) + distance falloff.
+      const lxRaw = p.sunX - x * invW;
+      const lyRaw = p.sunY - y * invH;
+      const dist = Math.hypot(lxRaw, lyRaw);
+      const lLen = Math.hypot(lxRaw, lyRaw, lz) || 1;
+      const lx = lxRaw / lLen;
+      const ly = lyRaw / lLen;
+      const lzn = lz / lLen;
+      const atten = 1 / (1 + (dist / REACH) * (dist / REACH));
+
+      // Half-Lambert keeps shadows readable instead of crushing to black.
+      const diffuse = nx * lx + ny * ly + nz * lzn;
+      const hl = diffuse * 0.5 + 0.5;
+      const shade = (hl - 0.5) * 2 * atten; // -1..1
+      let m = 1 + k * shade;
+      if (m < 0.15) m = 0.15;
+      else if (m > 2.2) m = 2.2;
+
+      const j = idx * 4;
+      const r = px[j]! * m;
+      const g = px[j + 1]! * m;
+      const b = px[j + 2]! * m;
+
+      // Warm the lit side / cool the shadow side. (m-1) carries the sign
+      // of the shade; (warmth-0.5) scales + flips the tint direction.
+      const warm = (m - 1) * (p.warmth - 0.5) * 2 * WARMTH_K;
+      px[j] = clamp8(r + warm);
+      px[j + 1] = clamp8(g);
+      px[j + 2] = clamp8(b - warm);
+      // alpha untouched
+    }
+  }
+}
+
+function clamp8(v: number): number {
+  return v < 0 ? 0 : v > 255 ? 255 : v;
+}

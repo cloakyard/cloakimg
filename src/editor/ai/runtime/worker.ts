@@ -23,6 +23,7 @@
 
 import { env, LogLevel } from "@huggingface/transformers";
 import type { AiRequest } from "./types";
+import { handleDepth } from "./handlers/depthHandler";
 import { handleSegment } from "./handlers/segmentHandler";
 import { buildSelfErrorMessage, postError, postReady, postSelfError } from "./handlers/shared";
 
@@ -63,6 +64,7 @@ type HandlerFor<K extends AiRequest["kind"]> = (
 // impossible.
 const HANDLERS: { [K in AiRequest["kind"]]: HandlerFor<K> } = {
   segment: handleSegment,
+  depth: handleDepth,
 };
 
 // —————————————— Top-level dispatch ——————————————

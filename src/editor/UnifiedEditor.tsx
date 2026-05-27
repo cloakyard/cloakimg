@@ -20,6 +20,7 @@ import { FilePropertiesModal } from "./FilePropertiesModal";
 import { HistoryScrubber } from "./HistoryScrubber";
 import { MaskConsentHost } from "./ai/ui/MaskConsentHost";
 import { DetectFaceConsentHost } from "./ai/capabilities/detect-face/ConsentHost";
+import { DepthConsentHost } from "./ai/capabilities/depth/ConsentHost";
 import { MobileEditorSurface } from "./MobileEditorSurface";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
@@ -296,6 +297,7 @@ function EditorShell() {
       <ErrorBoundary variant="silent" subsystem="consent">
         <MaskConsentHost />
         <DetectFaceConsentHost />
+        <DepthConsentHost />
       </ErrorBoundary>
     </main>
   );

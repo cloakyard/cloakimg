@@ -347,6 +347,14 @@ export const I = {
       <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93 7 7M17 17l2.07 2.07M4.93 19.07 7 17M17 7l2.07-2.07" />
     </Icon>
   ),
+  // Lightbulb — the Relight tool's rail mark. Distinct from Sunburst
+  // (Time of day) so the two lighting tools read apart at a glance.
+  Lightbulb: (p: P) => (
+    <Icon {...p}>
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5A5.5 5.5 0 1 0 6.5 8c0 1.3.5 2.5 1.5 3.5.8.8 1.3 1.5 1.5 2.5" />
+      <path d="M9 18h6M10 22h4" />
+    </Icon>
+  ),
   Bookmark: (p: P) => <Icon {...p} d="M6 3h12v18l-6-4-6 4Z" />,
   Ribbon: (p: P) => <Icon {...p} d="M4 4h16l-3 8 3 8H4l3-8Z" />,
   Donut: (p: P) => (

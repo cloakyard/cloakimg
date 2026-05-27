@@ -27,6 +27,7 @@ import { EmojiPanel } from "./tools/EmojiPanel";
 import { SpotHealPanel } from "./tools/SpotHealPanel";
 import { TapFixPanel } from "./tools/TapFixPanel";
 import { TimeOfDayPanel } from "./tools/TimeOfDayPanel";
+import { RelightPanel } from "./tools/RelightPanel";
 import { RemoveBgPanel } from "./tools/RemoveBgPanel";
 
 export function ToolControls() {
@@ -44,6 +45,8 @@ export function ToolControls() {
       return <AdjustPanel />;
     case "tod":
       return <TimeOfDayPanel />;
+    case "relight":
+      return <RelightPanel />;
     case "levels":
       return <LevelsPanel />;
     case "hsl":

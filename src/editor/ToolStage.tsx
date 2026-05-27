@@ -28,6 +28,7 @@ import { SpotHealTool } from "./tools/SpotHealTool";
 import { TapFixTool } from "./tools/TapFixTool";
 import { TextTool } from "./tools/TextTool";
 import { TimeOfDayTool } from "./tools/TimeOfDayTool";
+import { RelightTool } from "./tools/RelightTool";
 
 export function ToolStage() {
   const { toolState } = useEditor();
@@ -38,6 +39,8 @@ export function ToolStage() {
       return <AdjustTool />;
     case "tod":
       return <TimeOfDayTool />;
+    case "relight":
+      return <RelightTool />;
     case "levels":
       return <LevelsTool />;
     case "hsl":
