@@ -171,7 +171,7 @@ body {
   }
 }
 .panel-fade-in {
-  animation: ci-panel-in 180ms ease-out;
+  animation: ci-panel-in 180ms var(--ease-out-ios);
 }
 /* Honor reduced-motion: skip the slide, keep the fade only. */
 @media (prefers-reduced-motion: reduce) {

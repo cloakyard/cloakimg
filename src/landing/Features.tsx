@@ -60,10 +60,13 @@ const FEATURES: Feature[] = [
 export function Features() {
   return (
     <section className="mx-auto max-w-275 px-5 pt-2 pb-10 sm:px-8 sm:pt-4 sm:pb-16">
-      <div className="mb-10 text-center sm:mb-14">
+      {/* Left-aligned header — the one band that breaks the otherwise
+          center-stacked landing rhythm, so the page has a moment of
+          asymmetry against the symmetric feature grid below. */}
+      <div className="mb-10 max-w-160 sm:mb-14">
         <div className="t-eyebrow mb-2.5">Why CloakIMG</div>
-        <h2 className="t-display m-0 text-text">Everything you need, nothing you don&rsquo;t.</h2>
-        <p className="t-subtitle mx-auto mt-3 max-w-140">
+        <h2 className="t-display m-0 text-text">The whole toolkit, none of the tracking.</h2>
+        <p className="t-subtitle mt-3 max-w-140">
           A modern photo editor that respects your privacy — built for people who care about their
           images and their craft.
         </p>
@@ -92,7 +95,7 @@ function FeatureItem({ icon, title, description }: Feature) {
       </span>
       <div className="min-w-0">
         <div className="text-[15px] font-semibold tracking-[-0.01em] text-text">{title}</div>
-        <div className="mt-1 text-[13.5px] leading-[1.55] text-text-muted">{description}</div>
+        <div className="mt-1 text-[13px] leading-[1.55] text-text-muted">{description}</div>
       </div>
     </div>
   );

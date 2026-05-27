@@ -18,14 +18,14 @@ export function Header({ right }: Props) {
     <header className="sticky top-0 z-50 flex items-center gap-3.5 border-b border-border-soft bg-surface-glass px-4 py-3 backdrop-blur-2xl backdrop-saturate-150">
       <div className="flex items-center gap-2.5">
         <BrandMark size={40} />
-        <div className="logo-wordmark" style={{ fontSize: 19, letterSpacing: "-0.025em" }}>
+        <div className="logo-wordmark">
           Cloak<span>IMG</span>
         </div>
       </div>
       <div className="flex-1" />
       {right ?? (
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 px-1 text-[12.5px] font-medium tracking-tight text-text-muted whitespace-nowrap">
+          <span className="flex items-center gap-1.5 px-1 text-[12px] font-medium tracking-tight text-text-muted whitespace-nowrap">
             <I.ShieldCheck size={14} stroke={2} />
             <span className="sm:hidden">Private</span>
             <span className="hidden sm:inline lg:hidden">100% Private</span>

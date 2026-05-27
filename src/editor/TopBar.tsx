@@ -91,13 +91,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               feel apologetic at the top of the screen. With the TopBar
               chrome stripped on mobile, full-size branding sits cleanly
               on the cream page. */}
-          <div
-            className="logo-wordmark"
-            style={{
-              fontSize: 19,
-              letterSpacing: "-0.025em",
-            }}
-          >
+          <div className="logo-wordmark">
             Cloak<span>IMG</span>
           </div>
         </button>
@@ -110,7 +104,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-surface"
+            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12px] text-inherit transition-colors hover:bg-surface"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
