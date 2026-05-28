@@ -193,7 +193,7 @@ export class CapabilityService<TResult> {
     };
   }
 
-  private setState(next: Partial<CapabilityState<TResult>>): void {
+  private setState(next: Partial<CapabilityState<TResult>>, deferNotify = false): void {
     if (next.status !== undefined && next.status !== this.state.status) {
       aiLog.debug(
         "subjectMask",
@@ -206,7 +206,23 @@ export class CapabilityService<TResult> {
       );
     }
     this.state = { ...this.state, ...next, version: this.state.version + 1 };
-    for (const l of this.listeners) l(this.state);
+    if (deferNotify) {
+      // The caller (peek's dim-drift reset) runs inside a React render —
+      // e.g. PrivacyAuditCard reads peek() during render. Notifying
+      // subscribers synchronously would setState on them mid-render
+      // ("Cannot update a component while rendering a different
+      // component"). State is mutated synchronously above so getState()
+      // reflects the reset immediately; we only defer the notification
+      // to a microtask so it lands after the current render commits.
+      const snapshot = this.state;
+      queueMicrotask(() => {
+        // Skip if a later setState already superseded (and notified for)
+        // this snapshot, to avoid a redundant re-render.
+        if (this.state === snapshot) for (const l of this.listeners) l(this.state);
+      });
+    } else {
+      for (const l of this.listeners) l(this.state);
+    }
   }
 
   // —————————————— Cache ——————————————
@@ -220,7 +236,10 @@ export class CapabilityService<TResult> {
     if (this.cache.source !== source) return null;
     if (this.cache.width !== source.width || this.cache.height !== source.height) {
       this.releaseCache();
-      this.setState({ status: "idle", progress: null, error: null });
+      // peek() is a render-path read (PrivacyAuditCard calls it during
+      // render); defer the subscriber notification so we don't setState
+      // on subscribed components mid-render.
+      this.setState({ status: "idle", progress: null, error: null }, true);
       return null;
     }
     return this.cache.result;

@@ -182,3 +182,8 @@ $RECYCLE.BIN/
 # keep the directory tracked via .gitkeep so the probes have a home).
 test-fixtures/*
 !test-fixtures/.gitkeep
+
+# ── Test/regression output (screenshots, MCP snapshots) ─────
+# Throwaway artifacts from headless probes + Playwright MCP runs.
+test-output/
+.playwright-mcp/
