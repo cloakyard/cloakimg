@@ -196,6 +196,55 @@ describe("70s / 80s era-inspired additions", () => {
   });
 });
 
+describe("Seasons category", () => {
+  const SEASONS = ["Spring", "Summer", "Autumn", "Winter"] as const;
+
+  it("registers all four seasons under the Seasons category", () => {
+    for (const name of SEASONS) {
+      const r = FILTER_PRESETS_RECIPES.find((p) => p.name === name);
+      expect(r, name).toBeDefined();
+      expect(r?.category, name).toBe<FilterCategory>("Seasons");
+    }
+  });
+
+  // Temperature is the load-bearing axis that separates the seasons:
+  // Spring + Winter are cool (negative temp), Summer + Autumn are warm
+  // (positive temp). A sign flip would collapse the seasonal contrast.
+  it("Spring and Winter are cool; Summer and Autumn are warm (temp = adjust[8])", () => {
+    const temp = (name: string) =>
+      FILTER_PRESETS_RECIPES.find((p) => p.name === name)?.adjust[8] ?? 0;
+    expect(temp("Spring"), "Spring temp").toBeLessThan(0);
+    expect(temp("Winter"), "Winter temp").toBeLessThan(0);
+    expect(temp("Summer"), "Summer temp").toBeGreaterThan(0);
+    expect(temp("Autumn"), "Autumn temp").toBeGreaterThan(0);
+  });
+
+  // Winter is the desaturated/faded season; the others lift saturation.
+  it("Winter desaturates while Spring/Summer/Autumn boost saturation (adjust[6])", () => {
+    const sat = (name: string) =>
+      FILTER_PRESETS_RECIPES.find((p) => p.name === name)?.adjust[6] ?? 0;
+    expect(sat("Winter"), "Winter saturation").toBeLessThan(0);
+    expect(sat("Spring")).toBeGreaterThan(0);
+    expect(sat("Summer")).toBeGreaterThan(0);
+    expect(sat("Autumn")).toBeGreaterThan(0);
+  });
+
+  it("Seasons section sits between Subtle and Warm in FILTER_CATEGORIES", () => {
+    const subtle = FILTER_CATEGORIES.indexOf("Subtle");
+    const seasons = FILTER_CATEGORIES.indexOf("Seasons");
+    const warm = FILTER_CATEGORIES.indexOf("Warm");
+    expect(seasons).toBe(subtle + 1);
+    expect(seasons).toBeLessThan(warm);
+  });
+
+  it("no season preset is monochrome (seasons carry colour by definition)", () => {
+    for (const name of SEASONS) {
+      const r = FILTER_PRESETS_RECIPES.find((p) => p.name === name);
+      expect(r?.monochrome ?? false, name).toBe(false);
+    }
+  });
+});
+
 describe("groupRecipesByCategory", () => {
   it("returns groups in FILTER_CATEGORIES order", () => {
     const groups = groupRecipesByCategory();

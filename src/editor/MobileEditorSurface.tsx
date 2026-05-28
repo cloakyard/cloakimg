@@ -86,6 +86,23 @@ const FOOTER_H = 56;
 const MORPH_MS = 380;
 const EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
 
+// The morph transition is identical on every render (only the width /
+// height *values* change, not the list of animated properties), so it's
+// hoisted to a module constant. This is also the exact string the drag
+// handlers must restore after temporarily setting `transition: none` —
+// see onTouchEnd. Setting it back to "" instead desyncs React's view of
+// the inline style: because React believes `transition` is unchanged
+// across collapsed↔expanded renders, it never re-writes it, leaving the
+// node stuck with no transition and killing the next open animation.
+const SHEET_TRANSITION = [
+  `width ${MORPH_MS}ms ${EASING}`,
+  `height ${MORPH_MS}ms ${EASING}`,
+  `border-top-left-radius ${MORPH_MS}ms ${EASING}`,
+  `border-top-right-radius ${MORPH_MS}ms ${EASING}`,
+  `background-color ${MORPH_MS}ms ${EASING}`,
+  `box-shadow ${MORPH_MS}ms ${EASING}`,
+].join(", ");
+
 const DRAG_DISMISS_PX = 100;
 
 interface SurfaceProps {
@@ -276,7 +293,10 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
   const onTouchEnd = useCallback(() => {
     touchStartY.current = null;
     if (!sheetRef.current) return;
-    sheetRef.current.style.transition = "";
+    // Restore the exact morph transition React believes is set (NOT "")
+    // — otherwise React, seeing `transition` unchanged on later renders,
+    // never re-writes it and the next open/close stops animating.
+    sheetRef.current.style.transition = SHEET_TRANSITION;
     sheetRef.current.style.transform = "";
     const d = dragDeltaRef.current;
     dragDeltaRef.current = 0;
@@ -292,7 +312,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
   );
 
   const tools = useMemo(() => toolsForTab(null), []);
-  const dialogProps = expanded
+  const modalProps = expanded
     ? ({
         role: "dialog",
         "aria-modal": true,
@@ -319,14 +339,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     borderTopRightRadius: expanded ? `${EXPANDED_R}px` : 0,
     backgroundColor: expanded ? "var(--surface)" : "transparent",
     boxShadow: expanded ? "inset 0 1px 0 0 rgba(0,0,0,0.07)" : "none",
-    transition: [
-      `width ${MORPH_MS}ms ${EASING}`,
-      `height ${MORPH_MS}ms ${EASING}`,
-      `border-top-left-radius ${MORPH_MS}ms ${EASING}`,
-      `border-top-right-radius ${MORPH_MS}ms ${EASING}`,
-      `background-color ${MORPH_MS}ms ${EASING}`,
-      `box-shadow ${MORPH_MS}ms ${EASING}`,
-    ].join(", "),
+    transition: SHEET_TRANSITION,
   };
 
   return (
@@ -342,7 +355,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
         transition: `margin-bottom ${MORPH_MS}ms ${EASING}`,
       }}
     >
-      <div ref={sheetRef} {...dialogProps} className="relative overflow-hidden" style={sheetStyle}>
+      <div ref={sheetRef} {...modalProps} className="relative overflow-hidden" style={sheetStyle}>
         {!expanded ? (
           /* Collapsed — just the icon + label, no chrome around it. */
           <button
@@ -373,6 +386,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
+              onTouchCancel={onTouchEnd}
               aria-label="Close — drag down to dismiss"
               className="group flex h-7 shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
               style={{ height: HANDLE_H }}

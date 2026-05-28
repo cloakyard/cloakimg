@@ -301,6 +301,29 @@ export interface ToolState {
    *  use Adjust afterward to fine-tune. Lives in its own slot so it
    *  doesn't trample the manual adjust array on undo / redo. */
   timeOfDay: number;
+
+  /** Relight — depth-aware directional light. The sun's position lives
+   *  in normalized image space (0..1) so it survives crop / resize, and
+   *  the draggable on-canvas handle writes it directly. `relightScope`
+   *  reuses the shared MaskScope (0 whole / 1 subject / 2 background) so
+   *  the user can relight just the subject. Identity at intensity 0 —
+   *  visiting the tool bakes nothing until the user drags. Depends on
+   *  the on-device depth capability (downloaded on first open). */
+  relightSunX: number;
+  relightSunY: number;
+  /** Light height 0..1 — grazing side-light → top-down. */
+  relightElevation: number;
+  /** Relight strength 0..1. 0 = identity. */
+  relightIntensity: number;
+  /** 0..1, 0.5 neutral; warms the lit side / cools shadows above 0.5. */
+  relightWarmth: number;
+  relightScope: number;
+
+  /** One-shot hand-off from Tap-to-fix: image-space point the user
+   *  tapped before launching Spot heal. SpotHealTool seeds its brush
+   *  ring here on mount so the user lands exactly where they tapped,
+   *  then clears it back to null. Null means "no pending hand-off". */
+  spotHealSeed: { x: number; y: number } | null;
 }
 
 export const DEFAULT_TOOL_STATE: ToolState = {
@@ -458,4 +481,16 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   // 0.5 = identity (Noon). The slider's default lands here so opening
   // the tool shows the original photo until the user actually drags.
   timeOfDay: 0.5,
+
+  // Sun starts upper-centre — the most natural "daylight from above"
+  // position. Intensity 0 keeps the tool a no-op until the user engages,
+  // matching every other auto-flushing pixel tool.
+  relightSunX: 0.5,
+  relightSunY: 0.18,
+  relightElevation: 0.6,
+  relightIntensity: 0,
+  relightWarmth: 0.5,
+  relightScope: 0,
+
+  spotHealSeed: null,
 };

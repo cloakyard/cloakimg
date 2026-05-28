@@ -8,8 +8,8 @@
 import { useCallback, useState } from "react";
 import { BrandMark, I } from "../components/icons";
 import { useSubjectMask } from "./ai/useSubjectMask";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { useEditor } from "./EditorContext";
+import { ConfirmModal } from "./ConfirmModal";
+import { useEditorActions, useEditorReadOnly } from "./EditorContext";
 import { MobileMoreMenu } from "./MobileMoreMenu";
 
 interface TopBarProps {
@@ -17,30 +17,19 @@ interface TopBarProps {
 }
 
 export function TopBar({ onShowFileProps }: TopBarProps) {
-  const {
-    layout,
-    mode,
-    setMode,
-    view,
-    setView,
-    openExport,
-    undo,
-    redo,
-    resetToOriginal,
-    canUndo,
-    canRedo,
-    canReset,
-    doc,
-    exit,
-    compareActive,
-    setCompareActive,
-  } = useEditor();
+  // TopBar reads no tool state, so consuming the read-only + actions
+  // slices (instead of the omnibus `useEditor()`) keeps it from
+  // re-rendering on every slider tick.
+  const { layout, mode, view, canUndo, canRedo, canReset, doc, compareActive } =
+    useEditorReadOnly();
+  const { setMode, setView, openExport, undo, redo, resetToOriginal, exit, setCompareActive } =
+    useEditorActions();
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   // The CloakIMG mark is also a "Back to start" button — on a phone
-  // it sits ~30 px above where the AI download dialog draws, so a
+  // it sits ~30 px above where the AI download modal draws, so a
   // mistap during a long model fetch used to drop the user back at
   // landing with no warning (and no console log, since it's a normal
   // route change). Confirm-on-exit gates that path while detection is
@@ -91,13 +80,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               feel apologetic at the top of the screen. With the TopBar
               chrome stripped on mobile, full-size branding sits cleanly
               on the cream page. */}
-          <div
-            className="logo-wordmark"
-            style={{
-              fontSize: 19,
-              letterSpacing: "-0.025em",
-            }}
-          >
+          <div className="logo-wordmark">
             Cloak<span>IMG</span>
           </div>
         </button>
@@ -110,7 +93,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12.5px] text-inherit transition-colors hover:bg-surface"
+            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12px] text-inherit transition-colors hover:bg-surface"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
@@ -289,7 +272,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         )}
       </div>
       {resetConfirmOpen && (
-        <ConfirmDialog
+        <ConfirmModal
           layout={layout}
           title="Reset all edits?"
           message="This restores the original image and discards every adjustment, layer, and tool change you've made. Your entire edit history will be wiped — there's no undo after this."
@@ -304,7 +287,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         />
       )}
       {exitConfirmOpen && (
-        <ConfirmDialog
+        <ConfirmModal
           layout={layout}
           title="Leave while AI download is running?"
           message="The on-device subject model is still downloading. Leaving now cancels it; your image stays on this device and can be reopened from Resume."

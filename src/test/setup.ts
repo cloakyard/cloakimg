@@ -7,7 +7,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeAll, vi } from "vitest";
 
-// Auto-tear-down rendered components between tests so a stray dialog
+// Auto-tear-down rendered components between tests so a stray modal
 // from one case can't leak into the next case's getByText queries.
 afterEach(() => {
   cleanup();

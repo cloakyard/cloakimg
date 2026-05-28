@@ -11,6 +11,7 @@ export type ToolId =
   | "perspective"
   | "adjust"
   | "tod"
+  | "relight"
   | "levels"
   | "hsl"
   | "filter"
@@ -88,6 +89,10 @@ export const ALL_TOOLS: Tool[] = [
   // Filters because it's also a one-control quick-look tool; users
   // either want the slider OR a preset, rarely both at once.
   { id: "tod", name: "Time of day", icon: I.Sunburst, group: "tone", tab: "style" },
+  // Relight — depth-aware directional light. Sits next to Time of day:
+  // both are "emotional lighting" one-gesture tools, and both lean on
+  // on-device AI (Relight downloads a depth model on first open).
+  { id: "relight", name: "Relight", icon: I.Lightbulb, group: "tone", tab: "style" },
   { id: "filter", name: "Filters", icon: I.Wand, group: "tone", tab: "style" },
   { id: "levels", name: "Levels", icon: I.Levels, group: "tone", tab: "refine" },
   { id: "hsl", name: "Selective color", icon: I.Hsl, group: "tone", tab: "refine" },

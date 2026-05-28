@@ -1,0 +1,8 @@
+# Keeps the test-fixtures/ directory in the repo. Drop as many local
+# test images here as you need — every file in this dir is gitignored
+# (private/large binaries), and only this .gitkeep is tracked, so the
+# directory stays versioned without committing any image contents.
+#
+# The browser probes in scripts/*.mjs currently expect IMG_1804.jpg;
+# regenerate one locally, e.g.:
+#   sips -s format jpeg public/screenshots/iPhone.png --out test-fixtures/IMG_1804.jpg

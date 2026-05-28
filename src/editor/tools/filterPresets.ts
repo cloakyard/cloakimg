@@ -24,6 +24,7 @@
 export type FilterCategory =
   | "Original"
   | "Subtle"
+  | "Seasons"
   | "Warm"
   | "Vibrant"
   | "Cool"
@@ -32,10 +33,14 @@ export type FilterCategory =
   | "Vintage"
   | "B&W";
 
-/** Order matters — the panel renders section headers in this order. */
+/** Order matters — the panel renders section headers in this order.
+ *  Seasons sits high (right after Subtle) so the one-tap seasonal
+ *  moods are discoverable without scrolling past the film/vintage
+ *  catalogue. */
 export const FILTER_CATEGORIES: readonly FilterCategory[] = [
   "Original",
   "Subtle",
+  "Seasons",
   "Warm",
   "Vibrant",
   "Cool",
@@ -77,6 +82,32 @@ export const FILTER_PRESETS_RECIPES: FilterRecipe[] = [
     name: "Soft",
     category: "Subtle",
     adjust: [0.1, -0.1, -0.2, 0.2, 0, 0, -0.05, 0.1, 0.05, 0, -0.1],
+  },
+
+  // ── Seasons — one-tap seasonal moods ──────────────────────────────
+  // Each season is a colour-temperature + saturation story, not a film
+  // emulation: Spring fresh-cool-green, Summer punchy-warm, Autumn
+  // amber-rich, Winter cool-crisp-faded. Tuned to read clearly at full
+  // intensity in the panel grid; the Intensity slider scales them down.
+  {
+    name: "Spring",
+    category: "Seasons",
+    adjust: [0.06, -0.05, 0, 0.12, 0, 0, 0.1, 0.15, -0.04, 0, 0],
+  },
+  {
+    name: "Summer",
+    category: "Seasons",
+    adjust: [0.04, 0.1, 0, 0, 0, 0, 0.18, 0.12, 0.1, 0, 0.05],
+  },
+  {
+    name: "Autumn",
+    category: "Seasons",
+    adjust: [0, 0.08, -0.06, 0.08, 0, 0, 0.12, 0.1, 0.22, 0.08, 0],
+  },
+  {
+    name: "Winter",
+    category: "Seasons",
+    adjust: [0.05, 0.05, -0.05, 0, 0, 0, -0.12, 0, -0.22, 0.06, 0],
   },
 
   // ── Warm → vintage warm ───────────────────────────────────────────

@@ -64,9 +64,9 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   // on mobile feels instant even when the bake is slow.
   const [prepared, setPrepared] = useState(false);
   const metaFields = useMemo(() => exifToFields(doc?.exif ?? null), [doc?.exif]);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   useFocusReturn(true);
-  useFocusTrap(dialogRef, true);
+  useFocusTrap(modalRef, true);
   // Esc handling lives in ModalFrame so it routes through the animated
   // close lifecycle — removing the duplicate here lets the sheet slide
   // down on Esc instead of vanishing instantly.
@@ -290,8 +290,8 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       position="absolute"
       maxWidth="max-w-200"
       labelledBy="export-title"
-      dialogRef={dialogRef}
-      dialogClassName={isMobile ? "flex-col" : "flex-row"}
+      modalRef={modalRef}
+      modalClassName={isMobile ? "flex-col" : "flex-row"}
     >
       {/* Mobile pulls the title into a flat header bar with an X close,
           mirroring FilePropertiesModal/MobileMoreMenu/StartModal. Desktop

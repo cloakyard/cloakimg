@@ -1,7 +1,7 @@
 // End-to-end user-journey tests for the AI download flow.
 //
 // The tests below extend MaskConsentHost.test.tsx by following the
-// user past the consent dialog into the download / progress / error
+// user past the consent modal into the download / progress / error
 // screens. Each test simulates one full path the user can take —
 // happy path, every error category, every dismiss button — and
 // asserts the editor never silently navigates back to landing.
@@ -219,7 +219,7 @@ describe("AI journey — full happy path (consent → download → ready)", () =
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /^Download \d+ MB$/i }));
 
-    // Step 3: download dialog appears with progress copy. The title
+    // Step 3: download modal appears with progress copy. The title
     // sits at id="cloak-mask-download-title".
     await waitFor(() => {
       expect(document.getElementById("cloak-mask-download-title")).toHaveTextContent(
@@ -235,7 +235,7 @@ describe("AI journey — full happy path (consent → download → ready)", () =
       expect(sm.getMaskState().status).toBe("ready");
     });
 
-    // Step 5: download dialog auto-clears, host renders nothing.
+    // Step 5: download modal auto-clears, host renders nothing.
     await waitFor(() => {
       expect(screen.queryByText(/Setting up subject detection/i)).toBeNull();
     });
@@ -265,7 +265,7 @@ describe("AI journey — error categories pin error UI in place (no redirect)", 
     ["wasm", "The on-device runtime didn't compile in this browser.", /AI runtime didn't start/i],
     ["interrupted", "Download was interrupted by the browser.", /Download was interrupted/i],
   ] as const) {
-    it(`${kind}: failure pins MaskDownloadDialog with error copy + Try again`, async () => {
+    it(`${kind}: failure pins MaskDownloadModal with error copy + Try again`, async () => {
       const { sm, Host } = await loadFreshHost();
       let calls = 0;
       harness.smartRemoveBackground = () => {
@@ -280,12 +280,12 @@ describe("AI journey — error categories pin error UI in place (no redirect)", 
       const user = userEvent.setup();
       await user.click(await screen.findByRole("button", { name: /^Download \d+ MB$/i }));
 
-      // Wait for the rejection to land + dialog to swap into error state.
+      // Wait for the rejection to land + modal to swap into error state.
       await waitFor(() => {
         expect(sm.getMaskState().status).toBe("error");
       });
 
-      // The host must keep the dialog visible, NOT auto-clear it.
+      // The host must keep the modal visible, NOT auto-clear it.
       const tryAgain = await screen.findByRole("button", { name: /Try again/i });
       expect(tryAgain).toBeInTheDocument();
       // Title sits at id="cloak-mask-download-title". Scoping the
@@ -309,8 +309,8 @@ describe("AI journey — error categories pin error UI in place (no redirect)", 
 
 // ── Cancel / Continue-in-background / Close ─────────────────────────
 
-describe("AI journey — download dialog dismiss buttons", () => {
-  it("Cancel during active download → terminates worker, dialog clears, no redirect", async () => {
+describe("AI journey — download modal dismiss buttons", () => {
+  it("Cancel during active download → terminates worker, modal clears, no redirect", async () => {
     const { sm, Host } = await loadFreshHost();
     const seg = makeDeferred<HTMLCanvasElement>();
     harness.smartRemoveBackground = () => seg.promise;
@@ -329,7 +329,7 @@ describe("AI journey — download dialog dismiss buttons", () => {
 
     await user.click(screen.getByRole("button", { name: /^Cancel$/i }));
 
-    // Dialog gone, mask state back to idle (cancelMaskDetection clears it).
+    // Modal gone, mask state back to idle (cancelMaskDetection clears it).
     await waitFor(() => {
       expect(document.getElementById("cloak-mask-download-title")).toBeNull();
     });
@@ -337,7 +337,7 @@ describe("AI journey — download dialog dismiss buttons", () => {
     expect(harness.exitCalled).toBe(false);
   });
 
-  it("Continue in background → dialog hides, detection finishes silently", async () => {
+  it("Continue in background → modal hides, detection finishes silently", async () => {
     const { sm, Host } = await loadFreshHost();
     const seg = makeDeferred<HTMLCanvasElement>();
     harness.smartRemoveBackground = () => seg.promise;
@@ -367,7 +367,7 @@ describe("AI journey — download dialog dismiss buttons", () => {
     expect(harness.exitCalled).toBe(false);
   });
 
-  it("Close button on error dialog → terminates + clears, NO redirect home", async () => {
+  it("Close button on error modal → terminates + clears, NO redirect home", async () => {
     const { sm, Host } = await loadFreshHost();
     harness.smartRemoveBackground = () =>
       Promise.reject(new Error("Couldn't reach the model server."));
@@ -409,12 +409,12 @@ describe("AI journey — concurrent panel triggers", () => {
       await Promise.all([a, b]);
     });
 
-    // Only one consent dialog despite two concurrent requests.
+    // Only one consent modal despite two concurrent requests.
     expect(screen.getAllByText(/^Download the AI model$/i)).toHaveLength(1);
     seg.resolve?.(makeOpaqueCanvas(200, 200));
   });
 
-  it("user dismisses dialog → second auto-trigger does NOT re-pop the dialog", async () => {
+  it("user dismisses modal → second auto-trigger does NOT re-pop the modal", async () => {
     const { sm, Host } = await loadFreshHost();
     render(<Host />);
     await act(async () => {
@@ -430,7 +430,7 @@ describe("AI journey — concurrent panel triggers", () => {
     await act(async () => {
       await sm.ensureSubjectMask(harness.doc.working, "small").catch(() => undefined);
     });
-    // Dialog stays closed because of the deny latch.
+    // Modal stays closed because of the deny latch.
     expect(screen.queryByText(/^Download the AI model$/i)).toBeNull();
     expect(harness.exitCalled).toBe(false);
   });
@@ -468,7 +468,7 @@ describe("AI journey — editor never silently redirects to landing", () => {
     });
   }
 
-  it("worker that resolves a transparent (empty) mask → friendly 'no subject' error in dialog, not redirect", async () => {
+  it("worker that resolves a transparent (empty) mask → friendly 'no subject' error in modal, not redirect", async () => {
     const { sm, Host } = await loadFreshHost();
     // jsdom's getContext returns null, so hasOpaqueContent's defensive
     // fallback is `true` (assume valid). Simulate the empty-mask path

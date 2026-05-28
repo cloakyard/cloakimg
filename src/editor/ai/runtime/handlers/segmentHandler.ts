@@ -19,6 +19,7 @@ import {
   RawImage,
 } from "@huggingface/transformers";
 import { aiLog } from "../../log";
+import { bytesForModel } from "../bgModels";
 import { createProgressAggregator } from "../progress";
 import type { AiResultResponse, AiSegmentRequest } from "../types";
 import {
@@ -128,7 +129,10 @@ async function buildSegmenter(
   req: AiSegmentRequest,
   device: "webgpu" | "wasm",
 ): Promise<{ segmenter: SegmenterFn; device: "webgpu" | "wasm" }> {
-  const aggregator = createProgressAggregator("Downloading model…");
+  const aggregator = createProgressAggregator(
+    "Downloading model…",
+    bytesForModel(req.model, req.dtype),
+  );
   const progress_callback = (data: ProgressInfo) => {
     if (data.status !== "progress") return;
     const next = aggregator.push(data.file ?? "model", data.loaded ?? 0, data.total ?? 0);

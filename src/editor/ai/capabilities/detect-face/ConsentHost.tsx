@@ -1,6 +1,6 @@
 // ConsentHost.tsx — Editor-shell mount point for the face-detect
-// consent dialog. Subscribes to the face-detect service and renders
-// the generic CapabilityConsentDialog while status === "needs-consent".
+// consent modal. Subscribes to the face-detect service and renders
+// the generic CapabilityConsentModal while status === "needs-consent".
 //
 // Smaller than MaskConsentHost because the BlazeFace model is only
 // ~1 MB — the in-panel progress card is enough; we don't need the
@@ -10,7 +10,7 @@
 // MaskConsentHost.
 
 import { useCallback } from "react";
-import { CapabilityConsentDialog } from "../../ui/consent/CapabilityConsentDialog";
+import { CapabilityConsentModal } from "../../ui/consent/CapabilityConsentModal";
 import { tierById } from "../../capability/types";
 import { DETECT_FACE_FAMILY } from "./family";
 import { useDetectFaces } from "./hook";
@@ -49,12 +49,12 @@ export function DetectFaceConsentHost() {
   if (faces.state.status !== "needs-consent") return null;
 
   return (
-    <CapabilityConsentDialog
+    <CapabilityConsentModal
       family={DETECT_FACE_FAMILY}
       initialTierId={faces.state.pendingTierId ?? tierById(DETECT_FACE_FAMILY.tiers, "standard").id}
       // Same-origin asset — the cached signal comes from our own
       // localStorage marker, not HF's CacheStorage probe. We pass a
-      // probe that always returns false here: the dialog uses this to
+      // probe that always returns false here: the modal uses this to
       // stamp "Already downloaded" pills, and showing that for a
       // 230 KB model that downloads in under a second isn't useful
       // signal for the user (and would confuse the privacy promise —

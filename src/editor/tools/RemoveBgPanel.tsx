@@ -155,7 +155,7 @@ export function RemoveBgPanel() {
       patchTool("bgPickActive", false);
       commit("Remove BG");
     } catch (err) {
-      // Consent flow surfaces via the host dialog, not as an error
+      // Consent flow surfaces via the host modal, not as an error
       // chip. Swallow MaskConsentError silently — the user already
       // sees the modal asking permission.
       if (err instanceof MaskConsentError) return;
@@ -185,7 +185,7 @@ export function RemoveBgPanel() {
   // active mode so the global ✓ in MobileEditorSurface's footer
   // commits the right thing. Auto registers whenever there's
   // something to remove (the AI download itself is gated by the
-  // consent dialog if needed). Chroma only registers when the user
+  // consent modal if needed). Chroma only registers when the user
   // has actually engaged the keyer — we don't want a no-op tool peek
   // in Chroma mode to push a clean image through removeBackground.
   const applyActive = isAuto ? applyAuto : applyChroma;
@@ -267,7 +267,7 @@ export function RemoveBgPanel() {
 interface AutoProps {
   /** Friendly key (small / medium / large), driven by the central
    *  subject-mask service so the row reflects whatever the user
-   *  actually picked in the consent / switch dialog — not whatever
+   *  actually picked in the consent / switch modal — not whatever
    *  toolState happens to be. */
   quality: BgQuality;
   alreadyRemoved: boolean;
@@ -300,7 +300,7 @@ interface AutoProps {
    *  to idle. Undefined while the panel is just compositing the cut
    *  into doc.working — that step isn't cancellable. */
   onCancel?: () => void;
-  /** Open the consent / model-picker dialog so the user can switch
+  /** Open the consent / model-picker modal so the user can switch
    *  tiers. Single source of truth for tier selection — the panel
    *  no longer carries its own three-way Segment. */
   onChangeModel: () => void;
@@ -350,7 +350,7 @@ function AutoPanel({
         On-device AI
       </div>
       {/* Model readout. Single source of truth for the tier picker
-          lives in MaskConsentDialog — the "Change" link re-opens it
+          lives in MaskConsentModal — the "Change" link re-opens it
           so the user picks their tier in exactly one place. Disabled
           mid-detection because invalidating the in-flight cache to
           switch tiers would cancel the worker and confuse the user. */}

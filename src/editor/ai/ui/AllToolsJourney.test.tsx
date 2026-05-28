@@ -11,7 +11,7 @@
 //
 // Each tool is tested through three scenarios — first-time download,
 // resume, and worker error mid-download — so a regression in any
-// shared infra (consent dialog, deny latch, generation supersession)
+// shared infra (consent modal, deny latch, generation supersession)
 // trips at least nine cases. The "exitCalled" guard is the line of
 // defense against the bug we shipped earlier where a hostile mid-
 // download path silently navigated back to landing.
@@ -213,7 +213,7 @@ const ALL_TOOLS = [...SMART_ACTION_TOOLS, ...SCOPED_TOOLS];
 
 describe("AI tool journey — first-time download", () => {
   for (const tool of ALL_TOOLS) {
-    it(`${tool.id}: triggers consent dialog → user downloads → mask resolves`, async () => {
+    it(`${tool.id}: triggers consent modal → user downloads → mask resolves`, async () => {
       const { sm, Host } = await loadFreshHost();
       const cut = makeOpaqueCanvas(200, 200);
       let segCalls = 0;
@@ -227,7 +227,7 @@ describe("AI tool journey — first-time download", () => {
       await act(async () => {
         await driveTrigger(tool, sm, harness.doc.working);
       });
-      // Consent dialog is up.
+      // Consent modal is up.
       expect(await screen.findByText(/^Download the AI model$/i)).toBeInTheDocument();
 
       // Step 2: user accepts the default tier.
@@ -247,7 +247,7 @@ describe("AI tool journey — first-time download", () => {
 
 describe("AI tool journey — resume (bytes already cached)", () => {
   for (const tool of ALL_TOOLS) {
-    it(`${tool.id}: skips consent dialog, runs detection directly`, async () => {
+    it(`${tool.id}: skips consent modal, runs detection directly`, async () => {
       const { sm, Host } = await loadFreshHost();
       harness.isModelCached = async () => true;
       harness.smartRemoveBackground = () => Promise.resolve(makeOpaqueCanvas(200, 200));
@@ -257,7 +257,7 @@ describe("AI tool journey — resume (bytes already cached)", () => {
         await driveTrigger(tool, sm, harness.doc.working);
       });
 
-      // No consent dialog.
+      // No consent modal.
       expect(screen.queryByText(/^Download the AI model$/i)).toBeNull();
       await waitFor(() => expect(sm.getMaskState().status).toBe("ready"));
       expect(harness.exitCalled).toBe(false);
@@ -269,7 +269,7 @@ describe("AI tool journey — resume (bytes already cached)", () => {
 
 describe("AI tool journey — worker error mid-download", () => {
   for (const tool of ALL_TOOLS) {
-    it(`${tool.id}: error UI pinned in dialog, editor stays mounted (NO redirect)`, async () => {
+    it(`${tool.id}: error UI pinned in modal, editor stays mounted (NO redirect)`, async () => {
       const { sm, Host } = await loadFreshHost();
       harness.smartRemoveBackground = () =>
         Promise.reject(new Error("Couldn't reach the model server."));
@@ -281,14 +281,14 @@ describe("AI tool journey — worker error mid-download", () => {
 
       const consent = screen.queryByText(/^Download the AI model$/i);
       if (consent) {
-        // Smart-action triggers route through the consent dialog.
+        // Smart-action triggers route through the consent modal.
         const user = userEvent.setup();
         await user.click(screen.getByRole("button", { name: /^Download \d+ MB$/i }));
       }
       await waitFor(() => expect(sm.getMaskState().status).toBe("error"));
 
-      // Whether or not the consent dialog showed, the editor MUST stay
-      // mounted. Smart-action paths see the MaskDownloadDialog with
+      // Whether or not the consent modal showed, the editor MUST stay
+      // mounted. Smart-action paths see the MaskDownloadModal with
       // Try again; scoped-tool passive trigger paths see the inline
       // error state (the panel's own DetectionErrorCard handles that
       // off-host, but state.status === "error" is the contract).
@@ -301,7 +301,7 @@ describe("AI tool journey — worker error mid-download", () => {
 
 describe("AI tool journey — user cancels mid-download", () => {
   for (const tool of SMART_ACTION_TOOLS) {
-    it(`${tool.id}: Cancel terminates worker, dialog clears, no redirect`, async () => {
+    it(`${tool.id}: Cancel terminates worker, modal clears, no redirect`, async () => {
       const { sm, Host } = await loadFreshHost();
       const seg = deferred<HTMLCanvasElement>();
       harness.smartRemoveBackground = () => seg.promise;
@@ -337,7 +337,7 @@ describe("AI tool journey — user cancels mid-download", () => {
 // stay silent. Smart-action tools (Crop / Redact / RemoveBg / Watermark)
 // call `requestExplicit()`, which CLEARS the deny latch on purpose —
 // the user tapped a Smart button, that is itself the explicit "yes,
-// I want this" signal, and the dialog should re-open. Both
+// I want this" signal, and the modal should re-open. Both
 // contracts get pinned below.
 
 describe("AI tool journey — scoped tools respect the deny latch", () => {
@@ -356,12 +356,12 @@ describe("AI tool journey — scoped tools respect the deny latch", () => {
       await act(async () => {
         await driveTrigger(tool, sm, harness.doc.working);
       });
-      const dialog = await screen.findByText(/^Download the AI model$/i);
-      expect(dialog).toBeInTheDocument();
+      const modal = await screen.findByText(/^Download the AI model$/i);
+      expect(modal).toBeInTheDocument();
       const user = userEvent.setup();
       await user.click(screen.getByRole("button", { name: /Not now/i }));
 
-      // Second mount: passive trigger MUST NOT re-pop the dialog.
+      // Second mount: passive trigger MUST NOT re-pop the modal.
       await act(async () => {
         await driveTrigger(tool, sm, harness.doc.working).catch(() => undefined);
       });
@@ -374,7 +374,7 @@ describe("AI tool journey — scoped tools respect the deny latch", () => {
 
 describe("AI tool journey — smart-action tools clear the deny latch on retap", () => {
   for (const tool of SMART_ACTION_TOOLS) {
-    it(`${tool.id}: an explicit re-tap after Not now reopens the dialog`, async () => {
+    it(`${tool.id}: an explicit re-tap after Not now reopens the modal`, async () => {
       const { sm, Host } = await loadFreshHost();
       render(<Host />);
 
@@ -391,7 +391,7 @@ describe("AI tool journey — smart-action tools clear the deny latch on retap",
       expect(sm.getMaskState().userDenied).toBe(true);
 
       // Second tap is the explicit user re-opt-in — the latch must
-      // clear, the dialog must reopen.
+      // clear, the modal must reopen.
       await act(async () => {
         await driveTrigger(tool, sm, harness.doc.working);
       });
@@ -440,7 +440,7 @@ async function driveTrigger(
   if (tool.trigger === "smart") {
     // Smart-action panels (Crop · Redact · RemoveBg · Watermark) call
     // requestExplicit, which clears the deny latch and re-pops the
-    // dialog if needed.
+    // modal if needed.
     sm.clearMaskDeny();
     await sm.ensureSubjectMask(source).catch((e) => {
       if (!(e instanceof sm.MaskConsentError)) throw e;

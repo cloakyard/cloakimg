@@ -178,5 +178,12 @@ $RECYCLE.BIN/
 # ── Vite+ hook proxies (auto-generated) ─────────────────────
 .vite-hooks/_/
 
-# Local test images / fixtures (private — never commit)
-test-fixtures/
+# Local test images / fixtures (private — never commit the images, but
+# keep the directory tracked via .gitkeep so the probes have a home).
+test-fixtures/*
+!test-fixtures/.gitkeep
+
+# ── Test/regression output (screenshots, MCP snapshots) ─────
+# Throwaway artifacts from headless probes + Playwright MCP runs.
+test-output/
+.playwright-mcp/

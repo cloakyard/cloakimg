@@ -433,7 +433,7 @@ export function CropPanel() {
     setSmartBusy(true);
     try {
       // requestExplicit clears any prior dismiss latch — Smart Crop
-      // is a user-initiated tap, so re-opening the consent dialog if
+      // is a user-initiated tap, so re-opening the consent modal if
       // they dismissed it earlier is the right behaviour.
       const mask = subjectMask.peek() ?? (await subjectMask.requestExplicit());
       const bbox = getSubjectBBox(mask, 0.06);
@@ -495,7 +495,7 @@ export function CropPanel() {
       fc.setActiveObject(rectObj);
       fc.requestRenderAll();
     } catch (err) {
-      // Consent dialog renders via the central host; this inline
+      // Consent modal renders via the central host; this inline
       // chip is reserved for real detection failures (network drop,
       // worker crash, bad mask).
       if (err instanceof MaskConsentError) return;

@@ -1,6 +1,6 @@
 // CacheStorage probe tests.
 //
-// `isHfModelCached` is what tells the consent dialog "the bytes are
+// `isHfModelCached` is what tells the consent modal "the bytes are
 // already on disk — skip the download prompt and go straight to
 // detection." Bug here = users get re-prompted to download a model
 // they already have, OR worse, we silently skip a real download

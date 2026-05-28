@@ -22,7 +22,15 @@
 //     Routing both worker-side and main-thread errors through the same
 //     log helper keeps stack traces and context together.
 
-type Subsystem = "runtime" | "worker" | "segment" | "subjectMask" | "consent" | "preview" | "panel";
+type Subsystem =
+  | "runtime"
+  | "worker"
+  | "segment"
+  | "depth"
+  | "subjectMask"
+  | "consent"
+  | "preview"
+  | "panel";
 
 interface LogContext {
   /** Optional structured fields appended after the message. Logged via

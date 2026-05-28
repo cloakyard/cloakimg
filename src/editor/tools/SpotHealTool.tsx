@@ -26,7 +26,7 @@ const SLIDER_PREVIEW_MS = COARSE_POINTER ? 1800 : 1200;
 const TOUCH_OFFSET_PX = COARSE_POINTER ? 80 : 0;
 
 export function SpotHealTool() {
-  const { doc, toolState, commit } = useEditor();
+  const { doc, toolState, commit, patchTool } = useEditor();
   const [hover, setHover] = useState<{ x: number; y: number; inside: boolean } | null>(null);
   // paintOverlay receives the live Transform; heal() runs from a
   // pointer handler that doesn't, so we stash the latest scale here.
@@ -46,6 +46,18 @@ export function SpotHealTool() {
     const id = window.setTimeout(() => setSliderPreview(false), SLIDER_PREVIEW_MS);
     return () => window.clearTimeout(id);
   }, [toolState.brushSize, toolState.feather]);
+
+  // Hand-off from Tap-to-fix: the user tapped a blemish there and chose
+  // "Spot heal here". Park the brush ring on that exact point by seeding
+  // `hover` — paintOverlay anchors to it, so the ring shows where they
+  // tapped until they move (desktop) or tap to heal (touch). Then
+  // consume the seed so it doesn't re-fire.
+  const seed = toolState.spotHealSeed;
+  useEffect(() => {
+    if (!seed) return;
+    setHover({ x: seed.x, y: seed.y, inside: true });
+    patchTool("spotHealSeed", null);
+  }, [seed, patchTool]);
 
   const heal = useCallback(
     (p: ImagePoint) => {

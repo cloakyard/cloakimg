@@ -45,7 +45,7 @@ const DEFAULT_STALL_MESSAGE =
 
 /** Thrown by `run()` when the user hasn't yet authorised downloading
  *  the model. Callers detect this specifically (vs an inference error)
- *  and stay quiet — the consent dialog renders via the state
+ *  and stay quiet — the consent modal renders via the state
  *  subscription, not a thrown-error toast. */
 export class CapabilityConsentError extends Error {
   readonly tierId: string;
@@ -193,7 +193,7 @@ export class CapabilityService<TResult> {
     };
   }
 
-  private setState(next: Partial<CapabilityState<TResult>>): void {
+  private setState(next: Partial<CapabilityState<TResult>>, deferNotify = false): void {
     if (next.status !== undefined && next.status !== this.state.status) {
       aiLog.debug(
         "subjectMask",
@@ -206,7 +206,23 @@ export class CapabilityService<TResult> {
       );
     }
     this.state = { ...this.state, ...next, version: this.state.version + 1 };
-    for (const l of this.listeners) l(this.state);
+    if (deferNotify) {
+      // The caller (peek's dim-drift reset) runs inside a React render —
+      // e.g. PrivacyAuditCard reads peek() during render. Notifying
+      // subscribers synchronously would setState on them mid-render
+      // ("Cannot update a component while rendering a different
+      // component"). State is mutated synchronously above so getState()
+      // reflects the reset immediately; we only defer the notification
+      // to a microtask so it lands after the current render commits.
+      const snapshot = this.state;
+      queueMicrotask(() => {
+        // Skip if a later setState already superseded (and notified for)
+        // this snapshot, to avoid a redundant re-render.
+        if (this.state === snapshot) for (const l of this.listeners) l(this.state);
+      });
+    } else {
+      for (const l of this.listeners) l(this.state);
+    }
   }
 
   // —————————————— Cache ——————————————
@@ -220,7 +236,10 @@ export class CapabilityService<TResult> {
     if (this.cache.source !== source) return null;
     if (this.cache.width !== source.width || this.cache.height !== source.height) {
       this.releaseCache();
-      this.setState({ status: "idle", progress: null, error: null });
+      // peek() is a render-path read (PrivacyAuditCard calls it during
+      // render); defer the subscriber notification so we don't setState
+      // on subscribed components mid-render.
+      this.setState({ status: "idle", progress: null, error: null }, true);
       return null;
     }
     return this.cache.result;
@@ -270,10 +289,10 @@ export class CapabilityService<TResult> {
     // doesn't show a download modal — it just fires the follow-up
     // request and lets the in-panel spinner do the work. The
     // smart-action's `waitForResolution` is subscribed during the
-    // consent dialog, and bouncing through idle synchronously fires
+    // consent modal, and bouncing through idle synchronously fires
     // the listener BEFORE the follow-up request can land "loading"
     // — the wait rejects with a CapabilityConsentError, the smart
-    // action exits, the dialog UI even hides, but no detection ever
+    // action exits, the modal UI even hides, but no detection ever
     // ran. (Reproduced: probe-face-detect.mjs caught this in
     // production.)
     //
@@ -286,13 +305,13 @@ export class CapabilityService<TResult> {
     }
   }
 
-  /** Explicit close for the consent dialog without toggling
+  /** Explicit close for the consent modal without toggling
    *  consent. Used by hosts that re-open the picker for an already-
    *  granted user (e.g. "Change model size") and want to dismiss
    *  without firing a follow-up detection. Distinct from
-   *  `denyConsent`, which latches `userDenied` to keep the dialog
+   *  `denyConsent`, which latches `userDenied` to keep the modal
    *  away. */
-  dismissConsentDialog(): void {
+  dismissConsentModal(): void {
     if (this.state.status === "needs-consent") {
       this.setState({ status: "idle", pendingTierId: null });
     }
@@ -309,7 +328,7 @@ export class CapabilityService<TResult> {
   /** Reset the deny latch. Called from explicit user actions that
    *  re-opt-into the AI flow (resume chip, switching scope, retrying
    *  a smart action). The next `run` call after this re-pops the
-   *  consent dialog. */
+   *  consent modal. */
   clearDeny(): void {
     if (this.state.userDenied) this.setState({ userDenied: false });
   }
@@ -318,9 +337,9 @@ export class CapabilityService<TResult> {
     return this.consentGranted;
   }
 
-  /** Force the consent / model-picker dialog open from a UI affordance
+  /** Force the consent / model-picker modal open from a UI affordance
    *  ("Change model size" link). Re-uses the existing `needs-consent`
-   *  status so a single host renders the same picker dialog. */
+   *  status so a single host renders the same picker modal. */
   requestTierPicker(currentTierId: string): void {
     if (this.state.userDenied) this.setState({ userDenied: false });
     this.setState({
@@ -371,7 +390,7 @@ export class CapabilityService<TResult> {
   /** Run the capability for `source` at `tier`. Concurrent callers for
    *  the same source share one in-flight promise. May throw
    *  `CapabilityConsentError` when the user hasn't authorised the
-   *  model — caller should let the consent dialog handle that path
+   *  model — caller should let the consent modal handle that path
    *  rather than treating it as a failure toast. */
   async run(
     source: HTMLCanvasElement,
@@ -534,7 +553,7 @@ export class CapabilityService<TResult> {
   /** Wait until the service settles for an outstanding consent request
    *  (or in-flight detection) for `source`. Resolves with the result;
    *  rejects with `CapabilityConsentError` if the user dismisses the
-   *  dialog. Used by smart-action buttons so a click that triggers
+   *  modal. Used by smart-action buttons so a click that triggers
    *  consent + download + inference all unblocks on a single tap.
    *
    *  Note: the wait resolves on the FIRST "ready" the service reaches

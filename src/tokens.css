@@ -171,7 +171,10 @@
   --sunset-rose: var(--color-sunset-rose);
   --sunset-gold: var(--color-sunset-gold);
 
-  --focus-ring: color-mix(in srgb, var(--coral-500) 22%, transparent);
+  /* Solid coral so the 2px ring clears the WCAG 3:1 non-text-contrast
+     floor against both the cream page and the near-black dark surface.
+     The prior 22%-alpha mix was near-invisible on cream. */
+  --focus-ring: light-dark(var(--coral-600), var(--coral-400));
 
   /* Legacy bridge — kept in sync with `--color-canvas-bg` above. */
   --canvas-bg: var(--color-canvas-bg);
@@ -284,11 +287,18 @@ body {
   color: var(--coral-500);
   letter-spacing: -0.02em;
 }
+/* Large editorial display heads — the one tier (besides the hero
+   accent) that carries the Instrument Serif voice, so the second
+   typeface reads as a system rather than a single hero flourish.
+   Dense UI titles (.t-headline / .t-title / .t-card-title) stay Inter
+   on purpose — serif italic would hurt legibility in tool chrome. */
 .t-display {
-  font-size: clamp(24px, 3.4vw, 36px);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 3.8vw, 40px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 .t-headline {
@@ -318,7 +328,7 @@ body {
 }
 @media (min-width: 640px) {
   .t-subtitle {
-    font-size: 16.5px;
+    font-size: 16px;
   }
 }
 .t-body {
@@ -333,7 +343,7 @@ body {
   color: var(--text-muted);
 }
 .t-caption {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.55;
   color: var(--text-muted);
@@ -402,7 +412,14 @@ body {
   cursor: pointer;
   border-radius: var(--r-xl);
   padding: 11px 22px;
-  transition: all 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Enumerated (never `all`) so only paint-cheap properties animate and
+     a stray layout prop can't tween; shares the app's iOS easing token. */
+  transition:
+    transform 180ms var(--ease-out-ios),
+    background-color 180ms var(--ease-out-ios),
+    border-color 180ms var(--ease-out-ios),
+    box-shadow 180ms var(--ease-out-ios),
+    color 180ms var(--ease-out-ios);
   white-space: nowrap;
   color: inherit;
 }
@@ -526,7 +543,10 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-2xl);
-  transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    transform 200ms var(--ease-out-ios),
+    border-color 200ms var(--ease-out-ios),
+    box-shadow 200ms var(--ease-out-ios);
 }
 .card-hover:hover {
   transform: translateY(-2px);
@@ -636,9 +656,9 @@ html {
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 .logo-wordmark {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--text);
 }
 .logo-wordmark span {

@@ -1,9 +1,9 @@
-// MaskDownloadDialog.tsx — Progress modal shown after the user
-// accepts the consent dialog's "Download" tap. Stays on-screen for
+// MaskDownloadModal.tsx — Progress modal shown after the user
+// accepts the consent modal's "Download" tap. Stays on-screen for
 // the duration of the model fetch + initial inference so the user
 // has visible confirmation that work is happening on their behalf.
 // Auto-closes when detection settles to "ready" — failures stay
-// pinned with an inline error + Try again so the dialog doesn't
+// pinned with an inline error + Try again so the modal doesn't
 // silently vanish on a worker crash or network drop.
 //
 // Three ways out:
@@ -41,7 +41,7 @@ interface Props {
   onRetry: () => void;
 }
 
-export function MaskDownloadDialog({
+export function MaskDownloadModal({
   progress,
   warm,
   expectedTotal,
@@ -78,7 +78,7 @@ export function MaskDownloadDialog({
       labelledBy="cloak-mask-download-title"
     >
       {/* Sticky header — same icon-+-title-+-close-X pattern as
-          ConfirmDialog, FilePropertiesModal, and the consent dialog.
+          ConfirmModal, FilePropertiesModal, and the consent modal.
           The icon swatch swaps from Sparkles (active download) to a
           coral Triangle (error) so the visual state is clear at a
           glance, and the subtitle moved into the body so the header
@@ -115,10 +115,10 @@ export function MaskDownloadDialog({
       </div>
 
       {/* Sticky footer — bordered top + safe-area padding on mobile,
-          matching ConfirmDialog. The action set differs by state but
+          matching ConfirmModal. The action set differs by state but
           the row layout / button sizes / spacing are identical so
           the modal feels like a single component animating between
-          download → error states, not two different dialogs. */}
+          download → error states, not two different modals. */}
       <div
         className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
@@ -183,7 +183,7 @@ type ErrorKind =
   | "generic";
 
 /** Pattern-match the (already-friendly) error message back to a
- *  category so the dialog title + body can adapt. The worker's
+ *  category so the modal title + body can adapt. The worker's
  *  friendlyErrorMessage produces the same canonical strings, so we
  *  can match deterministically rather than re-reading the raw error.
  *  Falls back to "generic" so a new error class never breaks the UI. */

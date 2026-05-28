@@ -98,7 +98,7 @@ describe("MobileMoreMenu", () => {
     });
 
     // Reset is destructive — the menu must fully animate closed BEFORE
-    // the parent shows its confirm dialog, otherwise the confirm stacks
+    // the parent shows its confirm modal, otherwise the confirm stacks
     // on top of a still-fading menu.
     it("clicking Reset all edits closes the menu before invoking onReset", () => {
       const calls: string[] = [];

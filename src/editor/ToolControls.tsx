@@ -1,37 +1,82 @@
 // ToolControls.tsx — Top-level dispatcher: pick the right tool's
 // property-panel component based on the active tool. Each tool owns its
 // own panel module so this file stays small and easy to read.
+//
+// Workhorse panels (move / crop / resize / adjust / filter) are eager so
+// the common flows never wait on a chunk; the long tail is
+// `React.lazy`-loaded into on-demand chunks to keep the initial editor
+// bundle small. The Suspense fallback is null — first-open of a niche
+// tool shows an empty panel for the ~one frame its chunk takes to load,
+// then cached thereafter.
 
-import { useEditor } from "./EditorContext";
+import { lazy, Suspense } from "react";
+import { useActiveTool } from "./EditorContext";
 import { AdjustPanel } from "./tools/AdjustPanel";
-import { BgBlurPanel } from "./tools/BgBlurPanel";
-import { BorderPanel } from "./tools/BorderPanel";
 import { CropPanel } from "./tools/CropTool";
 import { DefaultPanel } from "./tools/DefaultPanel";
 import { FilterPanel } from "./tools/FilterPanel";
-import { FramePanel } from "./tools/FrameTool";
-import { HslPanel } from "./tools/HslPanel";
-import { LevelsPanel } from "./tools/LevelsPanel";
-import { PerspectivePanel } from "./tools/PerspectivePanel";
-import { RedactPanel } from "./tools/RedactPanel";
-import { ResizePanel } from "./tools/ResizePanel";
-import { DrawPanel } from "./tools/DrawPanel";
-import { PenPanel } from "./tools/PenPanel";
-import { TextPanel } from "./tools/TextPanel";
-import { WatermarkPanel } from "./tools/WatermarkPanel";
-import { ColorPickerPanel } from "./tools/ColorPickerPanel";
-import { ImagePanel } from "./tools/ImagePanel";
 import { MovePanel } from "./tools/MovePanel";
-import { ShapesPanel } from "./tools/ShapesPanel";
-import { EmojiPanel } from "./tools/EmojiPanel";
-import { SpotHealPanel } from "./tools/SpotHealPanel";
-import { TapFixPanel } from "./tools/TapFixPanel";
-import { TimeOfDayPanel } from "./tools/TimeOfDayPanel";
-import { RemoveBgPanel } from "./tools/RemoveBgPanel";
+import { ResizePanel } from "./tools/ResizePanel";
+import type { ToolState } from "./toolState";
+
+const BgBlurPanel = lazy(() =>
+  import("./tools/BgBlurPanel").then((m) => ({ default: m.BgBlurPanel })),
+);
+const BorderPanel = lazy(() =>
+  import("./tools/BorderPanel").then((m) => ({ default: m.BorderPanel })),
+);
+const FramePanel = lazy(() => import("./tools/FrameTool").then((m) => ({ default: m.FramePanel })));
+const HslPanel = lazy(() => import("./tools/HslPanel").then((m) => ({ default: m.HslPanel })));
+const LevelsPanel = lazy(() =>
+  import("./tools/LevelsPanel").then((m) => ({ default: m.LevelsPanel })),
+);
+const PerspectivePanel = lazy(() =>
+  import("./tools/PerspectivePanel").then((m) => ({ default: m.PerspectivePanel })),
+);
+const RedactPanel = lazy(() =>
+  import("./tools/RedactPanel").then((m) => ({ default: m.RedactPanel })),
+);
+const DrawPanel = lazy(() => import("./tools/DrawPanel").then((m) => ({ default: m.DrawPanel })));
+const PenPanel = lazy(() => import("./tools/PenPanel").then((m) => ({ default: m.PenPanel })));
+const TextPanel = lazy(() => import("./tools/TextPanel").then((m) => ({ default: m.TextPanel })));
+const WatermarkPanel = lazy(() =>
+  import("./tools/WatermarkPanel").then((m) => ({ default: m.WatermarkPanel })),
+);
+const ColorPickerPanel = lazy(() =>
+  import("./tools/ColorPickerPanel").then((m) => ({ default: m.ColorPickerPanel })),
+);
+const ImagePanel = lazy(() =>
+  import("./tools/ImagePanel").then((m) => ({ default: m.ImagePanel })),
+);
+const ShapesPanel = lazy(() =>
+  import("./tools/ShapesPanel").then((m) => ({ default: m.ShapesPanel })),
+);
+const EmojiPanel = lazy(() =>
+  import("./tools/EmojiPanel").then((m) => ({ default: m.EmojiPanel })),
+);
+const SpotHealPanel = lazy(() =>
+  import("./tools/SpotHealPanel").then((m) => ({ default: m.SpotHealPanel })),
+);
+const TapFixPanel = lazy(() =>
+  import("./tools/TapFixPanel").then((m) => ({ default: m.TapFixPanel })),
+);
+const TimeOfDayPanel = lazy(() =>
+  import("./tools/TimeOfDayPanel").then((m) => ({ default: m.TimeOfDayPanel })),
+);
+const RelightPanel = lazy(() =>
+  import("./tools/RelightPanel").then((m) => ({ default: m.RelightPanel })),
+);
+const RemoveBgPanel = lazy(() =>
+  import("./tools/RemoveBgPanel").then((m) => ({ default: m.RemoveBgPanel })),
+);
 
 export function ToolControls() {
-  const { toolState } = useEditor();
-  switch (toolState.activeTool) {
+  const activeTool = useActiveTool();
+  return <Suspense fallback={null}>{renderPanel(activeTool)}</Suspense>;
+}
+
+function renderPanel(activeTool: ToolState["activeTool"]) {
+  switch (activeTool) {
     case "move":
       return <MovePanel />;
     case "tapfix":
@@ -44,6 +89,8 @@ export function ToolControls() {
       return <AdjustPanel />;
     case "tod":
       return <TimeOfDayPanel />;
+    case "relight":
+      return <RelightPanel />;
     case "levels":
       return <LevelsPanel />;
     case "hsl":

@@ -30,7 +30,7 @@ interface ProgressProps {
   /** Expected total download bytes for the chosen quality tier.
    *  Used as a fallback for the bytes readout when the actual
    *  `progress.bytesTotal` hasn't arrived yet — without this the
-   *  dialog spends its first 1–3 seconds (worker spawn + model
+   *  modal spends its first 1–3 seconds (worker spawn + model
    *  fetch handshake) showing only "Preparing…" and a tiny stub bar,
    *  which reads as "nothing is happening". */
   expectedTotal?: number;
@@ -65,7 +65,7 @@ export function DetectionProgressCard({
   // "Indeterminate" means we know we're working but have no bytes
   // yet — worker is spawning, transformers.js is initialising, or
   // the model fetch hasn't returned its first chunk. Show the same
-  // sliding-stripe animation as inference so the dialog never sits
+  // sliding-stripe animation as inference so the modal never sits
   // looking dead.
   const isIndeterminate = isDownload && !((progress?.bytesTotal ?? 0) > 0);
   const animateStripe = isInference || isIndeterminate;
@@ -136,7 +136,7 @@ export function DetectionProgressCard({
         </div>
       )}
       {/* Reassurance line when we're indeterminate AND don't already
-          have a privacy / bytes line — without it the dialog had a
+          have a privacy / bytes line — without it the modal had a
           single muted bar and nothing else, which is what the user
           flagged as "nothing happens". */}
       {isIndeterminate && !warm && total === 0 && (
@@ -220,12 +220,12 @@ function formatMb(bytes: number): string {
 
 interface PausedProps {
   /** Tap handler — clears the deny latch and re-fires detection (which
-   *  re-opens the consent dialog via the central host). */
+   *  re-opens the consent modal via the central host). */
   onResume: () => void;
 }
 
 /** Inline affordance shown when the user previously dismissed the
- *  consent dialog. Without this, denying leaves the panel in a stuck
+ *  consent modal. Without this, denying leaves the panel in a stuck
  *  state — controls gated, no obvious way to opt back in. */
 export function DetectionPausedChip({ onResume }: PausedProps) {
   return (

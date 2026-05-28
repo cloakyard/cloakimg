@@ -13,7 +13,7 @@
 //     detection on mount; shows the inline progress card.
 //   • Loading — DetectionProgressCard with download or inference state.
 //   • Ready — DetectionReadyChip.
-//   • Needs consent — DetectionConsentChip while the host dialog is up.
+//   • Needs consent — DetectionConsentChip while the host modal is up.
 //   • Error — DetectionErrorCard with a Try Again button.
 //
 // All sub-states render the *exact* same components Remove BG uses
@@ -47,12 +47,12 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
   // Auto-trigger detection the moment the user picks a scoped option
   // and the mask isn't ready. We don't trigger if status is already
   // "loading", "error" or "needs-consent" (avoid hammering retries;
-  // the error card owns the retry button, the consent dialog owns the
+  // the error card owns the retry button, the consent modal owns the
   // accept tap), and we don't trigger when the user has explicitly
-  // denied — re-firing then would just re-pop the dialog, defeating
+  // denied — re-firing then would just re-pop the modal, defeating
   // the dismiss. The DetectionPausedChip surfaces the explicit
   // re-opt-in path. The request itself may still bounce off the
-  // consent gate (MaskConsentError) — the host dialog renders via
+  // consent gate (MaskConsentError) — the host modal renders via
   // state, not via this throw.
   useEffect(() => {
     if (!wantsMask) return;
@@ -67,7 +67,7 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
     void request().catch(() => {
       // Either a real detection error (surfaces via DetectionErrorCard
       // through state.error) or a consent bounce (handled by the host
-      // dialog through state.status === "needs-consent"). Either way
+      // modal through state.status === "needs-consent"). Either way
       // the user is told via state, not an exception.
     });
   }, [request, state.status, state.userDenied, wantsMask]);
@@ -76,8 +76,8 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
     (i: number) => {
       onScope(i);
       // Picking a non-Whole scope is an explicit "I want the AI"
-      // signal. If the user previously dismissed the consent dialog
-      // (state.userDenied), kick off the resume flow so the dialog
+      // signal. If the user previously dismissed the consent modal
+      // (state.userDenied), kick off the resume flow so the modal
       // re-opens instead of the panel staying paused forever.
       // resumeAfterDeny clears the latch and fires detection — same
       // path as the "Enable AI" chip, keeping both re-opt-in surfaces
@@ -119,7 +119,7 @@ export function MaskScopeRow({ scope, onScope, label = "Apply to" }: Props) {
 }
 
 /** Sits in for the progress card while the user has the consent
- *  dialog up. Reassures them the panel is waiting on their tap, not
+ *  modal up. Reassures them the panel is waiting on their tap, not
  *  on a stuck download. */
 function DetectionConsentChip() {
   return (

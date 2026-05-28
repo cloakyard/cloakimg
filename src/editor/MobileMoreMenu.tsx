@@ -34,18 +34,22 @@ export function MobileMoreMenu({
   onReset,
   onClose,
 }: Props) {
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   useFocusReturn(true);
-  useFocusTrap(dialogRef, true);
+  useFocusTrap(modalRef, true);
 
   return (
     <ModalFrame
       onClose={onClose}
       bottomSheet
       position="absolute"
-      maxWidth="max-w-130"
+      // This drawer only ever renders in the mobile layout (≤ 760 px),
+      // so it should span the full width edge-to-edge like the Export
+      // sheet — a fixed cap (e.g. max-w-130 = 520 px) left it a narrow
+      // centred sheet on 520–760 px viewports instead of a true drawer.
+      maxWidth="max-w-none"
       labelledBy="mobile-more-title"
-      dialogRef={dialogRef}
+      modalRef={modalRef}
     >
       <MoreMenuBody
         fileName={fileName}
@@ -65,7 +69,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
   // feels abrupt — every item triggers an action AND closes the menu.
   // The animated close accepts an onSettled callback that fires AFTER
   // the slide-down completes, which is how Reset preserves its
-  // "close before showing the confirm dialog" UX invariant.
+  // "close before showing the confirm modal" UX invariant.
   const animatedClose = useModalClose();
   const dismiss = (after?: () => void) => {
     if (animatedClose) animatedClose(after);
@@ -83,7 +87,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
         <ModalCloseButton onClose={onClose} iconSize={14} />
       </div>
 
-      {/* Inner items kept transparent so the dialog's frosted bg-surface/85
+      {/* Inner items kept transparent so the modal's frosted bg-surface/85
           + backdrop-blur reads through. Dividers are very faint for the
           same reason — anything heavier reads as a stack of solid cards
           glued onto the glass instead of belonging to it. */}
@@ -109,7 +113,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
           disabled={!canReset}
           onClick={() => {
             // Dismiss first, THEN run reset (which opens a confirm
-            // dialog in the parent) — preserves the prior contract
+            // modal in the parent) — preserves the prior contract
             // that the menu fully closes before the confirm appears.
             dismiss(onReset);
           }}

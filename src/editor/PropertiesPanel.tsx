@@ -3,7 +3,7 @@
 // renders ToolControls below.
 
 import { I } from "../components/icons";
-import { useEditor } from "./EditorContext";
+import { useActiveTool, useEditorActions, useEditorReadOnly } from "./EditorContext";
 import { LayersList } from "./LayersList";
 import { findTool } from "./tools";
 import { ToolControls } from "./ToolControls";
@@ -13,8 +13,13 @@ interface Props {
 }
 
 export function PropertiesPanel({ collapsed = false }: Props) {
-  const { toolState, cancelCurrentTool, canCancelCurrentTool } = useEditor();
-  const { activeTool } = toolState;
+  // Read only the slices this wrapper needs: the active tool id (changes
+  // on tool switch only) + the cancel affordance. Subscribing to the
+  // omnibus `useEditor()` re-rendered the whole panel — header, controls
+  // wrapper, and LayersList — on every slider tick.
+  const activeTool = useActiveTool();
+  const { cancelCurrentTool } = useEditorActions();
+  const { canCancelCurrentTool } = useEditorReadOnly();
   const tool = findTool(activeTool);
 
   return (

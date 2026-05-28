@@ -2,9 +2,9 @@
 //
 // transformers.js stores fetched model files in a CacheStorage bucket
 // (default name "transformers-cache"). We use this from the consent
-// dialog and the mask service to answer "are the bytes already on
+// modal and the mask service to answer "are the bytes already on
 // disk for this <model, dtype> combo?" — which lets us suppress the
-// download dialog when nothing would actually be downloaded.
+// download modal when nothing would actually be downloaded.
 //
 // Generic on purpose: any future pipeline (face-detect, OCR, depth)
 // can call `isHfModelCached(repo, dtype)` with no extra plumbing.
@@ -13,7 +13,7 @@ const HF_CACHE_PREFIXES = [
   "transformers-cache",
   // transformers.js has historically used a few cache names across
   // versions; checking both means a library upgrade doesn't silently
-  // claim the model isn't cached and pop the dialog spuriously.
+  // claim the model isn't cached and pop the modal spuriously.
   "transformers-cache-v3",
 ];
 
@@ -46,7 +46,7 @@ export async function isHfModelCached(repo: string, dtype: string): Promise<bool
     }
   } catch {
     // CacheStorage is gated behind secure context; on file:// it's
-    // unavailable. No info → false → user gets the dialog.
+    // unavailable. No info → false → user gets the modal.
   }
   return false;
 }
@@ -57,7 +57,7 @@ export async function isHfModelCached(repo: string, dtype: string): Promise<bool
  *
  *  Keep in sync with the dtypes used by `segment.ts`'s tier registry —
  *  a typo here would make the cache probe always return false and the
- *  consent dialog would never show "Already downloaded". */
+ *  consent modal would never show "Already downloaded". */
 function filenameForDtype(dtype: string): string {
   switch (dtype) {
     case "fp32":

@@ -1,12 +1,12 @@
-// ModalFrame.tsx — Shared dialog frame: dimmed/blurred backdrop + glass
+// ModalFrame.tsx — Shared modal frame: dimmed/blurred backdrop + glass
 // card with the brand's translucent aesthetic. Handles click-outside,
 // the desktop-centered vs mobile-bottom-sheet split, positioning
 // (`fixed` for full-viewport modals on the landing, `absolute` for
 // modals scoped to the editor's `<main>` shell), and now (May 2026)
-// owns the open / close motion for every dialog in the app.
+// owns the open / close motion for every modal in the app.
 //
 // Motion lifecycle:
-//   • On mount → backdrop + dialog play their enter animations
+//   • On mount → backdrop + modal play their enter animations
 //     (`ci-modal-backdrop-enter` + `ci-modal-card-enter` /
 //     `ci-modal-sheet-enter`).
 //   • When the consumer's onClose request arrives, ModalFrame flips
@@ -46,23 +46,23 @@ interface ModalFrameProps {
   /** Optional aria-labelledby id pointing into the header content. */
   labelledBy?: string;
   /**
-   * Extra classes for the dialog (the inner glass card). Use this for
+   * Extra classes for the modal (the inner glass card). Use this for
    * variants like `flex-row` layout on desktop. Defaults to `flex-col`.
    */
-  dialogClassName?: string;
-  /** Forwarded to the dialog element for `useFocusTrap`-style hooks. */
-  dialogRef?: RefObject<HTMLDivElement | null>;
+  modalClassName?: string;
+  /** Forwarded to the modal element for `useFocusTrap`-style hooks. */
+  modalRef?: RefObject<HTMLDivElement | null>;
   children: ReactNode;
 }
 
-const DIALOG_BASE =
+const MODAL_BASE =
   "relative flex w-full overflow-hidden border border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150";
 
 // Exit-animation budget. Must stay in sync with the longer of the
 // `ci-modal-*-exit` keyframe durations in style.css (sheet exit
 // runs --dur-base = 240 ms; card exit runs --dur-fast = 180 ms). We
 // pad a frame so the animation has visibly settled before the parent
-// unmounts the dialog.
+// unmounts the modal.
 const EXIT_MS = 260;
 
 export function ModalFrame({
@@ -71,8 +71,8 @@ export function ModalFrame({
   position = "fixed",
   maxWidth = "max-w-160",
   labelledBy,
-  dialogClassName = "flex-col",
-  dialogRef,
+  modalClassName = "flex-col",
+  modalRef,
   children,
 }: ModalFrameProps) {
   const sheetRadius = bottomSheet ? "rounded-t-3xl" : "rounded-3xl";
@@ -106,7 +106,7 @@ export function ModalFrame({
   // saves the duplication and makes Esc go through the same animated
   // path as backdrop clicks / X-button clicks. Consumers that want a
   // different Esc behaviour (e.g. a Crop session that has its own
-  // rollback) wire it as a no-op on their own — but for a dialog,
+  // rollback) wire it as a no-op on their own — but for a modal,
   // Esc should always animate out.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -123,7 +123,7 @@ export function ModalFrame({
   }, [requestClose]);
 
   // Lock the underlying document while a modal is mounted so that
-  // scrolling inside the dialog doesn't bleed through to the page
+  // scrolling inside the modal doesn't bleed through to the page
   // behind it (especially on iOS where overscroll otherwise pulls the
   // landing page into view). Each modal saves and restores the
   // previous values so nested or back-to-back modals leave the page
@@ -147,7 +147,7 @@ export function ModalFrame({
   }, []);
 
   const backdropMotion = closing ? "ci-modal-backdrop-exit" : "ci-modal-backdrop-enter";
-  const dialogMotion = closing
+  const modalMotion = closing
     ? bottomSheet
       ? "ci-modal-sheet-exit"
       : "ci-modal-card-exit"
@@ -169,16 +169,16 @@ export function ModalFrame({
       <button
         type="button"
         onClick={() => requestClose()}
-        aria-label="Close dialog"
+        aria-label="Close modal"
         className="absolute inset-0 cursor-default border-none bg-transparent p-0"
         tabIndex={-1}
       />
       <div
-        ref={dialogRef}
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className={`${DIALOG_BASE} ${maxWidth} ${sheetRadius} ${heightClamp} ${dialogClassName} ${dialogMotion}`}
+        className={`${MODAL_BASE} ${maxWidth} ${sheetRadius} ${heightClamp} ${modalClassName} ${modalMotion}`}
         style={{ boxShadow: "var(--shadow-modal)" }}
       >
         {/* Inject the close-aware onClose down to descendants via a
@@ -206,7 +206,7 @@ export function ModalFrame({
 //
 // The returned function accepts an optional `onSettled` callback that
 // fires after the exit animation completes — useful when a menu item
-// both dismisses the modal AND opens something else (a confirm dialog,
+// both dismisses the modal AND opens something else (a confirm modal,
 // say). Without the callback, opening the next modal mid-animation
 // stacks two modals on top of each other while the first one fades.
 type CloseFn = (onSettled?: () => void) => void;

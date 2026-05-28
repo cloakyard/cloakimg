@@ -1,7 +1,7 @@
 // segment.ts — Subject-segmentation facade.
 //
 // Public API mirrors the old `smartRemoveBg.ts` so the seven downstream
-// callers (subjectMask service, hook, dialogs, panels) didn't have to
+// callers (subjectMask service, hook, modals, panels) didn't have to
 // change shape — only their import paths moved.
 //
 // Internals are transformers.js + ONNX, running in our own worker
@@ -204,7 +204,7 @@ export async function smartRemoveBackground(
 }
 
 /** Whether a given quality tier's model bytes are already on disk
- *  from a previous session. Used by the consent dialog to render the
+ *  from a previous session. Used by the consent modal to render the
  *  "Already downloaded" badge and by the mask service to suppress the
  *  prompt when nothing would actually be downloaded.
  *

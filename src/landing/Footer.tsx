@@ -87,7 +87,7 @@ export function Footer({ onPrivacy }: Props) {
                     <div className="text-[13px] font-semibold tracking-[-0.005em] text-text">
                       {step.title}
                     </div>
-                    <div className="text-[12.5px] leading-[1.55] text-text-muted">
+                    <div className="text-[12px] leading-[1.55] text-text-muted">
                       {step.description}
                     </div>
                   </div>
@@ -132,7 +132,7 @@ export function Footer({ onPrivacy }: Props) {
         </div>
 
         {/* Slim attribution row */}
-        <div className="flex flex-col gap-2 border-t border-border-soft pt-4 text-[12.5px] text-text-muted sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex flex-col gap-2 border-t border-border-soft pt-4 text-[12px] text-text-muted sm:flex-row sm:items-center sm:gap-4">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
             <span>Built with care by</span>
             <a
@@ -150,7 +150,7 @@ export function Footer({ onPrivacy }: Props) {
                 <button
                   type="button"
                   onClick={onPrivacy}
-                  className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 font-[inherit] text-[12.5px] text-text-muted transition-colors hover:text-coral-600 dark:hover:text-coral-400"
+                  className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 font-[inherit] text-[12px] text-text-muted transition-colors hover:text-coral-600 dark:hover:text-coral-400"
                 >
                   <I.ShieldCheck size={14} />
                   Privacy

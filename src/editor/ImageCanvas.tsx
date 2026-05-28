@@ -43,7 +43,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useEditor } from "./EditorContext";
+import { useEditorActions, useEditorReadOnly, useToolState } from "./EditorContext";
 import type { ToolState } from "./toolState";
 
 interface Props {
@@ -117,13 +117,14 @@ export function ImageCanvas({
   previewVersion,
   fabricInteractive,
 }: Props) {
+  // ImageCanvas genuinely needs the live tool state (it feeds
+  // `paintOverlay`), so it re-renders per slider tick by design — but
+  // consuming the focused slices drops the extra omnibus-recomputation
+  // layer the old `useEditor()` added.
+  const { doc, view, layers, compareActive } = useEditorReadOnly();
+  const toolState = useToolState();
   const {
-    doc,
-    view,
     setView,
-    toolState,
-    layers,
-    compareActive,
     setCompareActive,
     baseCanvas,
     setFabricCanvas,
@@ -131,7 +132,7 @@ export function ImageCanvas({
     peekFabricSnapshot,
     commit,
     undo,
-  } = useEditor();
+  } = useEditorActions();
   const containerRef = useRef<HTMLDivElement>(null);
   // Fabric inserts a wrapper div + two canvases, then disposes the
   // whole structure on unmount. We mount it inside a host div we own

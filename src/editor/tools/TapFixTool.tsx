@@ -10,7 +10,8 @@
 // one-tap fix; power users keep the existing rail.
 //
 // MVP scope (this file):
-//   • Tap inside a detected face box → "Pixelate face" / "Blur face"
+//   • Tap inside a detected face box → "Pixelate face" / "Blur face" /
+//     "Spot heal" (faces are the most common retouch target)
 //   • Tap inside the subject silhouette → "Pixelate subject" /
 //     "Remove background"
 //   • Tap anywhere else → "Spot heal"
@@ -20,7 +21,7 @@
 // blemish detection → auto-heal; OCR-detected text region →
 // "Redact text".
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { I } from "../../components/icons";
 import { useEditor } from "../EditorContext";
 import type { ImagePoint, Transform } from "../ImageCanvas";
@@ -40,22 +41,23 @@ interface TapState {
    *  chips from the tap point). */
   sx: number;
   sy: number;
-  /** What the AI saw at the tap point. */
-  context: TapContext;
 }
 
 type TapContext = { kind: "face"; box: FaceBox } | { kind: "subject" } | { kind: "anywhere" };
 
 export function TapFixTool() {
-  const { doc, commit, runBusy, setActiveTool } = useEditor();
+  const { doc, commit, runBusy, setActiveTool, patchTool } = useEditor();
   const subjectMask = useSubjectMask();
   const faces = useDetectFaces();
   const [tap, setTap] = useState<TapState | null>(null);
-  // Re-render trigger when the AI services finish background work.
-  // Doesn't change the chip layout — the chips are anchored to the
-  // tap point which already lives in state — but it lets us pick up
-  // late-arriving detections (user tapped before face detect
-  // finished).
+  const menuRef = useRef<HTMLDivElement>(null);
+  // Offset that nudges the chip menu back on-screen when the tap lands
+  // near a viewport edge (computed in the layout effect below).
+  const [clamp, setClamp] = useState({ dx: 0, dy: 0 });
+  // Reading the AI service versions here subscribes this component to
+  // their updates: when face detection or the subject mask finishes
+  // (possibly after the user already tapped), we re-render and the live
+  // re-classification below upgrades the chip set accordingly.
   void subjectMask.state.version;
   void faces.state.version;
 
@@ -120,14 +122,15 @@ export function TapFixTool() {
         return;
       }
       if (!p.inside) return;
-      const context = classify(p);
       // Capture both image-space and screen-space so the chips paint
       // at the click point. Using clientX/Y from the React event is
       // fine — it's already in viewport coords, which is what the
-      // chip absolute-positioning math expects.
-      setTap({ ix: p.x, iy: p.y, sx: e.clientX, sy: e.clientY, context });
+      // chip absolute-positioning math expects. Classification happens
+      // live at render time (see `context` below) so late-arriving
+      // detections aren't frozen out.
+      setTap({ ix: p.x, iy: p.y, sx: e.clientX, sy: e.clientY });
     },
-    [classify, tap],
+    [tap],
   );
 
   // Image-space → screen-space sync. The tap stores its initial
@@ -137,13 +140,33 @@ export function TapFixTool() {
   // image-space tap and update state if they've moved more than a
   // pixel.
   const paintOverlay = useCallback(
-    (_ctx: CanvasRenderingContext2D, t: Transform) => {
+    (ctx: CanvasRenderingContext2D, t: Transform) => {
       if (!tap) return;
       const sx = t.ox + tap.ix * t.scale;
       const sy = t.oy + tap.iy * t.scale;
       if (Math.abs(sx - tap.sx) > 1 || Math.abs(sy - tap.sy) > 1) {
         setTap((prev) => (prev ? { ...prev, sx, sy } : prev));
       }
+
+      // Tap marker — a small coral target at the exact tapped pixel so
+      // the user can see what they're acting on. Matters most for Spot
+      // heal (a precise point) and to disambiguate which face/subject a
+      // tap landed on. White rings keep it legible on any background.
+      const CORAL = "245, 97, 58";
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(sx, sy, 9, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${CORAL}, 0.5)`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(sx, sy, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CORAL}, 0.95)`;
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+      ctx.stroke();
+      ctx.restore();
     },
     [tap],
   );
@@ -154,15 +177,80 @@ export function TapFixTool() {
     cursor: "crosshair",
   });
 
+  // Escape dismisses the chip menu — it's a modal, so the key should
+  // back out of it without acting, same as the second-tap gesture.
+  useEffect(() => {
+    if (!tap) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTap(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tap]);
+
+  // Keep the chip menu on-screen. It's positioned at the tap point and
+  // pulled up/left by its own size (translate -50% / -100%), so a tap
+  // near the top or side edge would clip it off the viewport. We
+  // measure from the *unclamped* anchor (offsetWidth/Height are immune
+  // to the transform, so this can't feed back into itself) and nudge it
+  // back inside with an 8px margin. Runs every render so chip-count
+  // changes re-measure; the equality guard makes that a no-op when the
+  // offset is unchanged.
+  useLayoutEffect(() => {
+    const el = menuRef.current;
+    if (!el || !tap) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const m = 8;
+    const anchorX = tap.sx;
+    const anchorY = tap.sy - 12;
+    let dx = 0;
+    let dy = 0;
+    const left = anchorX - w / 2;
+    const right = anchorX + w / 2;
+    if (left < m) dx = m - left;
+    else if (right > window.innerWidth - m) dx = window.innerWidth - m - right;
+    const top = anchorY - h;
+    const bottom = anchorY;
+    if (top < m) dy = m - top;
+    else if (bottom > window.innerHeight - m) dy = window.innerHeight - m - bottom;
+    setClamp((prev) => (prev.dx === dx && prev.dy === dy ? prev : { dx, dy }));
+  });
+
   if (!tap || !doc) return null;
+
+  // Classify the tap live, every render, from the stored image-space
+  // point — so detections that finish after the tap (face box / subject
+  // mask computed by another tool while the chips are open) upgrade the
+  // chip set instead of being frozen out.
+  const context = classify({ x: tap.ix, y: tap.iy, inside: true });
 
   // Build the chip set based on what's at the tap point. All actions
   // operate on doc.working directly via existing utilities — no new
   // pixel pipelines are introduced; this tool is purely a dispatcher
   // with smart targeting.
   const chips: { label: string; icon: React.ReactNode; run: () => void }[] = [];
-  if (tap.context.kind === "face") {
-    const box = tap.context.box;
+
+  // Spot heal is offered in every context — faces are the most common
+  // place users want to retouch (blemishes, stray hairs), so it sits
+  // alongside the anonymize verbs there too. Hands off to the manual
+  // Spot heal brush, which owns the radius control the launcher can't
+  // infer.
+  const spotHealChip = {
+    label: "Spot heal here",
+    icon: <I.Eraser size={12} />,
+    run: () => {
+      // Carry the exact tap point so Spot heal opens with its brush ring
+      // already parked on the blemish the user pointed at, instead of
+      // dropping them into the tool with no target.
+      patchTool("spotHealSeed", { x: tap.ix, y: tap.iy });
+      setActiveTool("spot");
+      setTap(null);
+    },
+  };
+
+  if (context.kind === "face") {
+    const box = context.box;
     chips.push({
       label: "Pixelate face",
       icon: <I.EyeOff size={12} />,
@@ -191,7 +279,8 @@ export function TapFixTool() {
         });
       },
     });
-  } else if (tap.context.kind === "subject") {
+    chips.push(spotHealChip);
+  } else if (context.kind === "subject") {
     chips.push({
       label: "Remove background",
       icon: <I.Layers size={12} />,
@@ -217,19 +306,7 @@ export function TapFixTool() {
       },
     });
   } else {
-    chips.push({
-      label: "Spot heal here",
-      icon: <I.Eraser size={12} />,
-      run: () => {
-        // Hand off to Spot heal — the manual brush gives the user
-        // control over radius, which the smart launcher can't
-        // infer. Drop them into the tool with the cursor centred
-        // on their tap point (preserved via tool state… would
-        // require new state; out of MVP scope, so just switch).
-        setActiveTool("spot");
-        setTap(null);
-      },
-    });
+    chips.push(spotHealChip);
   }
 
   // Chip menu — absolutely positioned at the tap point. Offset up
@@ -237,10 +314,15 @@ export function TapFixTool() {
   // touch this is the difference between "tappable" and "covered."
   return (
     <div
+      ref={menuRef}
       role="dialog"
       aria-label="Tap-to-fix actions"
-      className="pointer-events-auto fixed z-50 flex -translate-x-1/2 -translate-y-full gap-1.5 rounded-md border border-border-soft bg-surface px-1.5 py-1 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.18)]"
-      style={{ left: tap.sx, top: tap.sy - 12 }}
+      className="pointer-events-auto fixed z-50 flex gap-1.5 rounded-md border border-border-soft bg-surface px-1.5 py-1 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.18)]"
+      style={{
+        left: tap.sx,
+        top: tap.sy - 12,
+        transform: `translate(calc(-50% + ${clamp.dx}px), calc(-100% + ${clamp.dy}px))`,
+      }}
       data-testid="tapfix-chips"
     >
       {chips.map((chip) => (

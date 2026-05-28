@@ -1,9 +1,24 @@
 // redact.ts — Pure helpers that apply a redaction style to a rect of a
 // canvas. Used by the interactive Redact tool.
 
+import { acquireCanvas, releaseCanvas } from "../doc";
 import type { Rect } from "./cropMath";
 
 export type RedactStyle = 0 | 1 | 2; // Pixelate | Blur | Solid
+
+/** Return a pooled scratch canvas, first resetting the context state the
+ *  redact passes mutate (`filter`, `imageSmoothingEnabled`). The pool is
+ *  shared with every other preview bake and only clears pixels — not
+ *  context state — on acquire, so without this reset a stale `blur()`
+ *  filter or smoothing flag would silently corrupt the next consumer. */
+function releaseScratch(c: HTMLCanvasElement) {
+  const ctx = c.getContext("2d");
+  if (ctx) {
+    ctx.filter = "none";
+    ctx.imageSmoothingEnabled = true;
+  }
+  releaseCanvas(c);
+}
 
 interface ApplyOpts {
   style: RedactStyle;
@@ -21,11 +36,12 @@ export function applyRedaction(target: HTMLCanvasElement, rect: Rect, opts: Appl
   const { x, y, w, h } = clipRect(rect, target.width, target.height);
   if (w < 1 || h < 1) return;
 
-  const off = document.createElement("canvas");
-  off.width = w;
-  off.height = h;
+  const off = acquireCanvas(w, h);
   const offCtx = off.getContext("2d");
-  if (!offCtx) return;
+  if (!offCtx) {
+    releaseScratch(off);
+    return;
+  }
   offCtx.drawImage(target, x, y, w, h, 0, 0, w, h);
 
   if (style === 0) pixelate(off, strength);
@@ -39,6 +55,7 @@ export function applyRedaction(target: HTMLCanvasElement, rect: Rect, opts: Appl
   ctx.save();
   ctx.drawImage(off, x, y);
   ctx.restore();
+  releaseScratch(off);
 }
 
 function clipRect(r: Rect, w: number, h: number): Rect {
@@ -56,16 +73,18 @@ function pixelate(off: HTMLCanvasElement, strength: number) {
   const sw = Math.max(1, Math.round(off.width / block));
   const sh = Math.max(1, Math.round(off.height / block));
   // Downscale to a small canvas, then upscale with smoothing off.
-  const tiny = document.createElement("canvas");
-  tiny.width = sw;
-  tiny.height = sh;
+  const tiny = acquireCanvas(sw, sh);
   const tctx = tiny.getContext("2d");
-  if (!tctx) return;
+  if (!tctx) {
+    releaseScratch(tiny);
+    return;
+  }
   tctx.imageSmoothingEnabled = true;
   tctx.drawImage(off, 0, 0, off.width, off.height, 0, 0, sw, sh);
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, off.width, off.height);
   ctx.drawImage(tiny, 0, 0, sw, sh, 0, 0, off.width, off.height);
+  releaseScratch(tiny);
 }
 
 function blur(off: HTMLCanvasElement, strength: number) {
@@ -73,15 +92,17 @@ function blur(off: HTMLCanvasElement, strength: number) {
   const ctx = off.getContext("2d");
   if (!ctx) return;
   // Use the native canvas filter — supported in all modern browsers.
-  const tmp = document.createElement("canvas");
-  tmp.width = off.width;
-  tmp.height = off.height;
+  const tmp = acquireCanvas(off.width, off.height);
   const tctx = tmp.getContext("2d");
-  if (!tctx) return;
+  if (!tctx) {
+    releaseScratch(tmp);
+    return;
+  }
   tctx.filter = `blur(${radius}px)`;
   tctx.drawImage(off, 0, 0);
   ctx.clearRect(0, 0, off.width, off.height);
   ctx.drawImage(tmp, 0, 0);
+  releaseScratch(tmp);
 }
 
 function solid(off: HTMLCanvasElement) {
@@ -101,9 +122,7 @@ function solid(off: HTMLCanvasElement) {
     const ratio = PROBE_LONG_EDGE / long;
     const pw = Math.max(1, Math.round(off.width * ratio));
     const ph = Math.max(1, Math.round(off.height * ratio));
-    probe = document.createElement("canvas");
-    probe.width = pw;
-    probe.height = ph;
+    probe = acquireCanvas(pw, ph);
     probeCtx = probe.getContext("2d");
     if (probeCtx) {
       probeCtx.imageSmoothingQuality = "low";
@@ -112,6 +131,7 @@ function solid(off: HTMLCanvasElement) {
     } else {
       // Couldn't allocate a context — fall back to the full-res
       // sample so we at least produce a color.
+      releaseScratch(probe);
       probe = off;
       probeCtx = ctx;
     }
@@ -119,9 +139,9 @@ function solid(off: HTMLCanvasElement) {
     probe = off;
     probeCtx = ctx;
   }
-  void ownsProbe; // probe is plain DOM, GC'd when it falls out of scope
   // Average color of the (possibly proxied) region, then fill.
   const sample = probeCtx.getImageData(0, 0, probe.width, probe.height).data;
+  if (ownsProbe) releaseScratch(probe);
   let r = 0,
     g = 0,
     b = 0,
@@ -189,9 +209,7 @@ export function drawRedactPreview(
       const cellPx = Math.max(4, Math.round(((strength ?? 0.5) * 0.6 + 0.05) * 64));
       const cellsX = Math.max(1, Math.round(sw / cellPx));
       const cellsY = Math.max(1, Math.round(sh / cellPx));
-      const tmp = document.createElement("canvas");
-      tmp.width = cellsX;
-      tmp.height = cellsY;
+      const tmp = acquireCanvas(cellsX, cellsY);
       const tctx = tmp.getContext("2d");
       if (tctx) {
         tctx.imageSmoothingEnabled = false;
@@ -210,6 +228,7 @@ export function drawRedactPreview(
         );
         ctx.imageSmoothingEnabled = true;
       }
+      releaseScratch(tmp);
     } else {
       // Blur via Canvas2D filter.
       const blurPx = Math.max(2, Math.round(((strength ?? 0.5) * 0.7 + 0.05) * 28));

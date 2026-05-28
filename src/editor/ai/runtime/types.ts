@@ -37,7 +37,7 @@ export interface AiProgress {
  *  Face detection lives outside this union — it runs on the main thread
  *  (MediaPipe Tasks Web doesn't work in module workers, see
  *  `capabilities/detect-face/runner.ts`). */
-export type AiRequest = AiSegmentRequest;
+export type AiRequest = AiSegmentRequest | AiDepthRequest;
 
 export interface AiSegmentRequest {
   /** Caller-assigned request id. The worker echoes it back on every
@@ -62,6 +62,19 @@ export interface AiSegmentRequest {
   /** Inference backend hint. "auto" tries WebGPU first and falls back
    *  to WASM; explicit values force one path (used by the fallback
    *  retry after a WebGPU shader-compile error). */
+  device?: "auto" | "webgpu" | "wasm";
+}
+
+/** Monocular depth-estimation request. Same wire shape as segment —
+ *  a transferable source bitmap plus the HF repo + dtype the worker
+ *  drives the `depth-estimation` pipeline with. The Relight tool is
+ *  the first consumer (form-aware directional shading). */
+export interface AiDepthRequest {
+  id: string;
+  kind: "depth";
+  bitmap: ImageBitmap;
+  model: string;
+  dtype: string;
   device?: "auto" | "webgpu" | "wasm";
 }
 
@@ -109,7 +122,7 @@ export type AiResponse =
  *  whose output isn't an ImageBitmap (depth map, alt-text caption)
  *  doesn't have to fake one. Callers narrow on `resultKind` to access
  *  the right payload. */
-export type AiResultResponse = AiSegmentResultResponse;
+export type AiResultResponse = AiSegmentResultResponse | AiDepthResultResponse;
 
 export interface AiReadyResponse {
   type: "ready";
@@ -119,7 +132,7 @@ export interface AiReadyResponse {
  *  promise rejection). Distinct from `AiErrorResponse` which is tied
  *  to a specific request id — this one tells the runtime to tear
  *  down + reject every in-flight call, plus surfaces the actual
- *  message + stack so the user-facing dialog can show something
+ *  message + stack so the user-facing modal can show something
  *  better than "AI worker crashed (see browser console for details)". */
 export interface AiSelfErrorResponse {
   type: "self-error";
@@ -151,6 +164,20 @@ export interface AiSegmentResultResponse {
   height: number;
   /** Backend the inference actually ran on. Surfaced in mask state
    *  so the UI can show "Running on WebGPU" / "Running on CPU". */
+  device: "webgpu" | "wasm";
+}
+
+/** Depth-estimation result — a grayscale depth map at source
+ *  resolution. The worker emits RGBA with R=G=B=depth (near = bright
+ *  for Depth-Anything) and full alpha, so consumers read any colour
+ *  channel as the depth value without a 1-channel special case. */
+export interface AiDepthResultResponse {
+  id: string;
+  type: "result";
+  resultKind: "depth";
+  bitmap: ImageBitmap;
+  width: number;
+  height: number;
   device: "webgpu" | "wasm";
 }
 

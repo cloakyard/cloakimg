@@ -56,9 +56,9 @@ export function Landing({ onStart, onIntent }: Props) {
             A photo editor that <em>respects your photos.</em>
           </h1>
           <p className="t-subtitle mx-auto mb-7 max-w-160">
-            Crop, redact, retouch and export — with on-device AI for{" "}
-            <em>subject detection, background removal, smart crop, and portrait blur</em>. Models
-            run in your browser. Your photo never leaves this tab.
+            Crop, redact, retouch and export — with on-device AI for subject detection, background
+            removal, smart crop, and portrait blur. Models run in your browser. Your photo never
+            leaves this tab.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <button
