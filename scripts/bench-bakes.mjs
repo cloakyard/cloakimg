@@ -98,6 +98,7 @@ console.log(`iterations per preset: ${ITERS} (median reported, min–max in pare
 const rows = await page.evaluate(async (iters) => {
   const adjMod = await import("/src/editor/tools/adjustments.ts");
   const hslMod = await import("/src/editor/tools/hsl.ts");
+  const relightMod = await import("/src/editor/tools/relight.ts");
   const docMod = await import("/src/editor/doc.ts");
   const fullSrc = window.__editorDebug.docWorking;
   if (!fullSrc) throw new Error("no docWorking");
@@ -176,6 +177,28 @@ const rows = await page.evaluate(async (iters) => {
     hslAllBands.sat[i] = 0.5 + 0.1;
   }
 
+  // Relight bakes against a depth map the model emits at its inference
+  // resolution (≤518 px long-edge). bakeRelight resizes that map to the
+  // bake's target size internally, so to time the real path we feed a
+  // synthetic 518-px-capped radial-gradient depth (content-independent —
+  // the per-pixel shading cost is the same for any depth values).
+  const makeDepth = (src, cap) => {
+    const long = Math.max(src.width, src.height);
+    const ratio = long > cap ? cap / long : 1;
+    const w = Math.max(1, Math.round(src.width * ratio));
+    const h = Math.max(1, Math.round(src.height * ratio));
+    const c = docMod.createCanvas(w, h);
+    const ctx = c.getContext("2d");
+    const g = ctx.createRadialGradient(w * 0.4, h * 0.4, 0, w * 0.4, h * 0.4, Math.hypot(w, h));
+    g.addColorStop(0, "#ffffff");
+    g.addColorStop(1, "#000000");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    return c;
+  };
+  const depthSrc = makeDepth(fullSrc, 518);
+  const relightParams = { sunX: 0.3, sunY: 0.25, elevation: 0.6, intensity: 0.7, warmth: 0.65 };
+
   // Each preset is benched at BOTH preview and full size so we can
   // see where the gating actually helps (the per-pixel inner loops
   // scale linearly with pixel count, so the ratio between the two
@@ -189,6 +212,10 @@ const rows = await page.evaluate(async (iters) => {
     ["HSL · identity (short-circuit)", (s) => hslMod.bakeHsl(s, hslIdent)],
     ["HSL · single band (Red) — null-hue fast-path", (s) => hslMod.bakeHsl(s, hslRedOnly)],
     ["HSL · all 8 bands (no fast-path)", (s) => hslMod.bakeHsl(s, hslAllBands)],
+    [
+      "Relight · directional (depth resize + shade)",
+      (s) => relightMod.bakeRelight(s, depthSrc, relightParams),
+    ],
   ];
 
   const results = [];

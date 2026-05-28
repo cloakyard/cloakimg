@@ -1,13 +1,14 @@
 // depth.ts — Monocular depth-estimation facade. Mirrors segment.ts: cap
-// the source to the model's inference long-edge, hand a transferable
-// bitmap to the worker, and upscale the result back to source resolution
-// on the main thread.
+// the source to the model's inference long-edge and hand a transferable
+// bitmap to the worker.
 //
-// The result is a grayscale depth map (near = bright) at source dims, so
-// the Relight bake can read depth 1:1 against doc.working pixels. Depth
-// is smooth, so bilinear upscaling from the inference size is visually
-// indistinguishable from running the model at full resolution — same
-// trade segment.ts makes for its alpha mask.
+// The result is a grayscale depth map (near = bright) at the model's
+// inference resolution (≤518 px long edge), NOT upscaled to source dims.
+// Depth is smooth, so resizing it to whatever a consumer needs — relight's
+// `readDepth` scales it to the ~1440 px preview downsample on each drag,
+// and to full res once at apply — is visually indistinguishable from
+// running the model at full resolution, while keeping the cached buffer
+// tiny instead of leaving a 24 MP grayscale canvas resident per source.
 
 import { acquireCanvas } from "../../doc";
 import { aiLog } from "../log";
@@ -108,23 +109,23 @@ export async function estimateDepth(
 
   onProgress?.({ phase: "decode", ratio: 0.95, label: "Finalising…" });
 
-  // Upscale the inference-size depth map onto a source-sized canvas so
-  // the relight bake aligns 1:1 with doc.working. Plain drawImage (no
-  // masking) — the map is opaque grayscale.
-  const out = acquireCanvas(src.width, src.height);
+  // Keep the depth map at its native inference resolution — a plain 1:1
+  // draw, no upscale. `readDepth` (relight.ts) resizes it to whatever the
+  // consumer bakes at (preview downsample or full res), so upscaling here
+  // would only force an immediate downscale on every preview frame AND
+  // keep a full-res grayscale buffer resident in the capability cache.
+  const out = acquireCanvas(result.width, result.height);
   const ctx = out.getContext("2d");
   if (!ctx) {
     result.bitmap.close();
     throw new Error("Could not acquire canvas context for depth map");
   }
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(result.bitmap, 0, 0, src.width, src.height);
+  ctx.drawImage(result.bitmap, 0, 0);
   result.bitmap.close();
 
   aiLog.info("depth", "estimateDepth done", {
     device: result.device,
-    out: `${src.width}x${src.height}`,
+    out: `${result.width}x${result.height}`,
     inference: `${infW}x${infH}`,
     elapsedMs: Math.round(performance.now() - startedAt),
   });

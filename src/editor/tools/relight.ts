@@ -52,7 +52,9 @@ function readDepth(depthCanvas: HTMLCanvasElement, w: number, h: number): Float3
     const tctx = temp.getContext("2d");
     if (!tctx) {
       // Fall back to a flat field — relight degrades to a soft global
-      // gradient rather than throwing.
+      // gradient rather than throwing. Hand the scratch back first so the
+      // (rare) null-context path doesn't leak a pooled canvas.
+      releaseCanvas(temp);
       const flat = new Float32Array(w * h);
       flat.fill(0.5);
       return flat;
@@ -91,7 +93,14 @@ export function bakeRelight(
   const out = acquireCanvas(w, h);
   const sctx = source.getContext("2d");
   const octx = out.getContext("2d");
-  if (!sctx || !octx) return out;
+  if (!sctx || !octx) {
+    // Context unavailable (effectively never for a fresh pooled canvas).
+    // Degrade to the original image rather than returning a canvas that
+    // may still hold stale pixels from a prior pool tenant — drawImage
+    // doesn't need the *source's* 2D context, only the output's.
+    octx?.drawImage(source, 0, 0);
+    return out;
+  }
 
   const img = sctx.getImageData(0, 0, w, h);
   const depth = readDepth(depthCanvas, w, h);
@@ -112,9 +121,12 @@ export function relightPixels(
 ): void {
   // Light Z grows with elevation: grazing (0.25) → top-down (2.0).
   const lz = 0.25 + p.elevation * 1.75;
+  const lzSq = lz * lz;
   const invW = w > 1 ? 1 / (w - 1) : 0;
   const invH = h > 1 ? 1 / (h - 1) : 0;
   const k = p.intensity * STRENGTH;
+  const warmGain = (p.warmth - 0.5) * 2 * WARMTH_K;
+  const invReachSq = 1 / (REACH * REACH);
 
   for (let y = 0; y < h; y++) {
     const yUp = y > 0 ? y - 1 : y;
@@ -124,26 +136,30 @@ export function relightPixels(
       const xL = x > 0 ? x - 1 : x;
       const xR = x < w - 1 ? x + 1 : x;
 
-      // Surface normal from the depth gradient (height-field).
+      // Surface normal from the depth gradient (height-field). With nz=1
+      // before normalising, |N|² = nx²+ny²+1, so a plain `sqrt` does the
+      // job — `Math.hypot`'s overflow-safe scaling is wasted on these
+      // bounded values and costs 2-4× per call (3 calls × every pixel).
       const dzdx = depth[y * w + xR]! - depth[y * w + xL]!;
       const dzdy = depth[yDn * w + x]! - depth[yUp * w + x]!;
-      let nx = -dzdx * RELIEF;
-      let ny = -dzdy * RELIEF;
-      let nz = 1;
-      const nLen = Math.hypot(nx, ny, nz) || 1;
-      nx /= nLen;
-      ny /= nLen;
-      nz /= nLen;
+      const nxRaw = -dzdx * RELIEF;
+      const nyRaw = -dzdy * RELIEF;
+      const nInv = 1 / Math.sqrt(nxRaw * nxRaw + nyRaw * nyRaw + 1);
+      const nx = nxRaw * nInv;
+      const ny = nyRaw * nInv;
+      const nz = nInv; // 1 * nInv
 
-      // Point-light direction (toward the sun) + distance falloff.
+      // Point-light direction (toward the sun) + distance falloff. atten
+      // only needs the squared distance, so it costs no sqrt of its own —
+      // the single sqrt here normalises the light vector.
       const lxRaw = p.sunX - x * invW;
       const lyRaw = p.sunY - y * invH;
-      const dist = Math.hypot(lxRaw, lyRaw);
-      const lLen = Math.hypot(lxRaw, lyRaw, lz) || 1;
-      const lx = lxRaw / lLen;
-      const ly = lyRaw / lLen;
-      const lzn = lz / lLen;
-      const atten = 1 / (1 + (dist / REACH) * (dist / REACH));
+      const distSq = lxRaw * lxRaw + lyRaw * lyRaw;
+      const lInv = 1 / Math.sqrt(distSq + lzSq);
+      const lx = lxRaw * lInv;
+      const ly = lyRaw * lInv;
+      const lzn = lz * lInv;
+      const atten = 1 / (1 + distSq * invReachSq);
 
       // Half-Lambert keeps shadows readable instead of crushing to black.
       const diffuse = nx * lx + ny * ly + nz * lzn;
@@ -154,16 +170,12 @@ export function relightPixels(
       else if (m > 2.2) m = 2.2;
 
       const j = idx * 4;
-      const r = px[j]! * m;
-      const g = px[j + 1]! * m;
-      const b = px[j + 2]! * m;
-
       // Warm the lit side / cool the shadow side. (m-1) carries the sign
-      // of the shade; (warmth-0.5) scales + flips the tint direction.
-      const warm = (m - 1) * (p.warmth - 0.5) * 2 * WARMTH_K;
-      px[j] = clamp8(r + warm);
-      px[j + 1] = clamp8(g);
-      px[j + 2] = clamp8(b - warm);
+      // of the shade; warmGain scales + flips the tint direction.
+      const warm = (m - 1) * warmGain;
+      px[j] = clamp8(px[j]! * m + warm);
+      px[j + 1] = clamp8(px[j + 1]! * m);
+      px[j + 2] = clamp8(px[j + 2]! * m - warm);
       // alpha untouched
     }
   }

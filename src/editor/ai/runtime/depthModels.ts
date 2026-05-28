@@ -4,11 +4,14 @@
 // depth-specific UI code.
 //
 // Model: Depth-Anything-V2-Small (ONNX via transformers.js
-// `depth-estimation` pipeline). 24.8M params; the q8 dump is ~25 MB and
-// runs comfortably on a phone, the fp16 dump (~49 MB) sharpens edges for
-// the relight normals. Output is an inverse-depth map (near = bright),
-// which is exactly what the relight bake wants for surface-normal
-// estimation.
+// `depth-estimation` pipeline). 24.8M params; dtype "q8" resolves to
+// `onnx/model_quantized.onnx` (~27 MB) and runs comfortably on a phone,
+// while "fp16" → `model_fp16.onnx` (~50 MB) sharpens edges for the
+// relight normals. Output is an inverse-depth map (near = bright), which
+// is exactly what the relight bake wants for surface-normal estimation.
+// We stay on q8, not the smaller q4f16 (~19 MB): 4-bit weights band the
+// depth map, and the bake reads its *gradient*, so quantisation noise
+// surfaces directly as shading artifacts.
 //
 // The runtime fields (repo + dtype) live on the same object as the UI
 // copy so a future model swap (Depth-Anything-V2-Base, Metric3D, …) is a
@@ -58,8 +61,8 @@ export const DEPTH_ANYTHING_V2_SMALL: DepthModelFamily = {
       id: "fast",
       index: 0,
       label: "Fast",
-      mb: 25,
-      bytes: 25 * 1024 * 1024,
+      mb: 28,
+      bytes: 28 * 1024 * 1024,
       strength: "Quickest to download and run — fits any device.",
       tradeoff: "Slightly softer depth edges on fine detail.",
       recommended: true,
