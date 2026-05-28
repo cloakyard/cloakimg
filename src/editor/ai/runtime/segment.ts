@@ -20,6 +20,7 @@ import { acquireCanvas } from "../../doc";
 import { aiLog } from "../log";
 import { ACTIVE_FAMILY, type BgQuality, getInferenceLongEdge, getTierById } from "./bgModels";
 import { isHfModelCached } from "./cache";
+import { preferredAiDevice } from "./device";
 import { runAi } from "./runtime";
 import type { AiProgress } from "./types";
 
@@ -125,7 +126,10 @@ export async function smartRemoveBackground(
         bitmap: inputBitmap,
         model: tier.repo,
         dtype: tier.dtype,
-        device: "auto",
+        // iOS WebKit's WebGPU can hard-crash the tab during pipeline init
+        // (uncatchable, so the worker's wasm fallback never runs). Pin iOS
+        // to wasm; elsewhere "auto" prefers webgpu with fallback.
+        device: preferredAiDevice(),
       },
       {
         signal,

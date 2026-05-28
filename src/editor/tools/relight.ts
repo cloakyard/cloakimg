@@ -175,10 +175,82 @@ export function bakeRelight(
   }
 
   const img = sctx.getImageData(0, 0, w, h);
-  const { nx, ny, nz } = getDepthNormals(depthCanvas, w, h);
-  shade(img.data, nx, ny, nz, w, h, p);
+  if (w * h > NORMAL_CACHE_MAX_PX) {
+    // One-shot full-resolution apply (above the cache ceiling, so there's
+    // no reuse to gain from materialising normals). Fuse the normal
+    // derivation into the shade pass so we never allocate three w×h
+    // Float32 normal arrays — ~200 MB at 24 MP, the transient-memory peak
+    // that crashed memory-constrained tabs (iOS Safari) on Apply.
+    const depth = readDepth(depthCanvas, w, h);
+    shadeFromDepth(img.data, depth, w, h, p);
+  } else {
+    const { nx, ny, nz } = getDepthNormals(depthCanvas, w, h);
+    shade(img.data, nx, ny, nz, w, h, p);
+  }
   octx.putImageData(img, 0, 0);
   return out;
+}
+
+/** Memory-lean shading for the full-resolution apply: derives each
+ *  pixel's surface normal from the depth gradient inline and shades in a
+ *  single pass — mathematically identical to `computeNormals` followed
+ *  by `shade`, but without the three intermediate w×h normal arrays. The
+ *  cached two-pass path above is still used for preview-sized bakes,
+ *  where the normals are reused across slider drags. */
+export function shadeFromDepth(
+  px: Uint8ClampedArray,
+  depth: Float32Array,
+  w: number,
+  h: number,
+  p: RelightParams,
+): void {
+  const lz = 0.25 + p.elevation * 1.75;
+  const lzSq = lz * lz;
+  const invW = w > 1 ? 1 / (w - 1) : 0;
+  const invH = h > 1 ? 1 / (h - 1) : 0;
+  const k = p.intensity * STRENGTH;
+  const warmGain = (p.warmth - 0.5) * 2 * WARMTH_K;
+  const invReachSq = 1 / (REACH * REACH);
+
+  for (let y = 0; y < h; y++) {
+    const yUp = y > 0 ? y - 1 : y;
+    const yDn = y < h - 1 ? y + 1 : y;
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      const xL = x > 0 ? x - 1 : x;
+      const xR = x < w - 1 ? x + 1 : x;
+      const dzdx = depth[y * w + xR]! - depth[y * w + xL]!;
+      const dzdy = depth[yDn * w + x]! - depth[yUp * w + x]!;
+      const nxRaw = -dzdx * RELIEF;
+      const nyRaw = -dzdy * RELIEF;
+      const nInv = 1 / Math.sqrt(nxRaw * nxRaw + nyRaw * nyRaw + 1);
+      const nxv = nxRaw * nInv;
+      const nyv = nyRaw * nInv;
+      const nzv = nInv;
+
+      const lxRaw = p.sunX - x * invW;
+      const lyRaw = p.sunY - y * invH;
+      const distSq = lxRaw * lxRaw + lyRaw * lyRaw;
+      const lInv = 1 / Math.sqrt(distSq + lzSq);
+      const lx = lxRaw * lInv;
+      const ly = lyRaw * lInv;
+      const lzn = lz * lInv;
+      const atten = 1 / (1 + distSq * invReachSq);
+
+      const diffuse = nxv * lx + nyv * ly + nzv * lzn;
+      const hl = diffuse * 0.5 + 0.5;
+      const sh = (hl - 0.5) * 2 * atten;
+      let m = 1 + k * sh;
+      if (m < 0.15) m = 0.15;
+      else if (m > 2.2) m = 2.2;
+
+      const j = idx * 4;
+      const warm = (m - 1) * warmGain;
+      px[j] = clamp8(px[j]! * m + warm);
+      px[j + 1] = clamp8(px[j + 1]! * m);
+      px[j + 2] = clamp8(px[j + 2]! * m - warm);
+    }
+  }
 }
 
 /** Shading core — mutates `px` (RGBA) in place from precomputed per-
