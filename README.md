@@ -2,18 +2,14 @@
 
   <img src="public/icons/og-image.png" alt="CloakIMG — A minimal photo editor that respects your photos" width="800" />
 
-  <p>A fast, modern, privacy-focused photo editor that runs entirely in your browser.<br>
-  No uploads, no servers, no tracking — your photos never leave your device.<br>
-  Includes on-device AI for subject detection, scoped tone edits, portrait blur, and background removal.</p>
+  <p>A fast, privacy-first photo editor that runs entirely in your browser.<br>
+  No uploads, no servers, no tracking — your photos never leave your device.</p>
 
-  <p><strong>Try it here →</strong> <a href="https://img.cloakyard.com/">img.cloakyard.com</a></p>
+  <p><strong>Try it →</strong> <a href="https://img.cloakyard.com/">img.cloakyard.com</a></p>
 
   <p>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License" /></a>
-    <a href="https://developers.cloudflare.com/workers/"><img src="https://img.shields.io/badge/deploy-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white" alt="Deployed on Cloudflare Workers" /></a>
     <img src="https://img.shields.io/badge/platform-Web%20%7C%20PWA-blue" alt="Platform: Web & PWA" />
-  </p>
-  <p>
     <img src="https://img.shields.io/badge/privacy-100%25%20client--side-brightgreen" alt="100% client-side" />
     <img src="https://img.shields.io/badge/AI-on--device-7C3AED?logo=onnx&logoColor=white" alt="On-device AI" />
   </p>
@@ -24,270 +20,82 @@
 
 ## ✨ Features
 
-CloakIMG is a full-featured photo editor, all running 100% client-side:
+Everything runs 100% client-side. Tools marked ✨ use on-device AI.
 
-### 🎨 Editing Tools
+- **Edit** — Crop & Rotate, Perspective, Adjust ✨, Levels ✨, Selective Colour ✨, Filters ✨ (40+ presets incl. Seasons), Time of Day, Relight ✨ (depth-aware lighting), Resize (Lanczos-3).
+- **Retouch & privacy** — Spot Heal, Portrait Blur ✨, Remove BG ✨, Redact ✨ (blur / pixelate / solid + one-tap Smart Anonymize of people or faces), Tap-to-Fix (context-aware quick action).
+- **Annotate** — Text, Shapes, Draw, Pen, Emoji, Watermark, Place Image, Colour Picker.
+- **Finish** — Frame (Polaroid, Film, Cinema, Vignette + more) and Border (solid or aspect-padded matte).
 
-_Every tool you need on a single canvas. Tools tagged with ✨ use on-device AI subject detection (see below)._
+### 🧠 On-device AI
 
-| Tool                    | Description                                                                                                                                                                                                      |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Crop & Rotate**       | Free, fixed-ratio, or preset aspect-ratio crops. Rotate 90°, mirror, and straighten with a tilt slider                                                                                                           |
-| **Perspective**         | Drag four corner handles to undo keystoning or warp the photo onto a target quad — async chunked warp keeps the UI responsive on big images                                                                      |
-| **Adjust** ✨           | Exposure, contrast, highlights, shadows, whites, blacks, saturation, vibrance, temperature, vignette, sharpen, and a Catmull-Rom tone curve — scoped to whole / subject / background                             |
-| **Levels** ✨           | Photoshop-style input black/white/gamma + output black/white sliders, scoped to whole / subject / background                                                                                                     |
-| **Selective Colour** ✨ | Per-band Hue / Saturation / Luminance across eight colour bands, scoped to whole / subject / background                                                                                                          |
-| **Filters** ✨          | 27 hand-tuned presets organised by character (subtle, warm, vintage, saturated, cool, cinematic, faded, sepia, monochrome) with intensity + grain — also subject/background scoped                               |
-| **Background Blur** ✨  | Portrait-mode-style depth-of-field — the subject stays sharp while the background gets a tunable gaussian blur                                                                                                   |
-| **Remove BG** ✨        | One-click background removal via [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) running locally in a Web Worker (WebGPU when available, WASM fallback), plus a chroma-key fallback for flat studio backdrops |
-| **Spot Heal**           | One-tap blemish removal with content-aware patching                                                                                                                                                              |
-| **Redact**              | Black-bar, blur, or pixelate sensitive regions. Rectangular, freehand, and OCR-friendly text redaction                                                                                                           |
-| **Frame**               | Polaroid, film, modern matte, and ratio frames with adjustable colour and thickness                                                                                                                              |
-| **Border**              | Solid pixel-thick border or aspect-padded matte (Square, 4:5, 16:9 etc.) with custom colour                                                                                                                      |
-| **Resize**              | Lanczos-3 resampling for pin-sharp downscales — pick exact pixels, percentage, or aspect-locked dimensions                                                                                                       |
-| **Draw & Pen**          | Pressure-sensitive freehand brush plus a vector pen with anchor handles for clean curves                                                                                                                         |
-| **Shapes**              | Rect, rounded-rect, ellipse, lines, arrows, polygons, hearts, stars — fill, stroke, opacity                                                                                                                      |
-| **Text**                | Multi-line text with font, weight, size, colour, italic, underline, stroke, character spacing, and curve-along-arc controls                                                                                      |
-| **Stickers**            | Built-in sticker sets plus your own custom uploads (saved locally and reusable across sessions)                                                                                                                  |
-| **Watermark**           | Repeatable text or image watermark with anchor + opacity                                                                                                                                                         |
-| **Place Image**         | Composite a second photo on top — drag, scale, rotate                                                                                                                                                            |
-| **Colour Picker**       | Eyedrop any pixel into the active swatch                                                                                                                                                                         |
+Models run locally — in a Web Worker, or on the main thread for face detection — so pixels never leave the tab. Nothing downloads until you accept an explicit consent dialog, and each model is cached after first use so AI keeps working offline.
 
-### 🧠 On-Device AI
+| Model                                     | Powers                                                                                    | Size             |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------- |
+| **ISNet (DIS)** via Transformers.js       | Subject scoping (Whole / Subject / Background), Portrait Blur, Remove BG, Smart Anonymize | 42 / 84 / 168 MB |
+| **MediaPipe BlazeFace**                   | Smart Anonymize → per-face redaction                                                      | ~1 MB            |
+| **Depth Anything V2** via Transformers.js | Relight (depth-aware directional light)                                                   | 28 / 49 MB       |
 
-_Every model runs locally in your browser. Your photos are never sent anywhere._
+The subject mask is detected once per image and reused across every subject-aware tool.
 
-CloakIMG includes a built-in subject-detection model ([RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4), an IS-Net derivative) loaded through [Transformers.js](https://huggingface.co/docs/transformers.js) that powers a handful of tools:
+### 🧭 Workspace & export
 
-| Capability             | What it does                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Subject scoping**    | Adjust, Levels, Selective Colour and Filters expose an _Apply to: Whole / Subject / Background_ control — common moves like "darken the background" or "boost saturation on the subject only" become a one-tap operation. |
-| **Background blur**    | A new Background Blur tool keeps the subject pin-sharp while gaussian-blurring the background for a phone-style portrait look.                                                                                            |
-| **Background removal** | Remove BG runs the same model end-to-end, alpha-keying your subject for transparent PNG export, sticker creation, or compositing.                                                                                         |
-| **Shared cache**       | The mask is detected once per image and reused across every subject-aware tool. Trigger detection in any one of them and the rest are instantaneous.                                                                      |
+Layered non-destructive overlays · undo/redo (`⌘Z` / `⌘⇧Z`) · hold-to-compare · reset to original · pan + pinch-zoom · single-key shortcuts · light/dark mode · mobile bottom-sheet UI.
 
-**How the privacy story holds up:**
-
-- **No server inference.** The model is loaded as static `.onnx` weights and run in a Web Worker via [ONNX Runtime Web](https://onnxruntime.ai/) — WebGPU on supported devices, WebAssembly SIMD elsewhere. Inference is read-only — nothing about your photo is sent back over the network.
-- **No telemetry.** The image bytes never leave your browser tab. You can verify in DevTools → Network that the only traffic is the one-time model download from `huggingface.co`.
-- **Explicit, informed consent.** No bytes are fetched until you tap _Download_ in a dialog that names the model, lists every tier with strengths and trade-offs, shows an "Already downloaded" badge for tiers that won't re-fetch, and lets you back out with _Not now_.
-- **First run only.** The model files (~44 MB Fast / ~88 MB Better / ~176 MB Best — the same RMBG-1.4 weights at int8 / fp16 / fp32) download on first use and are then cached by the browser. After that, every AI feature works fully offline.
-- **Quality you control.** Pick the smallest dtype for fast detection on phones, or the largest for the cleanest edges — all three are real ONNX models, no quality-degrading client-side approximation.
-- **Lazy-loaded.** Opening a subject-aware tool doesn't pull in any AI code; only picking the _Subject_ or _Background_ scope (or hitting Apply on Remove BG) actually starts the download.
-- **Honest cancel.** Mid-detection _Cancel_ actually terminates the worker thread — no graceful interrupt exists in ONNX runtime, so we own the worker outright. Pipeline weights stay cached for the next attempt.
-- **Localised error recovery.** AI render errors are caught by an `AiErrorBoundary` so a model load failure can never take down the rest of the editor; the user keeps their work-in-progress and can retry from the consent dialog.
-- **Verbose logs on demand.** Run `localStorage.ai_debug = "1"` in DevTools to surface every state transition (`runtime`, `worker`, `subjectMask`, `consent`) under a `[ai]` prefix when reproducing a bug.
-
-### 🧭 Workspace
-
-_Designed for fast, focused editing_
-
-| Feature               | Description                                                                                                                     |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Layered editing**   | Text, watermark, watermark image, and draw layers stay non-destructive until you commit — toggle visibility, reorder, edit live |
-| **Undo / Redo**       | Full history stack with keyboard shortcuts (`⌘Z` / `⌘⇧Z`) — every tool commit is reversible                                     |
-| **Compare**           | Hold to flash the original side-by-side with the current edit                                                                   |
-| **Reset to original** | One click rewinds the working canvas to the source image                                                                        |
-| **Pan + pinch zoom**  | Two-finger gestures on touch, Space-drag + Cmd-scroll on desktop — anchored zoom that feels native                              |
-| **Keyboard driven**   | Single-key shortcuts for every tool, slider nudges with arrow keys, modifier-locked rotation                                    |
-| **Mobile-first**      | A bottom sheet panel, sticky toolbar, and touch-tuned hit-targets so editing on a phone never feels cramped                     |
-| **Light & dark mode** | Follows your OS `prefers-color-scheme` and toggles manually from the topbar                                                     |
-
-### 📤 Import, Export & Persistence
-
-_Your work is always within reach_
-
-| Feature               | Description                                                                                                |
-| --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Drag, drop, paste** | Drop a file from anywhere, paste from clipboard, or pick from disk — all routed through the same code path |
-| **HEIC support**      | Native HEIC/HEIF decoding via libheif-js (WASM), so iPhone photos open directly without conversion         |
-| **EXIF reader**       | Inspect camera, lens, exposure, GPS, and date metadata before you export                                   |
-| **EXIF stripping**    | One-tap toggles to scrub GPS, camera info, or timestamps from JPEG exports                                 |
-| **Recents**           | The last 10 files you opened, stored locally in IndexedDB so you can pick up where you left off            |
-| **Autosave drafts**   | Your in-progress edit is auto-saved every few seconds so an accidental close doesn't lose work             |
-| **Batch mode**        | Apply the same recipe (resize, format convert, watermark, EXIF strip) across dozens of files in one pass   |
-| **Export**            | JPEG, PNG, WebP — pick quality, target size bucket, and whether to retain the EXIF block                   |
-| **Wide-gamut output** | Display-P3 canvas binding where supported, so colours hold up on modern phones and laptops                 |
+Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata strip · recents + autosave (IndexedDB) · batch mode · export to JPEG/PNG/WebP · wide-gamut (Display-P3) output.
 
 ---
 
-## 🔒 Privacy First
+## 🔒 Privacy
 
-|                               |                                                                                                                                                         |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No uploads**                | Every byte stays on this device                                                                                                                         |
-| **No server-side processing** | Zero network requests for your image data — verified by a strict Content Security Policy                                                                |
-| **On-device AI**              | The RMBG-1.4 subject-detection model runs in a Web Worker via ONNX Runtime Web (WebGPU when available, WASM fallback). Image pixels never leave the tab |
-| **One-time, cached model**    | The model file is downloaded once on first AI use and cached by the Service Worker; thereafter every AI feature works offline                           |
-| **No data collection**        | No analytics, no tracking, no cookies                                                                                                                   |
-| **One-tap EXIF strip**        | Scrub GPS, camera info, and timestamps from JPEG exports with a single toggle                                                                           |
-| **Strict CSP**                | Content Security Policy blocks any unintended egress                                                                                                    |
-| **Fully offline capable**     | Works without an internet connection after initial load                                                                                                 |
+- **No uploads, no servers, no telemetry** — every byte stays on your device; a strict CSP blocks any outbound request for image data.
+- **On-device AI** — models download once (with explicit consent), cache locally, and run fully offline thereafter.
+- **One-tap EXIF strip** — scrub GPS, camera info, and timestamps from exports.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Category      | Technology                                                                                                                                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Framework     | [React 19](https://react.dev/)                                                                                                                                                                                                  |
-| Styling       | [Tailwind CSS 4](https://tailwindcss.com/)                                                                                                                                                                                      |
-| Canvas        | [Fabric.js 7](http://fabricjs.com/) for layered objects + a pure 2D canvas pipeline for filters and per-pixel ops                                                                                                               |
-| Build Tool    | [Vite+](https://vite.dev/) (Vite + Rolldown unified toolchain)                                                                                                                                                                  |
-| Language      | [TypeScript 6](https://www.typescriptlang.org/)                                                                                                                                                                                 |
-| HEIC Decode   | [libheif-js](https://github.com/catdad-experiments/libheif-js) — Rust/C HEIC decoder compiled to WebAssembly, lazy-loaded only when needed                                                                                      |
-| On-device AI  | [Transformers.js](https://huggingface.co/docs/transformers.js) hosting [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) on [ONNX Runtime Web](https://onnxruntime.ai/) (WebGPU primary, WASM fallback) in a Web Worker we own |
-| PWA / Offline | [Workbox](https://developer.chrome.com/docs/workbox) via [vite-plugin-pwa](https://vite-pwa-org.netlify.app/)                                                                                                                   |
-| Toolchain CLI | [Vite+ (`vp`)](https://viteplus.dev/)                                                                                                                                                                                           |
-| Hosting       | [Cloudflare Workers](https://developers.cloudflare.com/workers/) static assets                                                                                                                                                  |
+|              |                                                                                 |
+| ------------ | ------------------------------------------------------------------------------- |
+| Framework    | React 19 + TypeScript 6                                                         |
+| Styling      | Tailwind CSS 4                                                                  |
+| Canvas       | Fabric.js 7 + a 2D-canvas pipeline for filters & per-pixel ops                  |
+| On-device AI | Transformers.js (ISNet, Depth Anything V2) + MediaPipe Tasks Vision (BlazeFace) |
+| HEIC         | libheif-js (WASM, lazy-loaded)                                                  |
+| Build / PWA  | Vite+ (`vp`) + vite-plugin-pwa (Workbox)                                        |
+| Hosting      | Cloudflare Workers — deployed on every push to `main`                           |
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- **Node.js** ≥ 24.x (LTS recommended)
-- **Vite+ (`vp`)** — install globally via `npm i -g vite-plus`
-
-### Installation
+Requires **Node.js ≥ 24** and **Vite+** (`npm i -g vite-plus`).
 
 ```bash
-# Clone the repository
 git clone https://github.com/cloakyard/cloakimg.git
 cd cloakimg
-
-# Install dependencies
-vp install
-
-# Start the development server
-vp dev
+vp install   # install dependencies
+vp dev       # dev server with hot reload
 ```
 
-### Available Commands
-
-| Command      | Description                               |
-| ------------ | ----------------------------------------- |
-| `vp dev`     | Start the Vite dev server with hot reload |
-| `vp build`   | TypeScript check + production build       |
-| `vp preview` | Preview the production build locally      |
-| `vp check`   | Run format, lint, and type checks         |
-| `vp test`    | Run tests                                 |
-
----
-
-## 📁 Project Structure
-
-```
-cloakimg/
-├── public/                    # Static assets (icons, manifest, OG image, 404 page)
-├── src/
-│   ├── main.tsx               # App entry point
-│   ├── App.tsx                # Routing between landing & editor
-│   ├── style.css              # Global styles + keyframes
-│   ├── tokens.css             # Design tokens (colour, type, motion)
-│   │
-│   ├── components/            # Cross-cutting UI primitives shared by landing + editor
-│   │   ├── icons.tsx            # Lucide-style icon set used app-wide
-│   │   ├── ModalFrame.tsx       # Shared dialog frame (centered + bottom-sheet variants)
-│   │   ├── ErrorBoundary.tsx    # Top-level render-error catch
-│   │   ├── DropZone.tsx         # Drag/drop/paste + file-picker zone
-│   │   ├── OrientationLock.tsx  # Portrait-only guard for narrow phones
-│   │   └── SamplePhoto.tsx      # Inline sample photo for the landing CTA
-│   │
-│   ├── constants/             # Single source of truth for app-wide constants
-│   │   └── links.ts             # GitHub repo / org / author / issues URLs
-│   │
-│   ├── utils/                 # Pure, stateless helpers shared across features
-│   │   └── formatBytes.ts       # Exact + rough byte-count formatters
-│   │
-│   ├── landing/               # Landing page (hero, sunset backdrop, features, footer)
-│   └── editor/                # The single-canvas editor
-│       ├── EditorContext.tsx    # Document, history, layers, autosave
-│       ├── ImageCanvas.tsx      # Fabric-backed canvas + pan/zoom/transform
-│       ├── tools/               # One file per tool (Crop, Adjust, Filter, Redact, …)
-│       ├── ai/                  # All on-device AI code lives here:
-│       │   ├── subjectMask.ts     #   central mask service (singleton, shared across tools)
-│       │   ├── useSubjectMask.ts  #   React hook on top of the service
-│       │   ├── log.ts             #   structured logger (`[ai] runtime …` etc.)
-│       │   ├── runtime/           #   main-thread bridge to the AI Web Worker
-│       │   │   ├── runtime.ts       #     runAi() singleton + abort handling
-│       │   │   ├── worker.ts        #     Web Worker hosting transformers.js pipelines
-│       │   │   ├── segment.ts       #     smartRemoveBackground() facade + tier registry
-│       │   │   ├── types.ts         #     shared AiRequest / AiResponse / AiProgress types
-│       │   │   ├── cache.ts         #     CacheStorage probe (isHfModelCached)
-│       │   │   └── progress.ts      #     multi-file download progress aggregator
-│       │   └── ui/                #   AI surfaces (consent / progress / scope / error boundary)
-│       │       ├── MaskConsentDialog.tsx   #     tier picker before any byte is fetched
-│       │       ├── MaskConsentHost.tsx     #     listens to mask state, mounts the right modal
-│       │       ├── MaskDownloadDialog.tsx  #     live progress + cancel + retry
-│       │       ├── MaskScopeRow.tsx        #     "Apply to: Whole / Subject / Background" segment
-│       │       ├── DetectionStatus.tsx     #     inline progress / ready / error chips
-│       │       ├── AiSectionHeader.tsx     #     uppercase "Smart adjustments" eyebrow
-│       │       ├── ScopeGate.tsx           #     greys out controls while detection is loading
-│       │       └── AiErrorBoundary.tsx     #     local fallback so AI errors never crash the editor
-│       └── ExportModal.tsx      # Format, quality, EXIF, target size pipeline
-│
-├── index.html                 # HTML entry point + meta/OG tags + CSP
-├── vite.config.ts             # Vite + Tailwind + PWA configuration
-├── wrangler.jsonc             # Cloudflare Workers static-assets config
-├── tsconfig.json              # TypeScript configuration
-└── package.json
-```
-
-### Folder conventions
-
-- **`src/components/`** — anything that's used by _both_ the landing and the editor (or by the top-level `App` shell). Feature-local components stay inside their feature folder (`landing/`, `editor/`) so the boundary stays clear.
-- **`src/constants/`** — values that are referenced from more than one place and would be painful to update if duplicated (URLs, slugs, hard-coded keys). Single-file defaults stay local; only promote here when a constant becomes shared.
-- **`src/utils/`** — pure, framework-agnostic helpers. No React, no DOM-specific state, no project-specific assumptions. Domain helpers (canvas math, EXIF, colour spaces) live next to their tools instead.
-
----
-
-## ⚙️ How It Works
-
-CloakIMG is a single-page React app that keeps every photo entirely in memory and in IndexedDB.
-
-- **One working canvas** — every tool commits its bake into a single `working` HTMLCanvasElement; `Undo` / `Redo` walk a history stack of canvas snapshots so any edit can be unwound.
-- **Layered overlays** — text, watermarks, drawings, stickers, and pen paths render as live Fabric objects on top of the working bitmap. They stay non-destructive until export (or until you deliberately commit them).
-- **Live previews at 25%** — Adjust and Filter previews render through a downsampled (≤720px long-edge) copy of the working canvas, so slider drags stay buttery on multi-megapixel images. The full-resolution bake runs once when you switch tools.
-- **Wide-gamut path** — every off-screen canvas is bound to `display-p3` where supported, so colour-managed sources hold their punch on modern phones and laptops.
-- **HEIC** — iPhone photos are decoded via libheif-js (lazy-loaded WASM) so HEIC files open without converting upstream.
-- **Subject mask service** — a single `subjectMask` module-level cache holds the RMBG-1.4 cut for the active image; every subject-aware tool peeks first and only pays the inference cost when the cache misses (new image, dimensions changed). Detection runs in a dedicated Web Worker (under `src/editor/ai/runtime/`) so the editor stays responsive on big photos. Source pixels travel as transferable `ImageBitmap`s in both directions — no PNG round-trip.
-- **EXIF surgery** — JPEG exports rebuild the APP1 segment from the original bytes; per-export toggles let you keep the full metadata, or selectively scrub GPS, camera info, and timestamps before download.
-- **Recents + autosave** — the last 10 opened files (and an in-progress draft of your active edit) live in IndexedDB as `ArrayBuffer` payloads. Files round-trip reliably across sessions on every browser including iOS Safari.
-- **PWA** — an aggressive Workbox runtime cache lets the editor open instantly and run fully offline once installed.
-
-All operations happen in-memory or in IndexedDB. The strict Content Security Policy in [index.html](index.html) blocks any outbound network requests for user content — it is architecturally impossible for your photo to leave your device.
-
----
-
-## 🚢 Deployment
-
-CloakIMG is deployed to **Cloudflare Workers** (static assets) on every push to `main`.
-
-The deployment pipeline:
-
-1. Checks out the code
-2. Installs dependencies with `vp install`
-3. Builds the production bundle with Vite
-4. Publishes the `dist/` folder to Cloudflare via Wrangler ([wrangler.jsonc](wrangler.jsonc))
-
-The custom domain `img.cloakyard.com` is bound to the Worker through Cloudflare DNS.
+| Command      | Description                   |
+| ------------ | ----------------------------- |
+| `vp dev`     | Dev server with hot reload    |
+| `vp build`   | Type-check + production build |
+| `vp preview` | Preview the production build  |
+| `vp check`   | Format, lint, type-check      |
+| `vp test`    | Run tests                     |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome — new filter presets, tool refinements, accessibility fixes, and HEIC/RAW format coverage especially. Open an issue or a pull request to get started. See [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
+Contributions welcome — new filter presets, tool refinements, accessibility fixes, and HEIC/RAW coverage especially. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — feel free to use it for both personal and commercial purposes. See the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE).
 
----
-
-<p align="center">
-  Built with ❤️ by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a>
-</p>
+<p align="center">Built with ❤️ by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a></p>
