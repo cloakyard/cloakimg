@@ -19,6 +19,7 @@
 
 import { CapabilityService, type RunnerArgs } from "../../capability/service";
 import type { CapabilityState } from "../../capability/types";
+import { preferredAiDevice } from "../../runtime/device";
 import type { FaceBox } from "../../runtime/types";
 import { BLAZEFACE_MODEL_URL, DETECT_FACE_FAMILY, TASKS_VISION_WASM_BASE } from "./family";
 
@@ -158,7 +159,9 @@ async function faceDetectRunner({ source, signal, onProgress }: RunnerArgs): Pro
     source,
     modelUrl: BLAZEFACE_MODEL_URL,
     wasmBaseUrl: TASKS_VISION_WASM_BASE,
-    device: "auto",
+    // iOS WebKit's GPU delegate can hard-crash the tab; pin iOS to the CPU
+    // delegate (wasm). Face inference is ~50 ms on CPU, so no real cost.
+    device: preferredAiDevice(),
     signal,
     onProgress,
   });

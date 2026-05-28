@@ -13,6 +13,7 @@
 import { acquireCanvas } from "../../doc";
 import { aiLog } from "../log";
 import { isHfModelCached } from "./cache";
+import { preferredAiDevice } from "./device";
 import { ACTIVE_DEPTH_FAMILY, type DepthModelTier, getDepthInferenceLongEdge } from "./depthModels";
 import { runAi } from "./runtime";
 import type { AiProgress } from "./types";
@@ -81,7 +82,10 @@ export async function estimateDepth(
         bitmap: inputBitmap,
         model: tier.repo,
         dtype: tier.dtype,
-        device: "auto",
+        // iOS WebKit's WebGPU can hard-crash the tab during depth pipeline
+        // init (uncatchable, so the worker's wasm fallback never runs).
+        // Pin iOS to wasm; elsewhere "auto" prefers webgpu with fallback.
+        device: preferredAiDevice(),
       },
       {
         signal,

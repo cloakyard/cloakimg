@@ -3,7 +3,7 @@
 // loop directly against plain RGBA + depth arrays.
 
 import { describe, expect, it } from "vitest";
-import { isRelightIdentity, type RelightParams, relightPixels } from "./relight";
+import { isRelightIdentity, type RelightParams, relightPixels, shadeFromDepth } from "./relight";
 
 const BASE: RelightParams = {
   sunX: 0.5,
@@ -89,5 +89,41 @@ describe("relightPixels — directional brightening", () => {
     for (let i = 3; i < px.length; i += 4) {
       expect(px[i]).toBe(255);
     }
+  });
+});
+
+describe("shadeFromDepth — fused full-res path matches the two-pass path", () => {
+  // The full-resolution Apply bakes via shadeFromDepth (normals fused into
+  // the shade loop to avoid ~200 MB of intermediate arrays). It MUST be
+  // byte-identical to relightPixels (computeNormals + shade), or Apply
+  // would look different from the live preview.
+  it("is byte-identical to relightPixels on a varied depth field", () => {
+    const w = 17;
+    const h = 13;
+    const depth = new Float32Array(w * h);
+    for (let i = 0; i < depth.length; i++) {
+      // A non-flat, non-trivial height-field so the normal gradient is
+      // exercised in every direction (not just the falloff term).
+      depth[i] = (Math.sin(i * 0.7) * 0.5 + 0.5) * (((i * 31) % 97) / 97);
+    }
+    const px = new Uint8ClampedArray(w * h * 4);
+    for (let i = 0; i < px.length; i += 4) {
+      px[i] = (i * 13) % 256;
+      px[i + 1] = (i * 7) % 256;
+      px[i + 2] = (i * 29) % 256;
+      px[i + 3] = 255;
+    }
+    const params: RelightParams = {
+      sunX: 0.3,
+      sunY: 0.7,
+      elevation: 0.4,
+      intensity: 0.8,
+      warmth: 0.75,
+    };
+    const a = px.slice();
+    const b = px.slice();
+    relightPixels(a, depth, w, h, params);
+    shadeFromDepth(b, depth, w, h, params);
+    expect(Array.from(b)).toEqual(Array.from(a));
   });
 });
