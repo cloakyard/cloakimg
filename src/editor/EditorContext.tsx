@@ -268,6 +268,11 @@ interface EditorReadValue {
 
 const ActionsCtx = createContext<ActionsValue | null>(null);
 const ToolStateCtx = createContext<ToolStateValue | null>(null);
+// Primitive `activeTool` slice — changes only on a tool switch, never on
+// a slider tick, so chrome that merely dispatches on the active tool can
+// subscribe here and skip the per-tick re-renders that the full
+// `ToolStateCtx` forces.
+const ActiveToolCtx = createContext<ToolState["activeTool"] | null>(null);
 const EditorReadCtx = createContext<EditorReadValue | null>(null);
 const Ctx = createContext<EditorContextValue | null>(null);
 
@@ -441,13 +446,15 @@ export function EditorProvider({
   }, [doc, historyVersion]);
 
   // Test hook — exposes the working doc's current dimensions on
-  // window for headless e2e tests to assert against. Stripped in
-  // production by Vite's tree-shaker because the read-only string
-  // import is unused at runtime; the assignment below sits inside an
-  // effect so it never executes during SSR / non-browser builds.
+  // window for headless e2e tests to assert against. Gated on
+  // `import.meta.env.DEV` so the whole effect tree-shakes out of the
+  // production bundle — the probes run against `vp dev` (DEV=true), so
+  // they keep their hook, while shipped builds don't re-run this effect
+  // (and rebuild the debug object) on every slider tick / patchTool.
   // (Intentionally NOT typed — we don't want app code reaching for
   // this surface, only out-of-band tests.)
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
     if (typeof window === "undefined") return;
     const w = window as unknown as {
       __editorDebug?: {
@@ -1081,9 +1088,11 @@ export function EditorProvider({
   return (
     <ActionsCtx.Provider value={actionsValue}>
       <ToolStateCtx.Provider value={toolStateValue}>
-        <EditorReadCtx.Provider value={readValue}>
-          <Ctx.Provider value={value}>{children}</Ctx.Provider>
-        </EditorReadCtx.Provider>
+        <ActiveToolCtx.Provider value={toolState.activeTool}>
+          <EditorReadCtx.Provider value={readValue}>
+            <Ctx.Provider value={value}>{children}</Ctx.Provider>
+          </EditorReadCtx.Provider>
+        </ActiveToolCtx.Provider>
       </ToolStateCtx.Provider>
     </ActionsCtx.Provider>
   );
@@ -1112,6 +1121,17 @@ export function useToolState(): ToolState {
   const v = useContext(ToolStateCtx);
   if (!v) throw new Error("useToolState must be used inside an <EditorProvider />");
   return v.toolState;
+}
+
+/** Active-tool slice — the one field that changes only on a tool switch,
+ *  never on a slider tick. Dispatchers + chrome that just need to know
+ *  which tool is active (ToolStage, ToolControls, the rail, the panel
+ *  header) read this so they bail out of the per-tick re-renders that the
+ *  full `useToolState()` subscription would force. */
+export function useActiveTool(): ToolState["activeTool"] {
+  const v = useContext(ActiveToolCtx);
+  if (!v) throw new Error("useActiveTool must be used inside an <EditorProvider />");
+  return v;
 }
 
 /** Read-only state slice — doc, view, layers, layout, history flags,

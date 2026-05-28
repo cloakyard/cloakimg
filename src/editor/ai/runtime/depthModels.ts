@@ -96,6 +96,14 @@ export function getDepthTierById(id: DepthQuality): DepthModelTier {
   return tier;
 }
 
+/** Expected download bytes for a (repo, dtype) pair — feeds the
+ *  progress aggregator's denominator so a tiny config file completing
+ *  before the big weights file is discovered doesn't spike the bar.
+ *  Returns 0 when the pair isn't a registered tier. */
+export function bytesForDepthModel(repo: string, dtype: string): number {
+  return ACTIVE_DEPTH_FAMILY.tiers.find((t) => t.repo === repo && t.dtype === dtype)?.bytes ?? 0;
+}
+
 /** Inference long-edge cap — depth.ts caps the bitmap to this before
  *  posting to the worker. */
 export function getDepthInferenceLongEdge(): number {

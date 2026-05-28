@@ -21,6 +21,7 @@ import {
   RawImage,
 } from "@huggingface/transformers";
 import { aiLog } from "../../log";
+import { bytesForDepthModel } from "../depthModels";
 import { createProgressAggregator } from "../progress";
 import type { AiDepthRequest, AiResultResponse } from "../types";
 import { bitmapToRawImage, deviceOrder, postError, postProgress, postResult } from "./shared";
@@ -142,7 +143,10 @@ async function buildEstimator(
   req: AiDepthRequest,
   device: "webgpu" | "wasm",
 ): Promise<{ estimator: DepthEstimatorFn; device: "webgpu" | "wasm" }> {
-  const aggregator = createProgressAggregator("Downloading model…");
+  const aggregator = createProgressAggregator(
+    "Downloading model…",
+    bytesForDepthModel(req.model, req.dtype),
+  );
   const progress_callback = (data: ProgressInfo) => {
     if (data.status !== "progress") return;
     const next = aggregator.push(data.file ?? "model", data.loaded ?? 0, data.total ?? 0);

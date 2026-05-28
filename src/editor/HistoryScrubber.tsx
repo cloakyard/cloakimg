@@ -14,12 +14,15 @@
 // without giving the user anything actionable.
 
 import { useEffect, useRef, useState } from "react";
-import { useEditor } from "./EditorContext";
+import { useEditorActions, useEditorReadOnly } from "./EditorContext";
 
 const THUMB_PX = 30;
 
 export function HistoryScrubber() {
-  const { historyEntries, historyVersion, jumpToStep, historyDepth, layout } = useEditor();
+  // Read-only + actions slices only (no tool state) so the scrubber
+  // doesn't re-render on every slider tick.
+  const { historyVersion, layout } = useEditorReadOnly();
+  const { historyEntries, jumpToStep, historyDepth } = useEditorActions();
 
   // `historyVersion` drives a re-snapshot of the entries array. The
   // accessor itself is stable identity — the re-render trigger is the

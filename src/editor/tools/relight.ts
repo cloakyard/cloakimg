@@ -80,6 +80,78 @@ function readDepth(depthCanvas: HTMLCanvasElement, w: number, h: number): Float3
   return out;
 }
 
+/** Cached depth-derived surface normals, keyed on the depth canvas
+ *  identity + target dimensions. The normals depend only on the depth
+ *  gradient — NOT on the sun / intensity / warmth / elevation — so while
+ *  the user drags those controls we recompute neither the depth readback
+ *  (a getImageData + fill) nor the per-pixel normal `sqrt` field; only
+ *  the cheap shading pass re-runs each frame. */
+let normalCache: {
+  depthCanvas: HTMLCanvasElement;
+  w: number;
+  h: number;
+  nx: Float32Array;
+  ny: Float32Array;
+  nz: Float32Array;
+} | null = null;
+
+/** Only cache preview-sized normal fields. A one-shot full-resolution
+ *  apply gets no reuse, so caching it would pin a ~290 MB normal map for
+ *  nothing — recompute fresh and drop the cache above this size. */
+const NORMAL_CACHE_MAX_PX = 3_000_000;
+
+function getDepthNormals(
+  depthCanvas: HTMLCanvasElement,
+  w: number,
+  h: number,
+): { nx: Float32Array; ny: Float32Array; nz: Float32Array } {
+  if (
+    normalCache &&
+    normalCache.depthCanvas === depthCanvas &&
+    normalCache.w === w &&
+    normalCache.h === h
+  ) {
+    return normalCache;
+  }
+  const depth = readDepth(depthCanvas, w, h);
+  const normals = computeNormals(depth, w, h);
+  normalCache = w * h <= NORMAL_CACHE_MAX_PX ? { depthCanvas, w, h, ...normals } : null;
+  return normals;
+}
+
+/** Surface normals from the depth gradient (height-field). Pure and
+ *  cacheable: depends only on `depth`, not on any light parameter. With
+ *  nz=1 before normalising, |N|² = nx²+ny²+1, so a plain `sqrt` does the
+ *  job — `Math.hypot`'s overflow-safe scaling is wasted on these bounded
+ *  values and costs 2-4× per call. */
+function computeNormals(
+  depth: Float32Array,
+  w: number,
+  h: number,
+): { nx: Float32Array; ny: Float32Array; nz: Float32Array } {
+  const nx = new Float32Array(w * h);
+  const ny = new Float32Array(w * h);
+  const nz = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const yUp = y > 0 ? y - 1 : y;
+    const yDn = y < h - 1 ? y + 1 : y;
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      const xL = x > 0 ? x - 1 : x;
+      const xR = x < w - 1 ? x + 1 : x;
+      const dzdx = depth[y * w + xR]! - depth[y * w + xL]!;
+      const dzdy = depth[yDn * w + x]! - depth[yUp * w + x]!;
+      const nxRaw = -dzdx * RELIEF;
+      const nyRaw = -dzdy * RELIEF;
+      const nInv = 1 / Math.sqrt(nxRaw * nxRaw + nyRaw * nyRaw + 1);
+      nx[idx] = nxRaw * nInv;
+      ny[idx] = nyRaw * nInv;
+      nz[idx] = nInv; // 1 * nInv
+    }
+  }
+  return { nx, ny, nz };
+}
+
 /** Relight `source` using `depthCanvas`. Returns a fresh pooled canvas
  *  (caller releases it). The source is left untouched. Assumes a
  *  non-identity params set — callers gate on `isRelightIdentity`. */
@@ -103,18 +175,21 @@ export function bakeRelight(
   }
 
   const img = sctx.getImageData(0, 0, w, h);
-  const depth = readDepth(depthCanvas, w, h);
-  relightPixels(img.data, depth, w, h, p);
+  const { nx, ny, nz } = getDepthNormals(depthCanvas, w, h);
+  shade(img.data, nx, ny, nz, w, h, p);
   octx.putImageData(img, 0, 0);
   return out;
 }
 
-/** Pure shading core — mutates `px` (RGBA) in place using the `depth`
- *  height-field. Extracted from `bakeRelight` so the lighting maths can
- *  be unit-tested without a canvas 2D context (jsdom lacks one). */
-export function relightPixels(
+/** Shading core — mutates `px` (RGBA) in place from precomputed per-
+ *  pixel surface normals. The light vector + falloff are the only things
+ *  that depend on the user's drag, so this is all that re-runs per frame
+ *  once the normals are cached. */
+function shade(
   px: Uint8ClampedArray,
-  depth: Float32Array,
+  nx: Float32Array,
+  ny: Float32Array,
+  nz: Float32Array,
   w: number,
   h: number,
   p: RelightParams,
@@ -129,25 +204,11 @@ export function relightPixels(
   const invReachSq = 1 / (REACH * REACH);
 
   for (let y = 0; y < h; y++) {
-    const yUp = y > 0 ? y - 1 : y;
-    const yDn = y < h - 1 ? y + 1 : y;
     for (let x = 0; x < w; x++) {
       const idx = y * w + x;
-      const xL = x > 0 ? x - 1 : x;
-      const xR = x < w - 1 ? x + 1 : x;
-
-      // Surface normal from the depth gradient (height-field). With nz=1
-      // before normalising, |N|² = nx²+ny²+1, so a plain `sqrt` does the
-      // job — `Math.hypot`'s overflow-safe scaling is wasted on these
-      // bounded values and costs 2-4× per call (3 calls × every pixel).
-      const dzdx = depth[y * w + xR]! - depth[y * w + xL]!;
-      const dzdy = depth[yDn * w + x]! - depth[yUp * w + x]!;
-      const nxRaw = -dzdx * RELIEF;
-      const nyRaw = -dzdy * RELIEF;
-      const nInv = 1 / Math.sqrt(nxRaw * nxRaw + nyRaw * nyRaw + 1);
-      const nx = nxRaw * nInv;
-      const ny = nyRaw * nInv;
-      const nz = nInv; // 1 * nInv
+      const nxv = nx[idx]!;
+      const nyv = ny[idx]!;
+      const nzv = nz[idx]!;
 
       // Point-light direction (toward the sun) + distance falloff. atten
       // only needs the squared distance, so it costs no sqrt of its own —
@@ -162,10 +223,10 @@ export function relightPixels(
       const atten = 1 / (1 + distSq * invReachSq);
 
       // Half-Lambert keeps shadows readable instead of crushing to black.
-      const diffuse = nx * lx + ny * ly + nz * lzn;
+      const diffuse = nxv * lx + nyv * ly + nzv * lzn;
       const hl = diffuse * 0.5 + 0.5;
-      const shade = (hl - 0.5) * 2 * atten; // -1..1
-      let m = 1 + k * shade;
+      const sh = (hl - 0.5) * 2 * atten; // -1..1
+      let m = 1 + k * sh;
       if (m < 0.15) m = 0.15;
       else if (m > 2.2) m = 2.2;
 
@@ -179,6 +240,21 @@ export function relightPixels(
       // alpha untouched
     }
   }
+}
+
+/** Pure shading entry for tests + any direct caller: derives the surface
+ *  normals from `depth` then shades. `bakeRelight` uses the cached normal
+ *  path instead so a slider drag skips this recompute. Kept callable
+ *  without a canvas 2D context (jsdom lacks one) for unit tests. */
+export function relightPixels(
+  px: Uint8ClampedArray,
+  depth: Float32Array,
+  w: number,
+  h: number,
+  p: RelightParams,
+): void {
+  const { nx, ny, nz } = computeNormals(depth, w, h);
+  shade(px, nx, ny, nz, w, h, p);
 }
 
 function clamp8(v: number): number {

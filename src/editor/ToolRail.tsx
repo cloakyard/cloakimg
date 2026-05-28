@@ -2,6 +2,7 @@
 // MobileEditorSurface's morphing bottom sheet for tool selection, so
 // the rail never renders below the mobile breakpoint.
 
+import { memo } from "react";
 import { ALL_TOOLS, type Tool, type ToolId } from "./tools";
 
 interface RailProps {
@@ -24,9 +25,14 @@ function withSeparators(): RailItem[] {
   return items;
 }
 
-export function ToolRail({ activeTool, onSelect }: RailProps) {
-  const items = withSeparators();
+// ALL_TOOLS is a module constant, so the rail layout is fixed — compute
+// it once instead of rebuilding a ~30-element array on every render.
+const RAIL_ITEMS = withSeparators();
 
+// Memoized: the rail only depends on `activeTool` + a stable `onSelect`,
+// so it can bail out of the per-slider-tick re-renders that ripple down
+// from the editor chrome.
+export const ToolRail = memo(function ToolRail({ activeTool, onSelect }: RailProps) {
   return (
     // V5 (May 2026 minimalist desktop redesign) — the rail no longer
     // carries its own surface or backdrop blur; tools sit directly on
@@ -35,7 +41,7 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
     // else is hover/active ink only. Mirrors mobile's chrome-free
     // bottom surface.
     <div className="no-scrollbar flex w-18 shrink-0 flex-col overflow-y-auto border-r border-border-soft py-2">
-      {items.map((item) => {
+      {RAIL_ITEMS.map((item) => {
         if (item.sep) {
           return <div key={item.key} className="mx-3 my-1.5 h-px bg-border-soft" />;
         }
@@ -74,4 +80,4 @@ export function ToolRail({ activeTool, onSelect }: RailProps) {
       })}
     </div>
   );
-}
+});

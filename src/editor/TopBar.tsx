@@ -9,7 +9,7 @@ import { useCallback, useState } from "react";
 import { BrandMark, I } from "../components/icons";
 import { useSubjectMask } from "./ai/useSubjectMask";
 import { ConfirmModal } from "./ConfirmModal";
-import { useEditor } from "./EditorContext";
+import { useEditorActions, useEditorReadOnly } from "./EditorContext";
 import { MobileMoreMenu } from "./MobileMoreMenu";
 
 interface TopBarProps {
@@ -17,24 +17,13 @@ interface TopBarProps {
 }
 
 export function TopBar({ onShowFileProps }: TopBarProps) {
-  const {
-    layout,
-    mode,
-    setMode,
-    view,
-    setView,
-    openExport,
-    undo,
-    redo,
-    resetToOriginal,
-    canUndo,
-    canRedo,
-    canReset,
-    doc,
-    exit,
-    compareActive,
-    setCompareActive,
-  } = useEditor();
+  // TopBar reads no tool state, so consuming the read-only + actions
+  // slices (instead of the omnibus `useEditor()`) keeps it from
+  // re-rendering on every slider tick.
+  const { layout, mode, view, canUndo, canRedo, canReset, doc, compareActive } =
+    useEditorReadOnly();
+  const { setMode, setView, openExport, undo, redo, resetToOriginal, exit, setCompareActive } =
+    useEditorActions();
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);

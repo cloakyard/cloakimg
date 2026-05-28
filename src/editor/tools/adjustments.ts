@@ -331,8 +331,6 @@ export function bakeAdjust(
   // Sharpen runs first (spatial 5-tap) so subsequent per-pixel passes
   // operate on the sharpened result.
   if (Math.abs(v.sharpen) > 1e-3) applySharpen(out, v.sharpen);
-  const img = ctx.getImageData(0, 0, out.width, out.height);
-  const data = img.data;
 
   // Pre-compute scalars used in the inner loop.
   const expo = Math.pow(2, v.exposure); // ±2 stops
@@ -361,90 +359,108 @@ export function bakeAdjust(
   const tempActive = tempR !== 0;
   const needsLum = shHiActive || whActive || blActive;
 
-  for (let i = 0; i < data.length; i += 4) {
-    let r = data[i] ?? 0;
-    let g = data[i + 1] ?? 0;
-    let b = data[i + 2] ?? 0;
+  // Skip the full-resolution readback + per-pixel pass when the only
+  // active adjustments are the separate sharpen / vignette passes (each
+  // owns its own getImageData). A vignette- or sharpen-only drag
+  // otherwise paid an extra full readback + an all-no-op pixel loop +
+  // writeback every frame.
+  const anyPerPixel =
+    expoActive ||
+    conActive ||
+    needsLum ||
+    satActive ||
+    vibActive ||
+    tempActive ||
+    grainAmount > 0 ||
+    !!lut;
+  if (anyPerPixel) {
+    const img = ctx.getImageData(0, 0, out.width, out.height);
+    const data = img.data;
+    for (let i = 0; i < data.length; i += 4) {
+      let r = data[i] ?? 0;
+      let g = data[i + 1] ?? 0;
+      let b = data[i + 2] ?? 0;
 
-    if (expoActive) {
-      r *= expo;
-      g *= expo;
-      b *= expo;
-    }
-
-    if (conActive) {
-      r = (r - 128) * con + 128;
-      g = (g - 128) * con + 128;
-      b = (b - 128) * con + 128;
-    }
-
-    if (needsLum) {
-      const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
-      if (shHiActive) {
-        const shadowMask = Math.max(0, 1 - lum / 128);
-        const highlightMask = Math.max(0, (lum - 128) / 128);
-        const sAdjust = sh * 60 * shadowMask;
-        const hAdjust = -hi * 60 * highlightMask;
-        r += sAdjust + hAdjust;
-        g += sAdjust + hAdjust;
-        b += sAdjust + hAdjust;
+      if (expoActive) {
+        r *= expo;
+        g *= expo;
+        b *= expo;
       }
-      if (whActive) {
-        const m = Math.max(0, (lum - 200) / 55);
-        r += wh * 30 * m;
-        g += wh * 30 * m;
-        b += wh * 30 * m;
+
+      if (conActive) {
+        r = (r - 128) * con + 128;
+        g = (g - 128) * con + 128;
+        b = (b - 128) * con + 128;
       }
-      if (blActive) {
-        const m = Math.max(0, (60 - lum) / 60);
-        r -= bl * 30 * m;
-        g -= bl * 30 * m;
-        b -= bl * 30 * m;
+
+      if (needsLum) {
+        const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
+        if (shHiActive) {
+          const shadowMask = Math.max(0, 1 - lum / 128);
+          const highlightMask = Math.max(0, (lum - 128) / 128);
+          const sAdjust = sh * 60 * shadowMask;
+          const hAdjust = -hi * 60 * highlightMask;
+          r += sAdjust + hAdjust;
+          g += sAdjust + hAdjust;
+          b += sAdjust + hAdjust;
+        }
+        if (whActive) {
+          const m = Math.max(0, (lum - 200) / 55);
+          r += wh * 30 * m;
+          g += wh * 30 * m;
+          b += wh * 30 * m;
+        }
+        if (blActive) {
+          const m = Math.max(0, (60 - lum) / 60);
+          r -= bl * 30 * m;
+          g -= bl * 30 * m;
+          b -= bl * 30 * m;
+        }
       }
+
+      if (satActive) {
+        const lum2 = r * 0.2126 + g * 0.7152 + b * 0.0722;
+        r = lum2 + (r - lum2) * sat;
+        g = lum2 + (g - lum2) * sat;
+        b = lum2 + (b - lum2) * sat;
+      }
+
+      if (vibActive) {
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const sNow = max === 0 ? 0 : (max - min) / max;
+        const factor = 1 + vib * (1 - sNow);
+        const lum3 = r * 0.2126 + g * 0.7152 + b * 0.0722;
+        r = lum3 + (r - lum3) * factor;
+        g = lum3 + (g - lum3) * factor;
+        b = lum3 + (b - lum3) * factor;
+      }
+
+      if (tempActive) {
+        r += tempR;
+        b += tempB;
+      }
+
+      if (grainAmount > 0) {
+        const n = (Math.random() - 0.5) * grainAmount;
+        r += n;
+        g += n;
+        b += n;
+      }
+
+      if (lut) {
+        r = lut[clamp255(r)] ?? r;
+        g = lut[clamp255(g)] ?? g;
+        b = lut[clamp255(b)] ?? b;
+      }
+
+      data[i] = clamp255(r);
+      data[i + 1] = clamp255(g);
+      data[i + 2] = clamp255(b);
     }
 
-    if (satActive) {
-      const lum2 = r * 0.2126 + g * 0.7152 + b * 0.0722;
-      r = lum2 + (r - lum2) * sat;
-      g = lum2 + (g - lum2) * sat;
-      b = lum2 + (b - lum2) * sat;
-    }
-
-    if (vibActive) {
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const sNow = max === 0 ? 0 : (max - min) / max;
-      const factor = 1 + vib * (1 - sNow);
-      const lum3 = r * 0.2126 + g * 0.7152 + b * 0.0722;
-      r = lum3 + (r - lum3) * factor;
-      g = lum3 + (g - lum3) * factor;
-      b = lum3 + (b - lum3) * factor;
-    }
-
-    if (tempActive) {
-      r += tempR;
-      b += tempB;
-    }
-
-    if (grainAmount > 0) {
-      const n = (Math.random() - 0.5) * grainAmount;
-      r += n;
-      g += n;
-      b += n;
-    }
-
-    if (lut) {
-      r = lut[clamp255(r)] ?? r;
-      g = lut[clamp255(g)] ?? g;
-      b = lut[clamp255(b)] ?? b;
-    }
-
-    data[i] = clamp255(r);
-    data[i + 1] = clamp255(g);
-    data[i + 2] = clamp255(b);
+    ctx.putImageData(img, 0, 0);
   }
-
-  ctx.putImageData(img, 0, 0);
 
   // Vignette runs last so it tints the fully-graded result.
   if (Math.abs(v.vignette) > 1e-3) applyVignette(out, v.vignette);
@@ -492,15 +508,41 @@ function applySharpen(canvas: HTMLCanvasElement, amount: number) {
     dd[ic + 3] = sd[ic + 3] ?? 255;
   };
 
-  // Interior — no bounds checks. This is ~99% of the pixels on any
-  // reasonable image, so eliminating the per-tap clamps here is the
-  // dominant win.
+  // Interior — no bounds checks, no per-pixel `tap` closure, channels
+  // unrolled, and no `?? 0` guards (every index here is in-bounds, so
+  // the non-null assertions are safe). This is ~99% of the pixels, so
+  // shedding the closure call + inner channel loop + nullish checks per
+  // pixel is the dominant win on a live preview drag.
   const stride = w * 4;
   for (let y = 1; y < h - 1; y++) {
     const rowBase = y * w;
     for (let x = 1; x < w - 1; x++) {
       const ic = (rowBase + x) * 4;
-      tap(ic, ic - stride, ic + stride, ic - 4, ic + 4);
+      const it = ic - stride;
+      const ib = ic + stride;
+      const il = ic - 4;
+      const ir = ic + 4;
+      const r = sd[ic]!;
+      const g = sd[ic + 1]!;
+      const b = sd[ic + 2]!;
+      if (sharpen) {
+        dd[ic] = clamp255(r + (5 * r - sd[it]! - sd[ib]! - sd[il]! - sd[ir]! - r) * a);
+        dd[ic + 1] = clamp255(
+          g + (5 * g - sd[it + 1]! - sd[ib + 1]! - sd[il + 1]! - sd[ir + 1]! - g) * a,
+        );
+        dd[ic + 2] = clamp255(
+          b + (5 * b - sd[it + 2]! - sd[ib + 2]! - sd[il + 2]! - sd[ir + 2]! - b) * a,
+        );
+      } else {
+        dd[ic] = clamp255(r + ((r + sd[it]! + sd[ib]! + sd[il]! + sd[ir]!) / 5 - r) * a);
+        dd[ic + 1] = clamp255(
+          g + ((g + sd[it + 1]! + sd[ib + 1]! + sd[il + 1]! + sd[ir + 1]!) / 5 - g) * a,
+        );
+        dd[ic + 2] = clamp255(
+          b + ((b + sd[it + 2]! + sd[ib + 2]! + sd[il + 2]! + sd[ir + 2]!) / 5 - b) * a,
+        );
+      }
+      dd[ic + 3] = sd[ic + 3]!;
     }
   }
 

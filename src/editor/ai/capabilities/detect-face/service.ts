@@ -21,7 +21,6 @@ import { CapabilityService, type RunnerArgs } from "../../capability/service";
 import type { CapabilityState } from "../../capability/types";
 import type { FaceBox } from "../../runtime/types";
 import { BLAZEFACE_MODEL_URL, DETECT_FACE_FAMILY, TASKS_VISION_WASM_BASE } from "./family";
-import { runFaceDetect } from "./runner";
 
 /** Storage key for the per-session "user has consented to face
  *  detection" marker. Persisted across sessions so the consent modal
@@ -149,6 +148,12 @@ export function waitForFaceResolution(source: HTMLCanvasElement): Promise<FaceBo
 // CapabilityService primitive talks to it identically.
 
 async function faceDetectRunner({ source, signal, onProgress }: RunnerArgs): Promise<FaceBox[]> {
+  // Lazy-load the runner (and through it, the ~250-300 kB MediaPipe
+  // Tasks-Vision SDK) only when face detection actually runs. Keeps the
+  // SDK out of the initial editor chunk for users who never touch the
+  // Faces flow; the runner caches its detector + vision across calls, so
+  // this dynamic import is paid once.
+  const { runFaceDetect } = await import("./runner");
   const { faces } = await runFaceDetect({
     source,
     modelUrl: BLAZEFACE_MODEL_URL,

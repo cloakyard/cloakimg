@@ -30,18 +30,43 @@ export interface ProgressAggregator {
 
 const REPORT_THRESHOLD = 0.005; // ~0.5 % steps; cheap and smooth.
 
-export function createProgressAggregator(label: string): ProgressAggregator {
+/**
+ * @param label   Human-readable phase label for the broadcast events.
+ * @param expectedTotal  Best pre-flight estimate of the *total* bytes for
+ *   the whole model download (the big weights file dominates). Anchors
+ *   the denominator so the bar tracks the real download instead of
+ *   spiking. transformers.js loads the tiny config files FIRST and only
+ *   discovers the big weights file afterwards — summing just the bytes
+ *   seen so far makes a 1 KB config.json that finishes first read as
+ *   ~100 %, then the weights file appears, the denominator balloons, and
+ *   the bar snaps back toward 0 %. Dividing by the known total keeps the
+ *   early config bytes negligible. Pass 0 (default) when no estimate is
+ *   available — the aggregator then falls back to the discovered sum.
+ */
+export function createProgressAggregator(label: string, expectedTotal = 0): ProgressAggregator {
   const files = new Map<string, FileState>();
   let lastReportedRatio = -1;
+  // Highest ratio reported so far. A download only moves forward, so we
+  // clamp against this — incremental file discovery (or an under-
+  // estimated expectedTotal) must never rewind the bar.
+  let peakRatio = 0;
 
   const aggregate = (): { ratio: number; cur: number; tot: number } => {
     let cur = 0;
-    let tot = 0;
+    let sum = 0;
     for (const v of files.values()) {
       cur += v.current;
-      tot += v.total;
+      sum += v.total;
     }
-    const ratio = tot > 0 ? Math.min(0.99, cur / tot) : 0;
+    // Once the real totals exceed the estimate (or no estimate was
+    // given) the discovered sum wins; early on the estimate keeps tiny
+    // config files from dominating.
+    const tot = Math.max(sum, expectedTotal);
+    const raw = tot > 0 ? cur / tot : 0;
+    // Monotonic + capped below 1 (the lib signals 100 % with a separate
+    // "done" event, not a final "progress" tick).
+    const ratio = Math.min(0.99, Math.max(raw, peakRatio));
+    peakRatio = ratio;
     return { ratio, cur, tot };
   };
 

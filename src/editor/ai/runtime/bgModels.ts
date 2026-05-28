@@ -192,6 +192,15 @@ export function indexForQuality(id: BgQuality): number {
   return ACTIVE_FAMILY.tiers.findIndex((t) => t.id === id);
 }
 
+/** Expected download bytes for a (repo, dtype) pair — feeds the
+ *  progress aggregator's denominator so a tiny config file completing
+ *  before the big weights file is discovered doesn't spike the bar.
+ *  Returns 0 when the pair isn't a registered tier (caller falls back
+ *  to the discovered byte sum). */
+export function bytesForModel(repo: string, dtype: string): number {
+  return ACTIVE_FAMILY.tiers.find((t) => t.repo === repo && t.dtype === dtype)?.bytes ?? 0;
+}
+
 /** Inference long-edge cap — segment.ts caps the bitmap to this
  *  before posting to the worker so we don't pay the 24 MP memory
  *  tax for a model that resizes to its intrinsic resolution
