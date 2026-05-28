@@ -121,7 +121,7 @@ export function WatermarkPanel() {
       }
       patchTool("watermarkPosition", bestIndex);
     } catch (err) {
-      // Consent dialog renders via the central host; the inline
+      // Consent modal renders via the central host; the inline
       // smart-error chip below is for real detection failures only.
       if (err instanceof MaskConsentError) return;
       setSmartError(err instanceof Error ? err.message : "Couldn't detect subject.");

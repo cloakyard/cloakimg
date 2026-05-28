@@ -1,5 +1,5 @@
 // types.test.ts — Lock the tier helpers' edge cases. These look
-// trivial but they're consumed by every consent dialog and panel
+// trivial but they're consumed by every consent modal and panel
 // readout — a bad fallback here means the UI shows the wrong size
 // or no selection.
 

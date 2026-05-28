@@ -132,7 +132,7 @@ export interface AiReadyResponse {
  *  promise rejection). Distinct from `AiErrorResponse` which is tied
  *  to a specific request id — this one tells the runtime to tear
  *  down + reject every in-flight call, plus surfaces the actual
- *  message + stack so the user-facing dialog can show something
+ *  message + stack so the user-facing modal can show something
  *  better than "AI worker crashed (see browser console for details)". */
 export interface AiSelfErrorResponse {
   type: "self-error";

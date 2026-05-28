@@ -7,7 +7,7 @@
 // user who hit a detection failure couldn't predict which panel would
 // surface it which way. Centralising here unifies:
 //   • role="alert" so screen readers announce on appearance.
-//   • Triangle icon — same glyph as MaskDownloadDialog's error block,
+//   • Triangle icon — same glyph as MaskDownloadModal's error block,
 //     so the visual language carries across surfaces.
 //   • Optional dismiss X — accepted via `onDismiss` prop; omitted when
 //     the panel doesn't need a manual clear (e.g. Crop, where the next

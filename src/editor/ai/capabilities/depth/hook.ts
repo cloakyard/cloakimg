@@ -1,7 +1,7 @@
 // hook.ts — React binding around the depth service. Mirrors
 // detect-face/hook.ts: subscribes to service state, threads the active
 // document's `working` canvas through peek / request, and surfaces the
-// consent helpers the host dialog needs.
+// consent helpers the host modal needs.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useEditorReadOnly } from "../../../EditorContext";
@@ -29,11 +29,11 @@ export interface UseDepth {
    *  canvas). Null until detected for the current document. */
   peek: () => HTMLCanvasElement | null;
   /** Lazy estimate. Respects the deny latch — auto-trigger effects use
-   *  this so a dismissed consent dialog stays dismissed. */
+   *  this so a dismissed consent modal stays dismissed. */
   request: () => Promise<HTMLCanvasElement>;
   /** Lazy estimate AFTER clearing the deny latch — for explicit user
    *  actions (e.g. a "Relight" resume chip) that should re-open the
-   *  dialog after a prior dismiss. */
+   *  modal after a prior dismiss. */
   requestExplicit: () => Promise<HTMLCanvasElement>;
   grantConsent: () => void;
   denyConsent: () => void;
@@ -96,7 +96,7 @@ export function useDepth(): UseDepth {
     try {
       await ensureDepth(doc.working);
     } catch {
-      // Consent dialog re-opens via the state subscription, or a real
+      // Consent modal re-opens via the state subscription, or a real
       // error surfaces via state.error — the panel reads either through
       // the subscription, not this throw.
     }

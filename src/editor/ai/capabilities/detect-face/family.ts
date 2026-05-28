@@ -1,6 +1,6 @@
 // family.ts — Capability family for MediaPipe BlazeFace face detection.
 // Defines the (single, today) tier the user can download and the
-// consent / status copy the generic dialog renders.
+// consent / status copy the generic modal renders.
 //
 // We picked MediaPipe Tasks Web for face detection because the same
 // SDK + WASM payload also covers Face Landmarker, Image Segmenter,
@@ -53,7 +53,7 @@ const STANDARD_TIER: CapabilityTier<FaceTierRuntimeRef> = {
   id: "standard",
   index: 0,
   label: "Standard",
-  // ~1.04 MB; rounded to whole MB for the dialog copy. The bytes field
+  // ~1.04 MB; rounded to whole MB for the modal copy. The bytes field
   // stays exact for the byte-count progress readout.
   mb: 1,
   bytes: 1_083_786,
@@ -75,7 +75,7 @@ export const DETECT_FACE_FAMILY: CapabilityFamily<FaceTierRuntimeRef> = {
   label: "MediaPipe BlazeFace",
   // Inference long-edge is informational here — MediaPipe handles its
   // own resize internally. Kept on the family for symmetry with the
-  // segmentation surface, which the consent dialog inspects.
+  // segmentation surface, which the consent modal inspects.
   inferenceLongEdge: 192,
   tiers: [STANDARD_TIER],
   consent: {

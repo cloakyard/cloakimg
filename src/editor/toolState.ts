@@ -318,6 +318,12 @@ export interface ToolState {
   /** 0..1, 0.5 neutral; warms the lit side / cools shadows above 0.5. */
   relightWarmth: number;
   relightScope: number;
+
+  /** One-shot hand-off from Tap-to-fix: image-space point the user
+   *  tapped before launching Spot heal. SpotHealTool seeds its brush
+   *  ring here on mount so the user lands exactly where they tapped,
+   *  then clears it back to null. Null means "no pending hand-off". */
+  spotHealSeed: { x: number; y: number } | null;
 }
 
 export const DEFAULT_TOOL_STATE: ToolState = {
@@ -485,4 +491,6 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   relightIntensity: 0,
   relightWarmth: 0.5,
   relightScope: 0,
+
+  spotHealSeed: null,
 };

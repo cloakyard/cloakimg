@@ -8,7 +8,7 @@
 import { useCallback, useState } from "react";
 import { BrandMark, I } from "../components/icons";
 import { useSubjectMask } from "./ai/useSubjectMask";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmModal } from "./ConfirmModal";
 import { useEditor } from "./EditorContext";
 import { MobileMoreMenu } from "./MobileMoreMenu";
 
@@ -40,7 +40,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   // The CloakIMG mark is also a "Back to start" button — on a phone
-  // it sits ~30 px above where the AI download dialog draws, so a
+  // it sits ~30 px above where the AI download modal draws, so a
   // mistap during a long model fetch used to drop the user back at
   // landing with no warning (and no console log, since it's a normal
   // route change). Confirm-on-exit gates that path while detection is
@@ -283,7 +283,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         )}
       </div>
       {resetConfirmOpen && (
-        <ConfirmDialog
+        <ConfirmModal
           layout={layout}
           title="Reset all edits?"
           message="This restores the original image and discards every adjustment, layer, and tool change you've made. Your entire edit history will be wiped — there's no undo after this."
@@ -298,7 +298,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         />
       )}
       {exitConfirmOpen && (
-        <ConfirmDialog
+        <ConfirmModal
           layout={layout}
           title="Leave while AI download is running?"
           message="The on-device subject model is still downloading. Leaving now cancels it; your image stays on this device and can be reopened from Resume."

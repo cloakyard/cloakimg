@@ -1,4 +1,4 @@
-// ConfirmDialog.tsx — Themed confirm modal that replaces native
+// ConfirmModal.tsx — Themed confirm modal that replaces native
 // `window.confirm` for destructive editor actions (e.g. reset). Uses
 // the shared ModalFrame so the translucent glass aesthetic, focus
 // trap, and bottom-sheet-on-mobile behaviour stay consistent with
@@ -24,7 +24,7 @@ interface Props {
   onCancel: () => void;
 }
 
-export function ConfirmDialog({
+export function ConfirmModal({
   layout,
   title,
   message,
@@ -35,9 +35,9 @@ export function ConfirmDialog({
   onCancel,
 }: Props) {
   const isMobile = layout === "mobile";
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   useFocusReturn(true);
-  useFocusTrap(dialogRef, true);
+  useFocusTrap(modalRef, true);
   // Esc is handled centrally by ModalFrame so it routes through the
   // animated-close lifecycle. The Enter shortcut stays here.
   return (
@@ -46,10 +46,10 @@ export function ConfirmDialog({
       bottomSheet={isMobile}
       position="absolute"
       maxWidth="max-w-105"
-      labelledBy="confirm-dialog-title"
-      dialogRef={dialogRef}
+      labelledBy="confirm-modal-title"
+      modalRef={modalRef}
     >
-      <ConfirmDialogBody
+      <ConfirmModalBody
         title={title}
         message={message}
         confirmLabel={confirmLabel}
@@ -74,7 +74,7 @@ interface BodyProps {
   onCancel: () => void;
 }
 
-function ConfirmDialogBody({
+function ConfirmModalBody({
   title,
   message,
   confirmLabel,
@@ -87,7 +87,7 @@ function ConfirmDialogBody({
   const confirmRef = useRef<HTMLButtonElement>(null);
   // Route both the X-button and the explicit Cancel through the
   // animated-close lifecycle of the surrounding ModalFrame so the
-  // dialog slides / fades away instead of vanishing instantly.
+  // modal slides / fades away instead of vanishing instantly.
   // Wrap so the click event isn't accidentally passed as `onSettled`.
   const animatedClose = useModalClose();
   const dismiss = () => (animatedClose ? animatedClose() : onCancel());
@@ -111,7 +111,7 @@ function ConfirmDialogBody({
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
             <Icon size={16} stroke={2.25} />
           </div>
-          <div id="confirm-dialog-title" className="t-headline text-base">
+          <div id="confirm-modal-title" className="t-headline text-base">
             {title}
           </div>
         </div>

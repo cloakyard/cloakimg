@@ -1,7 +1,7 @@
 // hook.ts — React binding around the face-detect service. Subscribes
 // to the service's state, threads the active document's `working`
 // canvas through `peek` / `request`, and surfaces consent helpers the
-// host dialog needs.
+// host modal needs.
 //
 // Pattern matches `useSubjectMask` so a reader who knows the
 // segmentation surface can pick this up cold. The eventual goal is
@@ -31,19 +31,19 @@ import {
 } from "./service";
 
 export interface UseDetectFaces {
-  /** Live service state — drives panel chips / cards / dialogs. */
+  /** Live service state — drives panel chips / cards / modals. */
   state: CapabilityState<FaceBox[]>;
   /** Sync read of cached faces. Returns null when not yet detected
    *  for the current document. */
   peek: () => FaceBox[] | null;
   /** Lazy detect. Respects the deny latch — auto-trigger effects use
-   *  this so a dismissed consent dialog stays dismissed. */
+   *  this so a dismissed consent modal stays dismissed. */
   request: () => Promise<FaceBox[]>;
   /** Lazy detect AFTER clearing the deny latch. Used by explicit
-   *  user actions ("Auto-redact faces" button click) so the dialog
+   *  user actions ("Auto-redact faces" button click) so the modal
    *  re-opens after a prior dismiss. */
   requestExplicit: () => Promise<FaceBox[]>;
-  /** Consent affordances — wired to the consent host dialog. */
+  /** Consent affordances — wired to the consent host modal. */
   grantConsent: () => void;
   denyConsent: () => void;
   resumeAfterDeny: () => Promise<void>;
@@ -52,7 +52,7 @@ export interface UseDetectFaces {
   invalidate: () => void;
   /** Cancel an in-flight detection — terminates the worker run. */
   cancel: () => void;
-  /** Force the consent / model-info dialog open (for a future "model
+  /** Force the consent / model-info modal open (for a future "model
    *  details" affordance in the panel). */
   requestPicker: () => void;
   /** True iff the user (or a prior session) already accepted. */
@@ -91,7 +91,7 @@ export function useDetectFaces(): UseDetectFaces {
     try {
       return await ensureFaceDetections(doc.working);
     } catch (err) {
-      // Consent gate fired — wait for the host dialog to settle the
+      // Consent gate fired — wait for the host modal to settle the
       // flow rather than bouncing the user with a "tap again" UX.
       if (err instanceof CapabilityConsentError) {
         return waitForFaceResolution(doc.working);
@@ -114,7 +114,7 @@ export function useDetectFaces(): UseDetectFaces {
     try {
       await ensureFaceDetections(doc.working);
     } catch {
-      // Consent dialog re-opens via state subscription, or a real
+      // Consent modal re-opens via state subscription, or a real
       // error surfaces via state.error — either way the panel reads
       // the result via the subscription, not this throw.
     }

@@ -173,7 +173,7 @@ describe("CapabilityService — consent flow", () => {
     expect(service.getState().version).toBe(versionBefore);
   });
 
-  it("clearDeny() re-enables future runs to surface the consent dialog", async () => {
+  it("clearDeny() re-enables future runs to surface the consent modal", async () => {
     const { service } = buildService();
     const source = makeCanvas();
 
@@ -191,7 +191,7 @@ describe("CapabilityService — consent flow", () => {
     expect(service.getState().status).toBe("needs-consent");
   });
 
-  it("cached-on-disk tier counts as implicit consent — no dialog", async () => {
+  it("cached-on-disk tier counts as implicit consent — no modal", async () => {
     const { service } = buildService({ isCached: async () => true });
     const source = makeCanvas();
 
@@ -529,7 +529,7 @@ describe("CapabilityService — cancel + watchdog", () => {
 
 describe("CapabilityService — waitForResolution", () => {
   // waitForResolution is the smart-action helper: a click that needs
-  // a result waits across the consent dialog + download + inference.
+  // a result waits across the consent modal + download + inference.
   // It MUST be called only AFTER an operation is in flight — calling
   // it on idle state is interpreted as "the operation has settled
   // without producing a result for this source" and rejects

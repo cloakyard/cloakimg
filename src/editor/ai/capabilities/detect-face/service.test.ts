@@ -9,7 +9,7 @@
 //   • The runner forwards the right shape (modelUrl, wasmBaseUrl,
 //     device hint) to the main-thread MediaPipe runner.
 //   • markFaceConsented fires after a successful inference (so the
-//     dialog won't re-pop the next session even if the user accepted
+//     modal won't re-pop the next session even if the user accepted
 //     "implicitly" via clicking Faces rather than the consent button).
 //
 // Face detection runs on the main thread (MediaPipe Tasks Web doesn't
@@ -95,7 +95,7 @@ describe("detect-face service — consent persistence", () => {
 describe("detect-face service — runner forwards the right request shape", () => {
   it("ensureFaceDetections invokes runFaceDetect with the BlazeFace model + WASM base URLs", async () => {
     // Pre-grant consent so the run() call goes straight to inference
-    // rather than gating on the consent dialog.
+    // rather than gating on the consent modal.
     localStorage.setItem("cloakimg:detect-face:consented", "1");
     const expectedFaces = [{ x: 10, y: 10, width: 30, height: 30, score: 0.95 }];
     runFaceDetectMock.mockResolvedValueOnce({ faces: expectedFaces, device: "wasm" });
@@ -218,13 +218,13 @@ describe("detect-face service — consent gate", () => {
     svc.denyFaceConsent();
     expect(svc.getFaceState().userDenied).toBe(true);
     // Subsequent ensure call still rejects but the latch keeps the
-    // dialog from re-popping (status stays at the latched state).
+    // modal from re-popping (status stays at the latched state).
     await expect(svc.ensureFaceDetections(makeCanvas())).rejects.toBeInstanceOf(
       CapabilityConsentError,
     );
   });
 
-  it("clearFaceDeny resets the latch so the next call re-opens the dialog", async () => {
+  it("clearFaceDeny resets the latch so the next call re-opens the modal", async () => {
     const svc = await import("./service");
     const { CapabilityConsentError } = await import("../../capability/service");
     await expect(svc.ensureFaceDetections(makeCanvas())).rejects.toBeInstanceOf(

@@ -71,7 +71,7 @@ export function PrivacyAuditCard({ stripGPS, onPatchMeta }: Props) {
       await faces.requestExplicit();
     } catch {
       // Consent denial / detection failure surfaces via the host
-      // dialog or the service's error state. Nothing to do here —
+      // modal or the service's error state. Nothing to do here —
       // the card will simply continue showing "Scan for faces"
       // because faces.peek() stays null.
     } finally {

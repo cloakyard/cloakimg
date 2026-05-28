@@ -23,7 +23,7 @@ export function TapFixPanel() {
   const primeAll = () => {
     // Fire-and-forget — the services return cached values instantly
     // when the work is already done, and the user is on the panel so
-    // any consent dialogs land in front of them.
+    // any consent modals land in front of them.
     if (!subjectReady) void subjectMask.requestExplicit().catch(() => undefined);
     if (!facesReady) void faces.requestExplicit().catch(() => undefined);
   };

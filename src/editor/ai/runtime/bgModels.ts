@@ -4,7 +4,7 @@
 // Why this exists: the previous setup had model facts scattered across
 // five files — MODEL_REGISTRY in segment.ts (repo + dtype),
 // QUALITY_BYTE_ESTIMATES in segment.ts (mb), TIERS in
-// MaskConsentDialog.tsx (label + copy), QUALITY_META in RemoveBgPanel.tsx
+// MaskConsentModal.tsx (label + copy), QUALITY_META in RemoveBgPanel.tsx
 // (label + mb again), QUALITY_KEYS in useSubjectMask.ts (id ↔ index).
 // Every model swap meant chasing the same numbers through five files
 // and the slightest drift between them produced wrong UI copy. This
@@ -27,7 +27,7 @@
 import type { Layout } from "../../types";
 
 /** Tier identifier shared with `toolState.bgQuality` (numeric index)
- *  and the consent dialog's radio group. Stable across model swaps —
+ *  and the consent modal's radio group. Stable across model swaps —
  *  small/medium/large is a contract with persisted preferences and
  *  the cache probe, not a property of any particular model family. */
 export type BgQuality = "small" | "medium" | "large";
@@ -53,7 +53,7 @@ export interface BgModelTier {
   /** User-facing tier name shown on radio rows + panel readout. */
   label: string;
   /** Approximate download size in MB. Real size resolves once the
-   *  network responds; this is the pre-flight estimate so the dialog
+   *  network responds; this is the pre-flight estimate so the modal
    *  shows "0 / 84 MB" before the lib's first chunk arrives. */
   mb: number;
   /** Pre-computed `mb * 1024 * 1024` for callers that want bytes
@@ -63,7 +63,7 @@ export interface BgModelTier {
   strength: string;
   /** Trade-off line — what the user gives up. Honest about the cost. */
   tradeoff: string;
-  /** When true, dialog tags the tier with a "Recommended" pill. */
+  /** When true, modal tags the tier with a "Recommended" pill. */
   recommended?: boolean;
   /** When true, hidden on the small-screen mobile layout. Used for
    *  tiers whose download size is impractical for phone storage. */

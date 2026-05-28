@@ -24,7 +24,7 @@ import { BLAZEFACE_MODEL_URL, DETECT_FACE_FAMILY, TASKS_VISION_WASM_BASE } from 
 import { runFaceDetect } from "./runner";
 
 /** Storage key for the per-session "user has consented to face
- *  detection" marker. Persisted across sessions so the consent dialog
+ *  detection" marker. Persisted across sessions so the consent modal
  *  doesn't re-pop on every reload after the first accept — same UX
  *  as the segment family's HF cache probe. */
 const CONSENT_KEY = "cloakimg:detect-face:consented";
@@ -34,7 +34,7 @@ function isFaceConsented(): boolean {
     return typeof localStorage !== "undefined" && localStorage.getItem(CONSENT_KEY) === "1";
   } catch {
     // Private mode quotas / cross-site iframe restrictions: treat as
-    // "not consented" so the user gets the dialog. They've still got
+    // "not consented" so the user gets the modal. They've still got
     // the option to accept; we just can't remember next time.
     return false;
   }
@@ -61,9 +61,9 @@ export function clearFaceConsent(): void {
 const service = new CapabilityService<FaceBox[]>({
   family: DETECT_FACE_FAMILY,
   // Same-origin asset: cache check is implicit via localStorage. Once
-  // the user accepts the consent dialog we mark the flag and treat
-  // future calls as already-cached so the dialog stays away. If the
-  // user clears site data, the flag goes too and the dialog re-pops
+  // the user accepts the consent modal we mark the flag and treat
+  // future calls as already-cached so the modal stays away. If the
+  // user clears site data, the flag goes too and the modal re-pops
   // on the next call — matches the segment family's behaviour after
   // a CacheStorage clear.
   isTierCached: async () => isFaceConsented(),
@@ -126,7 +126,7 @@ export async function probeFaceConsent(): Promise<boolean> {
 /** Ensure face detections for `source` exist in cache, running
  *  inference if they don't. Concurrent calls for the same source
  *  share one in-flight promise. May reject with CapabilityConsentError
- *  the first time — caller should let the host dialog handle that
+ *  the first time — caller should let the host modal handle that
  *  flow rather than treating it as a failure. */
 export async function ensureFaceDetections(source: HTMLCanvasElement): Promise<FaceBox[]> {
   const tier = DETECT_FACE_FAMILY.tiers[0]!;
@@ -134,7 +134,7 @@ export async function ensureFaceDetections(source: HTMLCanvasElement): Promise<F
 }
 
 /** Wait for an in-flight or pending consent flow to settle — used by
- *  smart actions that want to await across the consent dialog without
+ *  smart actions that want to await across the consent modal without
  *  re-tapping the user. */
 export function waitForFaceResolution(source: HTMLCanvasElement): Promise<FaceBox[]> {
   const tier = DETECT_FACE_FAMILY.tiers[0]!;

@@ -101,7 +101,7 @@ export function BgBlurPanel() {
   // is now custom (Background-only / Whole-image, not Whole / Subject /
   // Background). State mid-flight: do nothing — the inline progress
   // card below already reads "Detecting subject…". When the user has
-  // explicitly dismissed the consent dialog this session, we leave
+  // explicitly dismissed the consent modal this session, we leave
   // the panel paused and surface DetectionPausedChip instead — the
   // alternative is an immediate re-pop loop the user can't escape.
   useEffect(() => {
@@ -131,7 +131,7 @@ export function BgBlurPanel() {
       patchTool("bgBlurScope", nextScope);
       // Picking Background-only after a previous deny is the explicit
       // re-opt-in signal — kick off the resume flow so the consent
-      // dialog re-opens instead of leaving the panel paused.
+      // modal re-opens instead of leaving the panel paused.
       if (nextScope !== 0 && subjectMask.state.userDenied) {
         void subjectMask.resumeAfterDeny();
       }

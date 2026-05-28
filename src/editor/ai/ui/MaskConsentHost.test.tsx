@@ -1,14 +1,14 @@
 // UI flow tests for the AI consent + download orchestration.
 //
 // These simulate the actual user path: a panel triggers `request()` →
-// MaskConsentHost surfaces MaskConsentDialog → user picks tier + taps
-// Download (or Not now) → MaskDownloadDialog appears → state settles
+// MaskConsentHost surfaces MaskConsentModal → user picks tier + taps
+// Download (or Not now) → MaskDownloadModal appears → state settles
 // to ready (or stays pinned on error).
 //
 // We mock the heavy bits (smartRemoveBackground, isModelCached, the
 // EditorContext hooks) so the tests run in jsdom in well under a second
 // while exercising the real components, real subjectMask state machine,
-// and real consent dialog DOM.
+// and real consent modal DOM.
 
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -160,14 +160,14 @@ afterEach(() => {
 // ── 1st-time download flow ─────────────────────────────────────────
 
 describe("MaskConsentHost — first-time AI tool tap (cold cache)", () => {
-  it("shows the consent dialog when an AI tool requests detection without consent", async () => {
+  it("shows the consent modal when an AI tool requests detection without consent", async () => {
     const { sm, Host } = await loadFreshSubjectMask();
     render(<Host />);
     expect(screen.queryByText(/^Download the AI model$/i)).toBeNull();
 
     // A panel invokes ensureSubjectMask. The promise rejects with
     // MaskConsentError; the host detects the state flip and pops the
-    // dialog.
+    // modal.
     await act(async () => {
       await sm.ensureSubjectMask(harness.doc.working, "small").catch((e) => {
         if (!(e instanceof sm.MaskConsentError)) throw e;
@@ -224,7 +224,7 @@ describe("MaskConsentHost — first-time AI tool tap (cold cache)", () => {
     };
 
     const user = userEvent.setup();
-    // Pick "Better" — same tier-row pattern the dialog uses.
+    // Pick "Better" — same tier-row pattern the modal uses.
     await user.click(screen.getByRole("button", { name: /Better/i, pressed: false }));
     // The Download button label updates to reflect the picked tier's MB.
     const downloadBtn = await screen.findByRole("button", { name: /Download 84 MB/i });
@@ -235,7 +235,7 @@ describe("MaskConsentHost — first-time AI tool tap (cold cache)", () => {
     expect(harness.toolState.bgQuality).toBe(1);
   });
 
-  it("user clicks Not now → no download starts, dialog closes, deny latch suppresses re-pop", async () => {
+  it("user clicks Not now → no download starts, modal closes, deny latch suppresses re-pop", async () => {
     const { sm, Host } = await loadFreshSubjectMask();
     render(<Host />);
     let calls = 0;
@@ -258,7 +258,7 @@ describe("MaskConsentHost — first-time AI tool tap (cold cache)", () => {
     expect(calls).toBe(0);
     expect(localStorage.getItem(KEY)).toBeNull();
 
-    // A second auto-trigger must NOT re-pop the dialog — the deny latch
+    // A second auto-trigger must NOT re-pop the modal — the deny latch
     // makes ensureSubjectMask reject silently.
     await act(async () => {
       await sm.ensureSubjectMask(harness.doc.working, "small").catch(() => undefined);
@@ -271,7 +271,7 @@ describe("MaskConsentHost — first-time AI tool tap (cold cache)", () => {
 // ── Resume — bytes already on disk ─────────────────────────────────
 
 describe("MaskConsentHost — resume (model already on disk from prior session)", () => {
-  it("a previously-cached model skips the dialog and runs detection directly", async () => {
+  it("a previously-cached model skips the modal and runs detection directly", async () => {
     const { sm, Host } = await loadFreshSubjectMask();
     harness.isModelCached = async () => true;
     let calls = 0;
@@ -285,12 +285,12 @@ describe("MaskConsentHost — resume (model already on disk from prior session)"
       await sm.ensureSubjectMask(harness.doc.working, "medium").catch(() => undefined);
     });
 
-    // Dialog should never have appeared.
+    // Modal should never have appeared.
     expect(screen.queryByText(/^Download the AI model$/i)).toBeNull();
     await waitFor(() => expect(calls).toBeGreaterThan(0));
   });
 
-  it("dialog opened in switch mode shows 'Already downloaded' badge for cached tiers", async () => {
+  it("modal opened in switch mode shows 'Already downloaded' badge for cached tiers", async () => {
     const { Host } = await loadFreshSubjectMask();
     // Prior session: user chose "medium" and the bytes are on disk.
     harness.isModelCached = async (q: string) => q === "medium";
@@ -306,7 +306,7 @@ describe("MaskConsentHost — resume (model already on disk from prior session)"
     });
 
     await screen.findByText(/^Choose a model size$/i);
-    // Wait for the cache probe to run inside the dialog effect.
+    // Wait for the cache probe to run inside the modal effect.
     await waitFor(() => {
       expect(screen.getAllByText(/Already downloaded/i).length).toBeGreaterThan(0);
     });
@@ -319,7 +319,7 @@ describe("MaskConsentHost — resume (model already on disk from prior session)"
 // ── Model deleted between sessions ─────────────────────────────────
 
 describe("MaskConsentHost — bytes evicted between sessions", () => {
-  it("user previously chose medium; cache cleared → next AI tap re-prompts the consent dialog", async () => {
+  it("user previously chose medium; cache cleared → next AI tap re-prompts the consent modal", async () => {
     const { sm, Host } = await loadFreshSubjectMask();
     // The localStorage preference still says "medium" (from a prior
     // session) but the browser cleared CacheStorage between visits.
@@ -337,7 +337,7 @@ describe("MaskConsentHost — bytes evicted between sessions", () => {
     });
 
     // No bytes on disk + no prior consent in this fresh session →
-    // dialog must come up. The user gets a chance to re-confirm.
+    // modal must come up. The user gets a chance to re-confirm.
     await screen.findByText(/^Download the AI model$/i);
     expect(calls).toBe(0);
 
@@ -416,7 +416,7 @@ describe("MaskConsentHost — mobile layout hides the Best tier", () => {
 // ── Switch tier from already-consented state ───────────────────────
 
 describe("MaskConsentHost — already-consented user opening the switch picker", () => {
-  it("dialog uses switch-mode copy (Choose a model size, Cancel)", async () => {
+  it("modal uses switch-mode copy (Choose a model size, Cancel)", async () => {
     const { Host } = await loadFreshSubjectMask();
     const { grantMaskConsent, requestModelPicker } = await import("../subjectMask");
     grantMaskConsent();

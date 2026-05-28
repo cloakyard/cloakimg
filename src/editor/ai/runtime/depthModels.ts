@@ -1,6 +1,6 @@
 // depthModels.ts — Single source of truth for the depth-estimation
 // model family + its quality tiers. Mirrors bgModels.ts's shape so the
-// generic CapabilityService + consent dialog render it without any
+// generic CapabilityService + consent modal render it without any
 // depth-specific UI code.
 //
 // Model: Depth-Anything-V2-Small (ONNX via transformers.js

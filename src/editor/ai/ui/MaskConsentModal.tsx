@@ -1,4 +1,4 @@
-// MaskConsentDialog.tsx — Transparent opt-in for the on-device subject
+// MaskConsentModal.tsx — Transparent opt-in for the on-device subject
 // detection model. Pops the first time any tool needs subject /
 // background segmentation when the model bytes aren't already in the
 // browser's CacheStorage. Once the user accepts, we remember it for
@@ -6,7 +6,7 @@
 // re-prompt for an asset they've already authorised.
 //
 // Goals:
-//   • No surprise downloads. The dialog states the size, the model
+//   • No surprise downloads. The modal states the size, the model
 //     name, and what the model does before any bytes hit the wire.
 //   • Quality choice is part of the same tap, not a separate panel.
 //     The "Best" tier (~168 MB ISNet fp32) is hidden on phones — too
@@ -32,15 +32,15 @@ import { isModelCached } from "../runtime/segment";
 
 interface Props {
   /** Quality the caller initially asked for. The user can change it
-   *  inside the dialog before accepting; we only commit `bgQuality`
+   *  inside the modal before accepting; we only commit `bgQuality`
    *  when they tap Download. */
   initialQuality: BgQuality;
   /** User accepted the download at the chosen tier. */
   onAccept: (quality: BgQuality) => void;
-  /** User dismissed the dialog. */
+  /** User dismissed the modal. */
   onDismiss: () => void;
-  /** True when the dialog was opened from "Change model size" rather
-   *  than as the first-time consent prompt. The dialog re-uses the
+  /** True when the modal was opened from "Change model size" rather
+   *  than as the first-time consent prompt. The modal re-uses the
    *  same picker UI, but adapts copy so it reads as a switch
    *  ("Choose a model size" + "Use {N} MB") rather than a fresh
    *  download solicitation. The user has already granted consent —
@@ -48,7 +48,7 @@ interface Props {
   switchMode?: boolean;
 }
 
-export function MaskConsentDialog({
+export function MaskConsentModal({
   initialQuality,
   onAccept,
   onDismiss,
@@ -60,7 +60,7 @@ export function MaskConsentDialog({
   // Defensive: if a prior session left `bgQuality` at "large" and the
   // user is now on a mobile layout where Best is hidden, downgrade
   // the initial pick so the radio actually reflects something
-  // visible. Without this the dialog would show no selected tier and
+  // visible. Without this the modal would show no selected tier and
   // the Download button would advertise an unavailable size.
   const safeInitial: BgQuality = visibleTiers.some((t) => t.id === initialQuality)
     ? initialQuality
@@ -113,7 +113,7 @@ export function MaskConsentDialog({
       labelledBy="cloak-mask-consent-title"
     >
       {/* Sticky header — same icon-+-title-+-close-X pattern that
-          ConfirmDialog / FilePropertiesModal / ExportModal use. The
+          ConfirmModal / FilePropertiesModal / ExportModal use. The
           subtitle moved into the body so the header stays a single
           fixed-height row that lines up across modals. */}
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4">
@@ -200,7 +200,7 @@ export function MaskConsentDialog({
       </div>
 
       {/* Sticky footer — bordered top + safe-area padding on mobile,
-          matching ConfirmDialog. Same `btn-ghost btn-sm` for the
+          matching ConfirmModal. Same `btn-ghost btn-sm` for the
           dismissive action so every "back out" button across the app
           reads the same. */}
       <div

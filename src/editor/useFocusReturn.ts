@@ -3,7 +3,7 @@
 // trigger button instead of dropping it onto the document body — keeps
 // keyboard navigation predictable and screen readers oriented.
 //
-// Companion `useFocusTrap` keeps Tab inside the dialog while open so
+// Companion `useFocusTrap` keeps Tab inside the modal while open so
 // keyboard users can't accidentally tab into the underlying editor.
 
 import { type RefObject, useEffect } from "react";
@@ -35,7 +35,7 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active
     if (!active) return;
     const root = containerRef.current;
     if (!root) return;
-    // Move initial focus into the dialog so Tab from outside doesn't
+    // Move initial focus into the modal so Tab from outside doesn't
     // skip past it. Try a labelled element first, then any focusable.
     const focusables = () =>
       Array.from(

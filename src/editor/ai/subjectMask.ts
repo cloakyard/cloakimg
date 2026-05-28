@@ -49,11 +49,11 @@ export interface MaskState {
    *  `warm` (which only reflects this session). */
   modelCached: boolean;
   /** When status === "needs-consent", which quality the user is being
-   *  asked to download. Lets the dialog render the right MB / label. */
+   *  asked to download. Lets the modal render the right MB / label. */
   pendingQuality: BgQuality | null;
-  /** True after the user has dismissed the consent dialog at least
+  /** True after the user has dismissed the consent modal at least
    *  once this session. Auto-triggers from panel/scope effects then
-   *  no-op so the dialog doesn't re-pop on every status change.
+   *  no-op so the modal doesn't re-pop on every status change.
    *  Cleared by an explicit user action (clearMaskDeny — wired to
    *  the panels' "Detection paused — Enable" chip). */
   userDenied: boolean;
@@ -100,7 +100,7 @@ let inflightAbort: AbortController | null = null;
 /** Watchdog timer that aborts the detection if the download bytes
  *  counter doesn't advance for `STALL_TIMEOUT_MS`. Mid-tier mobile
  *  networks can leave a fetch hanging at e.g. 23 % indefinitely;
- *  without this, the dialog sits forever. Re-set on every progress
+ *  without this, the modal sits forever. Re-set on every progress
  *  event; cleared on settle, cancel, or invalidate. Module-scoped so
  *  the cancel / invalidate paths can clear it without threading a
  *  closure through. */
@@ -285,13 +285,13 @@ export function invalidateSubjectMask() {
  *  publish the answer on `state.modelCached`. Cheap (low-thousands of
  *  cache keys at worst); the UI calls this when it needs an honest
  *  "the bytes are already on disk" cue (warm vs cold copy, deciding
- *  whether to skip the consent dialog). Idempotent — repeat calls
+ *  whether to skip the consent modal). Idempotent — repeat calls
  *  just refresh the bit. */
 export async function probeModelCache(quality: BgQuality): Promise<boolean> {
   const cached = await isModelCached(quality);
   if (cached) {
     // A cached model implies the user already accepted the download
-    // some prior session. Suppress the dialog from now on so a
+    // some prior session. Suppress the modal from now on so a
     // page-reload doesn't re-prompt for an asset they already have.
     consentGranted = true;
   }
@@ -299,7 +299,7 @@ export async function probeModelCache(quality: BgQuality): Promise<boolean> {
   return cached;
 }
 
-/** User has accepted the download via the consent dialog. The next
+/** User has accepted the download via the consent modal. The next
  *  call to `ensureSubjectMask` proceeds straight to the lib. */
 export function grantMaskConsent() {
   consentGranted = true;
@@ -308,8 +308,8 @@ export function grantMaskConsent() {
   }
 }
 
-/** User dismissed the consent dialog. Latch `userDenied` so panel
- *  auto-trigger effects don't immediately re-pop the dialog the next
+/** User dismissed the consent modal. Latch `userDenied` so panel
+ *  auto-trigger effects don't immediately re-pop the modal the next
  *  time their `state.version`-driven dep array fires. The flag stays
  *  set until `clearMaskDeny()` is called from an explicit user action
  *  (e.g. tapping a "Detection paused — Enable" chip). */
@@ -325,7 +325,7 @@ export function denyMaskConsent() {
  *  re-opt-into the AI flow ("Enable AI" chip, switching scope from
  *  Whole to non-Whole after a deny, retrying Smart Crop / Smart
  *  Anonymize / Watermark Smart Place). The next `ensureSubjectMask`
- *  call after this re-pops the consent dialog. */
+ *  call after this re-pops the consent modal. */
 export function clearMaskDeny() {
   if (state.userDenied) setState({ userDenied: false });
 }
@@ -337,13 +337,13 @@ export function hasMaskConsent(): boolean {
   return consentGranted;
 }
 
-/** Force the consent / model-picker dialog open from a UI affordance
+/** Force the consent / model-picker modal open from a UI affordance
  *  ("Change model size" link in the Remove BG panel). Re-uses the
  *  existing `needs-consent` status so MaskConsentHost renders the
- *  same picker dialog — no second component to maintain.
+ *  same picker modal — no second component to maintain.
  *
  *  Distinguished from a fresh first-time consent by the host: when
- *  `hasMaskConsent()` is already true, the dialog adapts its copy
+ *  `hasMaskConsent()` is already true, the modal adapts its copy
  *  ("Switch model size" instead of "Download the on-device AI model")
  *  and labels the action button "Use {N} MB" instead of "Download".
  *
@@ -365,7 +365,7 @@ export function requestModelPicker(currentQuality: BgQuality): void {
  *
  *  Two-stage gate:
  *    1. If we have no in-memory cache and no consent, surface
- *       `needs-consent` and reject — the UI's MaskOptInDialog will
+ *       `needs-consent` and reject — the UI's MaskConsentModal will
  *       call `grantMaskConsent` and the caller can retry.
  *    2. Otherwise run the lib through `smartRemoveBackground`.
  *
@@ -386,7 +386,7 @@ export async function ensureSubjectMask(
   if (!consentGranted) {
     // If the user already denied this session, throw silently without
     // re-flipping state — that prevents the auto-trigger loop where
-    // dismissing the dialog instantly re-pops it via the panels'
+    // dismissing the modal instantly re-pops it via the panels'
     // useEffect deps. The state-version is unchanged, so subscribers
     // don't re-run their effects from this branch.
     if (state.userDenied) {
@@ -574,7 +574,7 @@ export async function ensureSubjectMask(
 
 /** Thrown by `ensureSubjectMask` when the user hasn't yet authorised
  *  downloading the model. Callers can detect this specifically (vs a
- *  detection failure) and stay quiet — the consent dialog renders via
+ *  detection failure) and stay quiet — the consent modal renders via
  *  the mask-state subscription, not a thrown-error toast. */
 export class MaskConsentError extends Error {
   readonly quality: BgQuality;
@@ -588,7 +588,7 @@ export class MaskConsentError extends Error {
 /** Wait until the central mask service settles, given an outstanding
  *  consent request. Resolves with the cached cut once detection
  *  completes for `source`; rejects with `MaskConsentError` if the
- *  user dismisses the consent dialog instead, or with the underlying
+ *  user dismisses the consent modal instead, or with the underlying
  *  error if detection itself fails.
  *
  *  Used by `useSubjectMask().requestExplicit()` so a smart-action
@@ -596,7 +596,7 @@ export class MaskConsentError extends Error {
  *  Remove BG Apply) can `await` through the entire consent + download
  *  + inference flow rather than throwing as soon as the gate fires.
  *  Without this, the user would have to tap their button a second
- *  time after accepting the dialog. */
+ *  time after accepting the modal. */
 export function waitForMaskResolution(
   source: HTMLCanvasElement,
   quality: BgQuality,

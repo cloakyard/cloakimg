@@ -120,7 +120,7 @@ beforeEach(async () => {
   harness.lastCommitLabel = null;
   harness.undo.mockReset();
   harness.undo.mockResolvedValue(undefined);
-  // Pre-grant consent for tests that don't exercise the dialog —
+  // Pre-grant consent for tests that don't exercise the modal —
   // the consent-gate tests in service.test.ts cover that path.
   try {
     localStorage.setItem("cloakimg:detect-face:consented", "1");
@@ -289,11 +289,11 @@ describe("RedactPanel — Faces smart action", () => {
     expect(harness.commit).not.toHaveBeenCalled();
   });
 
-  it("first-time consent: clicking Faces → Download in dialog runs detection in one flow", async () => {
+  it("first-time consent: clicking Faces → Download in modal runs detection in one flow", async () => {
     // Regression test for the bug where grantConsent transitioned
     // status to "idle", which caused waitForFaceResolution to reject
     // BEFORE the consent host's follow-up request could land
-    // "loading". Symptom: dialog appeared, user clicked Download,
+    // "loading". Symptom: modal appeared, user clicked Download,
     // button cleared, but detection never ran. Caught in production
     // by scripts/probe-face-detect.mjs.
     //
@@ -311,7 +311,7 @@ describe("RedactPanel — Faces smart action", () => {
       device: "wasm",
     });
 
-    // We need both the host (which renders the consent dialog) and
+    // We need both the host (which renders the consent modal) and
     // the panel (which has the Faces button). They share the
     // module-level face-detect service, so one render tree can
     // contain both.
@@ -324,16 +324,16 @@ describe("RedactPanel — Faces smart action", () => {
       </>,
     );
 
-    // Click Faces — should surface the consent dialog (no pre-grant).
+    // Click Faces — should surface the consent modal (no pre-grant).
     await act(async () => {
       await userEvent.click(screen.getByRole("button", { name: /Faces/i }));
     });
-    // Wait for the consent dialog's Download primary button to render.
+    // Wait for the consent modal's Download primary button to render.
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Download \d+ MB/i })).toBeInTheDocument();
     });
 
-    // Click Download in the consent dialog — same UX path the user
+    // Click Download in the consent modal — same UX path the user
     // hits in the browser. After this, detection MUST run (runner
     // invoked, commit fires).
     await act(async () => {

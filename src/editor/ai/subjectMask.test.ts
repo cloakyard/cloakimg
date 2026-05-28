@@ -83,7 +83,7 @@ describe("subjectMask — first-time load (no consent, no cached bytes)", () => 
       expect(segMock.smartRemoveBackground).not.toHaveBeenCalled();
     });
 
-    it(`${quality}: a second auto-trigger after deny stays silent (no dialog re-pop)`, async () => {
+    it(`${quality}: a second auto-trigger after deny stays silent (no modal re-pop)`, async () => {
       const { mod, segMock } = await freshModule();
       segMock.isModelCached.mockResolvedValue(false);
       const source = makeBlankCanvas(120, 120);
@@ -97,7 +97,7 @@ describe("subjectMask — first-time load (no consent, no cached bytes)", () => 
 
       // Auto-trigger from a second panel mount: we should reject
       // immediately with MaskConsentError WITHOUT re-flipping status,
-      // so the consent dialog doesn't pop again.
+      // so the consent modal doesn't pop again.
       await expect(mod.ensureSubjectMask(source, quality as BgQuality)).rejects.toBeInstanceOf(
         mod.MaskConsentError,
       );
@@ -109,7 +109,7 @@ describe("subjectMask — first-time load (no consent, no cached bytes)", () => 
 
 describe("subjectMask — resume (model already on disk from prior session)", () => {
   for (const quality of QUALITY_KEYS) {
-    it(`${quality}: skips the consent dialog and runs detection`, async () => {
+    it(`${quality}: skips the consent modal and runs detection`, async () => {
       const { mod, segMock } = await freshModule();
       const source = makeBlankCanvas(200, 200);
       const cut = makeOpaqueCanvas(200, 200);
@@ -162,7 +162,7 @@ describe("subjectMask — consent flow", () => {
     expect(mod.getMaskState().status).toBe("ready");
   });
 
-  it("clearMaskDeny lets a fresh ensureSubjectMask reach the dialog again", async () => {
+  it("clearMaskDeny lets a fresh ensureSubjectMask reach the modal again", async () => {
     const { mod, segMock } = await freshModule();
     segMock.isModelCached.mockResolvedValue(false);
     const source = makeBlankCanvas(100, 100);
@@ -176,7 +176,7 @@ describe("subjectMask — consent flow", () => {
     mod.clearMaskDeny();
     expect(mod.getMaskState().userDenied).toBe(false);
 
-    // The next call re-flips status to needs-consent (dialog re-opens).
+    // The next call re-flips status to needs-consent (modal re-opens).
     await expect(mod.ensureSubjectMask(source, "small")).rejects.toBeInstanceOf(
       mod.MaskConsentError,
     );

@@ -94,11 +94,11 @@ export interface CapabilityState<TResult> {
   /** True when the requested model's bytes are already on disk. */
   modelCached: boolean;
   /** When status === "needs-consent", which tier id the user is being
-   *  asked to download. Lets the dialog render the right MB / label. */
+   *  asked to download. Lets the modal render the right MB / label. */
   pendingTierId: string | null;
-  /** True after the user dismissed the consent dialog at least once
+  /** True after the user dismissed the consent modal at least once
    *  this session. Auto-triggers from panel/scope effects then no-op
-   *  so the dialog doesn't re-pop on every status change. Cleared by
+   *  so the modal doesn't re-pop on every status change. Cleared by
    *  an explicit user action (resume / opt-in chip). */
   userDenied: boolean;
   /** Last successful inference result, if any. Capabilities that need
@@ -111,7 +111,7 @@ export interface CapabilityState<TResult> {
   device: "webgpu" | "wasm" | null;
 }
 
-/** Per-tier descriptor consumed by the consent dialog and the worker
+/** Per-tier descriptor consumed by the consent modal and the worker
  *  handler. UI surfaces read the friendly fields (label, mb, strength,
  *  tradeoff, etc.); the worker handler reads `runtimeRef` to learn
  *  which model file to load.
@@ -132,7 +132,7 @@ export interface CapabilityTier<TRuntimeRef = unknown> {
   /** User-facing tier name shown on radio rows + panel readout. */
   label: string;
   /** Approximate download size in MB. Real size resolves once the
-   *  network responds; this is the pre-flight estimate so the dialog
+   *  network responds; this is the pre-flight estimate so the modal
    *  shows "0 / 84 MB" before the lib's first chunk arrives. */
   mb: number;
   /** Pre-computed `mb * 1024 * 1024`. Avoids re-multiplying at every
@@ -143,7 +143,7 @@ export interface CapabilityTier<TRuntimeRef = unknown> {
   strength: string;
   /** Trade-off line — what the user gives up. Honest about cost. */
   tradeoff: string;
-  /** When true, dialog tags the tier with a "Recommended" pill. */
+  /** When true, modal tags the tier with a "Recommended" pill. */
   recommended?: boolean;
   /** When true, hidden on the small-screen mobile layout. Used for
    *  tiers whose download size is impractical for phone storage. */
@@ -172,8 +172,8 @@ export interface CapabilityFamily<TRuntimeRef = unknown> {
   inferenceLongEdge: number;
   /** Ordered small → large. */
   tiers: readonly CapabilityTier<TRuntimeRef>[];
-  /** Copy variants used by the generic consent dialog. Per-capability
-   *  so the dialog reads as the right tool ("Download the AI face
+  /** Copy variants used by the generic consent modal. Per-capability
+   *  so the modal reads as the right tool ("Download the AI face
    *  detector" vs "Download the AI subject model" vs "Download the
    *  text reader"). */
   consent: ConsentCopy;
@@ -184,7 +184,7 @@ export interface CapabilityFamily<TRuntimeRef = unknown> {
 }
 
 export interface ConsentCopy {
-  /** Title shown in the consent dialog header (first download). */
+  /** Title shown in the consent modal header (first download). */
   title: string;
   /** Title shown when the user re-opens the picker to switch tiers. */
   switchTitle: string;
@@ -192,7 +192,7 @@ export interface ConsentCopy {
   body: string;
   /** Body paragraph in switch mode. */
   switchBody: string;
-  /** Privacy bullets shown at the bottom of the dialog. */
+  /** Privacy bullets shown at the bottom of the modal. */
   privacy: readonly string[];
   /** Verb used on the primary button when downloading ("Download"). */
   downloadVerb: string;

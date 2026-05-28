@@ -42,30 +42,30 @@ export interface UseSubjectMask {
   /** Trigger detection if needed. Returns the cut canvas on success.
    *  Concurrent callers share the same in-flight promise. May reject
    *  with `MaskConsentError` when the user hasn't authorised the
-   *  download yet — callers should let the dialog handle that path
+   *  download yet — callers should let the modal handle that path
    *  rather than treating it as a failure toast.
    *
    *  This is the *passive* request — it respects `state.userDenied`
-   *  and won't re-pop the dialog after a dismiss (used by useEffect
+   *  and won't re-pop the modal after a dismiss (used by useEffect
    *  auto-triggers so dismissing actually sticks). For an *explicit
    *  user action* (clicking Smart Crop, Smart Anonymize, Apply on
    *  Remove BG, etc.) reach for `requestExplicit` instead — it
-   *  clears the deny latch first so the dialog re-opens. */
+   *  clears the deny latch first so the modal re-opens. */
   request: () => Promise<HTMLCanvasElement>;
   /** Like `request`, but clears the deny latch first. Use this from
    *  any user-initiated control where the click itself signals
-   *  "yes, I want the AI" — the consent dialog should reopen even if
+   *  "yes, I want the AI" — the consent modal should reopen even if
    *  the user dismissed it earlier in the session. */
   requestExplicit: () => Promise<HTMLCanvasElement>;
   /** User accepted the model download. Clears `needs-consent` state
    *  and lets a follow-up `request()` proceed. */
   grantConsent: () => void;
-  /** User dismissed the consent dialog. Returns to idle without
+  /** User dismissed the consent modal. Returns to idle without
    *  starting a download, and latches `userDenied` so panel
-   *  auto-trigger effects don't immediately re-pop the dialog. */
+   *  auto-trigger effects don't immediately re-pop the modal. */
   denyConsent: () => void;
   /** Explicit user re-opt-in after a previous dismiss. Clears the
-   *  deny latch AND fires detection so the dialog reopens (or, for an
+   *  deny latch AND fires detection so the modal reopens (or, for an
    *  already-cached model, runs detection straight away). Wired to
    *  the panels' "Detection paused — Enable" chip. */
   resumeAfterDeny: () => Promise<void>;
@@ -85,7 +85,7 @@ export function useSubjectMask(): UseSubjectMask {
   }, []);
 
   // Probe the on-disk cache when the chosen quality changes so the
-  // warm/cold copy and the consent dialog have an honest picture of
+  // warm/cold copy and the consent modal have an honest picture of
   // whether the user actually faces a fresh download. Probing is
   // cheap (low-thousands of cache keys at worst) and the result is
   // memoised on the mask state.
@@ -99,7 +99,7 @@ export function useSubjectMask(): UseSubjectMask {
   // current) doesn't invalidate — only real transitions do.
   //
   // CRITICAL: skip invalidation while a detection is already inflight
-  // for the new quality. The consent-dialog flow patches `bgQuality`
+  // for the new quality. The consent-modal flow patches `bgQuality`
   // and *then* fires `startDetection` synchronously in the same
   // event handler, so by the time React commits and this effect
   // runs, an inflight detection for the new quality already exists.
@@ -149,7 +149,7 @@ export function useSubjectMask(): UseSubjectMask {
     try {
       return await ensureSubjectMask(doc.working, quality);
     } catch (err) {
-      // Consent gate fired — the host dialog is now up. Instead of
+      // Consent gate fired — the host modal is now up. Instead of
       // bouncing the smart action's promise rejection, *wait* for the
       // user to either accept (resolves with the mask) or dismiss
       // (rejects with MaskConsentError, which the caller's catch
@@ -176,7 +176,7 @@ export function useSubjectMask(): UseSubjectMask {
     try {
       await ensureSubjectMask(doc.working, quality);
     } catch {
-      // Either bounces to the consent dialog (state.status flips to
+      // Either bounces to the consent modal (state.status flips to
       // needs-consent — the host renders it) or surfaces a real error
       // (state.error → DetectionErrorCard). Either way the panel
       // sees the result via subscription, not via this throw.

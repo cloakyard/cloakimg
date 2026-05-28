@@ -33,7 +33,7 @@ interface ProgressProps {
   fallbackLabel?: string;
   /** Expected total download bytes for the chosen tier. Used as the
    *  bytes-readout fallback when the actual `progress.bytesTotal`
-   *  hasn't arrived yet — without this the dialog spends its first
+   *  hasn't arrived yet — without this the modal spends its first
    *  1–3 seconds (worker spawn + model fetch handshake) showing only
    *  "Preparing…" and a tiny stub bar, which reads as "nothing is
    *  happening". */
@@ -68,7 +68,7 @@ export function CapabilityProgressCard({
   // "Indeterminate" = working but no bytes yet. Worker is spawning,
   // transformers.js is initialising, or the model fetch hasn't returned
   // its first chunk. Show the same sliding-stripe animation as
-  // inference so the dialog never sits looking dead.
+  // inference so the modal never sits looking dead.
   const isIndeterminate = isDownload && !((progress?.bytesTotal ?? 0) > 0);
   const animateStripe = isInference || isIndeterminate;
   const downloadPct =
@@ -208,13 +208,13 @@ export function CapabilityErrorCard({ msg, onRetry, fallbackMsg }: ErrorProps) {
 
 interface PausedProps {
   /** Tap handler — clears the deny latch and re-fires the operation
-   *  (which re-opens the consent dialog via the central host). */
+   *  (which re-opens the consent modal via the central host). */
   onResume: () => void;
   copy: StatusCopy;
 }
 
 /** Inline affordance shown when the user previously dismissed the
- *  consent dialog. Without this, denying leaves the panel in a stuck
+ *  consent modal. Without this, denying leaves the panel in a stuck
  *  state — controls gated, no obvious way to opt back in. */
 export function CapabilityPausedChip({ onResume, copy }: PausedProps) {
   return (
@@ -236,7 +236,7 @@ export function CapabilityPausedChip({ onResume, copy }: PausedProps) {
 }
 
 /** Sits in for the progress card while the user has the consent
- *  dialog up. Reassures them the panel is waiting on their tap, not
+ *  modal up. Reassures them the panel is waiting on their tap, not
  *  on a stuck download. */
 export function CapabilityConsentChip() {
   return (

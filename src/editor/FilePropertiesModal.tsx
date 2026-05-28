@@ -1,4 +1,4 @@
-// FilePropertiesModal.tsx — File properties dialog opened from the
+// FilePropertiesModal.tsx — File properties modal opened from the
 // top-bar filename. Surfaces what we know about the loaded image:
 // name, dimensions, aspect, file size (when the source bytes are
 // available), MIME / format, EXIF metadata (extracted across JPEG /
@@ -24,9 +24,9 @@ type Row = [IconComponent, string, string];
 export function FilePropertiesModal({ layout, onClose }: Props) {
   const { doc, layers, getFabricCanvas } = useEditor();
   const isMobile = layout === "mobile";
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   useFocusReturn(true);
-  useFocusTrap(dialogRef, true);
+  useFocusTrap(modalRef, true);
 
   if (!doc) return null;
 
@@ -64,7 +64,7 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
       position="absolute"
       maxWidth="max-w-130"
       labelledBy="file-properties-title"
-      dialogRef={dialogRef}
+      modalRef={modalRef}
     >
       <FilePropertiesBody rows={rows} exifRows={exifRows} isMobile={isMobile} onClose={onClose} />
     </ModalFrame>
@@ -83,7 +83,7 @@ function FilePropertiesBody({
   onClose: () => void;
 }) {
   // Route the Close button through ModalFrame's animated lifecycle so
-  // the dialog slides / scales away on dismiss instead of disappearing
+  // the modal slides / scales away on dismiss instead of disappearing
   // instantly. Esc + backdrop click + X are already handled there.
   // Wrap in an arrow so the click event isn't accidentally passed as
   // animatedClose's `onSettled` callback.

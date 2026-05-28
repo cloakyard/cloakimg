@@ -1,4 +1,4 @@
-// Progress aggregator — exercise the math the consent dialog's
+// Progress aggregator — exercise the math the consent modal's
 // download bar reads. transformers.js fires per-file events so the
 // aggregator merges them into a single monotonic ratio.
 

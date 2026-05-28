@@ -312,7 +312,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
   );
 
   const tools = useMemo(() => toolsForTab(null), []);
-  const dialogProps = expanded
+  const modalProps = expanded
     ? ({
         role: "dialog",
         "aria-modal": true,
@@ -355,7 +355,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
         transition: `margin-bottom ${MORPH_MS}ms ${EASING}`,
       }}
     >
-      <div ref={sheetRef} {...dialogProps} className="relative overflow-hidden" style={sheetStyle}>
+      <div ref={sheetRef} {...modalProps} className="relative overflow-hidden" style={sheetStyle}>
         {!expanded ? (
           /* Collapsed — just the icon + label, no chrome around it. */
           <button

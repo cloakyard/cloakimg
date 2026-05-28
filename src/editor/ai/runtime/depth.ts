@@ -134,7 +134,7 @@ export async function estimateDepth(
 }
 
 /** Whether a given tier's model bytes are already cached from a prior
- *  session — drives the consent dialog's "Already downloaded" badge and
+ *  session — drives the consent modal's "Already downloaded" badge and
  *  the service's implicit-consent-on-hit path. */
 export async function isDepthModelCached(tier: DepthModelTier): Promise<boolean> {
   return isHfModelCached(tier.repo, tier.dtype);

@@ -1,16 +1,16 @@
-// CapabilityConsentDialog.tsx — Generic, capability-agnostic consent
-// dialog. Replaces the segment-specific MaskConsentDialog for new
-// capabilities; the legacy mask flow keeps using its existing dialog
+// CapabilityConsentModal.tsx — Generic, capability-agnostic consent
+// modal. Replaces the segment-specific MaskConsentModal for new
+// capabilities; the legacy mask flow keeps using its existing modal
 // until that migration is done.
 //
-// Shape and visual rhythm match MaskConsentDialog 1:1 — same modal
+// Shape and visual rhythm match MaskConsentModal 1:1 — same modal
 // frame, same tier-row layout, same privacy footer, same button
 // pattern — so users see one consistent "AI download" surface no
 // matter which capability triggered it.
 //
 // Per-capability copy comes from `family.consent` (title, body,
 // privacy bullets, button verbs). Tier metadata (label, mb, strength,
-// tradeoff, recommended) comes from `family.tiers`. The dialog itself
+// tradeoff, recommended) comes from `family.tiers`. The modal itself
 // is purely presentation — persistence (toolState, localStorage) is
 // the host's job.
 
@@ -28,22 +28,22 @@ import {
 interface Props {
   family: CapabilityFamily;
   /** Tier id the caller initially asks for. The user can change it
-   *  inside the dialog before accepting; we only commit on accept. */
+   *  inside the modal before accepting; we only commit on accept. */
   initialTierId: string;
   /** Returns whether each tier's bytes are already on disk. Called
-   *  per tier when the dialog mounts so we can stamp the "Already
+   *  per tier when the modal mounts so we can stamp the "Already
    *  downloaded" pill. */
   isTierCached: (tier: CapabilityTier<unknown>) => Promise<boolean>;
   /** User accepted the download at the chosen tier. */
   onAccept: (tierId: string) => void;
-  /** User dismissed the dialog. */
+  /** User dismissed the modal. */
   onDismiss: () => void;
   /** True when opened from "Change model size" rather than as the
    *  first-time consent prompt. */
   switchMode?: boolean;
 }
 
-export function CapabilityConsentDialog({
+export function CapabilityConsentModal({
   family,
   initialTierId,
   isTierCached,

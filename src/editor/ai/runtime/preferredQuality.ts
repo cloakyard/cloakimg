@@ -1,5 +1,5 @@
 // preferredQuality.ts — Remembers the last quality tier the user
-// accepted in the consent dialog so the next session boots straight
+// accepted in the consent modal so the next session boots straight
 // into "the model they already have on disk" instead of always
 // defaulting to Fast. The cache itself is browser-managed
 // (CacheStorage); this module only stores the *preference* in
@@ -11,7 +11,7 @@ import { isModelCached } from "./segment";
 const KEY = "cloakimg:bgQuality";
 const VALID = new Set<BgQuality>(QUALITY_KEYS);
 
-/** Persist the user's chosen quality. Called from the consent dialog
+/** Persist the user's chosen quality. Called from the consent modal
  *  the moment the user taps Download (or "Use this model" when
  *  switching tiers). localStorage failures (private mode quotas,
  *  disabled storage) are swallowed silently — the user just doesn't
@@ -33,7 +33,7 @@ export function savePreferredQuality(q: BgQuality): void {
  *
  *  Async because the cache check hits CacheStorage. The editor calls
  *  this once on mount and patches `bgQuality` in place — UI that
- *  reads `bgQuality` (consent dialog initial selection, RemoveBgPanel
+ *  reads `bgQuality` (consent modal initial selection, RemoveBgPanel
  *  readout) picks up the change on the next render. */
 export async function resolvePreferredQuality(): Promise<BgQuality | null> {
   const stored = readStored();

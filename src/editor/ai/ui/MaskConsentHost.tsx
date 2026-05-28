@@ -1,26 +1,26 @@
 // MaskConsentHost.tsx — Editor-shell-level mount point for the
-// MaskConsentDialog *and* the in-flight download progress dialog.
+// MaskConsentModal *and* the in-flight download progress modal.
 // Subscribes to the central subject-mask service and renders the
 // right modal based on state.status:
 //
-//   • "needs-consent" → MaskConsentDialog (tier picker).
-//   • after grant, while "loading" → MaskDownloadDialog (live
+//   • "needs-consent" → MaskConsentModal (tier picker).
+//   • after grant, while "loading" → MaskDownloadModal (live
 //     bytes-downloaded readout + inference shimmer).
-//   • after grant, when "error" → MaskDownloadDialog stays visible
+//   • after grant, when "error" → MaskDownloadModal stays visible
 //     with the error pinned + a Try again affordance, so the user
-//     never sees the dialog vanish silently on a worker crash.
+//     never sees the modal vanish silently on a worker crash.
 //   • everything else → nothing (the panel that triggered the
 //     detection owns the inline progress card / ready chip / error).
 //
 // Why a host: every scoped tool calls `useSubjectMask().request()` on
 // pick. When consent isn't granted yet the service rejects with
 // MaskConsentError and bumps state to "needs-consent". A single host
-// listens for that and surfaces the dialog — keeping consent UI out
-// of every tool panel means tools all stay smaller and the dialog is
+// listens for that and surfaces the modal — keeping consent UI out
+// of every tool panel means tools all stay smaller and the modal is
 // guaranteed to look identical no matter which tool triggered it.
 //
-// The download dialog only appears when *this host* started the
-// download (the user just clicked Download in the consent dialog).
+// The download modal only appears when *this host* started the
+// download (the user just clicked Download in the consent modal).
 // If detection is initiated by an auto-trigger from a panel switch,
 // the panel's own inline progress card handles the UI — we don't
 // want a full-screen modal popping for every scope toggle.
@@ -38,15 +38,15 @@ import {
   hasMaskConsent,
 } from "../subjectMask";
 import { useSubjectMask } from "../useSubjectMask";
-import { MaskConsentDialog } from "./MaskConsentDialog";
-import { MaskDownloadDialog } from "./MaskDownloadDialog";
+import { MaskConsentModal } from "./MaskConsentModal";
+import { MaskDownloadModal } from "./MaskDownloadModal";
 
 export function MaskConsentHost() {
   const subjectMask = useSubjectMask();
   const { doc } = useEditorReadOnly();
-  // True from the moment the user accepts in the consent dialog
+  // True from the moment the user accepts in the consent modal
   // until detection settles to "ready" (or the user dismisses /
-  // cancels). On "error" we keep this true so the dialog can pin
+  // cancels). On "error" we keep this true so the modal can pin
   // the failure and offer Try again — silently vanishing on error
   // was a bug that made worker crashes look like "nothing happened".
   const [showDownload, setShowDownload] = useState(false);
@@ -54,7 +54,7 @@ export function MaskConsentHost() {
   //   1. The progress card can show "0 / 84 MB" before the lib's
   //      first byte arrives (DetectionProgressCard's expectedTotal).
   //   2. Try again can rerun detection at the same tier without
-  //      the user having to re-pick from the consent dialog.
+  //      the user having to re-pick from the consent modal.
   // Using a ref because nothing else in the render branches on it,
   // so a re-render isn't needed when it changes.
   const requestedQualityRef = useRef<BgQuality | null>(null);
@@ -62,7 +62,7 @@ export function MaskConsentHost() {
   // Note: we call `ensureSubjectMask` directly with the user's chosen
   // quality rather than going through `subjectMask.request()`. The
   // hook closes over the previous render's `bgQuality`, but the
-  // dialog's `patchTool('bgQuality', …)` won't have flushed React
+  // modal's `patchTool('bgQuality', …)` won't have flushed React
   // state by the time `onAccept` fires — so going via the hook
   // would still kick off detection at the *previous* quality. Routing
   // around the hook keeps the chosen tier honest.
@@ -78,10 +78,10 @@ export function MaskConsentHost() {
       });
       requestedQualityRef.current = quality;
       setShowDownload(true);
-      // Errors land in mask state — the download dialog reads
+      // Errors land in mask state — the download modal reads
       // state.error and pins it inline. Logging here too so the
       // underlying cause (worker crash, model fetch failure, CSP,
-      // CORS, etc.) is captured even if the dialog closes before the
+      // CORS, etc.) is captured even if the modal closes before the
       // user sees the inline message. Wrapping in try/catch on top
       // of the .catch keeps any synchronous throw from `ensureSubjectMask`
       // out of the React render path.
@@ -128,7 +128,7 @@ export function MaskConsentHost() {
 
   // Dismiss handler differs by intent. Initial consent → latch
   // userDenied so panel auto-triggers don't immediately re-pop the
-  // dialog. Switch picker → just close; the user already consented and
+  // modal. Switch picker → just close; the user already consented and
   // is keeping the existing tier.
   const onDismissPicker = useCallback(() => {
     if (hasMaskConsent()) {
@@ -143,7 +143,7 @@ export function MaskConsentHost() {
 
   // Auto-clear the progress modal when detection succeeds or the
   // service goes idle. We deliberately do NOT clear on "error" — the
-  // dialog stays up so the user sees what went wrong and can retry.
+  // modal stays up so the user sees what went wrong and can retry.
   useEffect(() => {
     const status = subjectMask.state.status;
     if (status === "ready" || status === "idle") {
@@ -181,7 +181,7 @@ export function MaskConsentHost() {
 
   if (subjectMask.state.status === "needs-consent") {
     return (
-      <MaskConsentDialog
+      <MaskConsentModal
         initialQuality={subjectMask.state.pendingQuality ?? subjectMask.quality}
         switchMode={hasMaskConsent()}
         onAccept={(q) => void onAccept(q)}
@@ -193,12 +193,12 @@ export function MaskConsentHost() {
     const quality = requestedQualityRef.current;
     const expectedTotal = quality ? getTierById(quality).bytes : undefined;
     const status = subjectMask.state.status;
-    // Render the dialog while we're loading, OR pinned after an
+    // Render the modal while we're loading, OR pinned after an
     // error so the user sees what failed. "ready" / "idle" are
     // already handled by the auto-clear effect above.
     if (status === "loading" || status === "error") {
       return (
-        <MaskDownloadDialog
+        <MaskDownloadModal
           progress={subjectMask.state.progress}
           warm={subjectMask.state.warm}
           expectedTotal={expectedTotal}

@@ -107,7 +107,7 @@ export function RedactPanel() {
       // against the original pixels (faster, more accurate).
       await replaceIfSwitching("person");
       // Smart anonymize is user-initiated; clear any prior dismiss
-      // latch via requestExplicit so the consent dialog re-opens
+      // latch via requestExplicit so the consent modal re-opens
       // instead of the button silently no-op'ing. We don't use the
       // returned mask directly — we re-peek after the yields below
       // so a mid-bake invalidation (replaceWithFile, quality
@@ -176,7 +176,7 @@ export function RedactPanel() {
       copyInto(doc.working, composed);
       commit("Anonymize subject");
     } catch (err) {
-      // Consent dialog handles the "user hasn't agreed yet" path —
+      // Consent modal handles the "user hasn't agreed yet" path —
       // don't double up by showing a coral error chip below the
       // smart buttons.
       if (err instanceof MaskConsentError) return;
@@ -211,7 +211,7 @@ export function RedactPanel() {
 
       // requestExplicit clears any prior dismiss latch — clicking
       // "Faces" is the user's affirmative "yes I want this" signal.
-      // The first call surfaces the consent dialog via the host;
+      // The first call surfaces the consent modal via the host;
       // requestExplicit awaits across that flow so we don't bounce
       // the user with a "tap again" UX.
       const allDetected = faces.peek() ?? (await faces.requestExplicit());
@@ -261,7 +261,7 @@ export function RedactPanel() {
 
       commit(`Anonymize ${detected.length} face${detected.length === 1 ? "" : "s"}`);
     } catch (err) {
-      // Consent dialog handles the "user hasn't agreed yet" path —
+      // Consent modal handles the "user hasn't agreed yet" path —
       // don't double up by showing the error chip below the buttons.
       if (err instanceof CapabilityConsentError) return;
       setSmartError(err instanceof Error ? err.message : "Couldn't detect faces.");
@@ -446,7 +446,7 @@ function SmartAnonymizeButton({
   disabled,
   onClick,
 }: SmartAnonymizeButtonProps) {
-  // Active state uses the coral border (same as the consent dialog's
+  // Active state uses the coral border (same as the consent modal's
   // selected tier row). Inactive uses the soft border so the picker
   // reads as a single segmented control rather than two unrelated
   // buttons.

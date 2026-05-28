@@ -29,7 +29,7 @@ export function RelightTool() {
 
   // Depth is required for relight — request it ONCE per source the
   // moment the tool opens (lazy: respects the deny latch, fires the
-  // consent dialog on first use). We key off the working-canvas
+  // consent modal on first use). We key off the working-canvas
   // identity and guard with a ref so the effect can't re-fire on every
   // depth-state tick — without the guard, an inference error flips
   // status to "error", which re-runs this effect, which re-requests,
@@ -84,52 +84,88 @@ export function RelightTool() {
       const active = intensityRef.current > 0;
 
       // Brand coral (#f5613a) so the handle reads on any photo — the
-      // earlier pale-gold sun vanished on light/bright surfaces. A solid
-      // coral core plus a white inner ring AND a translucent dark outer
-      // ring give contrast against both light and dark backgrounds.
+      // earlier pale-gold sun vanished on light/bright surfaces. The
+      // layering (soft halo → tapered rays → dark ring → glossy orb →
+      // specular + white rim) keeps the handle legible against both
+      // light and dark backgrounds without relying on any single
+      // contrasting element.
       const CORAL = "245, 97, 58"; // coral-500
+      const CORAL_LIGHT = "255, 178, 152"; // lit highlight on the orb
       ctx.save();
+      ctx.lineJoin = "round";
 
-      // Coral glow — scales with intensity so the handle reads "lit"
-      // only when it's actually affecting the image.
-      const glowR = r * (active ? 2.6 : 1.7);
-      const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, glowR);
-      glow.addColorStop(0, `rgba(${CORAL}, ${active ? 0.55 : 0.32})`);
+      // Soft coral halo — a gentle outer hug that fades to nothing,
+      // not the heavy red blob the old gradient produced. Starts near
+      // the orb edge and scales with intensity so it reads "lit" only
+      // when the light is actually affecting the image.
+      const glowR = r * (active ? 2.5 : 1.9);
+      const glow = ctx.createRadialGradient(sx, sy, r * 0.8, sx, sy, glowR);
+      glow.addColorStop(0, `rgba(${CORAL}, ${active ? 0.34 : 0.18})`);
       glow.addColorStop(1, `rgba(${CORAL}, 0)`);
       ctx.fillStyle = glow;
       ctx.beginPath();
       ctx.arc(sx, sy, glowR, 0, Math.PI * 2);
       ctx.fill();
 
-      // Rays — eight short coral spokes around the core.
-      ctx.strokeStyle = `rgba(${CORAL}, 0.95)`;
-      ctx.lineWidth = 2.5;
-      ctx.lineCap = "round";
+      // Rays — eight tapered coral spokes with softly rounded tips and
+      // a clear gap from the orb, so they read as proper sun rays
+      // rather than short spikes. Bases tuck under the orb (drawn next)
+      // so the rays appear to emanate from behind it.
+      const rayInner = r + 5;
+      const rayOuter = r + 15;
+      const rayBase = 2.6;
+      const rayTip = 0.9;
+      ctx.fillStyle = `rgba(${CORAL}, ${active ? 0.95 : 0.8})`;
       for (let i = 0; i < 8; i++) {
         const a = (i / 8) * Math.PI * 2;
-        const inner = r + 3;
-        const outer = r + 9;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(a);
         ctx.beginPath();
-        ctx.moveTo(sx + Math.cos(a) * inner, sy + Math.sin(a) * inner);
-        ctx.lineTo(sx + Math.cos(a) * outer, sy + Math.sin(a) * outer);
-        ctx.stroke();
+        ctx.moveTo(-rayBase, rayInner);
+        ctx.lineTo(-rayTip, rayOuter - rayTip);
+        ctx.quadraticCurveTo(-rayTip, rayOuter, 0, rayOuter);
+        ctx.quadraticCurveTo(rayTip, rayOuter, rayTip, rayOuter - rayTip);
+        ctx.lineTo(rayBase, rayInner);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
 
-      // Core — solid coral, always visible. Dark outer hairline first
-      // (contrast on light photos), then the coral fill, then a white
-      // inner ring (contrast on dark photos / coral itself).
+      // Dark ring behind the orb — contrast on light photos.
       ctx.beginPath();
       ctx.arc(sx, sy, r + 1.5, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.20)";
       ctx.fill();
+
+      // Glossy orb — radial gradient (top-left light → coral edge)
+      // gives the core a lit, three-dimensional feel instead of a flat
+      // disc.
+      const orb = ctx.createRadialGradient(sx - r * 0.35, sy - r * 0.4, r * 0.1, sx, sy, r);
+      orb.addColorStop(0, `rgba(${CORAL_LIGHT}, ${active ? 1 : 0.92})`);
+      orb.addColorStop(1, `rgba(${CORAL}, ${active ? 1 : 0.92})`);
       ctx.beginPath();
       ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${CORAL}, ${active ? 1 : 0.92})`;
+      ctx.fillStyle = orb;
       ctx.fill();
-      ctx.lineWidth = 2.5;
+
+      // Specular highlight — a small soft white blob top-left sells the
+      // glossy sphere.
+      const hx = sx - r * 0.35;
+      const hy = sy - r * 0.4;
+      const spec = ctx.createRadialGradient(hx, hy, 0, hx, hy, r * 0.55);
+      spec.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+      spec.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = spec;
+      ctx.beginPath();
+      ctx.arc(hx, hy, r * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+
+      // White rim at the edge — contrast on dark photos / coral itself.
+      ctx.lineWidth = 1.5;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
       ctx.beginPath();
-      ctx.arc(sx, sy, Math.max(2, r - 4), 0, Math.PI * 2);
+      ctx.arc(sx, sy, r - 0.75, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.restore();

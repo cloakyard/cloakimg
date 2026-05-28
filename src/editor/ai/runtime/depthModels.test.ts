@@ -1,6 +1,6 @@
 // Tests for the depth-estimation model registry. Pure data + selectors,
 // no canvas — pins the tier contract the CapabilityService + consent
-// dialog depend on, mirroring the guarantees bgModels relies on.
+// modal depend on, mirroring the guarantees bgModels relies on.
 
 import { describe, expect, it } from "vitest";
 import {

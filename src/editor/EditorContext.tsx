@@ -343,7 +343,7 @@ export function EditorProvider({
   // The async probe also validates the bytes are still on disk; if
   // the user cleared their browser cache between sessions we fall
   // back to the toolState default rather than restore a stale
-  // preference that would re-trigger the consent download dialog.
+  // preference that would re-trigger the consent download modal.
   useEffect(() => {
     let cancelled = false;
     void resolvePreferredQuality().then((quality) => {
@@ -909,7 +909,7 @@ export function EditorProvider({
     // Render the modal first so the user sees an immediate response
     // to the tap. The modal itself runs flushPendingApply() inside a
     // mount-time effect (deferred via setTimeout) so any unapplied
-    // Adjust/Filter slider bake doesn't block the dialog from
+    // Adjust/Filter slider bake doesn't block the modal from
     // appearing — important on mobile where baking a 12 MP canvas
     // can take a couple hundred milliseconds.
     setExportOpen(true);
@@ -922,7 +922,7 @@ export function EditorProvider({
   // we have when a user reports "the editor vanished to landing" —
   // the stack frame in `trigger` names which call site fired it
   // (user logo tap, error-card "Back to start", PWA reload prompt,
-  // ConfirmDialog "Leave"). Capturing the stack here means a future
+  // ConfirmModal "Leave"). Capturing the stack here means a future
   // bug-report can paste the console snippet and we know exactly
   // which path the user hit instead of having to guess.
   const exit = useCallback(() => {

@@ -1,6 +1,6 @@
 // family.ts — Capability family for monocular depth estimation. Wraps
 // the depthModels registry into the generic CapabilityFamily shape the
-// consent dialog + progress card render from. Each CapabilityTier's
+// consent modal + progress card render from. Each CapabilityTier's
 // `runtimeRef` carries the underlying DepthModelTier (repo + dtype) so
 // the runner can drive `estimateDepth` without re-deriving model facts.
 
