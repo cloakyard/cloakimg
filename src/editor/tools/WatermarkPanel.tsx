@@ -256,10 +256,13 @@ export function WatermarkPanel() {
       {!isImage && (
         <PropRow label="Text">
           <input
+            name="watermark-text"
             type="text"
+            aria-label="Watermark text"
+            autoComplete="off"
             value={toolState.watermarkText}
             onChange={(e) => patchTool("watermarkText", e.target.value)}
-            className="w-full rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text"
+            className="w-full rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500"
           />
         </PropRow>
       )}
@@ -285,6 +288,8 @@ export function WatermarkPanel() {
                 <img
                   src={toolState.watermarkImageDataUrl}
                   alt=""
+                  width={28}
+                  height={28}
                   className="h-7 w-7 rounded-xs bg-surface object-contain"
                 />
                 <span className="flex-1">Replace image…</span>

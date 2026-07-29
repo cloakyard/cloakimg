@@ -41,7 +41,7 @@ export function MobileToolFooter({ onCancel, onConfirm, centerAction }: Props) {
       // the prior border-t hairline + tonal shift — the sheet now
       // reads as one continuous white card and the X / ✓ live at
       // its corners by position alone, no separator needed.
-      className="flex shrink-0 items-center justify-between gap-2 px-5"
+      className="flex shrink-0 items-center justify-between gap-2 border-t border-border px-5"
       style={{
         paddingTop: "0.625rem",
         paddingBottom: "max(env(safe-area-inset-bottom),0.625rem)",
@@ -51,7 +51,7 @@ export function MobileToolFooter({ onCancel, onConfirm, centerAction }: Props) {
         type="button"
         onClick={onCancel}
         aria-label="Cancel"
-        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 font-[inherit] text-text-muted transition-colors hover:bg-page-bg active:scale-[0.95]"
+        className="btn btn-ghost btn-icon"
       >
         <I.X size={20} stroke={2} />
       </button>
@@ -85,7 +85,7 @@ export function MobileToolFooter({ onCancel, onConfirm, centerAction }: Props) {
         type="button"
         onClick={onConfirm}
         aria-label="Done"
-        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 font-[inherit] text-coral-600 transition-colors hover:bg-coral-50 active:scale-[0.95] dark:text-coral-400 dark:hover:bg-coral-900/20"
+        className="btn btn-outline-coral btn-icon"
       >
         <I.Check size={20} stroke={2} />
       </button>

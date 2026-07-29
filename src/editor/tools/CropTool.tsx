@@ -814,8 +814,10 @@ function NumInput({
     <label className="flex items-center gap-1.5 rounded-md border border-border bg-page-bg px-2 py-1 text-[12px]">
       <span className="text-text-muted">{label}</span>
       <input
+        name={`crop-${label.toLowerCase()}`}
         type="number"
         inputMode="numeric"
+        autoComplete="off"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}

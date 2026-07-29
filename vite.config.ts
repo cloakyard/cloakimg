@@ -35,6 +35,7 @@ export default defineConfig({
     VitePWA({
       registerType: "prompt",
       includeAssets: [
+        "cloakimg-mark.svg",
         "icons/favicon.svg",
         "icons/favicon.ico",
         "icons/apple-touch-icon.png",
@@ -45,9 +46,9 @@ export default defineConfig({
         name: "CloakIMG",
         short_name: "CloakIMG",
         description:
-          "A minimal photo editor that respects your photos. Crop, retouch, redact, adjust, filter, frame and export — entirely in your browser.",
-        theme_color: "#f5613a",
-        background_color: "#faf7f4",
+          "A complete browser-based photo workbench for crop, retouch, redact, colour, composition, and local export.",
+        theme_color: "#faf8f5",
+        background_color: "#faf8f5",
         display: "standalone",
         orientation: "portrait",
         scope: process.env.VITE_APP_BASE_PATH || "/",
@@ -76,22 +77,21 @@ export default defineConfig({
           },
         ],
         screenshots: [
-          // Screenshots taken from Chrome Dev Tools. Actual resolution may vary.
-          // iPhone 14 Pro Max (Portrait)
+          // Deterministic captures from the live app using the privacy-safe
+          // generated demo image in scripts/generate-pwa-screenshots.mjs.
           {
             src: "screenshots/iPhone.png",
             sizes: "1290x2796",
             type: "image/png",
             form_factor: "narrow",
-            label: "CloakIMG App on iPhone 14 Pro Max",
+            label: "CloakIMG mobile editor with the searchable tool picker",
           },
-          // iPad Pro (Landscape)
           {
             src: "screenshots/iPad.png",
             sizes: "2732x2048",
             type: "image/png",
             form_factor: "wide",
-            label: "CloakIMG App on iPad Pro Landscape",
+            label: "CloakIMG tablet editor with a local image and Adjust controls",
           },
         ],
         // Register as a system-wide handler for common image types.
@@ -134,38 +134,10 @@ export default defineConfig({
         globIgnores: ["**/wasm-bundle-*.js"],
         skipWaiting: false,
         cleanupOutdatedCaches: true,
-        navigationPreload: true,
-        runtimeCaching: [
-          // Google Fonts stylesheet — small, versioned, fetched on
-          // every cold load via index.html. StaleWhileRevalidate keeps
-          // the app usable offline once visited.
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "google-fonts-stylesheets",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          // Google Fonts files (woff2) — immutable per URL, so
-          // CacheFirst with a long TTL is safe.
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-webfonts",
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
+        // Every shell asset and local webfont is precached. Without a
+        // runtime route there is no consumer for navigation preload,
+        // and Workbox 7.4 now validates that relationship strictly.
+        navigationPreload: false,
       },
     }),
   ],

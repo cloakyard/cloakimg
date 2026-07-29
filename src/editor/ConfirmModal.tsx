@@ -1,6 +1,6 @@
 // ConfirmModal.tsx — Themed confirm modal that replaces native
 // `window.confirm` for destructive editor actions (e.g. reset). Uses
-// the shared ModalFrame so the translucent glass aesthetic, focus
+// the shared ModalFrame so the solid workbench aesthetic, focus
 // trap, and bottom-sheet-on-mobile behaviour stay consistent with
 // FilePropertiesModal / ExportModal.
 
@@ -106,9 +106,9 @@ function ConfirmModalBody({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
+      <div className="cloak-dialog__header">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+          <div className="cloak-dialog__icon">
             <Icon size={16} stroke={2.25} />
           </div>
           <div id="confirm-modal-title" className="t-headline text-base">
@@ -118,10 +118,12 @@ function ConfirmModalBody({
         <ModalCloseButton onClose={onCancel} iconSize={14} />
       </div>
 
-      <div className="px-5 py-4 text-[13px] leading-relaxed text-text-muted">{message}</div>
+      <div className="cloak-dialog__body px-5 py-4 text-[13px] leading-relaxed text-text-muted">
+        {message}
+      </div>
 
       <div
-        className={`flex justify-end gap-2 border-t border-border-soft ${
+        className={`cloak-dialog__footer ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >

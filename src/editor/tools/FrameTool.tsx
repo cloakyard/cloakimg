@@ -239,6 +239,8 @@ export function FramePanel() {
                   <img
                     src={thumbUrl}
                     alt={name}
+                    width={72}
+                    height={72}
                     className="block aspect-square w-full object-cover"
                   />
                 ) : (

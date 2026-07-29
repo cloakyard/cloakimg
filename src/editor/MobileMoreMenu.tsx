@@ -80,17 +80,13 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
   };
   return (
     <>
-      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
+      <div className="cloak-dialog__header">
         <div id="mobile-more-title" className="t-headline text-base">
           Actions
         </div>
         <ModalCloseButton onClose={onClose} iconSize={14} />
       </div>
 
-      {/* Inner items kept transparent so the modal's frosted bg-surface/85
-          + backdrop-blur reads through. Dividers are very faint for the
-          same reason — anything heavier reads as a stack of solid cards
-          glued onto the glass instead of belonging to it. */}
       <div className="flex flex-col px-3 py-2 pb-[max(env(safe-area-inset-bottom),12px)]">
         <MenuItem
           icon={I.Info}
@@ -142,10 +138,10 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-xl border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-lg border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
         active
           ? "bg-coral-50/70 dark:bg-coral-900/20"
-          : "hover:bg-white/40 active:bg-white/55 dark:hover:bg-white/5 dark:active:bg-white/8"
+          : "hover:bg-page-bg active:bg-coral-50/50 dark:hover:bg-white/5"
       }`}
     >
       <span

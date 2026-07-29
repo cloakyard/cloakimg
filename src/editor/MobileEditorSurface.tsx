@@ -56,7 +56,7 @@ type Mode = "collapsed" | "picker" | "tool";
 // on the cream page.
 const COLLAPSED_W = 140;
 const COLLAPSED_H = 44;
-const EXPANDED_R = 16;
+const EXPANDED_R = 8;
 
 // Approximate chrome heights for sheet sizing (V3.6).
 //   HANDLE_H — the drag-bar row
@@ -67,38 +67,18 @@ const EXPANDED_R = 16;
 // the cap kicks in 8 px earlier or later — content always reads
 // correctly because the flex layout gives the scroll area whatever's
 // left after handle + footer carve out their fixed portions.
-const HANDLE_H = 28;
+const HANDLE_H = 44;
 const FOOTER_H = 56;
 
-// Animation timing — every property animates on the same MORPH_MS
-// schedule so the geometry feels coordinated rather than staggered.
-// V3.5 dropped the crossfade layers (which needed FADE_OUT / FADE_IN
-// timings) in favour of in-flow content + measured height — the
-// geometry morph itself carries the visual transition now.
-//
-// V4 (May 2026): timing + easing align with the modal motion tokens
-// in tokens.css. The same `--ease-out-ios` curve drives modals,
-// sheets, and this morphing surface, so the app reads as one
-// coordinated motion system. Slightly slower base than the prior 360
-// because the expand-from-text gesture wants enough travel to register
-// as physical — a 280 ms version felt rushed when the picker grid
-// raced up from below the canvas.
-const MORPH_MS = 380;
-const EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+// Surface colour settles on the same restrained timing as the shared
+// dialogs. Width and height update immediately so the canvas does not
+// re-layout across several frames while a live preview is painting.
+const MORPH_MS = 320;
+const EASING = "var(--ease-out)";
 
-// The morph transition is identical on every render (only the width /
-// height *values* change, not the list of animated properties), so it's
-// hoisted to a module constant. This is also the exact string the drag
-// handlers must restore after temporarily setting `transition: none` —
-// see onTouchEnd. Setting it back to "" instead desyncs React's view of
-// the inline style: because React believes `transition` is unchanged
-// across collapsed↔expanded renders, it never re-writes it, leaving the
-// node stuck with no transition and killing the next open animation.
+// Hoisted because the drag handlers temporarily disable transitions
+// and must restore the same string React owns afterward.
 const SHEET_TRANSITION = [
-  `width ${MORPH_MS}ms ${EASING}`,
-  `height ${MORPH_MS}ms ${EASING}`,
-  `border-top-left-radius ${MORPH_MS}ms ${EASING}`,
-  `border-top-right-radius ${MORPH_MS}ms ${EASING}`,
   `background-color ${MORPH_MS}ms ${EASING}`,
   `box-shadow ${MORPH_MS}ms ${EASING}`,
 ].join(", ");
@@ -338,7 +318,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     borderTopLeftRadius: expanded ? `${EXPANDED_R}px` : 0,
     borderTopRightRadius: expanded ? `${EXPANDED_R}px` : 0,
     backgroundColor: expanded ? "var(--surface)" : "transparent",
-    boxShadow: expanded ? "inset 0 1px 0 0 rgba(0,0,0,0.07)" : "none",
+    boxShadow: expanded ? "inset 0 1px 0 0 var(--color-rule)" : "none",
     transition: SHEET_TRANSITION,
   };
 
@@ -348,14 +328,17 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       className="flex shrink-0 flex-col items-center"
       style={{
         // Lift the collapsed icon+label clear of the iOS home indicator.
-        // Animates to 0 on expand so the sheet extends to the screen
-        // edge; the footer absorbs the safe-area inset inside its own
-        // padding.
+        // On expand the sheet extends to the screen edge; the footer
+        // absorbs the safe-area inset inside its own padding.
         marginBottom: expanded ? 0 : "max(env(safe-area-inset-bottom),0.5rem)",
-        transition: `margin-bottom ${MORPH_MS}ms ${EASING}`,
       }}
     >
-      <div ref={sheetRef} {...modalProps} className="relative overflow-hidden" style={sheetStyle}>
+      <div
+        ref={sheetRef}
+        {...modalProps}
+        className="editor-mobile-surface relative overflow-hidden"
+        style={sheetStyle}
+      >
         {!expanded ? (
           /* Collapsed — just the icon + label, no chrome around it. */
           <button
@@ -388,7 +371,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
               onTouchEnd={onTouchEnd}
               onTouchCancel={onTouchEnd}
               aria-label="Close — drag down to dismiss"
-              className="group flex h-7 shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
+              className="group flex shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
               style={{ height: HANDLE_H }}
             >
               <span
@@ -409,7 +392,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                   // motion; the picker grid lands on a calm fade by
                   // virtue of the sheet's own enter animation.
                   <div
-                    className="grid grid-cols-4 gap-x-1 gap-y-3 px-4 pt-1"
+                    className="grid grid-cols-3 gap-x-1 gap-y-2 px-4 pt-1"
                     style={{ paddingBottom: "1rem" }}
                   >
                     {tools.map((tool) => (
@@ -466,14 +449,16 @@ function ToolGridCard({ tool, active, onClick }: CardProps) {
       onClick={onClick}
       aria-label={tool.name}
       aria-pressed={active}
-      className={`flex cursor-pointer flex-col items-center justify-start gap-1.5 rounded-xl border bg-transparent px-1 py-2.5 font-[inherit] transition-colors focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
+      className={`flex cursor-pointer flex-col items-center justify-start gap-1.5 rounded-lg border bg-transparent px-1 py-2.5 font-[inherit] transition-colors focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
         active
           ? "border-coral-500 bg-coral-50/50 text-coral-700 dark:bg-coral-900/20 dark:text-coral-300"
           : "border-transparent text-text"
       }`}
     >
       <Ic size={26} stroke={active ? 2 : 1.6} />
-      <span className="text-[11px] leading-tight font-medium tracking-[-0.005em]">{tool.name}</span>
+      <span className="text-[11px] leading-tight font-medium tracking-[-0.005em] whitespace-nowrap">
+        {tool.name}
+      </span>
     </button>
   );
 }

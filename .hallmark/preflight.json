@@ -1,0 +1,9 @@
+{
+  "date": "2026-07-29",
+  "framework": "React 19 with Vite+ and Tailwind CSS v4",
+  "fonts": ["Archivo", "JetBrains Mono"],
+  "palette": "OKLCH design tokens with Signal Coral accent",
+  "motion": "CSS functional motion only",
+  "spacing": "4px named scale",
+  "source": "CloakPDF family design adapted for CloakIMG"
+}

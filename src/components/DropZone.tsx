@@ -1,13 +1,12 @@
 // DropZone.tsx — Shared file-picker dropzone. Drag-and-drop, paste,
-// click-to-browse, and an interactive cursor "glow" — all the niceties
-// that the StartModal upload tab pioneered, now reusable in any place
+// click-to-browse, and an explicit local-input status bar — all the
+// controls that the StartModal upload tab pioneered, now reusable in any place
 // that needs to pull image files in (StartModal, BatchView, etc.).
 //
 // Always returns an array via `onFiles` even in single-pick mode, so
 // consumers don't have to special-case multi vs single.
 
 import {
-  type CSSProperties,
   type DragEvent as ReactDragEvent,
   type ClipboardEvent as ReactClipboardEvent,
   useCallback,
@@ -48,15 +47,13 @@ export function DropZone({
   multiple = false,
   isPhone = false,
   title = "Drop an image here",
-  subtitle = "or click to browse — JPG, PNG, WebP, AVIF, HEIC, HEIF",
+  subtitle = "or use Browse files — JPG, PNG, WebP, AVIF, HEIC, HEIF",
   accept = DEFAULT_ACCEPT,
   showPasteButton = true,
   selectedFile = null,
 }: DropZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const zoneRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
-  const [glowStyle, setGlowStyle] = useState<CSSProperties>({ opacity: 0 });
   // Thumbnail preview when a file is selected (single-pick mode). The
   // upload icon alone left users uncertain whether the *right* image was
   // queued — a thumbnail confirms it visually. Two decode paths:
@@ -136,18 +133,6 @@ export function DropZone({
 
   const onPick = useCallback(() => inputRef.current?.click(), []);
 
-  const setGlowAt = useCallback((clientX: number, clientY: number) => {
-    const zone = zoneRef.current;
-    if (!zone) return;
-    const rect = zone.getBoundingClientRect();
-    setGlowStyle({
-      opacity: 1,
-      background: `radial-gradient(300px circle at ${clientX - rect.left}px ${clientY - rect.top}px, rgba(245,97,58,0.18), transparent 70%)`,
-    });
-  }, []);
-
-  const clearGlow = useCallback(() => setGlowStyle({ opacity: 0 }), []);
-
   const onDrop = useCallback(
     (e: ReactDragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -203,8 +188,8 @@ export function DropZone({
     // anywhere on the dashed area" was a bonus the lint rules
     // (correctly) flag as ambiguous a11y.
     <section
-      ref={zoneRef}
       aria-label={multiple ? "Drop or pick images" : "Drop or pick an image"}
+      data-dragging={hover ? "true" : "false"}
       onDragOver={(e) => {
         e.preventDefault();
         setHover(true);
@@ -212,32 +197,9 @@ export function DropZone({
       onDragLeave={() => setHover(false)}
       onDrop={onDrop}
       onPaste={onPaste}
-      onMouseMove={(e) => setGlowAt(e.clientX, e.clientY)}
-      onMouseLeave={clearGlow}
-      onTouchStart={(e) => {
-        const t = e.touches[0];
-        if (t) setGlowAt(t.clientX, t.clientY);
-      }}
-      onTouchMove={(e) => {
-        const t = e.touches[0];
-        if (t) setGlowAt(t.clientX, t.clientY);
-      }}
-      onTouchEnd={clearGlow}
-      onTouchCancel={clearGlow}
       style={{ touchAction: "manipulation" }}
-      className={`group relative overflow-hidden rounded-2xl border-2 border-dashed bg-surface/70 text-center transition-[border-color,background-color,transform] duration-200 ${
-        hover
-          ? "scale-[1.005] border-coral-500 bg-coral-50/60 dark:bg-coral-900/30"
-          : "border-border"
-      } ${isPhone ? "px-5 py-7" : "px-7 py-10"}`}
+      className={`cloak-dropzone group ${isPhone ? "cloak-dropzone--phone" : ""}`}
     >
-      {/* Cursor / touch spotlight glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-2xl transition-opacity duration-300"
-        style={glowStyle}
-      />
-
       <input
         ref={inputRef}
         type="file"
@@ -250,91 +212,71 @@ export function DropZone({
           e.target.value = "";
         }}
       />
-      {showSelected && previewUrl ? (
-        // Selected-file thumbnail. Confirms the *right* image is queued
-        // — without this, users couldn't tell from the file name alone
-        // whether they'd dropped the photo they meant. Coral ring marks
-        // the "ready to open" state to match the rest of the modal's
-        // active accents.
-        <div className="relative z-10 mb-3.5 inline-flex">
-          <img
-            src={previewUrl}
-            alt={selectedFile.name}
-            className="h-20 w-20 rounded-2xl object-cover shadow-[0_4px_12px_-2px_rgba(0,0,0,0.15)] ring-2 ring-coral-500/70"
-          />
-          <span
-            aria-hidden
-            className="absolute -right-1.5 -bottom-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-coral-500 text-white shadow-[0_2px_6px_-1px_rgba(245,97,58,0.5)]"
+      <div className="cloak-dropzone__bar">
+        <span>Local image input</span>
+        <span>{hover ? "Release to open" : "No image upload"}</span>
+      </div>
+
+      <div className="cloak-dropzone__body">
+        {showSelected && previewUrl ? (
+          <div className="cloak-dropzone__preview">
+            <img src={previewUrl} alt={selectedFile.name} width={56} height={56} />
+            <span aria-hidden>
+              <I.Check size={12} stroke={3} />
+            </span>
+          </div>
+        ) : (
+          <div
+            {...(previewLoading
+              ? { role: "status", "aria-busy": true, "aria-label": "Decoding HEIC preview…" }
+              : {})}
+            className="cloak-dropzone__icon"
           >
-            <I.Check size={13} stroke={3} />
+            {previewLoading ? (
+              <span aria-hidden className="cloak-dropzone__spinner" />
+            ) : showSelected ? (
+              <I.FileImage size={24} />
+            ) : (
+              <I.Upload size={24} />
+            )}
+          </div>
+        )}
+
+        <div className="cloak-dropzone__copy">
+          <strong>{showSelected ? selectedFile.name : title}</strong>
+          <span>
+            {showSelected
+              ? `${(selectedFile.size / 1024).toFixed(0)} KB · ${selectedFile.type || "image"}`
+              : subtitle}
           </span>
         </div>
-      ) : (
-        <div
-          {...(previewLoading
-            ? { role: "status", "aria-busy": true, "aria-label": "Decoding HEIC preview…" }
-            : {})}
-          className={`relative z-10 mb-3.5 inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-[background-color,transform,color] duration-200 motion-safe:group-hover:-translate-y-0.5 ${
-            hover
-              ? "bg-coral-100 text-coral-600 dark:bg-coral-900/50"
-              : showSelected
-                ? "bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-page-bg text-text-muted group-hover:bg-coral-50 group-hover:text-coral-500 dark:group-hover:bg-coral-900/30"
-          }`}
-        >
-          {previewLoading ? (
-            // Subtle spinner during HEIC decode (~200–500 ms on phones).
-            // Without it, the FileImage icon sits frozen on a HEIC pick
-            // and the user can't tell whether the app stalled or is
-            // working. The animation is CSS-only via the global
-            // `ci-spin` keyframes already used by Spinner.
-            <span
-              aria-hidden
-              className="block h-5 w-5 rounded-full border-2 border-current border-t-transparent"
-              style={{ animation: "ci-spin 0.9s linear infinite" }}
-            />
-          ) : showSelected ? (
-            <I.FileImage size={24} />
-          ) : (
-            <I.Upload size={24} />
-          )}
-        </div>
-      )}
-      <div
-        className={`relative z-10 mb-1 text-base font-semibold transition-colors duration-200 ${
-          hover ? "text-coral-700 dark:text-coral-300" : "text-text"
-        }`}
-      >
-        {showSelected ? selectedFile.name : title}
-      </div>
-      <div className="relative z-10 mb-3.5 text-[13px] text-text-muted">
-        {showSelected
-          ? `${(selectedFile.size / 1024).toFixed(0)} KB · ${selectedFile.type || "image"}`
-          : subtitle}
-      </div>
-      <div className="relative z-10 flex flex-wrap justify-center gap-2">
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onPick();
-          }}
-        >
-          <I.Folder size={13} /> Browse files
-        </button>
-        {showPasteButton && (
+
+        <div className="cloak-dropzone__actions">
           <button
             type="button"
             className="btn btn-secondary btn-sm"
             onClick={(e) => {
               e.stopPropagation();
-              void onClipboardPasteButton();
+              onPick();
             }}
           >
-            <I.Layers size={13} /> Paste from clipboard
+            <I.Folder size={13} /> Browse files
           </button>
-        )}
+
+          {showPasteButton && (
+            <button
+              type="button"
+              aria-label="Paste from clipboard"
+              className="btn btn-ghost btn-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                void onClipboardPasteButton();
+              }}
+            >
+              <I.Layers size={13} /> Paste
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );

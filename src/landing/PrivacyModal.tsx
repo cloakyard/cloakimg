@@ -26,8 +26,8 @@ function PrivacyBody({ onClose }: { onClose: () => void }) {
   const dismiss = () => (animatedClose ? animatedClose() : onClose());
   return (
     <>
-      <div className="flex items-start gap-4 px-6 pt-6 pb-3 sm:px-7 sm:pt-7">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300">
+      <div className="cloak-dialog__header items-start">
+        <div className="cloak-dialog__icon">
           <I.ShieldCheck size={20} />
         </div>
         <div className="min-w-0 flex-1">
@@ -37,16 +37,16 @@ function PrivacyBody({ onClose }: { onClose: () => void }) {
           >
             Privacy Policy
           </h2>
-          <p className="mt-0.5 text-[12.5px] text-text-muted">Last updated: May 6, 2026</p>
+          <p className="mt-0.5 text-[12.5px] text-text-muted">Last updated: July 29, 2026</p>
         </div>
         <ModalCloseButton onClose={onClose} label="Close privacy policy" />
       </div>
 
-      <div className="scroll-thin flex-1 space-y-6 overflow-y-auto border-t border-border-soft px-6 py-5 text-[13px] leading-[1.6] text-text-muted sm:px-7">
+      <div className="cloak-dialog__body scroll-thin space-y-6 px-6 py-5 text-[13px] leading-[1.6] text-text-muted sm:px-7">
         <Section title="Overview">
           CloakIMG is a free, open-source photo editor that runs entirely in your web browser. We
-          are committed to your privacy. This policy explains what data we collect (spoiler: none)
-          and how the application works.
+          are committed to your privacy. This policy explains the app’s local processing model and
+          the limited network requests needed to deliver its code and optional model files.
         </Section>
 
         <Section title="Your Photos Stay on Your Device">
@@ -56,29 +56,27 @@ function PrivacyBody({ onClose }: { onClose: () => void }) {
           metadata, or document data is transmitted over the network.
         </Section>
 
-        <Section title="On-Device AI &mdash; Your Images Never See the Cloud">
+        <Section title="On-Device AI — Your Images Never See the Cloud">
           <p>
-            Some tools (background removal, subject-aware Adjust / Filters / Levels / Selective
-            colour, portrait blur) use a neural network to detect the subject in your photo. Those
-            models run{" "}
-            <strong className="text-text">entirely inside your browser, on your device</strong>{" "}
-            &mdash; via WebAssembly + the ONNX Runtime web build. We do not send your image to a
-            cloud inference API or to anyone else&rsquo;s server.
+            Some tools use neural networks for subject segmentation, face detection, or depth
+            estimation. Those models run{" "}
+            <strong className="text-text">entirely inside your browser, on your device</strong> via
+            WebAssembly, WebGPU, or the browser’s main thread. We do not send your image to a cloud
+            inference API.
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 marker:text-text-muted/60">
             <li>
-              The model files (~44&ndash;176&nbsp;MB depending on the quality you pick) are
-              downloaded once on first use and then cached by the Service Worker for offline reuse.
-              You can verify in your browser&rsquo;s DevTools Network panel that no image bytes are
-              ever uploaded.
+              Before a first-time model download, CloakIMG shows the model, approximate byte size,
+              and available quality tiers. Model files are cached locally for reuse when the browser
+              allows it.
             </li>
             <li>
-              The model itself ships as static weights. Inference is deterministic and read-only
-              &mdash; nothing about your photo is sent back to us, the model author, or anyone else.
+              The model itself ships as static weights. Inference is deterministic and read-only —
+              nothing about your photo is sent back to us, the model author, or anyone else.
             </li>
             <li>
-              If you stay offline after the first download, every AI feature continues to work
-              without network access.
+              A cached model can continue to work offline. An uncached capability needs a network
+              connection for its first, consented download.
             </li>
           </ul>
         </Section>
@@ -142,7 +140,7 @@ function PrivacyBody({ onClose }: { onClose: () => void }) {
         </Section>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-border-soft px-6 py-4 sm:px-7">
+      <div className="cloak-dialog__footer px-6 sm:px-7">
         <button type="button" onClick={dismiss} className="btn btn-primary btn-sm">
           Got it
         </button>

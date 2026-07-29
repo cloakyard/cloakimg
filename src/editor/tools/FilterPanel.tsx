@@ -174,6 +174,8 @@ export function FilterPanel() {
                         <img
                           src={thumbUrl}
                           alt={recipe.name}
+                          width={72}
+                          height={72}
                           className="block aspect-square w-full object-cover"
                         />
                       ) : (

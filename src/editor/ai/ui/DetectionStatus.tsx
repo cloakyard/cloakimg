@@ -105,11 +105,13 @@ export function DetectionProgressCard({
         aria-label={label}
       >
         <div
-          className={`h-full rounded-full bg-coral-500 ${
-            animateStripe ? "" : "transition-[width] duration-200"
-          }`}
+          className="h-full origin-left rounded-full bg-coral-500"
           style={{
-            width: `${widthPct}%`,
+            width: "100%",
+            transform: `scaleX(${widthPct / 100})`,
+            transition: animateStripe
+              ? undefined
+              : "transform var(--dur-base) var(--ease-standard)",
             ...(animateStripe
               ? {
                   backgroundImage:

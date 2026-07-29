@@ -5,11 +5,11 @@
 // Workhorse panels (move / crop / resize / adjust / filter) are eager so
 // the common flows never wait on a chunk; the long tail is
 // `React.lazy`-loaded into on-demand chunks to keep the initial editor
-// bundle small. The Suspense fallback is null — first-open of a niche
-// tool shows an empty panel for the ~one frame its chunk takes to load,
-// then cached thereafter.
+// bundle small. The shared fallback gives those first-open chunks a
+// stable measured surface instead of flashing an empty mobile sheet.
 
 import { lazy, Suspense } from "react";
+import { Spinner } from "./atoms";
 import { useActiveTool } from "./EditorContext";
 import { AdjustPanel } from "./tools/AdjustPanel";
 import { CropPanel } from "./tools/CropTool";
@@ -72,7 +72,20 @@ const RemoveBgPanel = lazy(() =>
 
 export function ToolControls() {
   const activeTool = useActiveTool();
-  return <Suspense fallback={null}>{renderPanel(activeTool)}</Suspense>;
+  return <Suspense fallback={<ToolPanelFallback />}>{renderPanel(activeTool)}</Suspense>;
+}
+
+function ToolPanelFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      data-tool-panel-loading
+      className="flex min-h-32 items-center justify-center text-text-muted"
+    >
+      <Spinner size={20} label="Loading controls…" />
+    </div>
+  );
 }
 
 function renderPanel(activeTool: ToolState["activeTool"]) {

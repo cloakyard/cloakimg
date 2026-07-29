@@ -38,7 +38,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // backdrop blur. Controls sit directly on cream; only a soft
     // left divider separates them from the canvas.
     <div
-      className={`flex shrink-0 flex-col overflow-hidden border-l border-border-soft ${
+      className={`editor-properties flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface ${
         collapsed ? "w-72" : "w-82"
       }`}
     >
@@ -48,12 +48,12 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           rail button already tells the user which tool is selected.
           Stripping the chip and stacking name + group inline gives the
           panel a quieter chrome that defers to the controls below. */}
-      <div className="flex shrink-0 items-baseline gap-2 border-b border-border-soft px-4 py-3.5">
+      <div className="flex shrink-0 items-baseline gap-2 border-b border-border px-4 py-3.5">
         <div className="min-w-0 flex-1 truncate">
           <span className="text-[14px] font-semibold tracking-[-0.01em] text-text">
             {tool.name}
           </span>
-          <span className="ml-2 text-[11px] font-medium tracking-[0.04em] text-text-muted uppercase">
+          <span className="t-mono ml-2 text-[10px] font-semibold tracking-[0.06em] text-text-muted uppercase">
             {tool.group}
           </span>
         </div>

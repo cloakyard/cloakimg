@@ -1106,10 +1106,8 @@ function MobileZoomControl({
         aria-expanded={open}
         className="cursor-pointer rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white active:scale-[0.96]"
         style={{
-          background: open ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.55)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          transition: "background 150ms",
+          background: open ? "var(--color-night)" : "var(--color-editor-overlay-control)",
+          transition: "background-color var(--dur-fast) var(--ease-standard)",
         }}
       >
         {displayZoom}%
@@ -1120,9 +1118,7 @@ function MobileZoomControl({
           aria-label="Zoom controls"
           className="absolute right-0 mt-1.5 flex items-center gap-0.5 rounded-full border border-white/10 p-0.5"
           style={{
-            background: "rgba(0,0,0,0.7)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
+            background: "var(--color-night)",
             animation: "ci-fab-in 160ms ease-out both",
           }}
         >

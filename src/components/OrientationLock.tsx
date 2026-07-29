@@ -83,11 +83,12 @@ export function OrientationLock() {
       aria-label="Rotate your device"
       // Top-level overlay — must outrank the editor's own modals (z-200)
       // and toasts (z-300) so the user never sees a half-rotated UI.
-      className="fixed inset-0 z-[1000] flex flex-col items-center justify-center gap-5 bg-page-bg px-8 text-center text-text"
+      className="fixed inset-0 flex flex-col items-center justify-center gap-5 bg-page-bg px-8 text-center text-text"
+      style={{ zIndex: "var(--z-system-overlay)" }}
     >
       <div
-        className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-coral-500/12 text-coral-500"
-        style={{ animation: "ci-rotate-hint 2.4s ease-in-out infinite" }}
+        className="cloak-dialog__icon relative h-16 w-16"
+        style={{ animation: "ci-rotate-hint 2.4s var(--ease-in-out) infinite" }}
       >
         <I.Smartphone size={32} stroke={1.75} />
       </div>

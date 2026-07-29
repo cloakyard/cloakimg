@@ -33,6 +33,7 @@ const TOOLS = [
   "Perspective",
   "Adjust",
   "Time of day",
+  "Relight",
   "Filters",
   "Levels",
   "Selective",
@@ -81,7 +82,9 @@ await new Promise((r) => setTimeout(r, 1200));
 
 await page.waitForSelector('input[type="file"]', { timeout: 10000 });
 const fileInputs = await page.$$('input[type="file"]');
-await fileInputs[0].uploadFile(TEST_JPG);
+const modalInput = fileInputs.at(-1);
+if (!modalInput) throw new Error("Modal file input missing");
+await modalInput.uploadFile(TEST_JPG);
 await page.waitForFunction(
   () =>
     Array.from(document.querySelectorAll("button")).some((b) =>
@@ -122,10 +125,56 @@ for (const label of TOOLS) {
     continue;
   }
   await new Promise((r) => setTimeout(r, 250));
-  // Spot-check no React render crash blanked the page.
-  const stillAlive = await page.evaluate(() => !!document.querySelector("canvas"));
-  if (!stillAlive) {
-    console.error(`  ✗ ${label}: canvas vanished after click`);
+  // Spot-check no React render crash blanked the page, the requested
+  // rail item became active, and a passive tool visit did not open a
+  // consent/confirmation dialog behind the user's back.
+  const state = await page.evaluate((l) => {
+    const norm = (s) => (s ?? "").toLowerCase();
+    const active = Array.from(document.querySelectorAll(".editor-toolrail button")).some(
+      (button) =>
+        button.getAttribute("aria-pressed") === "true" &&
+        norm(button.getAttribute("aria-label")).includes(l.toLowerCase()),
+    );
+    const panelScroller = document.querySelector(".editor-properties .scroll-thin");
+    const panelRect = panelScroller?.getBoundingClientRect();
+    const escapedControls =
+      panelScroller && panelRect
+        ? Array.from(
+            panelScroller.querySelectorAll(
+              'button, input, select, textarea, [role="slider"], [role="tab"], [role="radio"]',
+            ),
+          )
+            .filter((control) => {
+              const rect = control.getBoundingClientRect();
+              const style = getComputedStyle(control);
+              return (
+                rect.width > 0 &&
+                rect.height > 0 &&
+                style.display !== "none" &&
+                style.visibility !== "hidden" &&
+                rect.right > panelRect.left &&
+                rect.left < panelRect.right &&
+                !control.closest(".overflow-x-auto")
+              );
+            })
+            .filter((control) => {
+              const rect = control.getBoundingClientRect();
+              return rect.left < panelRect.left - 1 || rect.right > panelRect.right + 1;
+            })
+            .map(
+              (control) =>
+                control.getAttribute("aria-label") || control.textContent?.trim().slice(0, 40),
+            )
+        : [];
+    return {
+      active,
+      canvas: !!document.querySelector("canvas"),
+      dialog: document.querySelector('[role="dialog"]')?.textContent?.trim().slice(0, 80) ?? null,
+      escapedControls,
+    };
+  }, label);
+  if (!state.canvas || !state.active || state.dialog || state.escapedControls.length > 0) {
+    console.error(`  ✗ ${label}: ${JSON.stringify(state)}`);
     fails++;
     continue;
   }

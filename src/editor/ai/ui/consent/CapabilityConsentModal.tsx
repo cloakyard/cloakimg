@@ -95,9 +95,9 @@ export function CapabilityConsentModal({
       maxWidth="max-w-130"
       labelledBy="cloak-capability-consent-title"
     >
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4">
+      <div className="cloak-dialog__header">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+          <div className="cloak-dialog__icon">
             <I.Sparkles size={16} />
           </div>
           <div id="cloak-capability-consent-title" className="t-headline truncate text-base">
@@ -107,7 +107,7 @@ export function CapabilityConsentModal({
         <ModalCloseButton onClose={onDismiss} iconSize={14} />
       </div>
 
-      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
+      <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
         <p className="text-[13px] leading-relaxed text-text-muted">
           {switchMode ? family.consent.switchBody : family.consent.body}
         </p>
@@ -177,7 +177,7 @@ export function CapabilityConsentModal({
       </div>
 
       <div
-        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft ${
+        className={`cloak-dialog__footer ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >

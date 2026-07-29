@@ -262,15 +262,14 @@ export function TimeOfDayPanel() {
           />
         </div>
 
-        {/* Tappable label legend. Evenly distributed via
-            `justify-between` — the keyframes' actual `t` positions
-            are unevenly clustered (Sunset 0.85, Night 1.0) so
-            anchoring labels to those positions made adjacent
-            labels overlap. The continuous gradient + thumb on the
-            rail above already carries the precise "where am I"
-            visual; this row just needs to read as a clean legend
-            and provide tap-to-snap shortcuts. */}
-        <div className="flex items-start justify-between gap-1">
+        {/* Tappable label legend. A 3 × 2 grid keeps every moment
+            readable and gives each snap target a real hit area at
+            every sidebar width. The old single row let the combined
+            intrinsic label widths grow past the 295 px desktop
+            content box, clipping Night by 12 px. The continuous
+            gradient + thumb above still carries the precise position;
+            this grid is the relaxed shortcut legend. */}
+        <div className="grid grid-cols-3 gap-1">
           {KEYFRAMES.map((k) => {
             const isActive = k.label === label;
             return (
@@ -280,10 +279,10 @@ export function TimeOfDayPanel() {
                 onClick={() => patchTool("timeOfDay", k.t)}
                 aria-pressed={isActive}
                 aria-label={`Snap to ${k.label}`}
-                className={`shrink-0 cursor-pointer rounded border-none bg-transparent px-0.5 py-0.5 font-[inherit] text-[10.5px] font-semibold whitespace-nowrap transition-colors pointer-coarse:px-1 pointer-coarse:py-1 pointer-coarse:text-[11.5px] ${
+                className={`flex h-8 min-w-0 cursor-pointer items-center justify-center rounded-md border-none px-1 font-[inherit] text-[10.5px] font-semibold whitespace-nowrap transition-colors pointer-coarse:h-10 ${
                   isActive
-                    ? "text-coral-600 dark:text-coral-300"
-                    : "text-text-muted hover:text-text"
+                    ? "bg-coral-50 text-coral-700 dark:bg-[var(--color-accent-soft)] dark:text-coral-300"
+                    : "bg-page-bg text-text-muted hover:text-text"
                 }`}
               >
                 {k.label}

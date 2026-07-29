@@ -110,12 +110,12 @@ describe("DropZone", () => {
       });
     }
 
-    it("native-format thumbnails carry the coral ring and green-check accent", () => {
+    it("native-format thumbnails use the workbench preview frame and selected check", () => {
       const file = makeFile("hero.png", "image/png");
-      render(<DropZone onFiles={() => undefined} selectedFile={file} />);
+      const { container } = render(<DropZone onFiles={() => undefined} selectedFile={file} />);
       const img = screen.getByRole("img");
-      expect(img).toHaveClass("ring-2");
-      expect(img.className).toContain("ring-coral-500");
+      expect(img.closest(".cloak-dropzone__preview")).not.toBeNull();
+      expect(container.querySelector(".cloak-dropzone__preview svg")).not.toBeNull();
     });
   });
 

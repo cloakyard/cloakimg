@@ -83,15 +83,9 @@ export function MaskDownloadModal({
           coral Triangle (error) so the visual state is clear at a
           glance, and the subtitle moved into the body so the header
           stays a single fixed-height row. */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4">
+      <div className="cloak-dialog__header">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
-              error
-                ? "bg-coral-500/15 text-coral-600 dark:bg-coral-400/15 dark:text-coral-300"
-                : "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-            }`}
-          >
+          <div className={`cloak-dialog__icon ${error ? "text-danger" : ""}`}>
             {error ? <I.Triangle size={16} stroke={2} /> : <I.Sparkles size={16} />}
           </div>
           <div id="cloak-mask-download-title" className="t-headline truncate text-base">
@@ -101,7 +95,7 @@ export function MaskDownloadModal({
         <ModalCloseButton onClose={onClose} iconSize={14} />
       </div>
 
-      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
+      <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
         <p className="text-[13px] leading-relaxed text-text-muted">
           {error
             ? errorBody(errorKind)
@@ -120,7 +114,7 @@ export function MaskDownloadModal({
           the modal feels like a single component animating between
           download → error states, not two different modals. */}
       <div
-        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft ${
+        className={`cloak-dialog__footer ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >

@@ -108,7 +108,7 @@ export function PrivacyAuditCard({ stripGPS, onPatchMeta }: Props) {
       role="region"
       aria-label="Privacy review"
       data-testid="privacy-audit"
-      className="flex flex-col gap-2 rounded-lg border border-coral-200/70 bg-coral-50/40 px-3 py-2.5 dark:border-coral-500/30 dark:bg-coral-900/15"
+      className="flex flex-col gap-2 rounded-lg border border-border bg-surface px-3 py-2.5"
     >
       <div className="flex items-center gap-1.5">
         <I.Shield size={13} className="text-coral-600 dark:text-coral-300" />
@@ -202,7 +202,7 @@ function Action({ onClick, label, disabled }: ActionProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="ml-auto cursor-pointer rounded-md border-none bg-coral-500 px-2 py-1 font-[inherit] text-[11px] font-semibold text-white transition-colors hover:bg-coral-600 disabled:cursor-not-allowed disabled:opacity-50"
+      className="privacy-audit-action ml-auto cursor-pointer rounded-md border border-coral-500 bg-coral-500 px-2 py-1 font-[inherit] text-[11px] font-semibold text-[var(--color-accent-ink)] transition-colors hover:border-coral-600 hover:bg-coral-600 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {label}
     </button>
