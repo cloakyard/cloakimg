@@ -175,7 +175,13 @@ export function ResizePanel() {
             style={{ width: sourceBox.w, height: sourceBox.h }}
           >
             {sourceThumbUrl && (
-              <img src={sourceThumbUrl} alt="" className="h-full w-full object-cover" />
+              <img
+                src={sourceThumbUrl}
+                alt=""
+                width={sourceBox.w}
+                height={sourceBox.h}
+                className="h-full w-full object-cover"
+              />
             )}
           </div>
           <div className="flex flex-col items-center text-text-muted">
@@ -189,7 +195,13 @@ export function ResizePanel() {
             style={{ width: targetBox.w, height: targetBox.h }}
           >
             {sourceThumbUrl && (
-              <img src={sourceThumbUrl} alt="" className="h-full w-full object-cover" />
+              <img
+                src={sourceThumbUrl}
+                alt=""
+                width={targetBox.w}
+                height={targetBox.h}
+                className="h-full w-full object-cover"
+              />
             )}
           </div>
         </div>
@@ -314,10 +326,13 @@ function DimInput({
   label: string;
 }) {
   return (
-    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 text-[12.5px]">
+    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 text-[12.5px] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500">
       <span className="text-[10.5px] text-text-muted">{label}</span>
       <input
+        name={`resize-${label.toLowerCase()}`}
         type="number"
+        aria-label={label}
+        autoComplete="off"
         value={value}
         onChange={(e) => onChange(+e.target.value || 0)}
         className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none"

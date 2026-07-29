@@ -31,6 +31,7 @@ import { MobileEditorSurface } from "./MobileEditorSurface";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
 import { ToolRail } from "./ToolRail";
+import { ToolSearchModal } from "./ToolSearchModal";
 import { ToolStage } from "./ToolStage";
 import { TopBar } from "./TopBar";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
@@ -88,6 +89,7 @@ function EditorShell() {
     sizeBucket: 1,
   });
   const [filePropsOpen, setFilePropsOpen] = useState(false);
+  const [toolSearchOpen, setToolSearchOpen] = useState(false);
 
   // Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z global shortcuts.
   useEffect(() => {
@@ -126,6 +128,23 @@ function EditorShell() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isMobile, canCancelCurrentTool, exportOpen, filePropsOpen, cancelCurrentTool]);
+
+  // CloakPDF parity: ⌘K / Ctrl+K opens the searchable tool index.
+  // The mobile editor already has a full-screen picker, so this stays
+  // scoped to desktop/tablet where the icon rail is visible.
+  useEffect(() => {
+    if (isMobile) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== "k") {
+        return;
+      }
+      if (exportOpen || filePropsOpen) return;
+      event.preventDefault();
+      setToolSearchOpen(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [exportOpen, filePropsOpen, isMobile]);
 
   // Paste-to-replace inside the editor: catch Cmd/Ctrl-V on the document
   // and grab the first image off the clipboard.
@@ -177,16 +196,12 @@ function EditorShell() {
     <main
       onDragOver={onShellDragOver}
       onDrop={onShellDrop}
-      className="relative h-full w-full overflow-hidden font-sans text-text"
+      className="editor-shell relative h-full w-full overflow-hidden font-sans text-text"
     >
       <KeyboardShortcuts />
-      {/* Editor backdrop is solid `--page-bg` cream on every breakpoint
-          (May 2026 minimalist redesign). The Grainient animation that
-          used to wash the desktop chrome has been removed — it
-          competed with the photo for attention and the cream page now
-          reads as one calm continuous surface from the brand mark all
-          the way to the rail / panel chrome. Landing keeps the
-          Grainient as marketing chrome. */}
+      {/* Editor backdrop is solid cream on every breakpoint. Animated
+          marketing chrome was removed so the photo owns the hierarchy
+          and the workbench reads as one continuous paper surface. */}
       <div className="relative flex h-full w-full flex-col">
         <TopBar onShowFileProps={() => setFilePropsOpen(true)} />
 
@@ -196,7 +211,11 @@ function EditorShell() {
 
         <div className="flex min-h-0 flex-1">
           {!isMobile && mode === "single" && (
-            <ToolRail activeTool={activeTool} onSelect={setActiveTool} />
+            <ToolRail
+              activeTool={activeTool}
+              onSelect={setActiveTool}
+              onOpenSearch={() => setToolSearchOpen(true)}
+            />
           )}
 
           <div className="flex min-w-0 flex-1 flex-col">
@@ -263,6 +282,10 @@ function EditorShell() {
         <FilePropertiesModal layout={layout} onClose={() => setFilePropsOpen(false)} />
       )}
 
+      {toolSearchOpen && !isMobile && mode === "single" && (
+        <ToolSearchModal onClose={() => setToolSearchOpen(false)} onSelect={setActiveTool} />
+      )}
+
       {/* Silent boundary — a render failure in the AI consent subtree
           (model download race, worker crash, etc.) blanks just this
           host. The next user-driven AI interaction remounts it with
@@ -324,14 +347,11 @@ function LoadingBanner() {
 function BusyOverlay({ label }: { label: string }) {
   return (
     <div
-      className="absolute inset-0 z-150 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+      className="absolute inset-0 z-150 flex items-center justify-center bg-[var(--color-overlay)]"
       aria-busy="true"
       aria-live="polite"
     >
-      <div
-        className="flex items-center gap-3 rounded-2xl border border-border-soft bg-surface/95 px-5 py-4 shadow-xl"
-        style={{ boxShadow: "var(--shadow-modal)" }}
-      >
+      <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-5 py-4 shadow-[var(--shadow-popover)]">
         <Spinner size={22} />
         <span className="text-[13px] font-medium text-text">{label}</span>
       </div>
@@ -342,13 +362,12 @@ function BusyOverlay({ label }: { label: string }) {
 function ErrorBanner({ message }: { message: string }) {
   const { exit } = useEditorActions();
   return (
-    <div className="absolute inset-0 z-200 flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md">
+    <div className="absolute inset-0 z-200 flex items-center justify-center bg-[var(--color-overlay)] px-6">
       <div
         role="alert"
-        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl"
+        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-lg border border-border bg-surface px-7 py-8 text-center shadow-[var(--shadow-overlay)]"
       >
-        <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-coral-500/12 text-coral-500">
-          <span className="absolute inset-0 animate-ping rounded-full bg-coral-500/15" />
+        <div className="cloak-dialog__icon h-14 w-14">
           <I.Triangle size={26} stroke={1.75} />
         </div>
         <div className="flex flex-col gap-1.5">

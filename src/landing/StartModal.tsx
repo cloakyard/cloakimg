@@ -83,11 +83,11 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
   const canConfirm = tab === "upload" ? !!uploadFile : true;
 
   return (
-    <ModalFrame onClose={onCancel} bottomSheet={isPhone}>
+    <ModalFrame onClose={onCancel} bottomSheet={isPhone} labelledBy="start-modal-title">
       <ModalHeader isPhone={isPhone} onCancel={onCancel} />
       <ModalTabs tab={tab} setTab={setTab} isPhone={isPhone} />
 
-      <div className={`flex-1 overflow-y-auto ${isPhone ? "p-5" : "p-7"}`}>
+      <div className={`cloak-dialog__body flex-1 overflow-y-auto ${isPhone ? "p-5" : "p-7"}`}>
         {tab === "upload" ? (
           <UploadTab isPhone={isPhone} file={uploadFile} onFile={setUploadFile} />
         ) : (
@@ -120,14 +120,17 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
 
 function ModalHeader({ isPhone, onCancel }: { isPhone: boolean; onCancel: () => void }) {
   return (
-    <div className={`flex items-start ${isPhone ? "px-5 pt-4.5 pb-1" : "px-7 pt-6 pb-2"}`}>
+    <div
+      className={`cloak-dialog__header items-start ${isPhone ? "px-5 pt-4.5 pb-3" : "px-7 pt-6 pb-4"}`}
+    >
       <div className="min-w-0 flex-1">
-        <div className="t-eyebrow mb-1.5">Start a new project</div>
-        <div className="t-headline">How would you like to begin?</div>
+        <div id="start-modal-title" className="t-headline">
+          Start a new project
+        </div>
         {/* Privacy reassurance lives in the header now — it sets the
             tone before the user picks anything, instead of crowding
             the action footer with a stray label. */}
-        <div className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
+        <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
           <I.Lock size={11} stroke={2.25} className="text-coral-600 dark:text-coral-400" />
           Files never leave your browser
         </div>
@@ -161,7 +164,7 @@ function ModalTabs({
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`-mb-px flex cursor-pointer items-center gap-1.5 border-none bg-transparent px-3.5 py-2.5 font-[inherit] text-[13px] font-semibold transition-colors ${
+            className={`-mb-px flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-none bg-transparent px-2.5 py-2.5 font-[inherit] text-[12px] font-semibold transition-colors sm:px-3.5 sm:text-[13px] ${
               active
                 ? "border-b-2 border-coral-500 text-coral-700 dark:text-coral-400"
                 : "border-b-2 border-transparent text-text-muted"
@@ -192,7 +195,7 @@ function ModalFooter({
   // the header so the action row can focus purely on what to do next.
   return (
     <div
-      className={`flex shrink-0 items-center justify-end gap-2.5 border-t border-border-soft bg-page-bg ${
+      className={`cloak-dialog__footer ${
         isPhone ? "px-5 py-3.5 pb-[max(env(safe-area-inset-bottom),14px)]" : "px-7 py-4"
       }`}
     >
@@ -277,7 +280,13 @@ function DraftResumeRow({ onPick }: { onPick: (f: File | null) => void }) {
         className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-coral-200 bg-coral-50/60 p-2.5 text-left font-[inherit] dark:border-coral-900/50 dark:bg-coral-900/15"
       >
         {draft.thumbUrl ? (
-          <img src={draft.thumbUrl} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
+          <img
+            src={draft.thumbUrl}
+            alt=""
+            width={48}
+            height={48}
+            className="h-12 w-12 shrink-0 rounded-md object-cover"
+          />
         ) : (
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-page-bg">
             <I.FileImage size={18} />
@@ -347,7 +356,13 @@ function RecentsRow({ onPick }: { onPick: (f: File | null) => void }) {
               className="absolute inset-0 cursor-pointer border-none bg-transparent p-0"
             >
               {r.thumbUrl ? (
-                <img src={r.thumbUrl} alt={r.name} className="h-full w-full object-cover" />
+                <img
+                  src={r.thumbUrl}
+                  alt={r.name}
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <I.FileImage size={20} />
               )}
@@ -407,9 +422,9 @@ function BlankTab({
               type="button"
               onClick={() => setPresetIdx(i)}
               aria-pressed={active}
-              className={`relative flex cursor-pointer flex-col gap-2 rounded-2xl p-3 text-left font-[inherit] transition-[border-color,background-color,box-shadow] duration-150 ${
+              className={`relative flex cursor-pointer flex-col gap-2 rounded-lg p-3 text-left font-[inherit] transition-[border-color,background-color,box-shadow] duration-150 ${
                 active
-                  ? "border-2 border-coral-500 bg-coral-50 shadow-[0_0_0_3px_rgba(245,97,58,0.12)] dark:bg-coral-900/25"
+                  ? "border-2 border-coral-500 bg-coral-50 shadow-[var(--shadow-focus)] dark:bg-coral-900/25"
                   : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-coral-200"
               }`}
             >
@@ -436,7 +451,6 @@ function BlankTab({
                     style={{
                       width: p.w >= p.h ? 52 : 52 * (p.w / p.h),
                       height: p.h >= p.w ? 36 : 36 * (p.h / p.w),
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
                     }}
                   />
                 )}
@@ -505,10 +519,13 @@ function DimensionInput({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="t-mono flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px]">
+    <div className="t-mono flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500">
       <span className="text-[11px] text-text-muted">{label}</span>
       <input
+        name={`canvas-${label.toLowerCase()}`}
         type="number"
+        aria-label={label}
+        autoComplete="off"
         value={value}
         onChange={(e) => onChange(Math.max(1, Math.min(20000, +e.target.value || 0)))}
         className="w-17.5 border-none bg-transparent font-[inherit] text-[13px] text-text outline-none"

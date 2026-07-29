@@ -1,13 +1,10 @@
-// Footer.tsx — Landing-only footer with two bento cards (How it works
-// + Cloakyard family promo) and a slim attribution row underneath.
-// Mirrors the CloakPDF Layout footer so the Cloakyard family reads
-// consistently across products.
-//
-// The editor never mounts this — it lives only on the landing page so
-// the working surface stays clean.
-
 import { I } from "../components/icons";
-import { GITHUB_AUTHOR_URL, GITHUB_LICENSE_URL, GITHUB_ORG_URL } from "../constants/links";
+import {
+  GITHUB_AUTHOR_URL,
+  GITHUB_LICENSE_URL,
+  GITHUB_ORG_URL,
+  GITHUB_REPO_URL,
+} from "../constants/links";
 
 declare const __APP_VERSION__: string;
 
@@ -15,159 +12,48 @@ interface Props {
   onPrivacy?: () => void;
 }
 
-const STEPS = [
-  {
-    n: 1,
-    title: "Open an image",
-    description: "Drag a photo onto the canvas, or start from a blank document at any preset size.",
-  },
-  {
-    n: 2,
-    title: "Edit in the browser",
-    description:
-      "Crop, retouch, redact, adjust, filter, frame and more — every byte stays on your device.",
-  },
-  {
-    n: 3,
-    title: "Export & download",
-    description: "JPEG, PNG, WebP. Strip metadata on export. No watermarks, no sign-up, no queue.",
-  },
-] as const;
-
 export function Footer({ onPrivacy }: Props) {
   const version = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.0.0";
 
   return (
-    <footer
-      className="relative mt-auto"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-    >
-      <div className="mx-auto max-w-[1100px] px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-7">
-        <div className="mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          {/* Bento cards — V4 minimalist treatment (May 2026). The
-              prior cards each painted a 280 × 280 radial-gradient coral
-              glow in opposite corners. The corner glows were
-              decorative chrome that competed with the brand mark and
-              the eyebrow/title hierarchy inside each card; stripping
-              them lets the typography do the work and the cream page
-              flow through the glass-tinted surface uninterrupted. */}
-          {/* How it works card */}
-          <div className="relative flex flex-col rounded-2xl border border-border-soft bg-surface-glass p-5 backdrop-blur-md">
-            <div className="relative">
-              {/* Eyebrow + version pill sit on the same row inside the
-                  "How it works" card — mirrors CloakPDF's footer where
-                  the build version anchors the bento's brand
-                  identity (left card == product story). Previously the
-                  pill lived in the Cloakyard card, which made the
-                  family-promo card carry product-specific metadata it
-                  shouldn't own. */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="t-eyebrow">How it works</div>
-                <span
-                  translate="no"
-                  className="inline-flex shrink-0 items-center rounded-full border border-border-soft bg-slate-900/4 px-2 py-px font-mono text-[10px] tabular-nums tracking-tight text-text-muted dark:bg-white/5"
-                >
-                  v{version}
-                </span>
-              </div>
-              <h3 className="t-title mt-2 text-text sm:text-[19px]">
-                From open to export, in three steps.
-              </h3>
-            </div>
-            <ol className="relative mt-4 flex flex-col gap-3 list-none p-0 m-0">
-              {STEPS.map((step) => (
-                <li key={step.n} className="flex items-start gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-coral-100 bg-coral-50 text-xs font-semibold leading-none tabular-nums text-coral-700 dark:border-coral-900/60 dark:bg-coral-900/30 dark:text-coral-300"
-                  >
-                    {step.n}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-semibold tracking-[-0.005em] text-text">
-                      {step.title}
-                    </div>
-                    <div className="text-[12px] leading-[1.55] text-text-muted">
-                      {step.description}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
+    <footer className="cloak-site-footer">
+      <div className="site-frame cloak-site-footer__inner">
+        <div className="cloak-site-footer__statement-row">
+          <p className="cloak-site-footer__statement">Photo work stays with the photographer.</p>
+          <div className="cloak-site-footer__aside">
+            <img src="/icons/cloakyard.svg" alt="" aria-hidden="true" width={40} height={40} />
+            <p>
+              Part of Cloakyard, a family of privacy-focused tools that keep your data on your
+              device.
+            </p>
+            <a href={GITHUB_ORG_URL} target="_blank" rel="noreferrer">
+              Explore Cloakyard
+              <I.ArrowUpRight size={14} />
+            </a>
           </div>
-
-          {/* Cloakyard family promo card */}
-          <a
-            href={GITHUB_ORG_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative flex flex-col justify-between rounded-2xl border border-border-soft bg-surface-glass p-5 text-inherit no-underline backdrop-blur-md transition-colors hover:border-coral-500/45"
-          >
-            <div className="relative">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src="/icons/cloakyard.svg"
-                  alt=""
-                  aria-hidden="true"
-                  className="h-7 w-7 drop-shadow-sm"
-                />
-                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-text-muted">
-                  Part of
-                </span>
-              </div>
-              <h4 className="t-title mt-2.5 text-text">Cloakyard</h4>
-              <p className="t-caption mt-1">
-                A family of privacy-focused tools that keep your data on your device.
-              </p>
-            </div>
-            <span className="relative mt-3 inline-flex items-center gap-1 text-xs font-medium text-coral-600 dark:text-coral-400">
-              Explore
-              <I.ArrowUpRight
-                size={12}
-                style={{ transition: "transform 150ms" }}
-                className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </span>
-          </a>
         </div>
 
-        {/* Slim attribution row */}
-        <div className="flex flex-col gap-2 border-t border-border-soft pt-4 text-[12px] text-text-muted sm:flex-row sm:items-center sm:gap-4">
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-            <span>Built with care by</span>
-            <a
-              href={GITHUB_AUTHOR_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-text no-underline transition-colors hover:text-coral-600 dark:hover:text-coral-400"
-            >
+        <div className="cloak-site-footer__meta">
+          <span className="cloak-mono-label">CloakIMG / v{version}</span>
+          <span>
+            Built by{" "}
+            <a href={GITHUB_AUTHOR_URL} target="_blank" rel="noreferrer">
               Sumit Sahoo
             </a>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 sm:ml-auto">
+          </span>
+          <span className="cloak-site-footer__links">
             {onPrivacy && (
-              <>
-                <button
-                  type="button"
-                  onClick={onPrivacy}
-                  className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 font-[inherit] text-[12px] text-text-muted transition-colors hover:text-coral-600 dark:hover:text-coral-400"
-                >
-                  <I.ShieldCheck size={14} />
-                  Privacy
-                </button>
-                <span aria-hidden="true">·</span>
-              </>
+              <button type="button" onClick={onPrivacy}>
+                Privacy
+              </button>
             )}
-            <a
-              href={GITHUB_LICENSE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-text-muted no-underline transition-colors hover:text-coral-600 dark:hover:text-coral-400"
-            >
-              <I.Scale size={14} />
-              <span>MIT licensed</span>
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer">
+              Source
             </a>
-          </div>
+            <a href={GITHUB_LICENSE_URL} target="_blank" rel="noreferrer">
+              MIT license
+            </a>
+          </span>
         </div>
       </div>
     </footer>

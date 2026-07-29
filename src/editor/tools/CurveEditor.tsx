@@ -350,7 +350,7 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
           // visible label stays compact, but the button's padding +
           // font scale up on coarse pointers so it clears the ~44 pt
           // minimum without making the chrome heavier on desktop.
-          className="cursor-pointer border-none bg-transparent p-0 font-[inherit] text-[10.5px] font-semibold text-coral-700 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px] dark:text-coral-300"
+          className="cursor-pointer border-none bg-transparent p-0 font-[inherit] text-[10.5px] font-semibold text-coral-700 pointer-coarse:min-h-11 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px] dark:text-coral-300"
         >
           Reset
         </button>

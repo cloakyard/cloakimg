@@ -33,8 +33,8 @@ export const DEPTH_FAMILY: CapabilityFamily<DepthTierRuntimeRef> = {
   inferenceLongEdge: ACTIVE_DEPTH_FAMILY.inferenceLongEdge,
   tiers: TIERS,
   consent: {
-    title: "Download depth estimation",
-    switchTitle: "Change depth model size",
+    title: "Enable Relight",
+    switchTitle: "Change Relight model",
     body: "Relight estimates a depth map of your photo on-device (Depth Anything V2, by the original authors) so it can shade surfaces as you move the light. The model downloads once and runs entirely in this browser — your photo never leaves this tab.",
     switchBody:
       "The depth model is already on this device. Re-running costs nothing and the model never re-downloads.",

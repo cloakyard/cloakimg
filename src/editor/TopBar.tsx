@@ -50,7 +50,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
 
   return (
     <>
-      <div
+      <header
         // V5 (May 2026 desktop minimalist redesign) — desktop drops the
         // glass surface and backdrop blur and sits directly on cream,
         // but keeps a hairline soft bottom divider so the toolbar still
@@ -59,22 +59,17 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         // collapsed Tools pill flow as one continuous plane.
         className={
           isMobile
-            ? "flex h-16 shrink-0 items-center gap-1.5 px-3 py-3"
-            : "flex h-16 shrink-0 items-center gap-3 border-b border-border-soft px-4 py-3"
+            ? "editor-topbar flex h-16 shrink-0 items-center gap-1.5 border-b border-border px-3 py-3"
+            : "editor-topbar flex h-16 shrink-0 items-center gap-3 border-b border-border px-4 py-3"
         }
       >
         <button
           type="button"
           onClick={onLogoClick}
           aria-label="Back to start"
-          className="flex cursor-pointer items-center gap-2 border-none bg-transparent p-0 font-[inherit] text-inherit"
+          className="editor-topbar__brand flex cursor-pointer items-center gap-2 border-none bg-transparent p-0 font-[inherit] text-inherit"
         >
-          <BrandMark
-            size={40}
-            style={{
-              filter: "drop-shadow(0 2px 6px rgba(245, 97, 58, 0.28))",
-            }}
-          />
+          <BrandMark size={40} />
           {/* Brand mark + wordmark sized identically across breakpoints
               in V3 — the prior mobile-shrunk treatment made the editor
               feel apologetic at the top of the screen. With the TopBar
@@ -93,13 +88,13 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12px] text-inherit transition-colors hover:bg-surface"
+            className="editor-topbar__file flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12px] text-inherit transition-colors hover:bg-surface"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
             </span>
             {dimensions && (
-              <span className="t-mono ml-1 shrink-0 whitespace-nowrap text-[11px] text-text-muted">
+              <span className="editor-topbar__dimensions t-mono ml-1 shrink-0 whitespace-nowrap text-[11px] text-text-muted">
                 · {dimensions}
               </span>
             )}
@@ -270,7 +265,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             <I.MoreVertical size={18} />
           </button>
         )}
-      </div>
+      </header>
       {resetConfirmOpen && (
         <ConfirmModal
           layout={layout}

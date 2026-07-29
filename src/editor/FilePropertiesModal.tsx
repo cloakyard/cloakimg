@@ -91,9 +91,9 @@ function FilePropertiesBody({
   const dismiss = () => (animatedClose ? animatedClose() : onClose());
   return (
     <>
-      <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
+      <div className="cloak-dialog__header">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+          <div className="cloak-dialog__icon">
             <I.FileImage size={16} />
           </div>
           <div>
@@ -106,7 +106,7 @@ function FilePropertiesBody({
         <ModalCloseButton onClose={onClose} iconSize={14} />
       </div>
 
-      <div className="flex flex-col gap-3 px-5 py-4">
+      <div className="cloak-dialog__body flex flex-col gap-3 px-5 py-4">
         <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[12px]">
           {rows.map((row) => (
             <PropRow key={row[1]} row={row} />
@@ -131,7 +131,7 @@ function FilePropertiesBody({
       </div>
 
       <div
-        className={`border-t border-border-soft text-right ${
+        className={`cloak-dialog__footer text-right ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >

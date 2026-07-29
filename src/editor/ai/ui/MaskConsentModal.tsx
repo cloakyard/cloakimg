@@ -116,9 +116,9 @@ export function MaskConsentModal({
           ConfirmModal / FilePropertiesModal / ExportModal use. The
           subtitle moved into the body so the header stays a single
           fixed-height row that lines up across modals. */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-soft px-5 py-4">
+      <div className="cloak-dialog__header">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+          <div className="cloak-dialog__icon">
             <I.Sparkles size={16} />
           </div>
           <div id="cloak-mask-consent-title" className="t-headline truncate text-base">
@@ -128,7 +128,7 @@ export function MaskConsentModal({
         <ModalCloseButton onClose={onDismiss} iconSize={14} />
       </div>
 
-      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
+      <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
         <p className="text-[13px] leading-relaxed text-text-muted">
           {switchMode
             ? "Switch between the three tiers below. Sizes you've already used in this browser run instantly — others download once and cache for next time."
@@ -193,7 +193,7 @@ export function MaskConsentModal({
           </div>
           <ul className="m-0 list-none space-y-0.5 p-0 text-[11.5px] leading-relaxed text-text-muted">
             <li>· Model + your image stay in this browser tab.</li>
-            <li>· One download — cached for future visits, even offline.</li>
+            <li>· Cached locally for reuse when browser storage allows it.</li>
             <li>· You can switch sizes later from the Remove background panel.</li>
           </ul>
         </div>
@@ -204,7 +204,7 @@ export function MaskConsentModal({
           dismissive action so every "back out" button across the app
           reads the same. */}
       <div
-        className={`flex shrink-0 items-center justify-end gap-2 border-t border-border-soft ${
+        className={`cloak-dialog__footer ${
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >

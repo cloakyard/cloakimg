@@ -121,13 +121,16 @@ export function TextPanel() {
     <>
       <PropRow label="Caption">
         <textarea
+          name="caption"
+          aria-label="Caption"
+          autoComplete="off"
           value={selected ? selected.text : toolState.textValue}
           onChange={(e) => {
             if (selected) setOnSelected("text", e.target.value);
             else patchTool("textValue", e.target.value);
           }}
           rows={2}
-          className="w-full resize-y rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text"
+          className="w-full resize-y rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500"
         />
       </PropRow>
       <PropRow label="Font">

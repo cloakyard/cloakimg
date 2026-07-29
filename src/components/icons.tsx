@@ -40,55 +40,18 @@ export function Icon({
 }
 
 export function BrandMark({ size = 28, style }: { size?: number; style?: CSSProperties }) {
-  const shield =
-    "M72,30L38,44L38,76C38,93.333 49.333,107.333 72,118C94.667,107.333 106,93.333 106,76L106,44L72,30Z";
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 144 144"
-      fill="none"
-      role="img"
-      aria-label="CloakIMG"
-      style={style}
-    >
-      <title>CloakIMG</title>
-      <defs>
-        <linearGradient id="bm-bg" gradientUnits="userSpaceOnUse" x1="8" y1="8" x2="8" y2="136">
-          <stop offset="0" stopColor="#ff7d54" />
-          <stop offset="1" stopColor="#b8371a" />
-        </linearGradient>
-        <radialGradient id="bm-glow" gradientUnits="userSpaceOnUse" cx="72" cy="52.8" r="89.6">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.3" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
-        <clipPath id="bm-clip">
-          <path d={shield} />
-        </clipPath>
-      </defs>
-      <circle cx="72" cy="72" r="64" fill="url(#bm-bg)" />
-      <circle cx="72" cy="72" r="64" fill="url(#bm-glow)" />
-      <path d={shield} fill="#fff" fillOpacity="0.18" />
-      <path d={shield} fill="none" stroke="#fff" strokeOpacity="0.55" strokeWidth="3" />
-      <g clipPath="url(#bm-clip)">
-        <circle cx="81" cy="53" r="5" fill="#fff" />
-        <path
-          d="M46,92L60,70L72,84L86,64L100,92"
-          transform="matrix(0.962963 0 0 0.928571 1.703704 4.571429)"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </g>
-    </svg>
-  );
+  return <img src="/cloakimg-mark.svg" alt="CloakIMG" width={size} height={size} style={style} />;
 }
 
 type P = Omit<IconProps, "d" | "children">;
 
 export const I = {
+  Search: (p: P) => (
+    <Icon {...p}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.4-3.4" />
+    </Icon>
+  ),
   Crop: (p: P) => <Icon {...p} d="M6 2v14a2 2 0 0 0 2 2h14M6 6h14a2 2 0 0 1 2 2v14" />,
   Rotate: (p: P) => (
     <Icon {...p}>

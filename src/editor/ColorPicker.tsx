@@ -210,8 +210,7 @@ function ColorPopover({ anchor, value, onChange, onClose, enableEyedropper }: Po
   }, [onChange]);
 
   // Render via a portal to <body> so the popover escapes any ancestor
-  // that creates a containing block for `position: fixed` (e.g. the
-  // start modal's `backdrop-filter`, which would otherwise clip us).
+  // that creates a containing block for `position: fixed`.
   return createPortal(
     <div
       ref={containerRef}

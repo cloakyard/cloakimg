@@ -1,4 +1,4 @@
-// Tests for the Segment atom.
+// Tests for the shared property atoms.
 //
 // Segment ships in 14 places (Adjust, BgBlur, Border, Crop, Default,
 // Draw, Redact, RemoveBg, Resize, Text, Watermark, …) so a regression
@@ -23,7 +23,7 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { Segment } from "./atoms";
+import { PropRow, Segment, Slider } from "./atoms";
 
 describe("Segment", () => {
   it("renders one <button> per option", () => {
@@ -76,13 +76,11 @@ describe("Segment", () => {
     expect(root.className).toContain("pointer-coarse:[--seg-inset:4px]");
   });
 
-  it("active button has aria-pressed=true and others have aria-pressed=false-equivalent", () => {
+  it("exposes the active option with aria-pressed", () => {
     render(<Segment options={["A", "B", "C"]} active={1} onChange={() => undefined} />);
-    // aria-pressed isn't applied by Segment today (the visual pill
-    // signals active), but the button labels remain stable. If a
-    // future change adds aria-pressed, update this test.
-    const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(3);
+    expect(screen.getByRole("button", { name: "A" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "B" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "C" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("renders no buttons when options=[] (graceful empty state)", () => {
@@ -90,5 +88,39 @@ describe("Segment", () => {
     expect(container.querySelectorAll("button")).toHaveLength(0);
     // No pill rendered when there are no slots to highlight.
     expect(container.querySelector('span[aria-hidden="true"]')).toBeNull();
+  });
+});
+
+describe("Slider", () => {
+  it("inherits its accessible name from PropRow", () => {
+    render(
+      <PropRow label="Exposure">
+        <Slider value={0.5} onChange={() => undefined} />
+      </PropRow>,
+    );
+    expect(screen.getByRole("slider", { name: "Exposure" })).toBeInTheDocument();
+  });
+
+  it("supports arrow, page, home, and end keys", () => {
+    const onChange = vi.fn();
+    render(<Slider ariaLabel="Strength" value={0.5} step={0.05} onChange={onChange} />);
+    const slider = screen.getByRole("slider", { name: "Strength" });
+
+    fireEvent.keyDown(slider, { key: "ArrowRight" });
+    fireEvent.keyDown(slider, { key: "PageDown" });
+    fireEvent.keyDown(slider, { key: "Home" });
+    fireEvent.keyDown(slider, { key: "End" });
+
+    expect(onChange).toHaveBeenNthCalledWith(1, 0.55);
+    expect(onChange).toHaveBeenNthCalledWith(2, 0);
+    expect(onChange).toHaveBeenNthCalledWith(3, 0);
+    expect(onChange).toHaveBeenNthCalledWith(4, 1);
+  });
+
+  it("marks read-only sliders disabled and removes them from tab order", () => {
+    render(<Slider ariaLabel="Read only" value={0.25} />);
+    const slider = screen.getByRole("slider", { name: "Read only" });
+    expect(slider).toHaveAttribute("aria-disabled", "true");
+    expect(slider).toHaveAttribute("tabindex", "-1");
   });
 });

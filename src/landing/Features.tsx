@@ -1,102 +1,161 @@
-// Features.tsx — "Why CloakIMG" section. V4 minimalist treatment
-// (May 2026): condensed from 9 features to 6 with one-sentence
-// descriptions, bare icons in coral (no filled chip backdrop), and a
-// 2-col tablet / 3-col desktop rhythm. The prior 9-item grid with
-// uneven copy density (some items had 3-sentence paragraphs, others
-// had one) read as templated; the new shape gives each claim equal
-// visual weight and lets the cream page breathe between rows.
-//
-// Mirrors the equivalent "Why CloakPDF" section across the Cloakyard
-// family.
-
-import type { ReactNode } from "react";
 import { I } from "../components/icons";
+import { GITHUB_REPO_URL } from "../constants/links";
+import { ALL_TOOLS } from "../editor/tools";
 
-interface Feature {
-  icon: ReactNode;
-  title: string;
-  description: string;
-}
+const CAPABILITIES = [
+  {
+    index: "01",
+    icon: I.Sliders,
+    title: "Tone and colour",
+    description: "Adjust, levels, selective colour, filters, time-of-day grades, and relighting.",
+    meta: "Whole / subject / background",
+  },
+  {
+    index: "02",
+    icon: I.Eraser,
+    title: "Retouch and isolate",
+    description: "Spot heal, portrait blur, background removal, and contextual tap-to-fix flows.",
+    meta: "Local canvas + optional AI",
+  },
+  {
+    index: "03",
+    icon: I.EyeOff,
+    title: "Privacy editing",
+    description: "Redact faces or regions, inspect metadata, and strip sensitive fields on export.",
+    meta: "No image-content upload",
+  },
+  {
+    index: "04",
+    icon: I.Layers,
+    title: "Compose and annotate",
+    description: "Text, shapes, drawing, pen paths, emojis, watermarks, and placed images.",
+    meta: "Layered Fabric canvas",
+  },
+  {
+    index: "05",
+    icon: I.Crop,
+    title: "Frame and geometry",
+    description: "Crop, rotate, perspective correction, resize, borders, and presentation frames.",
+    meta: "Non-destructive workflow",
+  },
+  {
+    index: "06",
+    icon: I.Download,
+    title: "Local export",
+    description:
+      "Write JPEG, PNG, WebP, AVIF, or supported HEIC with quality, size, metadata, and privacy controls.",
+    meta: "Direct browser download",
+  },
+] as const;
 
-const FEATURES: Feature[] = [
+const RECEIPT = [
   {
-    icon: <I.ShieldCheck size={22} />,
-    title: "Local-first, no sign-up",
-    description:
-      "Every byte stays in your browser. No accounts, no telemetry, no third-party scripts.",
+    number: "01",
+    title: "Image bytes enter browser memory",
+    meta: "Input / local file handle",
   },
   {
-    icon: <I.Sparkles size={22} />,
-    title: "On-device AI",
-    description:
-      "Background removal, smart crop, portrait blur and subject-scoped edits — all in-browser via WebGPU.",
+    number: "02",
+    title: "Canvas, Fabric, WASM, and optional models do the work",
+    meta: "Process / this tab",
   },
   {
-    icon: <I.WifiOff size={22} />,
-    title: "Works offline",
-    description:
-      "After first load, every tool keeps working without a connection. Installable as a PWA.",
+    number: "03",
+    title: "A new image is written to your device",
+    meta: "Output / browser download",
   },
-  {
-    icon: <I.Smartphone size={22} />,
-    title: "Mobile, tablet & desktop",
-    description:
-      "One canvas that adapts to every screen and follows your system's light or dark theme.",
-  },
-  {
-    icon: <I.Layers size={22} />,
-    title: "All-in-one canvas",
-    description:
-      "Crop, retouch, redact, adjust, filter, frame, shapes, text — one workspace for every photo chore.",
-  },
-  {
-    icon: <I.GitFork size={22} />,
-    title: "Free & open source",
-    description:
-      "MIT-licensed on GitHub. Fork it, self-host it, or audit every byte — nothing is hidden.",
-  },
-];
+] as const;
 
 export function Features() {
   return (
-    <section className="mx-auto max-w-275 px-5 pt-2 pb-10 sm:px-8 sm:pt-4 sm:pb-16">
-      {/* Left-aligned header — the one band that breaks the otherwise
-          center-stacked landing rhythm, so the page has a moment of
-          asymmetry against the symmetric feature grid below. */}
-      <div className="mb-10 max-w-160 sm:mb-14">
-        <div className="t-eyebrow mb-2.5">Why CloakIMG</div>
-        <h2 className="t-display m-0 text-text">The whole toolkit, none of the tracking.</h2>
-        <p className="t-subtitle mt-3 max-w-140">
-          A modern photo editor that respects your privacy — built for people who care about their
-          images and their craft.
-        </p>
-      </div>
+    <>
+      <section className="cloak-stat-strip" aria-label="CloakIMG facts">
+        <div className="site-frame cloak-stat-strip__inner">
+          <div className="cloak-stat">
+            <span className="cloak-stat__value">{ALL_TOOLS.length}</span>
+            <span className="cloak-stat__label">Editor tools</span>
+          </div>
+          <div className="cloak-stat">
+            <span className="cloak-stat__value">4+</span>
+            <span className="cloak-stat__label">Export formats</span>
+          </div>
+          <div className="cloak-stat">
+            <span className="cloak-stat__value">0</span>
+            <span className="cloak-stat__label">Image uploads</span>
+          </div>
+          <div className="cloak-stat">
+            <span className="cloak-stat__value">MIT</span>
+            <span className="cloak-stat__label">Open-source license</span>
+          </div>
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-3">
-        {FEATURES.map((f) => (
-          <FeatureItem key={f.title} {...f} />
-        ))}
-      </div>
-    </section>
-  );
-}
+      <section id="toolkit" className="site-frame cloak-toolkit">
+        <div className="cloak-toolkit__head">
+          <h2 className="cloak-section-title">Photo jobs, one workbench.</h2>
+          <p>
+            The editor stays mounted while tools change, so the canvas, history, layers, and export
+            contract remain stable from the first adjustment to the final file.
+          </p>
+        </div>
 
-function FeatureItem({ icon, title, description }: Feature) {
-  return (
-    // Bare coral icon (no filled chip backdrop) + stacked text. The
-    // prior 9 × coral-50 icon-square pattern read as templated AI grid;
-    // bare icons let each feature stand on the typography alone.
-    <div className="flex flex-col gap-2.5">
-      <span
-        aria-hidden="true"
-        className="inline-flex h-7 w-7 items-center justify-start text-coral-600 dark:text-coral-400"
-      >
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <div className="text-[15px] font-semibold tracking-[-0.01em] text-text">{title}</div>
-        <div className="mt-1 text-[13px] leading-[1.55] text-text-muted">{description}</div>
-      </div>
-    </div>
+        <ol className="cloak-capability-ledger" aria-label="Photo editor capabilities">
+          {CAPABILITIES.map(({ index, icon: Icon, title, description, meta }) => (
+            <li key={index}>
+              <span className="cloak-ledger__index">{index}</span>
+              <Icon size={18} className="cloak-ledger__icon" aria-hidden="true" />
+              <span className="cloak-ledger__copy">
+                <strong>{title}</strong>
+                <span>{description}</span>
+              </span>
+              <span className="cloak-ledger__meta">{meta}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section id="privacy-model" className="cloak-proof-band">
+        <div className="site-frame cloak-proof-band__frame">
+          <div className="cloak-proof-band__inner">
+            <div>
+              <h2 className="cloak-section-title">The privacy promise has an architecture.</h2>
+              <p className="cloak-proof-copy">
+                CloakIMG is a client-side photo editor. It can download app code or on-device model
+                weights when a capability needs them; your image content is not sent with those
+                requests.
+              </p>
+              <a
+                className="cloak-text-link cloak-text-link--night"
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Audit the source
+                <I.ArrowRight size={15} className="cloak-link-arrow" />
+              </a>
+            </div>
+
+            <div>
+              <div className="cloak-receipt__header">
+                <span>Image path</span>
+                <span>Verified by design</span>
+              </div>
+              <div className="cloak-receipt">
+                {RECEIPT.map((item) => (
+                  <div key={item.number} className="cloak-receipt__row">
+                    <span>{item.number}</span>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <small>{item.meta}</small>
+                    </div>
+                    <I.ShieldCheck size={16} aria-hidden="true" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

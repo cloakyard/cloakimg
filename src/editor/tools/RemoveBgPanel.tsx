@@ -181,15 +181,14 @@ export function RemoveBgPanel() {
     toolState.genericStrength > 0 || toolState.feather > 0 || toolState.bgSample !== null;
   const chromaApplyDisabled = alreadyRemoved || !chromaEngaged;
 
-  // Auto-bake on tool switch — picks the apply path matching the
-  // active mode so the global ✓ in MobileEditorSurface's footer
-  // commits the right thing. Auto registers whenever there's
-  // something to remove (the AI download itself is gated by the
-  // consent modal if needed). Chroma only registers when the user
-  // has actually engaged the keyer — we don't want a no-op tool peek
-  // in Chroma mode to push a clean image through removeBackground.
+  // Auto-bake registration exists for the mobile footer's global ✓.
+  // Desktop/tablet already expose an explicit Apply button; registering
+  // Auto there would make a no-op visit look dirty and unexpectedly
+  // launch model consent when the user merely switches tools. Chroma
+  // still registers on every layout after the user has engaged the
+  // keyer because its preview needs to bake on tool switch.
   const applyActive = isAuto ? applyAuto : applyChroma;
-  const applyDirty = isAuto ? !alreadyRemoved : !chromaApplyDisabled;
+  const applyDirty = isAuto ? isMobile && !alreadyRemoved : !chromaApplyDisabled;
   useApplyOnToolSwitch(applyActive, applyDirty);
 
   return (

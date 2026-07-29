@@ -85,8 +85,11 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
 
       <div className="relative mb-4 h-1 overflow-hidden rounded-sm bg-border">
         <div
-          className="absolute top-0 bottom-0 left-0 bg-coral-500"
-          style={{ width: `${progress * 100}%`, transition: "width 220ms ease" }}
+          className="absolute inset-0 origin-left bg-coral-500"
+          style={{
+            transform: `scaleX(${progress})`,
+            transition: "transform var(--dur-base) var(--ease-standard)",
+          }}
         />
       </div>
 
@@ -103,7 +106,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
           className="grid gap-2.5"
           style={{
             gridTemplateColumns: isMobile
-              ? "repeat(2, 1fr)"
+              ? "repeat(2, minmax(0, 1fr))"
               : "repeat(auto-fill, minmax(140px, 1fr))",
           }}
         >
@@ -123,6 +126,8 @@ function BatchThumb({ f }: { f: ReturnType<typeof useEditor>["batchFiles"][numbe
         <img
           src={f.thumbUrl}
           alt={f.name}
+          width={160}
+          height={160}
           className="h-full w-full object-cover"
           style={{ filter: f.status === "queued" ? "opacity(0.6)" : "none" }}
         />
@@ -283,7 +288,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
       <div className="border-b border-border-soft px-4 py-3.5">
         <div className="t-eyebrow mb-1.5 text-[10px]">Recipe</div>
         <div className="text-sm font-semibold">
-          Apply to {batchFiles.length === 0 ? "..." : `${batchFiles.length} files`}
+          Apply to {batchFiles.length === 0 ? "…" : `${batchFiles.length} files`}
         </div>
         <div className="mt-0.75 text-[11.5px] text-text-muted">
           Drag steps to reorder · click to expand parameters.

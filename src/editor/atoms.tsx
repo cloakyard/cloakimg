@@ -3,13 +3,19 @@
 // without owning any business logic.
 
 import {
+  createContext,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   useCallback,
+  useContext,
   useEffect,
+  useId,
   useRef,
 } from "react";
+
+const PropRowLabelContext = createContext<string | undefined>(undefined);
 
 interface PropRowProps {
   label: string;
@@ -21,6 +27,7 @@ interface PropRowProps {
 }
 
 export function PropRow({ label, value, valueInput, children }: PropRowProps) {
+  const labelId = useId();
   // Typography hierarchy: label sits as semibold body-muted, value
   // pairs with it in mono so the eye latches on to the number first.
   // The `tracking-[-0.005em]` mirrors the rest of the editor's
@@ -29,14 +36,17 @@ export function PropRow({ label, value, valueInput, children }: PropRowProps) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted">
+        <span
+          id={labelId}
+          className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted"
+        >
           {label}
         </span>
         {valueInput
           ? valueInput
           : value && <span className="t-mono text-[11.5px] font-semibold text-text">{value}</span>}
       </div>
-      {children}
+      <PropRowLabelContext.Provider value={labelId}>{children}</PropRowLabelContext.Provider>
     </div>
   );
 }
@@ -131,13 +141,28 @@ interface SliderProps {
   value: number; // 0..1
   onChange?: (next: number) => void;
   accent?: boolean;
+  /** Explicit accessible name when the slider is not inside PropRow. */
+  ariaLabel?: string;
+  /** Optional human-readable value, e.g. "32 px" instead of 0.32. */
+  ariaValueText?: string;
+  /** Keyboard increment in normalized 0..1 space. */
+  step?: number;
   /** Snap-back target on double-click. Most adjustment sliders centre
    *  at 0.5 (neutral); brush/opacity sliders that "default to off" can
    *  pass 0, etc. Omitted → no double-click reset. */
   defaultValue?: number;
 }
 
-export function Slider({ value, onChange, accent = false, defaultValue }: SliderProps) {
+export function Slider({
+  value,
+  onChange,
+  accent = false,
+  ariaLabel,
+  ariaValueText,
+  step = 0.01,
+  defaultValue,
+}: SliderProps) {
+  const propRowLabelId = useContext(PropRowLabelContext);
   const trackRef = useRef<HTMLDivElement>(null);
   const fillRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
@@ -273,14 +298,37 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
     };
   }, []);
 
+  const handleKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (!onChange) return;
+      let next: number | null = null;
+      if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = value - step;
+      else if (event.key === "ArrowRight" || event.key === "ArrowUp") next = value + step;
+      else if (event.key === "PageDown") next = value - step * 10;
+      else if (event.key === "PageUp") next = value + step * 10;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = 1;
+      if (next === null) return;
+      event.preventDefault();
+      onChange(Math.min(1, Math.max(0, next)));
+    },
+    [onChange, step, value],
+  );
+
   return (
     <div
       ref={trackRef}
       role="slider"
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabel ? undefined : propRowLabelId}
       aria-valuemin={0}
       aria-valuemax={1}
       aria-valuenow={value}
+      aria-valuetext={ariaValueText}
+      aria-orientation="horizontal"
+      aria-disabled={onChange ? undefined : true}
       tabIndex={onChange ? 0 : -1}
+      onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -289,7 +337,7 @@ export function Slider({ value, onChange, accent = false, defaultValue }: Slider
       // and Material both ask for ≥44 pt. The visible rail stays the
       // same; only the wrapper's height grows so the thumb is easier
       // to grab without changing the panel layout density.
-      className={`relative flex h-4.5 items-center touch-none pointer-coarse:h-9 ${onChange ? "cursor-pointer" : "cursor-default"}`}
+      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:h-9 ${onChange ? "cursor-pointer" : "cursor-default"}`}
       title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
       <div className="relative h-0.75 w-full rounded-sm bg-border-soft pointer-coarse:h-1">
@@ -361,6 +409,7 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             key={o}
             type="button"
             onClick={() => onChange?.(i)}
+            aria-pressed={isActive}
             // Touch devices get larger padding + slightly bigger label
             // so each segment clears the ~44 pt minimum tap target.
             // The button itself stays transparent — the sliding pill

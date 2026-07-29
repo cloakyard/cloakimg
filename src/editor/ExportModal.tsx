@@ -298,9 +298,9 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           keeps the title inline in the right column where it pairs with
           the form fields. */}
       {isMobile && (
-        <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <div className="cloak-dialog__header">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+            <div className="cloak-dialog__icon">
               <I.Download size={15} />
             </div>
             <div>
@@ -322,14 +322,12 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           <img
             src={previewUrl}
             alt="Export preview"
+            width={doc?.width ?? 1}
+            height={doc?.height ?? 1}
             className={`rounded-xs ${
               isMobile ? "max-h-full max-w-full object-contain" : "max-h-90 max-w-full"
             }`}
-            style={
-              isMobile
-                ? { boxShadow: "0 2px 8px -2px rgba(0,0,0,0.18)" }
-                : { boxShadow: "0 8px 24px -6px rgba(0,0,0,0.4)" }
-            }
+            style={{ boxShadow: "var(--shadow-popover)" }}
           />
         ) : (
           <Spinner label="Preparing preview…" />
@@ -588,10 +586,13 @@ function DimInput({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5">
+    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500">
       <span className="text-[10.5px] text-text-muted">{label}</span>
       <input
+        name={`export-${label.toLowerCase()}`}
         type="number"
+        aria-label={label}
+        autoComplete="off"
         value={value || ""}
         onChange={(e) => onChange(Math.max(1, +e.target.value || 0))}
         className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none"

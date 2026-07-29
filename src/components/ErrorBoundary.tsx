@@ -204,11 +204,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="cloak-eb-title"
-        className="absolute inset-0 z-[200] flex items-center justify-center bg-page-bg/90 px-6 backdrop-blur-md"
+        className="absolute inset-0 flex items-center justify-center px-6"
+        style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
       >
-        <div className="flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-surface px-7 py-8 text-center shadow-xl">
-          <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-coral-500/12 text-coral-500">
-            <span className="absolute inset-0 animate-ping rounded-full bg-coral-500/15" />
+        <div
+          className="flex w-full max-w-sm flex-col items-center gap-5 rounded-lg border border-border bg-surface px-7 py-8 text-center"
+          style={{ boxShadow: "var(--shadow-overlay)" }}
+        >
+          <div className="cloak-dialog__icon h-14 w-14">
             <I.Triangle size={26} stroke={1.75} />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -264,19 +267,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="ci-error-title"
-        className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center sm:p-6"
-        style={{
-          background: "rgba(20,14,8,0.32)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-        }}
+        className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-6"
+        style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
       >
-        <div
-          className="relative flex max-h-[92svh] w-full flex-col overflow-hidden rounded-t-3xl border border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150 sm:max-h-[min(820px,calc(100svh-48px))] sm:max-w-160 sm:rounded-3xl"
-          style={{ boxShadow: "var(--shadow-modal)" }}
-        >
-          <div className="flex shrink-0 items-start gap-3 border-b border-border-soft px-5 pt-5 pb-4 sm:gap-3.5 sm:px-6 sm:pt-6">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+        <div className="cloak-dialog relative flex max-h-[92svh] w-full flex-col overflow-hidden rounded-t-lg border-b-0 sm:max-h-[min(820px,calc(100svh-48px))] sm:max-w-160 sm:rounded-lg sm:border-b">
+          <div className="cloak-dialog__header">
+            <span className="cloak-dialog__icon h-11 w-11">
               <I.AlertTriangle size={20} stroke={2.25} />
             </span>
             <div className="min-w-0 flex-1">
@@ -290,14 +286,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
           </div>
 
-          <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+          <div className="cloak-dialog__body scroll-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
             <div className="flex shrink-0 items-center justify-between gap-2">
               <span className="t-eyebrow text-[10px] text-text-muted">Error details</span>
               <button
                 type="button"
                 onClick={this.handleCopy}
                 aria-label="Copy error details"
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1 text-[11.5px] font-medium text-text-muted transition-colors hover:border-border hover:text-text"
+                className="btn btn-secondary btn-sm"
               >
                 {copied ? (
                   <>
@@ -320,7 +316,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </pre>
           </div>
 
-          <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border-soft bg-page-bg/55 px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)] sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-4 sm:pb-4">
+          <div className="cloak-dialog__footer flex-col-reverse sm:flex-row">
             <a
               href={issueUrl}
               target="_blank"

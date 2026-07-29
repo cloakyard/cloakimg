@@ -2,8 +2,8 @@
 // landing page when a new SW version is available, or briefly when the
 // app first becomes installable for offline use.
 //
-// A translucent floating card at the bottom-center matching the modal
-// aesthetic, with an "Update" button when needRefresh and a
+// A compact floating status instrument at the bottom edge, with an
+// "Update" button when needRefresh and a
 // self-dismissing "ready offline" toast on first install.
 
 import { useCallback, useEffect, useRef } from "react";
@@ -85,10 +85,10 @@ export function ReloadPrompt() {
       aria-live="polite"
     >
       <div
-        className="relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-2xl border border-border-soft bg-surface/85 p-4 text-text backdrop-blur-xl backdrop-saturate-150 sm:w-auto sm:min-w-80"
-        style={{ boxShadow: "var(--shadow-modal)" }}
+        className="relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-lg border border-border bg-surface p-4 text-text sm:w-auto sm:min-w-80"
+        style={{ boxShadow: "var(--shadow-popover)" }}
       >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-coral-50 text-coral-600 dark:bg-coral-900/30 dark:text-coral-300">
+        <div className="cloak-dialog__icon h-9 w-9">
           <Icon size={16} />
         </div>
         <div className="min-w-0 flex-1 pt-0.5">
@@ -109,7 +109,7 @@ export function ReloadPrompt() {
           type="button"
           onClick={close}
           aria-label="Dismiss"
-          className="-mt-1 -mr-1 inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-muted transition-colors hover:bg-slate-900/6 hover:text-text dark:hover:bg-white/10"
+          className="btn btn-ghost btn-icon-sm -mt-1 -mr-1"
         >
           <I.X size={14} />
         </button>

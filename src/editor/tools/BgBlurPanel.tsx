@@ -38,7 +38,7 @@ import {
 } from "../ai/ui/DetectionStatus";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 
-const TARGETS = ["Background only", "Whole image"] as const;
+const TARGETS = ["Background", "Whole image"] as const;
 const LENS_OPTIONS: LensKind[] = ["gaussian", "lens", "tilt-shift"];
 const LENS_LABELS = LENS_OPTIONS.map((k) => LENS_KIND_LABELS[k]);
 
@@ -124,7 +124,7 @@ export function BgBlurPanel() {
   const lensIndex = LENS_OPTIONS.indexOf(lens);
   const handleTarget = useCallback(
     (i: number) => {
-      // i=0 → "Background only" → bgBlurScope=2; i=1 → "Whole image"
+      // i=0 → "Background" → bgBlurScope=2; i=1 → "Whole image"
       // → bgBlurScope=0. Note the segment index ↔ scope value
       // inversion: index 0 in the UI is the *AI-using* option.
       const nextScope = i === 0 ? 2 : 0;
@@ -221,7 +221,7 @@ export function BgBlurPanel() {
             ? progressive
               ? "Subject stays crisp; the background blur ramps softer near the subject and stronger toward the edges of the frame."
               : "Subject stays crisp; the entire background takes a uniform lens blur."
-            : "The whole image is blurred. Pick Background only to keep the subject in focus."}
+            : "The whole image is blurred. Pick Background to keep the subject in focus."}
         </div>
       </ScopeGate>
     </>

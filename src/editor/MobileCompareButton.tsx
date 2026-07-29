@@ -29,7 +29,7 @@
 // magnifier / text-selection on long-press.
 //
 // Positioned at the canvas top-left to balance the zoom badge at the
-// top-right (both glassmorphic dark pills, mirrored).
+// top-right (both solid dark instrument pills, mirrored).
 
 import { useCallback } from "react";
 import { I } from "../components/icons";
@@ -58,10 +58,8 @@ export function MobileCompareButton({ compareActive, setCompareActive }: Props) 
         aria-pressed={compareActive}
         className="flex cursor-pointer touch-none items-center gap-1.5 rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white select-none active:scale-[0.96]"
         style={{
-          background: compareActive ? "rgba(245,97,58,0.85)" : "rgba(0,0,0,0.55)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          transition: "background 150ms",
+          background: compareActive ? "var(--color-accent)" : "var(--color-editor-overlay-control)",
+          transition: "background-color var(--dur-fast) var(--ease-standard)",
         }}
       >
         <I.GitCompare size={12} />

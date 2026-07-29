@@ -1,9 +1,9 @@
-// ModalFrame.tsx — Shared modal frame: dimmed/blurred backdrop + glass
-// card with the brand's translucent aesthetic. Handles click-outside,
+// ModalFrame.tsx — Shared modal frame: named scrim + solid paper
+// instrument. Handles click-outside,
 // the desktop-centered vs mobile-bottom-sheet split, positioning
 // (`fixed` for full-viewport modals on the landing, `absolute` for
-// modals scoped to the editor's `<main>` shell), and now (May 2026)
-// owns the open / close motion for every modal in the app.
+// modals scoped to the editor's `<main>` shell), and owns the open /
+// close motion for every modal in the app.
 //
 // Motion lifecycle:
 //   • On mount → backdrop + modal play their enter animations
@@ -46,7 +46,7 @@ interface ModalFrameProps {
   /** Optional aria-labelledby id pointing into the header content. */
   labelledBy?: string;
   /**
-   * Extra classes for the modal (the inner glass card). Use this for
+   * Extra classes for the modal (the inner solid card). Use this for
    * variants like `flex-row` layout on desktop. Defaults to `flex-col`.
    */
   modalClassName?: string;
@@ -55,8 +55,7 @@ interface ModalFrameProps {
   children: ReactNode;
 }
 
-const MODAL_BASE =
-  "relative flex w-full overflow-hidden border border-border-soft bg-surface/85 backdrop-blur-xl backdrop-saturate-150";
+const MODAL_BASE = "cloak-dialog relative flex w-full overflow-hidden";
 
 // Exit-animation budget. Must stay in sync with the longer of the
 // `ci-modal-*-exit` keyframe durations in style.css (sheet exit
@@ -75,7 +74,7 @@ export function ModalFrame({
   modalRef,
   children,
 }: ModalFrameProps) {
-  const sheetRadius = bottomSheet ? "rounded-t-3xl" : "rounded-3xl";
+  const sheetRadius = bottomSheet ? "rounded-t-lg border-b-0" : "rounded-lg";
   const heightClamp = bottomSheet ? "max-h-[92%]" : "max-h-[calc(100%-48px)]";
   const layout = bottomSheet ? "items-end p-0" : "items-center p-6";
 
@@ -86,7 +85,9 @@ export function ModalFrame({
   // taps (Esc + backdrop click, or two quick backdrop clicks during
   // the exit window) don't re-arm the timer.
   const [closing, setClosing] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const closeRequestedRef = useRef(false);
+  const closeTimerRef = useRef<number | null>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -94,10 +95,16 @@ export function ModalFrame({
     if (closeRequestedRef.current) return;
     closeRequestedRef.current = true;
     setClosing(true);
-    window.setTimeout(() => {
+    closeTimerRef.current = window.setTimeout(() => {
       onCloseRef.current();
       onSettled?.();
     }, EXIT_MS);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
+    };
   }, []);
 
   // Centralised Escape handling. Every prior modal duplicated this
@@ -146,6 +153,73 @@ export function ModalFrame({
     };
   }, []);
 
+  // Make the overlay a genuine modal interaction boundary. Background
+  // siblings become inert (including an expanded mobile tool drawer
+  // behind an AI-consent sheet), focus moves to the dialog container
+  // without jumping its scroll position, and Tab stays inside.
+  useEffect(() => {
+    const root = rootRef.current;
+    const parent = root?.parentElement;
+    const dialog = root?.querySelector<HTMLElement>('[role="dialog"]');
+    if (!root || !parent || !dialog) return;
+
+    const previousFocus =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const siblings = Array.from(parent.children)
+      .filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root)
+      .map((node) => ({
+        node,
+        wasInert: node.inert,
+        previousAriaHidden: node.getAttribute("aria-hidden"),
+      }));
+
+    for (const { node } of siblings) {
+      node.inert = true;
+      node.setAttribute("aria-hidden", "true");
+    }
+    dialog.focus({ preventScroll: true });
+
+    const onTab = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hidden && element.getClientRects().length > 0);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (
+        event.shiftKey &&
+        (document.activeElement === first || document.activeElement === dialog)
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      } else if (!dialog.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    dialog.addEventListener("keydown", onTab);
+
+    return () => {
+      dialog.removeEventListener("keydown", onTab);
+      for (const { node, wasInert, previousAriaHidden } of siblings) {
+        node.inert = wasInert;
+        if (previousAriaHidden === null) node.removeAttribute("aria-hidden");
+        else node.setAttribute("aria-hidden", previousAriaHidden);
+      }
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, []);
+
   const backdropMotion = closing ? "ci-modal-backdrop-exit" : "ci-modal-backdrop-enter";
   const modalMotion = closing
     ? bottomSheet
@@ -157,12 +231,8 @@ export function ModalFrame({
 
   return (
     <div
-      className={`${position} inset-0 z-100 flex justify-center ${layout} ${backdropMotion}`}
-      style={{
-        background: "rgba(20,14,8,0.32)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-      }}
+      ref={rootRef}
+      className={`${position} cloak-modal-root inset-0 z-100 flex justify-center ${layout} ${backdropMotion}`}
     >
       {/* Invisible full-bleed close target — accessible click-outside
           without needing keyboard handlers on a div backdrop. */}
@@ -170,7 +240,7 @@ export function ModalFrame({
         type="button"
         onClick={() => requestClose()}
         aria-label="Close modal"
-        className="absolute inset-0 cursor-default border-none bg-transparent p-0"
+        className="cloak-modal-scrim absolute inset-0 cursor-default border-none p-0"
         tabIndex={-1}
       />
       <div
@@ -178,8 +248,8 @@ export function ModalFrame({
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
+        tabIndex={-1}
         className={`${MODAL_BASE} ${maxWidth} ${sheetRadius} ${heightClamp} ${modalClassName} ${modalMotion}`}
-        style={{ boxShadow: "var(--shadow-modal)" }}
       >
         {/* Inject the close-aware onClose down to descendants via a
             local context-equivalent: every <ModalCloseButton onClose>
