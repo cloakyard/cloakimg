@@ -12,7 +12,7 @@
     "test:unit": "vp test run",
     "test:visual": "node scripts/audit-shots.mjs",
     "test:audit": "node scripts/audit-redesign.mjs",
-    "generate-icons": "pwa-assets-generator --preset minimal-2023 public/icons/logo.svg && mv public/icons/apple-touch-icon-180x180.png public/icons/apple-touch-icon.png",
+    "generate-icons": "pwa-assets-generator && mv public/icons/apple-touch-icon-180x180.png public/icons/apple-touch-icon.png",
     "generate-screenshots": "node scripts/generate-pwa-screenshots.mjs"
   },
   "dependencies": {
