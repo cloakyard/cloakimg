@@ -20,9 +20,7 @@ describe("Landing", () => {
       "src",
       "/cloakimg-mark.svg",
     );
-    expect(screen.getByLabelText("Product context")).toHaveTextContent(
-      "Photo workbenchLocal-first",
-    );
+    expect(screen.queryByLabelText("Product context")).not.toBeInTheDocument();
   });
 
   it("opens the shared project dialog and reports intent before starting", () => {

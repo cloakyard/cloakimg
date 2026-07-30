@@ -416,7 +416,7 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             // above provides the active background. We toggle text
             // colour on `isActive` so the active label snaps to the
             // foreground colour while the pill animates underneath.
-            className={`relative z-1 flex-1 cursor-pointer rounded border-none bg-transparent px-2 py-1 text-center font-[inherit] text-[11px] font-semibold transition-colors pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+            className={`relative z-1 min-w-0 flex-1 cursor-pointer whitespace-nowrap rounded border-none bg-transparent px-2 py-1 text-center font-[inherit] text-[11px] font-semibold transition-colors pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
               isActive ? "text-text" : "text-text-muted"
             }`}
           >

@@ -6,35 +6,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../components/icons";
 import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
-import { ALL_TOOLS, type ToolGroup, type ToolId } from "./tools";
+import { searchEditorTools, TOOL_GROUP_LABELS } from "./toolSearch";
+import { ALL_TOOLS, type ToolId } from "./tools";
 
 interface Props {
   onClose: () => void;
   onSelect: (id: ToolId) => void;
 }
-
-const GROUP_LABELS: Record<ToolGroup, string> = {
-  select: "Select",
-  tone: "Tone",
-  privacy: "Privacy",
-  retouch: "Retouch",
-  mark: "Compose",
-  color: "Sample",
-  output: "Output",
-};
-
-const SEARCH_ALIASES: Partial<Record<ToolId, string>> = {
-  tapfix: "smart contextual object fix",
-  tod: "lighting grade dawn sunset night",
-  relight: "depth light ai",
-  hsl: "hsl colour selective",
-  spot: "blemish repair clone",
-  bgblur: "background portrait lens",
-  bgrm: "background remove transparent cutout",
-  mark: "logo copyright stamp",
-  image: "overlay composite photo",
-  color: "eyedropper sample pixel",
-};
 
 export function ToolSearchModal({ onClose, onSelect }: Props) {
   const [query, setQuery] = useState("");
@@ -42,15 +20,7 @@ export function ToolSearchModal({ onClose, onSelect }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const results = useMemo(() => {
-    const tokens = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
-    if (tokens.length === 0) return ALL_TOOLS;
-    return ALL_TOOLS.filter((tool) => {
-      const haystack =
-        `${tool.name} ${GROUP_LABELS[tool.group]} ${SEARCH_ALIASES[tool.id] ?? ""}`.toLocaleLowerCase();
-      return tokens.every((token) => haystack.includes(token));
-    });
-  }, [query]);
+  const results = useMemo(() => searchEditorTools(query), [query]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() =>
@@ -192,7 +162,7 @@ function ToolSearchBody({
           placeholder="Search tools…"
           autoComplete="off"
           spellCheck={false}
-          className="h-full min-w-0 flex-1 appearance-none border-none bg-transparent font-[inherit] text-sm text-text outline-none placeholder:text-text-muted [&::-webkit-search-cancel-button]:appearance-none"
+          className="editor-tool-search-input h-full min-w-0 flex-1 appearance-none border-none bg-transparent font-[inherit] text-sm text-text outline-none placeholder:text-text-muted [&::-webkit-search-cancel-button]:appearance-none"
         />
         {query && (
           <button
@@ -267,7 +237,7 @@ function ToolSearchBody({
                   {tool.name}
                 </span>
                 <span className="t-mono shrink-0 text-[9px] tracking-[0.05em] text-text-muted uppercase">
-                  {GROUP_LABELS[tool.group]}
+                  {TOOL_GROUP_LABELS[tool.group]}
                 </span>
                 {active && (
                   <span

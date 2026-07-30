@@ -149,9 +149,9 @@ function ModalTabs({
   setTab: (t: Tab) => void;
   isPhone: boolean;
 }) {
-  const items: { id: Tab; label: string; Icon: typeof I.Upload }[] = [
-    { id: "upload", label: "Upload an image", Icon: I.Upload },
-    { id: "blank", label: "Blank canvas", Icon: I.FileImage },
+  const items: { id: Tab; label: string; ariaLabel: string; Icon: typeof I.Upload }[] = [
+    { id: "upload", label: "Upload", ariaLabel: "Upload an image", Icon: I.Upload },
+    { id: "blank", label: "Blank canvas", ariaLabel: "Blank canvas", Icon: I.FileImage },
   ];
   return (
     <div
@@ -164,13 +164,14 @@ function ModalTabs({
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`-mb-px flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-none bg-transparent px-2.5 py-2.5 font-[inherit] text-[12px] font-semibold transition-colors sm:px-3.5 sm:text-[13px] ${
+            aria-label={t.ariaLabel}
+            className={`-mb-px flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap border-none bg-transparent px-1 py-2.5 font-[inherit] text-[12px] font-semibold transition-colors sm:flex-none sm:px-3.5 sm:text-[13px] ${
               active
                 ? "border-b-2 border-coral-500 text-coral-700 dark:text-coral-400"
                 : "border-b-2 border-transparent text-text-muted"
             }`}
           >
-            <t.Icon size={14} /> {t.label}
+            <t.Icon size={14} aria-hidden="true" /> {t.label}
           </button>
         );
       })}

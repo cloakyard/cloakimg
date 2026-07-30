@@ -25,6 +25,7 @@ const viewports = [
   { name: "phone-wide", width: 414, height: 896, touch: true },
   { name: "phone", width: 375, height: 812, touch: true },
   { name: "phone-compact", width: 320, height: 700, touch: true },
+  { name: "android-narrow", width: 280, height: 653, touch: true },
 ];
 
 const browser = await puppeteer.launch({
@@ -67,16 +68,59 @@ async function inspectLayout(page, viewport, stage) {
         };
       })
       .filter(({ left, right }) => left < -1 || right > innerWidth + 1);
+    const escapedControls = Array.from(
+      document.querySelectorAll('button, a, input, select, textarea, [role="slider"]'),
+    )
+      .filter(visible)
+      .filter((element) => !element.closest(".overflow-x-auto"))
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          selector:
+            element.getAttribute("aria-label") ||
+            element.textContent?.trim().slice(0, 40) ||
+            element.tagName,
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+        };
+      })
+      .filter(({ left, right }) => left < -1 || right > innerWidth + 1);
+    const overlapPairs = [
+      [".cloak-site-header .logo-wordmark", ".cloak-site-header__actions"],
+      [".editor-topbar__brand .logo-wordmark", '.editor-topbar button[aria-label="Undo"]'],
+    ];
+    const overlaps = overlapPairs
+      .map(([leftSelector, rightSelector]) => {
+        const left = document.querySelector(leftSelector);
+        const right = document.querySelector(rightSelector);
+        if (!left || !right || !visible(left) || !visible(right)) return null;
+        const leftRect = left.getBoundingClientRect();
+        const rightRect = right.getBoundingClientRect();
+        if (leftRect.right <= rightRect.left + 1) return null;
+        return {
+          left: leftSelector,
+          right: rightSelector,
+          overlap: Math.round(leftRect.right - rightRect.left),
+        };
+      })
+      .filter(Boolean);
 
     return {
       viewport: [innerWidth, innerHeight],
       scrollWidth: rootElement.scrollWidth,
       overflow: rootElement.scrollWidth > innerWidth + 1,
       escaped,
+      escapedControls,
+      overlaps,
     };
   });
 
-  if (result.overflow || result.escaped.length > 0) {
+  if (
+    result.overflow ||
+    result.escaped.length > 0 ||
+    result.escapedControls.length > 0 ||
+    result.overlaps.length > 0
+  ) {
     failures.push(`${viewport.name}/${stage}: ${JSON.stringify(result)}`);
   }
   console.log(JSON.stringify({ viewport: viewport.name, stage, ...result }));
@@ -99,6 +143,40 @@ async function inspectMobileToolPicker(page, viewport) {
       `${viewport.name}/tool-picker: wrapped button labels ${wrappedLabels.join(", ")}`,
     );
   }
+}
+
+async function inspectMobileToolSearch(page, viewport) {
+  const search = await page.$('input[aria-label="Search editor tools"]');
+  if (!search) {
+    failures.push(`${viewport.name}/tool-search: search input missing`);
+    return;
+  }
+
+  await search.type("portrait");
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 120));
+  const searchState = await page.evaluate(() => {
+    const resultButtons = Array.from(
+      document.querySelectorAll(".editor-mobile-surface button[aria-pressed]"),
+    )
+      .map((button) => button.getAttribute("aria-label"))
+      .filter(Boolean);
+    const count = document.querySelector("#mobile-editor-tool-search-count")?.textContent?.trim();
+    return { resultButtons, count };
+  });
+  if (
+    searchState.resultButtons.length !== 1 ||
+    searchState.resultButtons[0] !== "Portrait blur" ||
+    searchState.count !== "1 matching tool"
+  ) {
+    failures.push(`${viewport.name}/tool-search: ${JSON.stringify(searchState)}`);
+  }
+  await page.screenshot({
+    path: `/tmp/cloakimg-${viewport.name}-tool-search.png`,
+    fullPage: false,
+  });
+
+  await page.click('button[aria-label="Clear editor tool search"]');
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 120));
 }
 
 async function auditMobileToolPanels(page, viewport) {
@@ -138,6 +216,23 @@ async function auditMobileToolPanels(page, viewport) {
       if (!surface || !scroller) return { label: toolLabel, missing: true };
       const surfaceRect = surface.getBoundingClientRect();
       const scrollRect = scroller.getBoundingClientRect();
+      const toolActions = ["Cancel", "Done"].map((label) => {
+        const button = Array.from(surface.querySelectorAll("button")).find(
+          (candidate) => candidate.getAttribute("aria-label") === label,
+        );
+        if (!button) return { label, missing: true };
+        const rect = button.getBoundingClientRect();
+        return {
+          label,
+          missing: false,
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          top: Math.round(rect.top),
+          bottom: Math.round(rect.bottom),
+          pinnedAboveControls: rect.bottom <= scrollRect.top + 1,
+          insideScroller: scroller.contains(button),
+        };
+      });
       const escapedControls = Array.from(
         scroller.querySelectorAll(
           'button, input, select, textarea, [role="slider"], [role="tab"], [role="radio"]',
@@ -180,6 +275,7 @@ async function auditMobileToolPanels(page, viewport) {
           left: Math.round(surfaceRect.left),
           right: Math.round(surfaceRect.right),
         },
+        toolActions,
         escapedControls,
         wrappedSegmentLabels,
         scrollTop: scroller.scrollTop,
@@ -192,6 +288,14 @@ async function auditMobileToolPanels(page, viewport) {
       panelState.missing ||
       panelState.surface?.left < -1 ||
       panelState.surface?.right > viewport.width + 1 ||
+      panelState.toolActions?.some(
+        (action) =>
+          action.missing ||
+          !action.pinnedAboveControls ||
+          action.insideScroller ||
+          action.left < viewport.width / 2 ||
+          action.right > viewport.width + 1,
+      ) ||
       panelState.escapedControls?.length > 0 ||
       panelState.wrappedSegmentLabels?.length > 0
     ) {
@@ -229,6 +333,54 @@ async function auditMobileToolPanels(page, viewport) {
     });
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 180));
   }
+}
+
+async function inspectScrolledPickerTransition(page, viewport) {
+  const state = await page.evaluate(() => {
+    const surface = document.querySelector(".editor-mobile-surface");
+    const scroller = surface?.querySelector(".scroll-thin");
+    if (!scroller) return { missing: true };
+    scroller.scrollTop = scroller.scrollHeight;
+    const resize = Array.from(surface.querySelectorAll("button[aria-pressed]")).find(
+      (button) => button.getAttribute("aria-label") === "Resize",
+    );
+    resize?.click();
+    return { missing: !resize };
+  });
+  if (state.missing) {
+    failures.push(`${viewport.name}/picker-transition: Resize tool missing`);
+    return;
+  }
+
+  await page.waitForFunction(() => !document.querySelector("[data-tool-panel-loading]"), {
+    timeout: 5000,
+  });
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 80));
+  const scrollTop = await page.evaluate(
+    () => document.querySelector(".editor-mobile-surface .scroll-thin")?.scrollTop ?? -1,
+  );
+  if (scrollTop > 1 || scrollTop < 0) {
+    failures.push(
+      `${viewport.name}/picker-transition: tool controls opened at scrollTop ${scrollTop}`,
+    );
+  }
+  await page.screenshot({
+    path: `/tmp/cloakimg-${viewport.name}-picker-to-resize.png`,
+    fullPage: false,
+  });
+
+  await page.evaluate(() => {
+    Array.from(document.querySelectorAll(".editor-mobile-surface button"))
+      .find((button) => button.getAttribute("aria-label") === "Cancel")
+      ?.click();
+  });
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 180));
+  await page.evaluate(() => {
+    Array.from(document.querySelectorAll("button"))
+      .find((button) => button.getAttribute("aria-label") === "Open tools")
+      ?.click();
+  });
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 180));
 }
 
 for (const viewport of viewports) {
@@ -300,7 +452,9 @@ for (const viewport of viewports) {
       path: `/tmp/cloakimg-${viewport.name}-tool-picker.png`,
       fullPage: false,
     });
-    if (viewport.name === "phone-compact") {
+    if (viewport.name === "android-narrow") {
+      await inspectMobileToolSearch(page, viewport);
+      await inspectScrolledPickerTransition(page, viewport);
       await auditMobileToolPanels(page, viewport);
     }
   }
@@ -317,3 +471,4 @@ if (failures.length > 0) {
 }
 
 console.log(`Responsive audit passed at ${viewports.length} viewports.`);
+process.exit(0);

@@ -17,10 +17,10 @@
 //     full-sheet.
 //   • In-flow geometry. Wrapper height animates so the canvas above
 //     reflows; the entire photo stays visible during a tool session.
-//   • Symmetric footer. ✕ on the left (cancel + rewind to checkpoint),
-//     ✓ on the right (apply + close). Per-tool Reset buttons inside
-//     the tool's panel still handle tool-specific resets; the footer
-//     pair handles the session-level commit / discard.
+//   • Pinned tool header. Like CloakPDF, ✕ and ✓ stay together at the
+//     top-right while only the controls body scrolls. This keeps the
+//     session actions reachable without stealing a second row below
+//     the controls.
 //
 // History semantics:
 //   • ✓ — keep changes, reset tool to Move, collapse the surface.
@@ -43,9 +43,9 @@ import {
 import { I } from "../components/icons";
 import { useEditor } from "./EditorContext";
 import { LayersList } from "./LayersList";
-import { MobileToolFooter } from "./MobileToolFooter";
 import { ToolControls } from "./ToolControls";
-import { toolsForTab, type Tool, type ToolId } from "./tools";
+import { searchEditorTools } from "./toolSearch";
+import { findTool, toolsForTab, type Tool, type ToolId } from "./tools";
 
 type Mode = "collapsed" | "picker" | "tool";
 
@@ -58,17 +58,11 @@ const COLLAPSED_W = 140;
 const COLLAPSED_H = 44;
 const EXPANDED_R = 8;
 
-// Approximate chrome heights for sheet sizing (V3.6).
-//   HANDLE_H — the drag-bar row
-//   FOOTER_H — X / ✓ row plus its safe-area padding (envelope; iOS
-//              home-indicator inset varies, but 56 ± 8 covers it)
-// These are added to the measured scroll-content height so the sheet
-// sums to the exact total it needs. Slightly off estimates only mean
-// the cap kicks in 8 px earlier or later — content always reads
-// correctly because the flex layout gives the scroll area whatever's
-// left after handle + footer carve out their fixed portions.
+// Chrome heights for sheet sizing. The picker keeps the compact drag
+// handle; an active tool swaps that row for a pinned title + action
+// header matching CloakPDF's mobile editor.
 const HANDLE_H = 44;
-const FOOTER_H = 56;
+const TOOL_HEADER_H = 56;
 
 // Surface colour settles on the same restrained timing as the shared
 // dialogs. Width and height update immediately so the canvas does not
@@ -84,6 +78,7 @@ const SHEET_TRANSITION = [
 ].join(", ");
 
 const DRAG_DISMISS_PX = 100;
+const MOBILE_TOOLS = toolsForTab(null);
 
 interface SurfaceProps {
   /** Notify parent when the surface enters / leaves an expanded state.
@@ -105,6 +100,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     runBusy,
   } = useEditor();
   const [mode, setMode] = useState<Mode>("collapsed");
+  const [toolQuery, setToolQuery] = useState("");
 
   // History cursor captured the moment the surface enters `tool` mode.
   // Cancel (✕) rewinds back to it; cleared on collapse so each tool
@@ -118,6 +114,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
   // until the first measurement lands.
   const wrapRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [maxPx, setMaxPx] = useState(0);
   useLayoutEffect(() => {
     const outer = wrapRef.current;
@@ -204,6 +201,15 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     }
   }, [mode, historyDepth]);
 
+  // Picker and tool controls reuse the same scroll node so the sheet
+  // can morph without remounting. Reset that node before paint when
+  // its content identity changes; otherwise selecting a tool from the
+  // bottom of the picker opens the new panel at the same deep offset.
+  useLayoutEffect(() => {
+    if (mode === "collapsed") return;
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [mode, toolQuery, toolState.activeTool]);
+
   const handleClose = useCallback(async () => {
     // Run the tool's auto-bake BEFORE unmounting it. The previous flow
     // — setActiveTool("move") then trust setActiveTool's internal
@@ -217,6 +223,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       await runBusy("Applying…", flushPendingApply);
       setActiveTool("move");
     }
+    setToolQuery("");
     setMode("collapsed");
   }, [mode, setActiveTool, runBusy, flushPendingApply]);
 
@@ -285,13 +292,15 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
 
   const handleSelectTool = useCallback(
     (id: ToolId) => {
+      setToolQuery("");
       setActiveTool(id);
       // The activeTool effect transitions mode → tool.
     },
     [setActiveTool],
   );
 
-  const tools = useMemo(() => toolsForTab(null), []);
+  const visibleTools = useMemo(() => searchEditorTools(toolQuery, MOBILE_TOOLS), [toolQuery]);
+  const activeTool = findTool(toolState.activeTool);
   const modalProps = expanded
     ? ({
         role: "dialog",
@@ -300,18 +309,14 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       } as const)
     : {};
 
-  // Sheet height = chrome (handle + optional footer) + measured scroll
-  // content, capped at half the column. V3.6 hoists the drag handle
-  // and the X / ✓ footer OUT of the scroll container so they stay
-  // sticky while only the middle scrolls — the contentRef now wraps
-  // just the scrollable region. Tools that need little vertical
-  // space stay small; tall ones (Adjust, picker grid) hit the cap and
-  // the middle column scrolls within.
+  // Sheet height = pinned chrome + measured scroll content, capped at
+  // half the column. Picker and tool headers both stay outside the
+  // scroller, so controls gain the space previously consumed by the
+  // bottom action row.
   const expandedHeight = maxPx > 0 ? maxPx : 360;
+  const expandedChromeHeight = mode === "tool" ? TOOL_HEADER_H : HANDLE_H;
   const sheetHeight =
-    mode === "collapsed"
-      ? COLLAPSED_H
-      : Math.min(HANDLE_H + contentH + (mode === "tool" ? FOOTER_H : 0), expandedHeight);
+    mode === "collapsed" ? COLLAPSED_H : Math.min(expandedChromeHeight + contentH, expandedHeight);
   const sheetStyle: CSSProperties = {
     width: expanded ? "100%" : `${COLLAPSED_W}px`,
     height: `${sheetHeight}px`,
@@ -353,34 +358,69 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
             <span className="text-[13px] font-semibold">Tools</span>
           </button>
         ) : (
-          /* Expanded — three flex regions:
-                top: drag handle (sticky)
-                middle: scroll container with the actual content
-                bottom: X / ✓ footer (sticky, tool mode only)
-              Hoisting the chrome out of the scroller is what keeps it
-              visible when the user scrolls a long Adjust panel.
-              ResizeObserver on contentRef measures the middle's
-              natural height, fed into sheetHeight along with HANDLE_H
-              and FOOTER_H so the sheet auto-sizes correctly. */
+          /* Expanded — pinned picker/tool header followed by the only
+              scroll container. ResizeObserver on contentRef measures
+              the middle's natural height so short tools stay compact
+              while long panels use the full half-sheet allowance. */
           <div className="flex h-full flex-col">
-            <button
-              type="button"
-              onClick={() => void handleClose()}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-              onTouchCancel={onTouchEnd}
-              aria-label="Close — drag down to dismiss"
-              className="group flex shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
-              style={{ height: HANDLE_H }}
-            >
-              <span
-                aria-hidden
-                className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:group-active:bg-dark-text-muted"
-              />
-            </button>
+            {mode === "tool" ? (
+              <div
+                className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4"
+                style={{ height: TOOL_HEADER_H }}
+              >
+                <div
+                  className="flex min-w-0 flex-1 touch-none items-center"
+                  onTouchStart={onTouchStart}
+                  onTouchMove={onTouchMove}
+                  onTouchEnd={onTouchEnd}
+                  onTouchCancel={onTouchEnd}
+                >
+                  <span className="truncate text-[13px] font-semibold tracking-[-0.01em] text-text">
+                    {activeTool.name}
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => void handleCancel()}
+                    aria-label="Cancel"
+                    className="btn btn-ghost btn-icon"
+                  >
+                    <I.X size={18} stroke={2} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleClose()}
+                    aria-label="Done"
+                    className="btn btn-outline-coral btn-icon"
+                  >
+                    <I.Check size={18} stroke={2} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void handleClose()}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+                onTouchCancel={onTouchEnd}
+                aria-label="Close — drag down to dismiss"
+                className="group flex shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
+                style={{ height: HANDLE_H }}
+              >
+                <span
+                  aria-hidden
+                  className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:group-active:bg-dark-text-muted"
+                />
+              </button>
+            )}
 
-            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div
+              ref={scrollRef}
+              className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain"
+            >
               <div ref={setContentRef}>
                 {mode === "picker" ? (
                   // No panel-fade-in here. A transform-based animation
@@ -391,24 +431,89 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                   // added. The outer sheet morph already carries the
                   // motion; the picker grid lands on a calm fade by
                   // virtue of the sheet's own enter animation.
-                  <div
-                    className="grid grid-cols-3 gap-x-1 gap-y-2 px-4 pt-1"
-                    style={{ paddingBottom: "1rem" }}
-                  >
-                    {tools.map((tool) => (
-                      <ToolGridCard
-                        key={tool.id}
-                        tool={tool}
-                        active={tool.id === toolState.activeTool}
-                        onClick={() => handleSelectTool(tool.id)}
-                      />
-                    ))}
+                  <div style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}>
+                    <div className="sticky top-0 z-10 bg-surface px-4 pt-1 pb-2">
+                      <div
+                        role="search"
+                        aria-label="Editor tools"
+                        className="flex h-11 items-center gap-2 rounded-md border border-border bg-page-bg px-3 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-coral-500"
+                      >
+                        <I.Search
+                          size={16}
+                          className="shrink-0 text-coral-600 dark:text-coral-400"
+                          aria-hidden="true"
+                        />
+                        <label htmlFor="mobile-editor-tool-search" className="sr-only">
+                          Search editor tools
+                        </label>
+                        <input
+                          id="mobile-editor-tool-search"
+                          name="mobile-editor-tool-search"
+                          type="search"
+                          value={toolQuery}
+                          onChange={(event) => setToolQuery(event.target.value)}
+                          placeholder="Search tools…"
+                          aria-label="Search editor tools"
+                          aria-describedby="mobile-editor-tool-search-count"
+                          autoComplete="off"
+                          spellCheck={false}
+                          className="editor-tool-search-input h-full min-w-0 flex-1 appearance-none border-none bg-transparent font-[inherit] text-[13px] text-text outline-none placeholder:text-text-muted [&::-webkit-search-cancel-button]:appearance-none"
+                        />
+                        {toolQuery ? (
+                          <button
+                            type="button"
+                            onClick={() => setToolQuery("")}
+                            aria-label="Clear editor tool search"
+                            className="btn btn-ghost btn-icon -mr-3 shrink-0"
+                          >
+                            <I.X size={14} aria-hidden="true" />
+                          </button>
+                        ) : null}
+                      </div>
+                      <p
+                        id="mobile-editor-tool-search-count"
+                        aria-live="polite"
+                        className="t-mono mt-1.5 text-[9px] tracking-[0.05em] text-text-muted uppercase"
+                      >
+                        {toolQuery.trim()
+                          ? `${visibleTools.length} matching ${visibleTools.length === 1 ? "tool" : "tools"}`
+                          : `${MOBILE_TOOLS.length} editor tools`}
+                      </p>
+                    </div>
+
+                    {visibleTools.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-x-1 gap-y-2 px-4">
+                        {visibleTools.map((tool) => (
+                          <ToolGridCard
+                            key={tool.id}
+                            tool={tool}
+                            active={tool.id === toolState.activeTool}
+                            onClick={() => handleSelectTool(tool.id)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-5 py-7 text-center">
+                        <div className="text-sm font-semibold text-text">No tool found</div>
+                        <div className="mt-1 text-xs leading-relaxed text-text-muted">
+                          Try “crop”, “background”, “colour”, or “privacy”.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setToolQuery("")}
+                          className="btn btn-ghost btn-sm mt-4"
+                        >
+                          Clear search
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
                     <div
                       key={toolState.activeTool}
-                      className="flex flex-col gap-4 px-4 pt-1.5 pb-3"
+                      className="flex flex-col gap-4 px-4 pt-1.5"
+                      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
                     >
                       <ToolControls />
                     </div>
@@ -417,13 +522,6 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                 )}
               </div>
             </div>
-
-            {mode === "tool" && (
-              <MobileToolFooter
-                onCancel={() => void handleCancel()}
-                onConfirm={() => void handleClose()}
-              />
-            )}
           </div>
         )}
       </div>

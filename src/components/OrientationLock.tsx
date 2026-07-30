@@ -20,7 +20,7 @@
 // pointer so a desktop window resized to phone width doesn't trigger
 // the overlay.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { I } from "./icons";
 
 // `ScreenOrientation.lock` is non-standard on some platforms (iOS Safari
@@ -47,6 +47,7 @@ function isPhoneLandscape(): boolean {
 
 export function OrientationLock() {
   const [showOverlay, setShowOverlay] = useState(() => isPhoneLandscape());
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Best-effort native lock for installed PWAs. Wrapped in try/catch
@@ -74,13 +75,60 @@ export function OrientationLock() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!showOverlay) return;
+    const overlay = overlayRef.current;
+    const parent = overlay?.parentElement;
+    if (!overlay || !parent) return;
+
+    const previousFocus =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const siblings = Array.from(parent.children)
+      .filter((node): node is HTMLElement => node instanceof HTMLElement && node !== overlay)
+      .map((node) => ({
+        node,
+        wasInert: node.inert,
+        previousAriaHidden: node.getAttribute("aria-hidden"),
+      }));
+    const html = document.documentElement;
+    const body = document.body;
+    const previousOverflow = {
+      html: html.style.overflow,
+      body: body.style.overflow,
+      overscroll: body.style.overscrollBehavior,
+    };
+
+    for (const { node } of siblings) {
+      node.inert = true;
+      node.setAttribute("aria-hidden", "true");
+    }
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "contain";
+    overlay.focus({ preventScroll: true });
+
+    return () => {
+      for (const { node, wasInert, previousAriaHidden } of siblings) {
+        node.inert = wasInert;
+        if (previousAriaHidden === null) node.removeAttribute("aria-hidden");
+        else node.setAttribute("aria-hidden", previousAriaHidden);
+      }
+      html.style.overflow = previousOverflow.html;
+      body.style.overflow = previousOverflow.body;
+      body.style.overscrollBehavior = previousOverflow.overscroll;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [showOverlay]);
+
   if (!showOverlay) return null;
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       aria-label="Rotate your device"
+      tabIndex={-1}
       // Top-level overlay — must outrank the editor's own modals (z-200)
       // and toasts (z-300) so the user never sees a half-rotated UI.
       className="fixed inset-0 flex flex-col items-center justify-center gap-5 bg-page-bg px-8 text-center text-text"

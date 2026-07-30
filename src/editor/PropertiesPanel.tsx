@@ -57,8 +57,8 @@ export function PropertiesPanel({ collapsed = false }: Props) {
             {tool.group}
           </span>
         </div>
-        {/* Cancel — desktop parity with mobile's ✕ tap in the
-            MobileToolFooter. Visible only when the active tool has
+        {/* Cancel — desktop parity with mobile's ✕ tap in the pinned
+            tool header. Visible only when the active tool has
             actual rollback-able work (a pending apply OR commits since
             tool entry). Tapping discards the pending bake, rolls
             history back to the tool-entry checkpoint, and parks the

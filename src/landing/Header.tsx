@@ -17,14 +17,6 @@ export function Header({ right }: Props) {
           </span>
         </a>
 
-        <div className="cloak-site-header__context" aria-label="Product context">
-          <span>Photo workbench</span>
-          <span>
-            <i aria-hidden="true" />
-            Local-first
-          </span>
-        </div>
-
         <div className="cloak-site-header__actions">
           <a
             href={GITHUB_REPO_URL}

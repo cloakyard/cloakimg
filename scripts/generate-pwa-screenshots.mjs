@@ -219,6 +219,7 @@ for (const target of targets) {
   await page.goto(baseUrl, { waitUntil: "networkidle2", timeout: 30000 });
   await openDemoImage(page, target.orientation);
   await exposeFeaturedSurface(page, target.surface);
+  await page.mouse.move(target.viewport.width / 2, target.viewport.height / 2);
   await page.evaluate(() => document.fonts.ready);
   await new Promise((resolveDelay) => setTimeout(resolveDelay, 500));
 
