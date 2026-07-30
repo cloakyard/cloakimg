@@ -67,9 +67,11 @@ await page.evaluate(() => {
     ?.click();
 });
 await new Promise((r) => setTimeout(r, 1500));
-await page.waitForSelector('input[type="file"]', { timeout: 10000 });
-const fileInputs = await page.$$('input[type="file"]');
-await fileInputs[0].uploadFile(TEST_JPG);
+const modalFileInput = await page.waitForSelector(
+  '[role="dialog"][aria-modal="true"] input[type="file"]',
+  { timeout: 10000 },
+);
+await modalFileInput.uploadFile(TEST_JPG);
 await page.waitForFunction(
   () =>
     Array.from(document.querySelectorAll("button")).some((b) =>

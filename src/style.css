@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · theme: studied-DNA (source: /Users/sumitsahoo/Developer/cloakpdf) · macrostructure: Workbench · tone: technical-editorial · anchor: Signal Coral */
 /* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
-/* Hallmark · contrast: pass (46–50) · nav: N7 · footer: Ft5 · slop: pass (51–60) · mobile: pass (36, 59, 61–69) */
+/* Hallmark · contrast: pass (40–41) · nav: N7 · footer: Ft5 · slop: pass (42–45) · honest: pass (46) · chrome: pass (47) · tokens: pass (48) · responsive: pass (49) · icons: pass (30) · mobile: pass (34, 49, 50–57) */
 /* style.css — App-level glue on top of the tokens. The unified editor
    takes over the full viewport, so we strip the default vite starter
    layout and add a couple of small animations. */
@@ -75,6 +75,10 @@
   border-radius: var(--radius-input);
   color: inherit;
   text-decoration: none;
+}
+
+.cloak-site-header .logo-wordmark {
+  display: none;
 }
 
 .cloak-brand-button img,
@@ -913,6 +917,14 @@
   border-radius: var(--radius-input);
 }
 
+.editor-topbar__brand .logo-wordmark {
+  display: none;
+}
+
+.editor-tool-search-input:focus-visible {
+  outline: none;
+}
+
 @media (min-width: 761px) and (max-width: 900px) {
   .editor-topbar__brand .logo-wordmark,
   .editor-topbar__dimensions {
@@ -961,6 +973,18 @@
 
   .cloak-capability-ledger li:hover .cloak-ledger__icon {
     transform: rotate(-5deg);
+  }
+}
+
+@media (min-width: 19rem) {
+  .cloak-site-header .logo-wordmark {
+    display: block;
+  }
+}
+
+@media (min-width: 22.5rem) {
+  .editor-topbar__brand .logo-wordmark {
+    display: block;
   }
 }
 
