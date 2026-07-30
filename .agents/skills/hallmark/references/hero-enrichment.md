@@ -68,7 +68,7 @@ If the brief contains explicit visual cues, pick from this map:
   • "bakery", "kitchen", "café", "atelier" + craft brief  → E5 custom illustration (Tier B SVG)
   • "agency", "studio", "portfolio"                       → E8 photography or no enrichment
   • "manifesto", "essay", "book", "letter"                → no enrichment (typography only)
-  • Quiet theme picked                                    → no enrichment (the theme IS restraint)
+  • Coral theme picked                                    → no enrichment (the theme IS restraint)
 
 Else if the brief is genuinely ambiguous, ask one question:
   "Want me to add a demo video, an illustration, or keep it
@@ -100,7 +100,7 @@ _Avoid when:_ you don't have real footage. A clipped-edge video of a stock-foota
 - Aspect ratio (16/10 · 16/9 · 4/3)
 - Frame treatment (hairline 1 px frame · browser chrome · none)
 
-**Example.** Tracejam (SaaS observability — see [`site/_tests/05-tracejam-saas/`](../../site/_tests/05-tracejam-saas/)). Display headline left ("Distributed tracing that explains itself."); hand-built CSS-art trace waterfall right, tilted -0.4°, extending 12 vw past the viewport's right edge. Aspect 16/10. Hairline frame. **Not a real video** — the mockup is custom-built CSS at Tier A (rectangles on a percentage grid simulating a flame chart). Mobile (< 60 rem): drop the clip, stack vertically.
+**Example.** Tracejam (SaaS observability — see [`site/_tests/05-tracejam-saas/`](../../../site/_tests/05-tracejam-saas/)). Display headline left ("Distributed tracing that explains itself."); hand-built CSS-art trace waterfall right, tilted -0.4°, extending 12 vw past the viewport's right edge. Aspect 16/10. Hairline frame. **Not a real video** — the mockup is custom-built CSS at Tier A (rectangles on a percentage grid simulating a flame chart). Mobile (< 60 rem): drop the clip, stack vertically.
 
 ```html
 <section class="hero hero--clipped">
@@ -228,7 +228,7 @@ _Avoid when:_ the brand is "modern professional team" generic — illustrating t
 - Animation (none · loop · scroll-linked)
 - Scale (small accent · dominant)
 
-**Example.** Maple Street Bread (bakery — see [`site/_tests/03-maple-bakery/`](../../site/_tests/03-maple-bakery/)). Letter-style hero copy left ("Saturday, 6:14 a.m. The dough went in at midnight."), 60-line hand-built SVG loaf right, 3 paths (body, shade, score-marks). Animated with `@property --rise` for a subtle 4 px breathing-loop over 6 s, alternating; the score-marks draw themselves on first paint via `stroke-dasharray`. Tier B, dominant scale, animation: loop. Reduced-motion fallback is a static keyframe.
+**Example.** Maple Street Bread (bakery — see [`site/_tests/03-maple-bakery/`](../../../site/_tests/03-maple-bakery/)). Letter-style hero copy left ("Saturday, 6:14 a.m. The dough went in at midnight."), 60-line hand-built SVG loaf right, 3 paths (body, shade, score-marks). Animated with `@property --rise` for a subtle 4 px breathing-loop over 6 s, alternating; the score-marks draw themselves on first paint via `stroke-dasharray`. Tier B, dominant scale, animation: loop. Reduced-motion fallback is a static keyframe.
 
 For _how_ to build a hand-drawn loaf in 60 lines of SVG and animate its breath with `@property`, see [`custom-craft.md`](custom-craft.md) — there's a full bakery worked example, plus four more recipes (workflow diagram, mascot, architectural diagram, botanical accent).
 
@@ -252,7 +252,7 @@ _Avoid when:_ the page already has movement — adding more reads as anxious.
 A two-colour CSS gradient at low chroma, overlaid with SVG `<feTurbulence>` grain at < 0.1 opacity. _Not_ aurora; _not_ purple-to-cyan mesh; _not_ floating orbs. The point is _texture you can barely see_ — paper-quality, not decoration.
 
 _Use when:_ the page would feel synthetic with a flat surface.
-_Avoid when:_ the theme already has a paper feel (Specimen, Linen, Riso). Doubling the grain is muddy.
+_Avoid when:_ the theme already has a paper feel (Specimen, Atelier, Riso). Doubling the grain is muddy.
 
 **Knobs:**
 
@@ -458,10 +458,10 @@ _Anti-pattern:_ tracking the cursor across the _whole page_ — nausea-inducing,
 
 ### HP4 · Decorative-numeral
 
-A huge edition number / year / chapter glyph set in display-italic in a hero corner. The numeral _means something_ — issue 22, year 2026, chapter 03, version 0.8. Reads as editorial · salon · newsprint · almanac.
+A huge edition number / year / chapter glyph set in display-italic in a hero corner. The numeral _means something_ — issue 22, year 2026, chapter 03, version 0.8. Reads as editorial · newsprint · almanac.
 
 _Use when:_ the page genuinely has an edition / issue / chapter / version semantic — magazines, journals, archived work, dated essays.
-_Avoid when:_ the numeral has no semantic anchor. A random "42" in the corner reads as decoration, which is slop (see slop-test gate 55).
+_Avoid when:_ the numeral has no semantic anchor. A random "42" in the corner reads as decoration, which is slop (see slop-test gate 45).
 
 ```html
 <header class="hero hero--num">
@@ -507,9 +507,10 @@ _Anti-pattern:_ numerals that mean nothing. The numeral must carry information �
 
 Every hero — enriched or not, polished or not — obeys these rules.
 
-- **Footprint.** The hero takes 70–90 % of the first viewport's height — no more, no less. `min-height: 100vh / 100dvh` is the AI fingerprint (gate 7); a hero that's only 20 % of the viewport feels like a header. Aim for `min-height: clamp(60vh, 75dvh, 88dvh)` and let content settle inside.
-- **Asymmetric padding.** `padding-block-end` ≥ 1.3× `padding-block-start`. The hero sits _into_ the page; symmetric padding floats. Slop-test gate 54 enforces this.
-- **Never centre everything.** Eyebrow + title + lede + CTA all stacked centred is the AI fingerprint. Pick at most _two_ centred elements; break alignment for the others. Gate 53 enforces this. Centred-narrow heroes are admissible only when the genre is editorial / salon / atelier _and_ the eyebrow or CTA breaks alignment.
+- **Footprint.** The hero takes 70–90 % of the first viewport's height — no more, no less. `min-height: 100vh / 100dvh` is the AI fingerprint (gate 6); a hero that's only 20 % of the viewport feels like a header. Aim for `min-height: clamp(60vh, 75dvh, 88dvh)` and let content settle inside.
+- **Fit the fold — content, not just the box.** The Footprint rule caps the hero's _height_; this caps its _content_. On a 13″ laptop (~800 px tall) the eyebrow + headline + lede + primary CTA must all be visible **without scrolling**. When they aren't, it's almost always wasted vertical space — an oversized display `clamp()` max, display line-height near 1.2, a 3-line lede, or `padding-block` bloat. Pull the clamp max down, set display line-height 1.0–1.1, hold the lede to ~2 lines, trim the padding. **Right-size, don't cramp** — a hero that already fits needs no shrinking, and this never means tiny type or no whitespace. Slop-test gate 44 enforces this.
+- **Asymmetric padding.** `padding-block-end` ≥ 1.3× `padding-block-start`. The hero sits _into_ the page; symmetric padding floats. Slop-test gate 44 enforces this.
+- **Never centre everything.** Eyebrow + title + lede + CTA all stacked centred is the AI fingerprint. Pick at most _two_ centred elements; break alignment for the others. Gate 6 enforces this. Centred-narrow heroes are admissible only when the genre is editorial / atelier _and_ the eyebrow or CTA breaks alignment.
 - **Entrance animation.** Pick one of {fade, sweep, none} per element — never both fade _and_ sweep on the same element. Duration ≤ 220 ms. Disable on `prefers-reduced-motion: reduce`. Cross-reference the "One orchestrated reveal per page" rule below.
 - **Headline typography.** Prefer one display weight + tight tracking (-0.02em to -0.04em) over default 0; line-height 0.95–1.05 for display, never 1.2 (which inherits the body line-height and reads as un-set type). Avoid two display weights on the same headline (a `<strong>` in a different weight inside the title is AI's idea of "emphasis"; pick one weight, let the words carry).
 - **One polish pattern, max.** HP1–HP4 are mutually exclusive on a single hero. A vertical rail _and_ a marquee-overflow _and_ a cursor spotlight _and_ a decorative numeral on one hero is a panic attack. Pick one.
@@ -562,7 +563,7 @@ Every question must answer _yes_ before the enrichment ships. If any answer is _
 5. If illustration: built or generated with intent? **Not picked from a Lottie library as a shortcut?**
 6. If background: under one accent colour at < 5 % footprint? (Aurora and mesh-gradients fail this.)
 7. Does it survive being deleted? (If the hero still works without it, it earned its place. If the hero collapses without it, you propped weak typography on a crutch.)
-8. Does its tone match the page's tone? (Risograph illustration on a Brutal page = wrong. Hand-drawn doodle on a Workbench developer-tool page = wrong. Three.js bloom on a Quiet page = wrong.)
+8. Does its tone match the page's tone? (Risograph illustration on a Brutal page = wrong. Hand-drawn doodle on a Workbench developer-tool page = wrong. Three.js bloom on a Coral page = wrong.)
 
 The slop test ([`SKILL.md`](../SKILL.md) §5) carries four binary gates that mirror these questions; the audit verb runs them.
 
@@ -578,7 +579,7 @@ When you ship enrichment, the macrostructure stamp records the choice:
  * polish: HP3 Cursor-spotlight (scoped to hero, reduced-motion fallback pinned at 50%/30%)
  * nav: N5 Floating pill · footer: Ft5 Statement
  * craft: tier-A CSS art (no real video — pure custom-built mockup)
- * theme: Linen · accent: steel-blue ~3% · studied: no
+ * theme: Newsprint · accent: steel-blue ~3% · studied: no
  */
 ```
 
@@ -592,7 +593,7 @@ This signals to future Hallmark runs (and to the audit verb) what was chosen and
 
 - **Defaulting to E5 illustration on every brief.** Most heroes don't want an illustration. Reach for E0 (typography only) first; reach for E1–E4 when there's a _thing_ to show; reach for E5 only when illustration genuinely matches the tone.
 - **Using a stock Lottie checkmark as the hero animation.** That's tier E used to skip tiers A–D. Build the checkmark in pure CSS (`stroke-dasharray` animated to draw the tick); it's 8 lines.
-- **Adding a grain background everywhere.** Grain is a treatment, not a default. Half the existing themes already carry texture (Riso, Linen, Specimen). Don't double up.
+- **Adding a grain background everywhere.** Grain is a treatment, not a default. Half the existing themes already carry texture (Riso, Atelier, Specimen). Don't double up.
 - **Treating the abstract background as the hero.** It isn't. The headline is. The background is paper.
 - **Shipping the unmodified Storyset SVG.** That's tier D ungrounded — the library look. Customise the colour to your anchor hue at minimum; recompose if you can.
 - **A clipped-edge video on mobile.** The clip reads as broken on a 375-px viewport. Always collapse to stacked at < 60 rem.

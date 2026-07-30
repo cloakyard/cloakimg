@@ -5,19 +5,19 @@
       "source": "imgly/agent-skills",
       "sourceType": "github",
       "skillPath": "plugins/cesdk/skills/docs-react/SKILL.md",
-      "computedHash": "3154568c190e560a1dbd78ed33f9b0eb58637b5b0ba41bda4c21d163433603d5"
+      "computedHash": "0dbbf5f75fc3a26c456892a24ef92fb3f8840184de021e1f543c153871c06da3"
     },
     "explain": {
       "source": "imgly/agent-skills",
       "sourceType": "github",
       "skillPath": "plugins/cesdk/skills/explain/SKILL.md",
-      "computedHash": "74d61231265cd68500656142ae4bb25a4591acfc64120e1851b1b5751ed4309c"
+      "computedHash": "9561c062b5df857681c268ae46dcb22612a23a988aba1e9627356e80a5bb7360"
     },
     "hallmark": {
       "source": "nutlope/hallmark",
       "sourceType": "github",
-      "skillPath": "SKILL.md",
-      "computedHash": "5c0fa3fe0dd99fd3016ac120a1b5f425c6f93ce1d2f1c531b19e34361e532d6f"
+      "skillPath": "skills/hallmark/SKILL.md",
+      "computedHash": "8a8ecafd613f09e701330b5aa4a591ac539abb2605596df4a2394f03628d1d76"
     },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",
