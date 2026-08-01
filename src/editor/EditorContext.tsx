@@ -46,6 +46,7 @@ import { invalidateSubjectMask, getMaskState } from "./ai/subjectMask";
 import { invalidateFaceDetection } from "./ai/capabilities/detect-face/service";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import { DEFAULT_TOOL_STATE, type ToolState } from "./toolState";
+import { preferredIdPhotoPresetId } from "./tools/idPhotoLocale";
 import type { Layout, Mode } from "./types";
 
 interface ViewState {
@@ -307,6 +308,7 @@ export function EditorProvider({
   const [toolState, setToolState] = useState<ToolState>(() => ({
     ...DEFAULT_TOOL_STATE,
     activeTool: initialTool ?? DEFAULT_TOOL_STATE.activeTool,
+    idPhotoPresetId: preferredIdPhotoPresetId(),
   }));
   const [layers, setLayersState] = useState<Layer[]>([]);
   const [exportOpen, setExportOpen] = useState(false);

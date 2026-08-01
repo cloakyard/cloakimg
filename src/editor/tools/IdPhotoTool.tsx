@@ -15,6 +15,7 @@ import { useEditor } from "../EditorContext";
 import { renderCompositeCanvas } from "../exportPipeline";
 import { FABRIC_SELECTION_COLOR } from "../fabricDefaults";
 import type { Transform } from "../ImageCanvas";
+import { SelectControl } from "../SelectControl";
 import { useStageProps } from "../StageHost";
 import type { ToolState } from "../toolState";
 import { backgroundFillLabel } from "./backgroundFill";
@@ -35,6 +36,7 @@ import {
   zoomCrop,
 } from "./idPhotoLayout";
 import { ID_PHOTO_PRESETS, type IdPhotoPresetGroup, findIdPhotoPreset } from "./idPhotoPresets";
+import { detectBrowserIdPhotoPreference } from "./idPhotoLocale";
 import { looksAlreadyRemoved } from "./removeBg";
 
 const CROP_TAG = "cloak:cropOverlay";
@@ -263,6 +265,8 @@ export function IdPhotoPanel() {
   const [busy, setBusy] = useState<"pdf" | "print" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { preset, widthMm, heightMm } = photoSize(toolState);
+  const browserPreference = useMemo(() => detectBrowserIdPhotoPreference(), []);
+  const browserMatch = browserPreference?.presetId === toolState.idPhotoPresetId;
   const paper = findPaperPreset(toolState.idPhotoPaperId);
   const layout = useMemo(
     () => calculateSheetLayout({ widthMm, heightMm }, paper),
@@ -390,11 +394,13 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
   return (
     <>
       <PropRow label="Photo standard" value={`${formatMm(widthMm)} × ${formatMm(heightMm)} mm`}>
-        <select
+        <SelectControl
           aria-label="Photo standard"
           value={toolState.idPhotoPresetId}
           onChange={(event) => handlePreset(event.currentTarget.value)}
-          className="h-10 w-full cursor-pointer rounded-md border border-border bg-surface px-2.5 text-[12px] font-semibold text-text outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-coral-500 pointer-coarse:h-11"
+          displayValue={preset.label}
+          detail={`${preset.group} · ${formatMm(widthMm)} × ${formatMm(heightMm)} mm${browserMatch ? ` · Browser match: ${browserPreference.countryLabel}` : ""}`}
+          className="w-full"
         >
           {PRESET_GROUPS.map((group) => (
             <optgroup key={group} label={group}>
@@ -405,7 +411,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
               ))}
             </optgroup>
           ))}
-        </select>
+        </SelectControl>
       </PropRow>
 
       {preset.custom ? (
@@ -533,21 +539,23 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       ) : null}
 
       <PropRow label="Paper">
-        <select
+        <SelectControl
           aria-label="Paper size"
           value={paper.id}
           onChange={(event) => {
             patchTool("idPhotoPaperId", event.currentTarget.value);
             setError(null);
           }}
-          className="h-10 w-full cursor-pointer rounded-md border border-border bg-surface px-2.5 text-[12px] font-semibold text-text outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-coral-500 pointer-coarse:h-11"
+          displayValue={paper.label}
+          detail={`${formatMm(paper.widthMm)} × ${formatMm(paper.heightMm)} mm · ${layout.copies} ${layout.copies === 1 ? "copy" : "copies"}`}
+          className="w-full"
         >
           {PAPER_PRESETS.map((entry) => (
             <option key={entry.id} value={entry.id}>
               {entry.label}
             </option>
           ))}
-        </select>
+        </SelectControl>
       </PropRow>
 
       <PropRow label="Cut guide lines" value={toolState.idPhotoCutLines ? "On by default" : "Off"}>

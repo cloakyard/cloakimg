@@ -12,10 +12,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const chromePath =
   process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:5173";
-const testImage = resolve(root, "test-fixtures/IMG_1804.jpg");
+const testImage = resolve(root, "test-fixtures/00554.jpg");
 
 if (!existsSync(chromePath) || !existsSync(testImage)) {
-  console.error("Chrome or test-fixtures/IMG_1804.jpg is missing");
+  console.error("Chrome or test-fixtures/00554.jpg is missing");
   process.exit(1);
 }
 
@@ -183,6 +183,170 @@ async function inspectFooter(page, viewport) {
   if (footer) {
     await footer.screenshot({ path: `/tmp/cloakimg-${viewport.name}-footer.png` });
   }
+}
+
+async function inspectIdPhotoDropdowns(page, viewport) {
+  if (viewport.width <= 600) {
+    await page.evaluate(() => {
+      Array.from(document.querySelectorAll("button"))
+        .find((button) => button.getAttribute("aria-label") === "Open tools")
+        ?.click();
+    });
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 220));
+  }
+
+  const activated = await page.evaluate(() => {
+    const candidates = Array.from(document.querySelectorAll('button[aria-label="ID photo sheet"]'));
+    const visible = candidates.find((button) => {
+      const rect = button.getBoundingClientRect();
+      const style = getComputedStyle(button);
+      return rect.width > 0 && rect.height > 0 && style.display !== "none";
+    });
+    visible?.click();
+    return !!visible;
+  });
+  if (!activated) {
+    failures.push(`${viewport.name}/id-photo-selects: tool button missing`);
+    return;
+  }
+
+  await page.waitForSelector('select[aria-label="Photo standard"]', { timeout: 5000 });
+  await page.waitForFunction(() => !document.querySelector("[data-tool-panel-loading]"), {
+    timeout: 5000,
+  });
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 160));
+
+  const inspect = async (stage) => {
+    const result = await page.evaluate(() => {
+      const controls = Array.from(
+        document.querySelectorAll(
+          'select[aria-label="Photo standard"], select[aria-label="Paper size"]',
+        ),
+      );
+      return controls.map((select) => {
+        const shell = select.closest(".select-control");
+        const value = shell?.querySelector(".select-control__value");
+        const indicator = shell?.querySelector(".select-control__indicator svg");
+        if (!shell || !value || !indicator) {
+          return { label: select.getAttribute("aria-label"), missingShell: true };
+        }
+        const shellRect = shell.getBoundingClientRect();
+        const valueRect = value.getBoundingClientRect();
+        const indicatorRect = indicator.getBoundingClientRect();
+        return {
+          label: select.getAttribute("aria-label"),
+          missingShell: false,
+          selected: select.value,
+          visibleValue: value.textContent?.trim(),
+          shell: {
+            left: Math.round(shellRect.left),
+            right: Math.round(shellRect.right),
+            height: Math.round(shellRect.height),
+          },
+          arrowInset: Math.round(shellRect.right - indicatorRect.right),
+          textEscapes: valueRect.left < shellRect.left - 1 || valueRect.right > shellRect.right + 1,
+          horizontalTextOverflow: value.scrollWidth > value.clientWidth + 1,
+          nativeOpacity: getComputedStyle(select).opacity,
+          indiaVisaPresent: Array.from(select.querySelectorAll("option")).some(
+            (option) => option.value === "india-visa",
+          ),
+        };
+      });
+    });
+
+    const invalid =
+      result.length !== 2 ||
+      result.some(
+        (control) =>
+          control.missingShell ||
+          control.shell.left < -1 ||
+          control.shell.right > viewport.width + 1 ||
+          (viewport.touch && control.shell.height < 44) ||
+          control.arrowInset < 8 ||
+          control.textEscapes ||
+          control.horizontalTextOverflow ||
+          control.nativeOpacity !== "0" ||
+          (control.label === "Photo standard" && !control.indiaVisaPresent),
+      );
+    if (invalid) {
+      failures.push(`${viewport.name}/id-photo-selects-${stage}: ${JSON.stringify(result)}`);
+    }
+    console.log(JSON.stringify({ viewport: viewport.name, stage, controls: result }));
+  };
+
+  await inspect("browser-match");
+  await page.screenshot({
+    path: `/tmp/cloakimg-${viewport.name}-id-photo-selects.png`,
+    fullPage: false,
+  });
+
+  await page.select('select[aria-label="Photo standard"]', "india-visa");
+  await page.waitForFunction(
+    () => document.querySelector(".select-control__value")?.textContent?.trim() === "India · Visa",
+    { timeout: 3000 },
+  );
+  await inspect("india-visa");
+
+  await page.$eval('select[aria-label="Paper size"]', (select) => {
+    select.closest(".select-control")?.scrollIntoView({ block: "center" });
+  });
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
+  await page.screenshot({
+    path: `/tmp/cloakimg-${viewport.name}-id-photo-paper.png`,
+    fullPage: false,
+  });
+
+  if (viewport.width <= 600) {
+    await page.evaluate(() => {
+      Array.from(document.querySelectorAll("button"))
+        .find((button) => button.getAttribute("aria-label") === "Cancel")
+        ?.click();
+    });
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 180));
+  }
+}
+
+async function inspectBatchDropdown(page, viewport) {
+  if (viewport.width <= 600) return;
+  await page.click('button[aria-label="Batch"]');
+  await page.waitForSelector(".editor-shell .scroll-thin", { timeout: 3000 });
+  const expanded = await page.evaluate(() => {
+    const convert = Array.from(document.querySelectorAll("button")).find((button) =>
+      button.textContent?.trim().startsWith("Convert"),
+    );
+    convert?.click();
+    return !!convert;
+  });
+  if (!expanded) {
+    failures.push(`${viewport.name}/batch-select: Convert step missing`);
+    return;
+  }
+  await page.waitForSelector('select[aria-label="Format"]', { timeout: 3000 });
+  const state = await page.evaluate(() => {
+    const select = document.querySelector('select[aria-label="Format"]');
+    const shell = select?.closest(".select-control");
+    const value = shell?.querySelector(".select-control__value");
+    const indicator = shell?.querySelector(".select-control__indicator svg");
+    if (!select || !shell || !value || !indicator) return { missing: true };
+    const shellRect = shell.getBoundingClientRect();
+    const indicatorRect = indicator.getBoundingClientRect();
+    return {
+      missing: false,
+      value: value.textContent?.trim(),
+      arrowInset: Math.round(shellRect.right - indicatorRect.right),
+      escaped: shellRect.left < -1 || shellRect.right > innerWidth + 1,
+      overflow: value.scrollWidth > value.clientWidth + 1,
+    };
+  });
+  if (state.missing || state.arrowInset < 8 || state.escaped || state.overflow) {
+    failures.push(`${viewport.name}/batch-select: ${JSON.stringify(state)}`);
+  }
+  await page.screenshot({
+    path: `/tmp/cloakimg-${viewport.name}-batch-select.png`,
+    fullPage: false,
+  });
+  await page.click('button[aria-label="Single photo"]');
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
 }
 
 async function inspectMobileToolPicker(page, viewport) {
@@ -457,6 +621,7 @@ for (const viewport of viewports) {
     hasTouch: viewport.touch,
     deviceScaleFactor: 1,
   });
+  await page.emulateTimezone("Asia/Kolkata");
   await page.goto(baseUrl, { waitUntil: "networkidle2", timeout: 30000 });
   await inspectLayout(page, viewport, "landing");
   await inspectFooter(page, viewport);
@@ -498,6 +663,9 @@ for (const viewport of viewports) {
     path: `/tmp/cloakimg-${viewport.name}-editor.png`,
     fullPage: false,
   });
+
+  await inspectIdPhotoDropdowns(page, viewport);
+  await inspectBatchDropdown(page, viewport);
 
   if (viewport.width <= 600) {
     await page.evaluate(() => {

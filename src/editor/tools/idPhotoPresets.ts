@@ -227,6 +227,18 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     searchTerms: SCHENGEN_COUNTRIES,
   },
   {
+    id: "india-visa",
+    group: "Visa",
+    label: "India · Visa",
+    widthMm: 51,
+    heightMm: 51,
+    headHeightMm: { min: 25, max: 35 },
+    sourceUrl: "https://www.eoiminsk.gov.in/page/photo-requirements/",
+    sourceLabel: "Embassy of India",
+    note: "Indian missions commonly require a 51 × 51 mm paper photo, while online applications require a square JPEG. Verify the mission handling your application before printing.",
+    searchTerms: "Indian Bharat eVisa e-Visa 2x2 inch",
+  },
+  {
     id: "china-visa",
     group: "Visa",
     label: "China · Visa",
