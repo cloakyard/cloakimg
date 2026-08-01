@@ -236,18 +236,18 @@ label[for] {
 }
 
 /* Hallmark · component: select · genre: modern-minimal · theme: DESIGN.md
- * Native interaction with a CloakIMG-owned visual shell.
+ * states: default · hover · focus · active · disabled · loading · error · success
+ * contrast: pass (46–50)
  */
 .select-control {
   position: relative;
   min-width: 0;
   min-height: 3rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 2.5rem;
-  align-items: stretch;
-  overflow: clip;
+  display: block;
   border: var(--rule-thin) solid var(--color-rule);
   border-radius: var(--radius-input);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   background: var(--color-surface);
   color: var(--color-ink);
   cursor: pointer;
@@ -257,21 +257,63 @@ label[for] {
     border-color var(--dur-fast) var(--ease-standard);
 }
 
-.select-control:hover:not([data-state="disabled"]) {
+.select-control__trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: inherit;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.5rem;
+  align-items: stretch;
+  overflow: clip;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: inherit;
+}
+
+.select-control.is-hover:not([data-state="disabled"]) {
   border-color: var(--color-rule-strong);
   background: color-mix(in oklab, var(--color-surface) 78%, var(--color-paper-2));
 }
 
-.select-control:focus-within:not([data-state="disabled"]) {
+.select-control.is-hover:not([data-state="disabled"]) .select-control__indicator {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .select-control:hover:not([data-state="disabled"]) {
+    border-color: var(--color-rule-strong);
+    background: color-mix(in oklab, var(--color-surface) 78%, var(--color-paper-2));
+  }
+
+  .select-control:hover:not([data-state="disabled"]) .select-control__indicator {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .select-control__option:hover:not([aria-disabled="true"]) {
+    background: color-mix(in oklab, var(--color-surface) 70%, var(--color-paper-2));
+  }
+}
+
+.select-control:focus-within:not([data-state="disabled"]),
+.select-control[data-open="true"]:not([data-state="disabled"]) {
   border-color: var(--color-accent);
 }
 
-.select-control:has(.select-control__native:focus-visible) {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+.select-control:has(.select-control__trigger:focus-visible),
+.select-control.is-focus {
+  outline-color: var(--color-focus);
 }
 
-.select-control:has(.select-control__native:active):not([data-state="disabled"]) {
+.select-control:has(.select-control__trigger:active):not([data-state="disabled"]),
+.select-control.is-active:not([data-state="disabled"]) {
   transform: translateY(1px);
 }
 
@@ -328,9 +370,17 @@ label[for] {
     color var(--dur-fast) var(--ease-standard);
 }
 
-.select-control:hover:not([data-state="disabled"]) .select-control__indicator {
+.select-control[data-open="true"]:not([data-state="disabled"]) .select-control__indicator {
   background: var(--color-accent-soft);
   color: var(--color-accent-hover);
+}
+
+.select-control__indicator svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.select-control[data-open="true"][data-state="default"] .select-control__indicator svg {
+  transform: rotate(180deg);
 }
 
 .select-control[data-state="error"] .select-control__indicator {
@@ -343,30 +393,25 @@ label[for] {
 
 .select-control__native {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 1px;
+  height: 1px;
   margin: 0;
   appearance: none;
   border: 0;
   background: transparent;
   color: var(--color-ink);
-  cursor: inherit;
+  clip-path: inset(50%);
   opacity: 0;
-}
-
-.select-control__native:focus-visible {
-  outline: 0;
-}
-
-.select-control__native option,
-.select-control__native optgroup {
-  background: var(--color-surface);
-  color: var(--color-ink);
+  pointer-events: none;
 }
 
 .select-control--compact {
   min-height: 2.25rem;
+}
+
+.select-control--compact .select-control__trigger {
   grid-template-columns: minmax(0, 1fr) 2rem;
 }
 
@@ -389,6 +434,158 @@ label[for] {
   border-top-color: var(--color-accent);
   border-radius: var(--radius-pill);
   animation: ci-spin 0.9s linear infinite;
+}
+
+.select-control__listbox {
+  position: fixed;
+  inset: auto;
+  z-index: var(--z-popover);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-3xs);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: var(--rule-thin) solid var(--color-rule-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-popover);
+  font-family: var(--font-body);
+  animation: ci-select-listbox-in var(--dur-fast) var(--ease-out) both;
+  transform-origin: top center;
+}
+
+.select-control__listbox[data-ready="false"] {
+  visibility: hidden;
+}
+
+.select-control__listbox[data-placement="above"] {
+  transform-origin: bottom center;
+}
+
+.select-control__listbox::backdrop {
+  background: transparent;
+}
+
+.select-control__group + .select-control__group {
+  margin-top: var(--space-3xs);
+  padding-top: var(--space-3xs);
+  border-top: var(--rule-thin) solid var(--color-rule);
+}
+
+.select-control__group-label {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  padding: var(--space-2xs) var(--space-xs) var(--space-3xs);
+  border-bottom: var(--rule-thin) solid var(--color-rule);
+  background: var(--color-surface);
+  color: var(--color-ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.select-control__option {
+  min-width: 0;
+  min-height: var(--control-height);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1.25rem;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 550;
+  line-height: 1.35;
+}
+
+.select-control__option[data-active="true"] {
+  background: color-mix(in oklab, var(--color-surface) 70%, var(--color-paper-2));
+  box-shadow: inset 0 0 0 var(--rule-thin) var(--color-accent);
+}
+
+.select-control__option[data-selected="true"] {
+  background: var(--color-accent-soft);
+  font-weight: 650;
+}
+
+.select-control__option[data-selected="true"][data-active="true"] {
+  box-shadow: inset 0 0 0 var(--rule-thin) var(--color-accent);
+}
+
+.select-control__option[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.select-control__option-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.select-control__option-marker {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: grid;
+  place-items: center;
+  color: var(--color-accent);
+}
+
+@media (pointer: coarse) {
+  .select-control--compact {
+    min-height: var(--control-touch-size);
+  }
+
+  .select-control__option {
+    min-height: var(--control-touch-size);
+  }
+}
+
+@keyframes ci-select-listbox-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.select-control__listbox[data-placement="above"] {
+  animation-name: ci-select-listbox-in-above;
+}
+
+@keyframes ci-select-listbox-in-above {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select-control,
+  .select-control__indicator,
+  .select-control__indicator svg {
+    transition-duration: 0s;
+  }
+
+  .select-control__listbox {
+    animation: none;
+  }
 }
 
 .t-eyebrow,

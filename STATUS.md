@@ -992,9 +992,9 @@ commit on apply).
       so the rail reads identical-output until the user changes
       something.
 
-Current validation is clean across 258 source files and 436 unit/component
+Current validation is clean across 259 source files and 442 unit/component
 tests. The 26-tool sweep, shared component audit, production build, and six
-responsive viewport audits also pass.
+responsive viewport audits—including opened dropdown item lists—also pass.
 
 ### ⏳ Phase F5 — Project save / load
 
