@@ -10,7 +10,8 @@
 import { FabricObject, IText } from "fabric";
 import { MOBILE_MAX_PX } from "./breakpoints";
 
-const CORAL = "#f5613a";
+export const FABRIC_SELECTION_COLOR = "#f5613a";
+const CORAL = FABRIC_SELECTION_COLOR;
 /** Translucent coral used for the IText character-selection band and
  *  the Canvas marquee fill. */
 const CORAL_TRANSLUCENT = "rgba(245, 97, 58, 0.35)";

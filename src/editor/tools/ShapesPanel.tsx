@@ -101,6 +101,7 @@ export function ShapesPanel() {
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11.5px] font-medium text-text-muted">Lock aspect</span>
         <ToggleSwitch
+          ariaLabel="Lock aspect"
           on={toolState.shapeLockAspect}
           onChange={(next) => patchTool("shapeLockAspect", next)}
         />

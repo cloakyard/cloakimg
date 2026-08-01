@@ -25,12 +25,12 @@ const WORKFLOW = [
   {
     number: "02",
     title: "Work",
-    copy: "Retouch, grade, redact, compose, and resize inside one persistent canvas.",
+    copy: "Retouch, grade, redact, replace backgrounds, or frame an ID photo on one canvas.",
   },
   {
     number: "03",
     title: "Export",
-    copy: "Write a new JPEG, PNG, WebP, AVIF, or supported HEIC file back to your device.",
+    copy: "Write an image, or an exact passport and visa print sheet, back to your device.",
   },
 ] as const;
 
@@ -84,8 +84,8 @@ export function Landing({ onStart, onIntent }: Props) {
 
             <div className="cloak-hero__aside">
               <p className="cloak-hero__lede">
-                Crop, retouch, redact, grade, compose, and export in one capable web app. Image
-                content remains inside your browser.
+                Crop, retouch, replace backgrounds, build passport or visa print sheets, and export
+                in one capable web app. Image content remains inside your browser.
               </p>
               <a className="cloak-text-link" href="#workbench">
                 Open the workbench

@@ -568,7 +568,7 @@ export function EditorProvider({
         // weight.
         invalidateSubjectMask();
         invalidateFaceDetection();
-        historyRef.current.push("Open", d.working, d.layers, null);
+        historyRef.current.push("Open", d.working, d.layers, null, d.backgroundTreatment);
         setHistoryVersion((v) => v + 1);
         setLoading(false);
       },
@@ -693,7 +693,7 @@ export function EditorProvider({
       // including them here would race-overwrite a freshly mounted
       // canvas's bg with a stale serialized one on undo / redo.
       const fabricJson = fc ? snapshotPersistentObjects(fc) : null;
-      historyRef.current.push(label, doc.working, layers, fabricJson);
+      historyRef.current.push(label, doc.working, layers, fabricJson, doc.backgroundTreatment);
       setHistoryVersion((v) => v + 1);
       // Bump `doc` identity so consumers re-derive from the now-mutated
       // `doc.working`. ImageCanvas's bg-image effect depends on `doc`
@@ -713,6 +713,7 @@ export function EditorProvider({
     const entry = historyRef.current.undo();
     if (!entry) return;
     await restoreCanvas(doc.working, entry);
+    doc.backgroundTreatment = entry.backgroundTreatment;
     setDoc({ ...doc, width: entry.width, height: entry.height });
     setLayersState(entry.layers);
     restoreFabricScene(fabricCanvasRef.current, entry.fabric);
@@ -729,6 +730,7 @@ export function EditorProvider({
     const entry = historyRef.current.redo();
     if (!entry) return;
     await restoreCanvas(doc.working, entry);
+    doc.backgroundTreatment = entry.backgroundTreatment;
     setDoc({ ...doc, width: entry.width, height: entry.height });
     setLayersState(entry.layers);
     restoreFabricScene(fabricCanvasRef.current, entry.fabric);
@@ -788,6 +790,7 @@ export function EditorProvider({
     // Skip if already on the base entry — nothing to reset.
     if (!historyRef.current.canUndo() && !historyRef.current.canRedo()) return;
     await restoreCanvas(doc.working, base);
+    doc.backgroundTreatment = base.backgroundTreatment;
     setDoc({ ...doc, width: base.width, height: base.height });
     setLayersState(base.layers);
     restoreFabricScene(fabricCanvasRef.current, base.fabric);
@@ -806,7 +809,13 @@ export function EditorProvider({
     // (Verified by probe-export-and-history: historyLength is 1 after
     // reset, matching a fresh upload.)
     historyRef.current.clear();
-    historyRef.current.push("Open", doc.working, base.layers, base.fabric);
+    historyRef.current.push(
+      "Open",
+      doc.working,
+      base.layers,
+      base.fabric,
+      base.backgroundTreatment,
+    );
     setHistoryVersion((v) => v + 1);
   }, [doc]);
 
@@ -858,7 +867,7 @@ export function EditorProvider({
       // hold the old canvas alive in the cache.
       invalidateSubjectMask();
       invalidateFaceDetection();
-      historyRef.current.push("Open", next.working, next.layers, null);
+      historyRef.current.push("Open", next.working, next.layers, null, next.backgroundTreatment);
       setHistoryVersion((v) => v + 1);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));

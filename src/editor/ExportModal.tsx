@@ -524,7 +524,11 @@ function MetadataSection({
         {toggles.map((row) => (
           <div key={row.key} className="flex items-center justify-between text-xs">
             <span>{row.label}</span>
-            <ToggleSwitch on={meta[row.key]} onChange={(next) => onPatch(row.key, next)} />
+            <ToggleSwitch
+              ariaLabel={row.label}
+              on={meta[row.key]}
+              onChange={(next) => onPatch(row.key, next)}
+            />
           </div>
         ))}
       </div>

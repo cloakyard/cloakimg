@@ -116,6 +116,7 @@ export async function runRecipe(
     exif: null,
     fileName: file.name,
     layers: [],
+    backgroundTreatment: "original",
   };
 
   let convertSettings: ExportSettings = {

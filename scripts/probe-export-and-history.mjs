@@ -55,7 +55,7 @@ await page.evaluate(() => {
 await new Promise((r) => setTimeout(r, 1200));
 await page.waitForSelector('input[type="file"]', { timeout: 10000 });
 const inputs = await page.$$('input[type="file"]');
-await inputs[0].uploadFile(TEST_JPG);
+await inputs.at(-1).uploadFile(TEST_JPG);
 await page.waitForFunction(
   () =>
     Array.from(document.querySelectorAll("button")).some((b) =>
@@ -175,8 +175,67 @@ if (dimsAfterRedo?.w !== dimsBorder?.w || dimsAfterRedo?.h !== dimsBorder?.h) {
   fails++;
 }
 
-// ── Scenario 2: Reset clears history ─────────────────────────────
-console.log("→ Scenario 2: Reset-to-original");
+// ── Scenario 2: Resize → Undo → leave stays undone ───────────────
+// Regression guard: Resize keeps a pending target in toolState. After
+// applying and undoing while the panel is still mounted, switching tools
+// must not silently reapply that stale target.
+console.log("→ Scenario 2: Resize undo remains undone after tool switch");
+const beforeResizeDims = await dims();
+await clickTool("Resize");
+await new Promise((r) => setTimeout(r, 500));
+await page.evaluate(
+  ({ width, height }) => {
+    window.__editorDebug.patchTool("resizeAspectLock", false);
+    window.__editorDebug.patchTool("resizeW", width);
+    window.__editorDebug.patchTool("resizeH", height);
+  },
+  {
+    width: Math.max(1, Math.round((beforeResizeDims?.w ?? 2) / 2)),
+    height: Math.max(1, Math.round((beforeResizeDims?.h ?? 2) / 2)),
+  },
+);
+await page.evaluate(() => {
+  Array.from(document.querySelectorAll(".editor-properties button"))
+    .find((button) => /^Apply resize$/i.test(button.textContent?.trim() ?? ""))
+    ?.click();
+});
+await new Promise((r) => setTimeout(r, 3000));
+const appliedResizeDims = await dims();
+console.log(`  applied resize: dims=${appliedResizeDims?.w}×${appliedResizeDims?.h}`);
+if (
+  !beforeResizeDims ||
+  appliedResizeDims?.w === beforeResizeDims.w ||
+  appliedResizeDims?.h === beforeResizeDims.h
+) {
+  console.error("FAIL: resize did not change dimensions");
+  fails++;
+}
+
+await page.evaluate(() =>
+  document
+    .querySelector('button[aria-label="Undo"]')
+    ?.dispatchEvent(new MouseEvent("click", { bubbles: true })),
+);
+await new Promise((r) => setTimeout(r, 1200));
+const undoneResizeDims = await dims();
+await clickTool("Move");
+await new Promise((r) => setTimeout(r, 2500));
+const afterResizeLeaveDims = await dims();
+console.log(
+  `  undo=${undoneResizeDims?.w}×${undoneResizeDims?.h}, after leave=${afterResizeLeaveDims?.w}×${afterResizeLeaveDims?.h}`,
+);
+if (
+  undoneResizeDims?.w !== beforeResizeDims?.w ||
+  undoneResizeDims?.h !== beforeResizeDims?.h ||
+  afterResizeLeaveDims?.w !== beforeResizeDims?.w ||
+  afterResizeLeaveDims?.h !== beforeResizeDims?.h
+) {
+  console.error("FAIL: leaving Resize reapplied the undone dimensions");
+  fails++;
+}
+
+// ── Scenario 3: Reset clears history ─────────────────────────────
+console.log("→ Scenario 3: Reset-to-original");
 const resetClicked = await page.evaluate(() => {
   const btn = Array.from(document.querySelectorAll("button")).find((b) => {
     const t = (b.getAttribute("aria-label") ?? "") + " " + (b.title ?? "");
@@ -224,8 +283,8 @@ if (!resetClicked) {
   }
 }
 
-// ── Scenario 3: Export flow opens + previews ─────────────────────
-console.log("→ Scenario 3: Export modal");
+// ── Scenario 4: Export flow opens + previews ─────────────────────
+console.log("→ Scenario 4: Export modal");
 const exportClicked = await page.evaluate(() => {
   const btn = Array.from(document.querySelectorAll("button")).find((b) => {
     const t =

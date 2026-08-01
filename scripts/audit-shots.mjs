@@ -126,6 +126,65 @@ async function inspectLayout(page, viewport, stage) {
   console.log(JSON.stringify({ viewport: viewport.name, stage, ...result }));
 }
 
+async function inspectFooter(page, viewport) {
+  const result = await page.evaluate(() => {
+    const footer = document.querySelector(".cloak-site-footer");
+    const navItems = Array.from(document.querySelectorAll(".cloak-site-footer__nav > *"));
+    const actionItems = Array.from(document.querySelectorAll(".cloak-site-footer__actions > *"));
+    const rectFor = (element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        top: Math.round(rect.top),
+        bottom: Math.round(rect.bottom),
+      };
+    };
+    const wrappedLabels = [...navItems, ...actionItems]
+      .filter((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const textRect = range.getBoundingClientRect();
+        const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight);
+        return Number.isFinite(lineHeight) && textRect.height > lineHeight * 1.5;
+      })
+      .map((element) => element.textContent?.trim())
+      .filter(Boolean);
+
+    return {
+      footer: footer ? rectFor(footer) : null,
+      navItems: navItems.map(rectFor),
+      actionItems: actionItems.map(rectFor),
+      wrappedLabels,
+    };
+  });
+
+  const nav = result.navItems;
+  const narrowGridMisaligned =
+    viewport.width < 640 &&
+    (nav.length !== 4 ||
+      Math.abs(nav[0].top - nav[1].top) > 1 ||
+      Math.abs(nav[2].top - nav[3].top) > 1 ||
+      Math.abs(nav[0].left - nav[2].left) > 1 ||
+      Math.abs(nav[1].left - nav[3].left) > 1);
+  const escaped =
+    !result.footer ||
+    result.footer.left < -1 ||
+    result.footer.right > viewport.width + 1 ||
+    [...result.navItems, ...result.actionItems].some(
+      (item) => item.left < -1 || item.right > viewport.width + 1,
+    );
+
+  if (escaped || narrowGridMisaligned || result.wrappedLabels.length > 0) {
+    failures.push(`${viewport.name}/footer: ${JSON.stringify(result)}`);
+  }
+
+  const footer = await page.$(".cloak-site-footer");
+  if (footer) {
+    await footer.screenshot({ path: `/tmp/cloakimg-${viewport.name}-footer.png` });
+  }
+}
+
 async function inspectMobileToolPicker(page, viewport) {
   const wrappedLabels = await page.evaluate(() =>
     Array.from(document.querySelectorAll(".editor-mobile-surface button[aria-pressed] span"))
@@ -400,6 +459,7 @@ for (const viewport of viewports) {
   });
   await page.goto(baseUrl, { waitUntil: "networkidle2", timeout: 30000 });
   await inspectLayout(page, viewport, "landing");
+  await inspectFooter(page, viewport);
   await page.screenshot({
     path: `/tmp/cloakimg-${viewport.name}-landing.png`,
     fullPage: false,

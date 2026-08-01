@@ -5,10 +5,9 @@
 // eyedropper is armed, the next image-space click samples the pixel
 // under the pointer and stores it as the explicit chroma target.
 //
-// Auto mode (toolState.bgMode === 0) doesn't have a live preview —
-// the U²-Net inference takes hundreds of ms per pass and a full bake
-// only really makes sense once on Apply. The canvas keeps showing
-// the original image until the user runs the model.
+// Auto mode reuses a cached cutout when one exists. That makes output
+// background changes live without re-running segmentation; otherwise
+// the original remains visible until the user runs the model.
 //
 // Final commit is owned by RemoveBgPanel.
 
@@ -18,12 +17,16 @@ import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { paintMaskOverlay } from "./aiInspector";
+import { backgroundFillForMode } from "./backgroundFill";
+import { looksAlreadyRemoved } from "./removeBg";
+import { useBackgroundPreview } from "./useBackgroundPreview";
 import { useRemoveBgPreview } from "./useRemoveBgPreview";
 
 export function RemoveBgTool() {
   const { toolState, patchTool, doc, historyVersion } = useEditor();
   const subjectMask = useSubjectMask();
   const isChroma = toolState.bgMode === 1;
+  const backgroundFill = backgroundFillForMode(toolState.bgFillMode);
   // Subscribe to mask state.version so the inspector overlay
   // re-paints when the user runs detection or invalidates the cache.
   // We read the cut via `peek()` inside the painter so we always get
@@ -38,11 +41,33 @@ export function RemoveBgTool() {
     toolState.genericStrength,
     toolState.feather,
     toolState.bgSample,
+    backgroundFill,
+    toolState.bgFillColor,
     // historyVersion bumps on every commit / undo / redo / reset.
     // doc identity alone wouldn't catch intra-tool commits (Apply
     // chroma → bake → commit doesn't setDoc), which would leave the
     // downsample showing the pre-keyed pixels until the user left
     // and re-entered the tool.
+    historyVersion,
+  );
+  const docIsTransparent =
+    !!doc &&
+    (doc.backgroundTreatment === "transparent" ||
+      (doc.backgroundTreatment === "original" && looksAlreadyRemoved(doc.working)));
+  const cachedCut = !isChroma ? subjectMask.peek() : null;
+  const validCachedCut =
+    cachedCut &&
+    doc &&
+    cachedCut.width === doc.working.width &&
+    cachedCut.height === doc.working.height
+      ? cachedCut
+      : null;
+  const backgroundPreview = useBackgroundPreview(
+    !isChroma && backgroundFill !== "transparent"
+      ? (validCachedCut ?? (docIsTransparent ? (doc?.working ?? null) : null))
+      : null,
+    backgroundFill,
+    toolState.bgFillColor,
     historyVersion,
   );
 
@@ -90,7 +115,7 @@ export function RemoveBgTool() {
   );
 
   useStageProps({
-    previewCanvas: isChroma ? preview : null,
+    previewCanvas: isChroma ? preview : backgroundPreview,
     cursor: isChroma && toolState.bgPickActive ? "crosshair" : undefined,
     onImagePointerDown: onPick,
     paintOverlay,

@@ -59,7 +59,7 @@ await new Promise((r) => setTimeout(r, 1200));
 console.log(`→ Upload ${TEST_JPG}`);
 await page.waitForSelector('input[type="file"]', { timeout: 10000 });
 const fileInputs = await page.$$('input[type="file"]');
-await fileInputs[0].uploadFile(TEST_JPG);
+await fileInputs.at(-1).uploadFile(TEST_JPG);
 
 await page.waitForFunction(
   () =>

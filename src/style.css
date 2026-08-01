@@ -26,6 +26,7 @@
 
 #workbench,
 #toolkit,
+#id-photo-workflow,
 #privacy-model {
   scroll-margin-top: calc(var(--banner-height) + var(--space-sm));
 }
@@ -640,6 +641,57 @@
   text-align: left;
 }
 
+/* ── Passport / visa output feature ───────────────────────────── */
+.cloak-id-feature {
+  border-top: var(--rule-thin) solid var(--color-rule);
+  background: var(--color-surface);
+  scroll-margin-top: calc(var(--banner-height) + var(--space-sm));
+}
+
+.cloak-id-feature__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  padding-block: clamp(4rem, 8vw, 7.5rem);
+}
+
+.cloak-id-feature__copy p {
+  max-width: 41rem;
+  margin: var(--space-lg) 0 0;
+  color: var(--color-ink-2);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.cloak-id-feature__ledger {
+  margin: 0;
+  border-top: var(--rule-thin) solid var(--color-rule-strong);
+}
+
+.cloak-id-feature__ledger > div {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.42fr) minmax(0, 1fr);
+  gap: var(--space-sm);
+  padding-block: var(--space-md);
+  border-bottom: var(--rule-thin) solid var(--color-rule);
+}
+
+.cloak-id-feature__ledger dt {
+  color: var(--color-ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.cloak-id-feature__ledger dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .cloak-proof-band,
 .cloak-site-footer {
   background: var(--color-night);
@@ -748,9 +800,14 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: end;
-  gap: clamp(3rem, 8vw, 9rem);
-  padding-bottom: var(--space-xl);
+  gap: var(--space-lg);
+  padding-bottom: 2.5rem;
   border-bottom: var(--rule-thin) solid var(--color-night-rule);
+}
+
+.cloak-site-footer__eyebrow {
+  margin-bottom: var(--space-sm);
+  color: var(--color-coral-400);
 }
 
 .cloak-site-footer__statement {
@@ -765,20 +822,8 @@
   overflow-wrap: anywhere;
 }
 
-.cloak-site-footer__aside {
-  padding-top: var(--space-md);
-  border-top: var(--rule-thin) solid var(--color-night-rule);
-}
-
-.cloak-site-footer__aside img {
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
-.cloak-site-footer__aside p {
-  margin: var(--space-sm) 0;
-  color: var(--color-night-muted);
-  line-height: 1.55;
+.cloak-site-footer__statement span {
+  color: var(--color-coral-400);
 }
 
 .cloak-site-footer a,
@@ -787,44 +832,93 @@
   text-decoration: none;
 }
 
-.cloak-site-footer__aside a {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  color: var(--color-coral-400);
+.cloak-site-footer__nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-md);
+  row-gap: var(--space-xs);
+  color: var(--color-night-muted);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.cloak-site-footer__nav a,
+.cloak-site-footer__nav button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  text-transform: inherit;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .cloak-site-footer__meta {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-xs);
   padding-top: var(--space-md);
   color: var(--color-night-muted);
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
-.cloak-site-footer__links {
-  width: 100%;
+.cloak-site-footer__separator {
+  display: none;
+}
+
+.cloak-site-footer__actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-sm);
-  margin-left: 0;
 }
 
-.cloak-site-footer__links button {
+.cloak-site-footer__actions a,
+.cloak-site-footer__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
   border: 0;
   padding: 0;
   background: transparent;
-  font-size: inherit;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.cloak-site-footer a:focus-visible,
+.cloak-site-footer button:focus-visible {
+  border-radius: 0.125rem;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+.cloak-site-footer a:active,
+.cloak-site-footer button:active {
+  color: var(--color-coral-400);
+}
+
+.cloak-site-footer button:disabled {
+  color: var(--color-night-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 /* ── Shared modal family ───────────────────────────────────────── */
@@ -925,17 +1019,6 @@
   outline: none;
 }
 
-@media (min-width: 761px) and (max-width: 900px) {
-  .editor-topbar__brand .logo-wordmark,
-  .editor-topbar__dimensions {
-    display: none;
-  }
-
-  .editor-topbar__file {
-    max-width: 7.5rem;
-  }
-}
-
 .editor-toolrail button,
 .editor-properties button,
 .editor-mobile-surface button {
@@ -966,9 +1049,13 @@
     transform: rotate(-4deg);
   }
 
-  .cloak-text-link:hover .cloak-link-arrow,
-  .cloak-site-footer__aside a:hover svg {
+  .cloak-text-link:hover .cloak-link-arrow {
     transform: translateX(4px);
+  }
+
+  .cloak-site-footer a:hover,
+  .cloak-site-footer button:hover {
+    color: var(--color-coral-400);
   }
 
   .cloak-capability-ledger li:hover .cloak-ledger__icon {
@@ -985,6 +1072,21 @@
 @media (min-width: 22.5rem) {
   .editor-topbar__brand .logo-wordmark {
     display: block;
+  }
+}
+
+/* Tablet keeps the full desktop workbench but has less toolbar width.
+   This must follow the generic wordmark reveal above so it wins the
+   cascade: show the mark alone and preserve breathing room for file,
+   history, zoom, compare, and Export controls. */
+@media (min-width: 761px) and (max-width: 900px) {
+  .editor-topbar__brand .logo-wordmark,
+  .editor-topbar__dimensions {
+    display: none;
+  }
+
+  .editor-topbar__file {
+    max-width: 7.5rem;
   }
 }
 
@@ -1055,14 +1157,20 @@
     font-size: clamp(2.4rem, 6vw, 5.2rem);
   }
 
+  .cloak-site-footer__inner {
+    padding-block: 2.5rem;
+  }
+
   .cloak-site-footer__meta {
     align-items: center;
     flex-direction: row;
   }
 
-  .cloak-site-footer__links {
-    width: auto;
-    justify-content: flex-start;
+  .cloak-site-footer__separator {
+    display: inline;
+  }
+
+  .cloak-site-footer__actions {
     margin-left: auto;
   }
 }
@@ -1087,6 +1195,11 @@
 
   .cloak-toolkit__head {
     grid-template-columns: minmax(0, 5fr) minmax(20rem, 4fr);
+  }
+
+  .cloak-id-feature__inner {
+    grid-template-columns: minmax(0, 5fr) minmax(22rem, 5fr);
+    align-items: end;
   }
 
   .cloak-proof-band__inner {

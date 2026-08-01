@@ -77,6 +77,18 @@ describe("History.entriesSnapshot", () => {
 });
 
 describe("History cursor + base pinning", () => {
+  it("restores the semantic background treatment with each entry", () => {
+    const h = new History();
+    h.push("Open", makeCanvas(10, 10), [], null, "original");
+    h.push("Remove BG", makeCanvas(10, 10), [], null, "transparent");
+    h.push("Add background", makeCanvas(10, 10), [], null, "gradient");
+
+    expect(h.undo()?.backgroundTreatment).toBe("transparent");
+    expect(h.undo()?.backgroundTreatment).toBe("original");
+    expect(h.redo()?.backgroundTreatment).toBe("transparent");
+    expect(h.redo()?.backgroundTreatment).toBe("gradient");
+  });
+
   it("currentIndex tracks pushes and undo/redo", () => {
     const h = new History();
     h.push("Open", makeCanvas(10, 10), [], null);

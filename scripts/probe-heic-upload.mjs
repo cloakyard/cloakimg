@@ -59,7 +59,7 @@ await new Promise((r) => setTimeout(r, 1500));
 await page.waitForSelector('input[type="file"]', { timeout: 10000 });
 const fileInputs = await page.$$('input[type="file"]');
 console.log(`→ Uploading HEIC: ${TEST_HEIC}`);
-await fileInputs[0].uploadFile(TEST_HEIC);
+await fileInputs.at(-1).uploadFile(TEST_HEIC);
 
 // Wait for either the "Open in editor" confirmation OR an error.
 console.log("→ Waiting up to 30s for confirmation OR error message…");

@@ -23,7 +23,7 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { PropRow, Segment, Slider } from "./atoms";
+import { NumericReadout, PropRow, Segment, Slider, ToggleSwitch } from "./atoms";
 
 describe("Segment", () => {
   it("renders one <button> per option", () => {
@@ -122,5 +122,50 @@ describe("Slider", () => {
     const slider = screen.getByRole("slider", { name: "Read only" });
     expect(slider).toHaveAttribute("aria-disabled", "true");
     expect(slider).toHaveAttribute("tabindex", "-1");
+  });
+});
+
+describe("PropRow accessibility", () => {
+  it("names an editable numeric readout with its property label", () => {
+    render(
+      <PropRow
+        label="Exposure"
+        valueInput={
+          <NumericReadout
+            display="+0.0"
+            normalized={0.5}
+            fromNormalized={(value) => value}
+            toNormalized={(value) => value}
+            onCommit={() => undefined}
+          />
+        }
+      >
+        <Slider value={0.5} onChange={() => undefined} />
+      </PropRow>,
+    );
+
+    expect(screen.getByRole("textbox", { name: "Exposure" })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: "Exposure" })).toBeInTheDocument();
+  });
+
+  it("names a toggle placed in the value slot with its property label", () => {
+    render(
+      <PropRow label="Progressive falloff" valueInput={<ToggleSwitch on={false} />}>
+        <span>Details</span>
+      </PropRow>,
+    );
+
+    expect(screen.getByRole("button", { name: "Progressive falloff" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("supports an explicit toggle name outside PropRow", () => {
+    render(<ToggleSwitch ariaLabel="Grayscale" on />);
+    expect(screen.getByRole("button", { name: "Grayscale" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });

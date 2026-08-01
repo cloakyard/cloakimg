@@ -25,13 +25,15 @@ export function ResizePanel() {
   const [fit, setFit] = useState(0);
   const [resizing, setResizing] = useState(false);
 
-  // Initialize resize fields from the doc's actual size.
+  // Keep the pending target aligned with history navigation. A user can
+  // Apply 1080 px, Undo back to 600 px, then leave Resize; if the fields
+  // still say 1080 the tool-switch auto-apply silently reapplies the
+  // resize they just undid. Doc dimensions only change on a committed
+  // edit / undo / redo, so syncing here never overwrites mid-typing.
   useEffect(() => {
     if (!doc) return;
-    if (toolState.resizeW === 0 || toolState.resizeH === 0) {
-      patchTool("resizeW", doc.width);
-      patchTool("resizeH", doc.height);
-    }
+    patchTool("resizeW", doc.width);
+    patchTool("resizeH", doc.height);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc?.width, doc?.height]);
 

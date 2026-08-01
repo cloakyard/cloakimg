@@ -36,6 +36,7 @@ function makeFakeDoc(): EditorDoc {
     exif: null,
     fileName: "test.png",
     layers: [],
+    backgroundTreatment: "original",
   };
 }
 

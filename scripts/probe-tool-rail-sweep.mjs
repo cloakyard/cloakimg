@@ -50,6 +50,7 @@ const TOOLS = [
   "Place image",
   "Color picker",
   "Resize",
+  "ID photo sheet",
   "Frame",
   "Border",
 ];
@@ -130,6 +131,45 @@ for (const label of TOOLS) {
   // consent/confirmation dialog behind the user's back.
   const state = await page.evaluate((l) => {
     const norm = (s) => (s ?? "").toLowerCase();
+    const isVisible = (element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        style.display !== "none" &&
+        style.visibility !== "hidden"
+      );
+    };
+    const accessibleName = (element) => {
+      const direct = element.getAttribute("aria-label")?.trim();
+      if (direct) return direct;
+
+      const labelledBy = element.getAttribute("aria-labelledby");
+      if (labelledBy) {
+        const referenced = labelledBy
+          .split(/\s+/)
+          .map((id) => document.getElementById(id)?.textContent?.trim() ?? "")
+          .filter(Boolean)
+          .join(" ");
+        if (referenced) return referenced;
+      }
+
+      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement) {
+        const labels = Array.from(element.labels ?? [])
+          .map((label) => label.textContent?.trim() ?? "")
+          .filter(Boolean)
+          .join(" ");
+        if (labels) return labels;
+      }
+
+      return (
+        element.textContent?.trim() ||
+        element.getAttribute("title")?.trim() ||
+        element.getAttribute("alt")?.trim() ||
+        ""
+      );
+    };
     const active = Array.from(document.querySelectorAll(".editor-toolrail button")).some(
       (button) =>
         button.getAttribute("aria-pressed") === "true" &&
@@ -146,12 +186,8 @@ for (const label of TOOLS) {
           )
             .filter((control) => {
               const rect = control.getBoundingClientRect();
-              const style = getComputedStyle(control);
               return (
-                rect.width > 0 &&
-                rect.height > 0 &&
-                style.display !== "none" &&
-                style.visibility !== "hidden" &&
+                isVisible(control) &&
                 rect.right > panelRect.left &&
                 rect.left < panelRect.right &&
                 !control.closest(".overflow-x-auto")
@@ -166,14 +202,35 @@ for (const label of TOOLS) {
                 control.getAttribute("aria-label") || control.textContent?.trim().slice(0, 40),
             )
         : [];
+    const missingNames = panelScroller
+      ? Array.from(
+          panelScroller.querySelectorAll(
+            'button, input, select, textarea, [role="slider"], [role="tab"], [role="radio"], [role="switch"]',
+          ),
+        )
+          .filter((control) => isVisible(control))
+          .filter((control) => !accessibleName(control))
+          .map((control) => ({
+            tag: control.tagName.toLowerCase(),
+            type: control.getAttribute("type"),
+            role: control.getAttribute("role"),
+          }))
+      : [];
     return {
       active,
       canvas: !!document.querySelector("canvas"),
       dialog: document.querySelector('[role="dialog"]')?.textContent?.trim().slice(0, 80) ?? null,
       escapedControls,
+      missingNames,
     };
   }, label);
-  if (!state.canvas || !state.active || state.dialog || state.escapedControls.length > 0) {
+  if (
+    !state.canvas ||
+    !state.active ||
+    state.dialog ||
+    state.escapedControls.length > 0 ||
+    state.missingNames.length > 0
+  ) {
     console.error(`  ✗ ${label}: ${JSON.stringify(state)}`);
     fails++;
     continue;
@@ -194,6 +251,7 @@ if (filteredErrors.length > 0) {
 if (filteredConsole.length > 0) {
   console.error("\nconsole errors:");
   for (const t of filteredConsole) console.error("  ", t);
+  fails++;
 }
 
 await browser.close();

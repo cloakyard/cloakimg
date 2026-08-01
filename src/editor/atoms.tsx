@@ -34,20 +34,24 @@ export function PropRow({ label, value, valueInput, children }: PropRowProps) {
   // labels; without it, semibold at 12 px looks ever-so-slightly
   // wider than the surrounding chrome.
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span
-          id={labelId}
-          className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted"
-        >
-          {label}
-        </span>
-        {valueInput
-          ? valueInput
-          : value && <span className="t-mono text-[11.5px] font-semibold text-text">{value}</span>}
+    <PropRowLabelContext.Provider value={labelId}>
+      <div>
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <span
+            id={labelId}
+            className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted"
+          >
+            {label}
+          </span>
+          {valueInput
+            ? valueInput
+            : value && (
+                <span className="t-mono text-[11.5px] font-semibold text-text">{value}</span>
+              )}
+        </div>
+        {children}
       </div>
-      <PropRowLabelContext.Provider value={labelId}>{children}</PropRowLabelContext.Provider>
-    </div>
+    </PropRowLabelContext.Provider>
   );
 }
 
@@ -78,6 +82,7 @@ export function NumericReadout({
   step = 1,
   onCommit,
 }: NumericReadoutProps) {
+  const propRowLabelId = useContext(PropRowLabelContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const editingRef = useRef(false);
 
@@ -131,8 +136,9 @@ export function NumericReadout({
       // clears the ~44 pt minimum without dominating desktop's denser
       // panel layout. The visible chip stays compact on hover-precise
       // pointers; only width / padding / type-size grow on coarse.
-      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px]"
-      aria-label="Edit value"
+      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500 pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px]"
+      aria-label={propRowLabelId ? undefined : "Edit value"}
+      aria-labelledby={propRowLabelId}
     />
   );
 }
@@ -337,7 +343,7 @@ export function Slider({
       // and Material both ask for ≥44 pt. The visible rail stays the
       // same; only the wrapper's height grows so the thumb is easier
       // to grab without changing the panel layout density.
-      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:h-9 ${onChange ? "cursor-pointer" : "cursor-default"}`}
+      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:h-11 ${onChange ? "cursor-pointer" : "cursor-default"}`}
       title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
       <div className="relative h-0.75 w-full rounded-sm bg-border-soft pointer-coarse:h-1">
@@ -522,9 +528,12 @@ export function InlineSpinner({ size = 13 }: { size?: number } = {}) {
 interface ToggleProps {
   on: boolean;
   onChange?: (next: boolean) => void;
+  /** Explicit accessible name when the switch is not inside PropRow. */
+  ariaLabel?: string;
 }
 
-export function ToggleSwitch({ on, onChange }: ToggleProps) {
+export function ToggleSwitch({ on, onChange, ariaLabel }: ToggleProps) {
+  const propRowLabelId = useContext(PropRowLabelContext);
   return (
     // Touch-friendly hit area: the visible pill stays compact, but a
     // transparent padding-only wrapper extends the tap target to ~44 pt
@@ -534,7 +543,9 @@ export function ToggleSwitch({ on, onChange }: ToggleProps) {
       type="button"
       onClick={() => onChange?.(!on)}
       aria-pressed={on}
-      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 pointer-coarse:p-2"
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabel ? undefined : propRowLabelId}
+      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:p-2"
     >
       <span
         className={`relative inline-block h-4 w-7 rounded-full transition-colors pointer-coarse:h-6 pointer-coarse:w-10 ${

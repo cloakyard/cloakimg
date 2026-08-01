@@ -136,11 +136,19 @@ export function LayerFilters({ image }: Props) {
       </PropRow>
       <div className="flex items-center justify-between">
         <span className="text-[11.5px] text-text-muted">Grayscale</span>
-        <ToggleSwitch on={state.grayscale} onChange={(on) => apply({ ...state, grayscale: on })} />
+        <ToggleSwitch
+          ariaLabel="Grayscale"
+          on={state.grayscale}
+          onChange={(on) => apply({ ...state, grayscale: on })}
+        />
       </div>
       <div className="flex items-center justify-between">
         <span className="text-[11.5px] text-text-muted">Sepia</span>
-        <ToggleSwitch on={state.sepia} onChange={(on) => apply({ ...state, sepia: on })} />
+        <ToggleSwitch
+          ariaLabel="Sepia"
+          on={state.sepia}
+          onChange={(on) => apply({ ...state, sepia: on })}
+        />
       </div>
       <div className="flex gap-1.5">
         <button type="button" className="btn btn-secondary btn-xs flex-1" onClick={reset}>

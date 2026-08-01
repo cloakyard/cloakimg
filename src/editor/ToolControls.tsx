@@ -69,6 +69,9 @@ const RelightPanel = lazy(() =>
 const RemoveBgPanel = lazy(() =>
   import("./tools/RemoveBgPanel").then((m) => ({ default: m.RemoveBgPanel })),
 );
+const IdPhotoPanel = lazy(() =>
+  import("./tools/IdPhotoTool").then((m) => ({ default: m.IdPhotoPanel })),
+);
 
 export function ToolControls() {
   const activeTool = useActiveTool();
@@ -98,6 +101,8 @@ function renderPanel(activeTool: ToolState["activeTool"]) {
       return <CropPanel />;
     case "resize":
       return <ResizePanel />;
+    case "idphoto":
+      return <IdPhotoPanel />;
     case "adjust":
       return <AdjustPanel />;
     case "tod":

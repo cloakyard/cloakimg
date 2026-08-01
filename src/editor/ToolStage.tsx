@@ -64,6 +64,9 @@ const TimeOfDayTool = lazy(() =>
 const RelightTool = lazy(() =>
   import("./tools/RelightTool").then((m) => ({ default: m.RelightTool })),
 );
+const IdPhotoTool = lazy(() =>
+  import("./tools/IdPhotoTool").then((m) => ({ default: m.IdPhotoTool })),
+);
 
 export function ToolStage() {
   // Only the active tool id matters here — the `activeTool` slice changes
@@ -77,6 +80,8 @@ function renderTool(activeTool: ToolState["activeTool"]) {
   switch (activeTool) {
     case "crop":
       return <CropTool />;
+    case "idphoto":
+      return <IdPhotoTool />;
     case "adjust":
       return <AdjustTool />;
     case "tod":

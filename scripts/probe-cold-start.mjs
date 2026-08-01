@@ -5,8 +5,9 @@
 // We launch Chrome with a fresh user-data-dir so there's nothing
 // preserved between runs (no consent flags, no HF model cache, no
 // service worker, no React state). Then we drive the same flow the
-// user described: open editor → upload JPEG → click Person / Scene /
-// Faces → watch for navigation back to landing.
+// user described: open editor → upload JPEG → click Person / Faces →
+// dismiss through every supported route → watch for navigation back to
+// landing or a smart-action state that never settles.
 //
 // "Landed on home" detection: we install a marker on `window` after
 // the editor mounts. If the page navigates back to landing the
@@ -101,7 +102,7 @@ await new Promise((r) => setTimeout(r, 1500));
 console.log(`→ Uploading JPEG: ${TEST_JPG}`);
 await page.waitForSelector('input[type="file"]', { timeout: 10000 });
 const fileInputs = await page.$$('input[type="file"]');
-await fileInputs[0].uploadFile(TEST_JPG);
+await fileInputs.at(-1).uploadFile(TEST_JPG);
 
 await page.waitForFunction(
   () =>
@@ -179,7 +180,7 @@ async function detectExitTriggers(label, durationMs) {
 
 async function dumpDialogs() {
   return page.evaluate(() => {
-    const dialogs = Array.from(document.querySelectorAll('[role="dialog"], [aria-labelledby]'));
+    const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'));
     return dialogs.map((d) => {
       const id = d.getAttribute("aria-labelledby") || d.id || "(no id)";
       const buttons = Array.from(d.querySelectorAll("button")).map((b) => ({
@@ -195,7 +196,7 @@ async function dumpDialogs() {
 async function clickInDialog(matcher) {
   return page.evaluate((m) => {
     const re = new RegExp(m, "i");
-    const dialog = document.querySelector('[role="dialog"], [aria-labelledby]');
+    const dialog = document.querySelector('[role="dialog"]');
     if (!dialog) return "no-dialog";
     const btn = Array.from(dialog.querySelectorAll("button")).find((b) => {
       const t = (b.textContent ?? "") + " " + (b.getAttribute("aria-label") ?? "");
@@ -229,6 +230,26 @@ async function reset() {
   await new Promise((r) => setTimeout(r, 600));
 }
 
+let failures = 0;
+async function checkDismissal(label, clickResult) {
+  const triggerState = await detectExitTriggers(label, 1200);
+  const state = await pageState(label);
+  console.log(JSON.stringify(state, null, 2));
+  const passed =
+    clickResult === "clicked" &&
+    !triggerState.exited &&
+    triggerState.errors.length === 0 &&
+    state.markerPresent &&
+    !state.onLanding &&
+    !documentHasOpenConsent(state.bodyHead);
+  console.log(`  ${passed ? "✓" : "✗"} ${label}`);
+  if (!passed) failures++;
+}
+
+function documentHasOpenConsent(bodyText) {
+  return /Download (subject detection|face detection)/i.test(bodyText);
+}
+
 // —————————————— TEST 1: cold-start, click Person → click X ——————————————
 
 console.log("\n========================================");
@@ -238,21 +259,21 @@ console.log(JSON.stringify(await pageState("before-Person"), null, 2));
 console.log(`  click Person → ${(await clickSmartAction("Person")) ? "ok" : "MISSING"}`);
 await new Promise((r) => setTimeout(r, 1500));
 console.log("  dialogs:", JSON.stringify(await dumpDialogs(), null, 2));
-console.log(`  click X (Close) → ${await clickInDialog("Close")}`);
-await detectExitTriggers("after Person→X (3s)", 3000);
-console.log(JSON.stringify(await pageState("after-Person-X"), null, 2));
+const personClose = await clickInDialog("Close");
+console.log(`  click X (Close) → ${personClose}`);
+await checkDismissal("after Person→X", personClose);
 
-// —————————————— TEST 2: click Scene → click "Not now" ——————————————
+// —————————————— TEST 2: click Person → click "Not now" ——————————————
 
 console.log("\n========================================");
-console.log("TEST 2: cold-start → click Scene → click 'Not now'");
+console.log("TEST 2: cold-start → click Person → click 'Not now'");
 console.log("========================================");
 await reset();
-console.log(`  click Scene → ${(await clickSmartAction("Scene")) ? "ok" : "MISSING"}`);
+console.log(`  click Person → ${(await clickSmartAction("Person")) ? "ok" : "MISSING"}`);
 await new Promise((r) => setTimeout(r, 1500));
-console.log(`  click 'Not now' → ${await clickInDialog("Not now")}`);
-await detectExitTriggers("after Scene→Not-now (3s)", 3000);
-console.log(JSON.stringify(await pageState("after-Scene-Notnow"), null, 2));
+const personNotNow = await clickInDialog("Not now");
+console.log(`  click 'Not now' → ${personNotNow}`);
+await checkDismissal("after Person→Not-now", personNotNow);
 
 // —————————————— TEST 3: click Faces → click X (face-detect dialog) ——————————————
 
@@ -263,9 +284,9 @@ await reset();
 console.log(`  click Faces → ${(await clickSmartAction("Faces")) ? "ok" : "MISSING"}`);
 await new Promise((r) => setTimeout(r, 1500));
 console.log("  dialogs:", JSON.stringify(await dumpDialogs(), null, 2));
-console.log(`  click X (Close) → ${await clickInDialog("Close")}`);
-await detectExitTriggers("after Faces→X (3s)", 3000);
-console.log(JSON.stringify(await pageState("after-Faces-X"), null, 2));
+const facesClose = await clickInDialog("Close");
+console.log(`  click X (Close) → ${facesClose}`);
+await checkDismissal("after Faces→X", facesClose);
 
 // —————————————— TEST 4: tap outside the dialog (backdrop click) ——————————————
 
@@ -276,23 +297,13 @@ await reset();
 console.log(`  click Person → ${(await clickSmartAction("Person")) ? "ok" : "MISSING"}`);
 await new Promise((r) => setTimeout(r, 1500));
 const backdropClick = await page.evaluate(() => {
-  // Look for a div that wraps the dialog — the typical pattern is an
-  // overlay sibling. Click the OVERLAY area (not the dialog itself).
-  const overlay = document.querySelector(
-    '[data-cloak-modal-overlay], .modal-overlay, [aria-modal="true"]',
-  );
-  if (overlay) {
-    // Click the top-left corner of the overlay (definitely outside the dialog content).
-    overlay.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 5, clientY: 5 }));
-    overlay.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 5, clientY: 5 }));
-    overlay.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 5, clientY: 5 }));
-    return overlay.tagName + ":" + (overlay.className ?? "").slice(0, 60);
-  }
-  return "no-overlay";
+  const scrim = document.querySelector('.cloak-modal-scrim[aria-label="Close modal"]');
+  if (!(scrim instanceof HTMLButtonElement)) return "no-overlay";
+  scrim.click();
+  return "clicked";
 });
 console.log(`  backdrop-click target: ${backdropClick}`);
-await detectExitTriggers("after Person→backdrop (3s)", 3000);
-console.log(JSON.stringify(await pageState("after-Person-backdrop"), null, 2));
+await checkDismissal("after Person→backdrop", backdropClick);
 
 // —————————————— Final report ——————————————
 
@@ -309,4 +320,10 @@ console.log("\nPage errors:");
 for (const err of pageErrors) console.log(`  ${err.message}`);
 
 await browser.close();
-process.exit(0);
+if (pageErrors.length > 0) failures += pageErrors.length;
+console.log(
+  failures === 0
+    ? "\nPASS: all cold-start consent dismissal routes stay in the editor ✓"
+    : `\nFAIL: ${failures} cold-start regression(s)`,
+);
+process.exit(failures === 0 ? 0 : 1);
