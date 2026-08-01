@@ -33,8 +33,8 @@ export const BLAZEFACE_MODEL_URL = "/models/face/blaze_face_full_range.tflite";
  *  FilesetResolver loads. Pinning a version (rather than `latest`)
  *  makes the runtime API + WASM ABI deterministic across deploys —
  *  the family controls the URL, so an upgrade is a one-line change
- *  here plus a `pnpm add` of the matching version. */
-export const TASKS_VISION_VERSION = "0.10.35";
+ *  here plus a `vp update` of the matching version. */
+export const TASKS_VISION_VERSION = "1.0.1";
 
 /** Base URL the MediaPipe FilesetResolver fetches its WASM bundle
  *  from. Library code only — version-pinned for reproducibility, no
