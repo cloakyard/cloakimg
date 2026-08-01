@@ -27,6 +27,7 @@ import {
   clampCrop,
   cropPosition,
   cropZoom,
+  cutGuideSegments,
   findPaperPreset,
   largestCenteredCrop,
   moveCrop,
@@ -390,6 +391,8 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
 
   const position = crop && doc ? cropPosition(crop, doc.width, doc.height) : { x: 0.5, y: 0.5 };
   const zoom = crop && doc ? cropZoom(crop, doc.width, doc.height, aspect) : 0;
+  const canMoveHorizontal = !!(crop && doc && doc.width - crop.w > 0.5);
+  const canMoveVertical = !!(crop && doc && doc.height - crop.h > 0.5);
 
   return (
     <>
@@ -510,25 +513,51 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
               }
             />
           </PropRow>
-          <PropRow label="Horizontal position">
+          <PropRow
+            label="Horizontal position"
+            value={canMoveHorizontal ? undefined : "Zoom in to move"}
+          >
             <Slider
               value={position.x}
-              accent
+              accent={canMoveHorizontal}
               defaultValue={0.5}
-              ariaValueText={`${Math.round(position.x * 100)}% from left`}
-              onChange={(value) =>
-                patchTool("idPhotoCrop", moveCrop(crop, doc.width, doc.height, value, position.y))
+              ariaValueText={
+                canMoveHorizontal
+                  ? `${Math.round(position.x * 100)}% from left`
+                  : "No horizontal travel; zoom in to reposition"
+              }
+              onChange={
+                canMoveHorizontal
+                  ? (value) =>
+                      patchTool(
+                        "idPhotoCrop",
+                        moveCrop(crop, doc.width, doc.height, value, position.y),
+                      )
+                  : undefined
               }
             />
           </PropRow>
-          <PropRow label="Vertical position">
+          <PropRow
+            label="Vertical position"
+            value={canMoveVertical ? undefined : "Zoom in to move"}
+          >
             <Slider
               value={position.y}
-              accent
+              accent={canMoveVertical}
               defaultValue={0.5}
-              ariaValueText={`${Math.round(position.y * 100)}% from top`}
-              onChange={(value) =>
-                patchTool("idPhotoCrop", moveCrop(crop, doc.width, doc.height, position.x, value))
+              ariaValueText={
+                canMoveVertical
+                  ? `${Math.round(position.y * 100)}% from top`
+                  : "No vertical travel; zoom in to reposition"
+              }
+              onChange={
+                canMoveVertical
+                  ? (value) =>
+                      patchTool(
+                        "idPhotoCrop",
+                        moveCrop(crop, doc.width, doc.height, position.x, value),
+                      )
+                  : undefined
               }
             />
           </PropRow>
@@ -688,7 +717,7 @@ function SheetPreview({
         {layout.slots.map((slot, index) => (
           <div
             key={`${slot.xMm}-${slot.yMm}-${index}`}
-            className={`absolute overflow-hidden ${cutLines ? "outline outline-[0.5px] outline-slate-500/70" : ""}`}
+            className="absolute overflow-hidden"
             style={{
               left: `${(slot.xMm / layout.paper.widthMm) * 100}%`,
               top: `${(slot.yMm / layout.paper.heightMm) * 100}%`,
@@ -718,10 +747,38 @@ function SheetPreview({
                 }
               />
             ) : null}
+            {cutLines ? <CutGuideOverlay widthMm={slot.widthMm} heightMm={slot.heightMm} /> : null}
           </div>
         ))}
       </div>
     </div>
+  );
+}
+
+function CutGuideOverlay({ widthMm, heightMm }: { widthMm: number; heightMm: number }) {
+  const segments = cutGuideSegments(widthMm, heightMm, 2);
+  return (
+    <svg
+      aria-hidden="true"
+      data-id-photo-cut-guides="corner"
+      className="pointer-events-none absolute inset-0 h-full w-full text-slate-700/75"
+      viewBox={`0 0 ${widthMm} ${heightMm}`}
+      preserveAspectRatio="none"
+    >
+      {segments.map((segment, index) => (
+        <line
+          key={index}
+          x1={segment.x1}
+          y1={segment.y1}
+          x2={segment.x2}
+          y2={segment.y2}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </svg>
   );
 }
 

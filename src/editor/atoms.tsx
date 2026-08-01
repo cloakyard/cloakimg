@@ -345,7 +345,7 @@ export function Slider({
       // and Material both ask for ≥44 pt. The visible rail stays the
       // same; only the wrapper's height grows so the thumb is easier
       // to grab without changing the panel layout density.
-      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:h-11 ${onChange ? "cursor-pointer" : "cursor-default"}`}
+      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:h-11 ${onChange ? "cursor-pointer" : "cursor-default opacity-50"}`}
       title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
       <div className="relative h-0.75 w-full rounded-sm bg-border-soft pointer-coarse:h-1">

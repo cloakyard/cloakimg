@@ -214,6 +214,22 @@ async function inspectIdPhotoDropdowns(page, viewport) {
   await page.waitForFunction(() => !document.querySelector("[data-tool-panel-loading]"), {
     timeout: 5000,
   });
+  await page.waitForFunction(
+    () => {
+      const labels = Array.from(document.querySelectorAll('[role="slider"]')).map((slider) => {
+        const labelId = slider.getAttribute("aria-labelledby");
+        return labelId
+          ? document.getElementById(labelId)?.textContent?.trim()
+          : slider.getAttribute("aria-label");
+      });
+      return (
+        labels.includes("Framing") &&
+        labels.includes("Horizontal position") &&
+        labels.includes("Vertical position")
+      );
+    },
+    { timeout: 5000 },
+  );
   await new Promise((resolveDelay) => setTimeout(resolveDelay, 160));
 
   const inspect = async (stage) => {
@@ -279,6 +295,98 @@ async function inspectIdPhotoDropdowns(page, viewport) {
     path: `/tmp/cloakimg-${viewport.name}-id-photo-selects.png`,
     fullPage: false,
   });
+
+  // The portrait fixture starts with a crop that can move horizontally,
+  // while its full image height leaves no vertical travel until zoomed.
+  // Verify that unavailable state is honest, then zoom and drive both
+  // axes independently through their keyboard contract.
+  const framingState = () =>
+    page.evaluate(() => {
+      const sliderByName = (name) =>
+        Array.from(document.querySelectorAll('[role="slider"]')).find((slider) => {
+          const labelId = slider.getAttribute("aria-labelledby");
+          const label = labelId
+            ? document.getElementById(labelId)?.textContent
+            : slider.getAttribute("aria-label");
+          return label?.trim() === name;
+        });
+      const horizontal = sliderByName("Horizontal position");
+      const vertical = sliderByName("Vertical position");
+      const guides = Array.from(document.querySelectorAll('[data-id-photo-cut-guides="corner"]'));
+      return {
+        horizontalDisabled: horizontal?.getAttribute("aria-disabled") === "true",
+        verticalDisabled: vertical?.getAttribute("aria-disabled") === "true",
+        horizontalValue: Number(horizontal?.getAttribute("aria-valuenow")),
+        verticalValue: Number(vertical?.getAttribute("aria-valuenow")),
+        guideCount: guides.length,
+        invalidGuideLineCount: guides.filter((guide) => guide.querySelectorAll("line").length !== 8)
+          .length,
+        outlinedSlots: guides.filter(
+          (guide) => getComputedStyle(guide.parentElement).outlineStyle !== "none",
+        ).length,
+      };
+    });
+  const focusSlider = (name) =>
+    page.evaluate((sliderName) => {
+      const slider = Array.from(document.querySelectorAll('[role="slider"]')).find((candidate) => {
+        const labelId = candidate.getAttribute("aria-labelledby");
+        const label = labelId
+          ? document.getElementById(labelId)?.textContent
+          : candidate.getAttribute("aria-label");
+        return label?.trim() === sliderName;
+      });
+      slider?.focus();
+      return !!slider;
+    }, name);
+
+  const beforeFraming = await framingState();
+  if (
+    beforeFraming.horizontalDisabled ||
+    !beforeFraming.verticalDisabled ||
+    beforeFraming.guideCount === 0 ||
+    beforeFraming.invalidGuideLineCount > 0 ||
+    beforeFraming.outlinedSlots > 0
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-before: ${JSON.stringify(beforeFraming)}`);
+  }
+
+  await focusSlider("Framing");
+  await page.keyboard.press("End");
+  await page.waitForFunction(() => {
+    const sliders = Array.from(document.querySelectorAll('[role="slider"]'));
+    const named = (name) =>
+      sliders.find((slider) => {
+        const labelId = slider.getAttribute("aria-labelledby");
+        return document.getElementById(labelId)?.textContent?.trim() === name;
+      });
+    return (
+      named("Horizontal position")?.getAttribute("aria-disabled") !== "true" &&
+      named("Vertical position")?.getAttribute("aria-disabled") !== "true"
+    );
+  });
+  await focusSlider("Horizontal position");
+  await page.keyboard.press("End");
+  await focusSlider("Vertical position");
+  await page.keyboard.press("Home");
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 120));
+
+  const afterFraming = await framingState();
+  if (
+    afterFraming.horizontalDisabled ||
+    afterFraming.verticalDisabled ||
+    Math.abs(afterFraming.horizontalValue - 1) > 0.001 ||
+    Math.abs(afterFraming.verticalValue) > 0.001
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-after: ${JSON.stringify(afterFraming)}`);
+  }
+  console.log(
+    JSON.stringify({
+      viewport: viewport.name,
+      stage: "id-photo-framing",
+      before: beforeFraming,
+      after: afterFraming,
+    }),
+  );
 
   await page.select('select[aria-label="Photo standard"]', "india-visa");
   await page.waitForFunction(
