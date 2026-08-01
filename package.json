@@ -22,7 +22,7 @@
     "@fontsource/archivo": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@huggingface/transformers": "^4.2.0",
-    "@mediapipe/tasks-vision": "1.0.0",
+    "@mediapipe/tasks-vision": "1.0.1",
     "fabric": "^7.4.0",
     "libheif-js": "^1.19.8",
     "react": "^19.2.8",
@@ -35,16 +35,22 @@
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "@vite-pwa/assets-generator": "^1.0.2",
-    "@vitejs/plugin-react": "^6.0.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "puppeteer-core": "^25.4.0",
     "tailwindcss": "4.3.3",
     "typescript": "~7.0.2",
-    "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.6",
-    "vite-plus": "^0.2.6",
+    "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.7",
+    "vite-plus": "^0.2.7",
     "vitest": "^4.1.10"
   },
-  "packageManager": "pnpm@10.33.2"
+  "packageManager": "pnpm@10.33.2",
+  "pnpm": {
+    "overrides": {
+      "adm-zip": "0.6.0",
+      "sharp": "0.35.3"
+    }
+  }
 }
