@@ -4,6 +4,7 @@ import {
   buildSinglePagePdf,
   calculateSheetLayout,
   cropPosition,
+  cutGuideSegments,
   findPaperPreset,
   largestCenteredCrop,
   moveCrop,
@@ -42,6 +43,19 @@ describe("ID photo sheet layout", () => {
     expect(layout.copies).toBe(8);
   });
 
+  it("uses corner-only cut marks shared by preview and print output", () => {
+    expect(cutGuideSegments(35, 45, 2)).toEqual([
+      { x1: 0, y1: 2, x2: 0, y2: 0 },
+      { x1: 0, y1: 0, x2: 2, y2: 0 },
+      { x1: 33, y1: 0, x2: 35, y2: 0 },
+      { x1: 35, y1: 0, x2: 35, y2: 2 },
+      { x1: 35, y1: 43, x2: 35, y2: 45 },
+      { x1: 35, y1: 45, x2: 33, y2: 45 },
+      { x1: 2, y1: 45, x2: 0, y2: 45 },
+      { x1: 0, y1: 45, x2: 0, y2: 43 },
+    ]);
+  });
+
   it("centres, zooms, and moves a fixed-aspect crop inside the image", () => {
     const initial = largestCenteredCrop(1200, 800, 1);
     expect(initial).toEqual({ x: 200, y: 0, w: 800, h: 800 });
@@ -54,6 +68,20 @@ describe("ID photo sheet layout", () => {
     expect(moved.x).toBeCloseTo(800);
     expect(moved.y).toBeCloseTo(400);
     expect(cropPosition(moved, 1200, 800)).toEqual({ x: 1, y: 1 });
+  });
+
+  it("moves horizontal and vertical framing independently after zooming", () => {
+    const initial = largestCenteredCrop(1200, 800, 35 / 45);
+    const zoomed = zoomCrop(initial, 1200, 800, 35 / 45, 0.5);
+    const centered = moveCrop(zoomed, 1200, 800, 0.5, 0.5);
+
+    const horizontal = moveCrop(centered, 1200, 800, 1, 0.5);
+    expect(horizontal.x).toBeCloseTo(1200 - horizontal.w);
+    expect(horizontal.y).toBeCloseTo(centered.y);
+
+    const vertical = moveCrop(centered, 1200, 800, 0.5, 1);
+    expect(vertical.x).toBeCloseTo(centered.x);
+    expect(vertical.y).toBeCloseTo(800 - vertical.h);
   });
 
   it("writes an exact-size one-page PDF wrapper around JPEG bytes", () => {

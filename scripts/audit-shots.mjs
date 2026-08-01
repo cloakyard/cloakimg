@@ -185,6 +185,178 @@ async function inspectFooter(page, viewport) {
   }
 }
 
+async function inspectOpenSelectList(page, viewport, label, stage) {
+  const trigger = await page.$(`button[role="combobox"][aria-label="${label}"]`);
+  if (!trigger) {
+    failures.push(`${viewport.name}/${stage}: ${label} trigger missing`);
+    return;
+  }
+  await trigger.click();
+
+  await page.waitForFunction(
+    (accessibleName) => {
+      const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
+        (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+      );
+      const listbox = trigger?.getAttribute("aria-controls");
+      return listbox && document.getElementById(listbox)?.dataset.ready === "true";
+    },
+    { timeout: 3000 },
+    label,
+  );
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 180));
+
+  const result = await page.evaluate((accessibleName) => {
+    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
+      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+    );
+    const native = Array.from(document.querySelectorAll("select")).find(
+      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+    );
+    const listbox = trigger?.getAttribute("aria-controls")
+      ? document.getElementById(trigger.getAttribute("aria-controls"))
+      : null;
+    if (!trigger || !native || !listbox) return { missing: true };
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const listboxRect = listbox.getBoundingClientRect();
+    const options = Array.from(listbox.querySelectorAll('[role="option"]'));
+    const labels = Array.from(listbox.querySelectorAll(".select-control__option-label"));
+    const selected = options.filter((option) => option.getAttribute("aria-selected") === "true");
+    const selectedRect = selected[0]?.getBoundingClientRect();
+    const groupLabels = Array.from(listbox.querySelectorAll(".select-control__group-label"));
+    const activeId = trigger.getAttribute("aria-activedescendant");
+    const indicator = trigger.querySelector(".select-control__indicator svg");
+    const itemHeights = options.map((option) => option.getBoundingClientRect().height);
+    let topLayer = false;
+    try {
+      topLayer = listbox.matches(":popover-open");
+    } catch {
+      topLayer = false;
+    }
+
+    return {
+      missing: false,
+      expanded: trigger.getAttribute("aria-expanded"),
+      selectedValue: native.value,
+      nativeOptionCount: native.options.length,
+      optionCount: options.length,
+      nativeGroupCount: native.querySelectorAll("optgroup").length,
+      groupCount: listbox.querySelectorAll('[role="group"]').length,
+      selectedCount: selected.length,
+      selectedLabel: selected[0]?.textContent?.trim(),
+      selectedMarker: !!selected[0]?.querySelector(".select-control__option-marker svg"),
+      selectedFullyVisible: !!(
+        selectedRect &&
+        selectedRect.top >= listboxRect.top - 1 &&
+        selectedRect.bottom <= listboxRect.bottom + 1
+      ),
+      activeOptionExists: !!(activeId && document.getElementById(activeId)),
+      triggerWidth: Math.round(triggerRect.width),
+      bounds: {
+        left: Math.round(listboxRect.left),
+        right: Math.round(listboxRect.right),
+        top: Math.round(listboxRect.top),
+        bottom: Math.round(listboxRect.bottom),
+      },
+      minItemHeight: Math.round(Math.min(...itemHeights)),
+      listHorizontalOverflow: listbox.scrollWidth > listbox.clientWidth + 1,
+      labelHorizontalOverflow: labels.some((entry) => entry.scrollWidth > entry.clientWidth + 1),
+      optionFont: options[0] ? getComputedStyle(options[0]).fontFamily : "",
+      groupFont: groupLabels[0] ? getComputedStyle(groupLabels[0]).fontFamily : "",
+      background: getComputedStyle(listbox).backgroundColor,
+      arrowTransform: indicator ? getComputedStyle(indicator).transform : "missing",
+      placement: listbox.dataset.placement,
+      topLayer,
+    };
+  }, label);
+
+  const minimumHeight = viewport.touch ? 44 : 40;
+  const invalid =
+    result.missing ||
+    result.expanded !== "true" ||
+    result.nativeOptionCount !== result.optionCount ||
+    result.nativeGroupCount !== result.groupCount ||
+    result.selectedCount !== 1 ||
+    !result.selectedMarker ||
+    !result.selectedFullyVisible ||
+    !result.activeOptionExists ||
+    result.bounds.left < LISTBOX_EDGE_TOLERANCE ||
+    result.bounds.right > viewport.width + 1 ||
+    result.bounds.top < LISTBOX_EDGE_TOLERANCE ||
+    result.bounds.bottom > viewport.height + 1 ||
+    result.bounds.right - result.bounds.left + 1 < result.triggerWidth ||
+    result.minItemHeight < minimumHeight ||
+    result.listHorizontalOverflow ||
+    result.labelHorizontalOverflow ||
+    !result.optionFont.includes("Archivo") ||
+    (result.groupCount > 0 && !result.groupFont.includes("JetBrains Mono")) ||
+    result.background === "rgba(0, 0, 0, 0)" ||
+    result.arrowTransform === "none" ||
+    !result.topLayer;
+  if (invalid) {
+    failures.push(`${viewport.name}/${stage}: ${JSON.stringify(result)}`);
+  }
+  console.log(JSON.stringify({ viewport: viewport.name, stage, listbox: result }));
+
+  await page.screenshot({
+    path: `/tmp/cloakimg-${viewport.name}-${stage}.png`,
+    fullPage: false,
+  });
+
+  const beforeNavigation = await page.evaluate((accessibleName) => {
+    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
+      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+    );
+    const native = Array.from(document.querySelectorAll("select")).find(
+      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+    );
+    return {
+      active: trigger?.getAttribute("aria-activedescendant"),
+      value: native?.value,
+    };
+  }, label);
+  await page.keyboard.press("ArrowDown");
+  const afterArrow = await page.evaluate((accessibleName) => {
+    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
+      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+    );
+    return trigger?.getAttribute("aria-activedescendant");
+  }, label);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(
+    (accessibleName) =>
+      Array.from(document.querySelectorAll('button[role="combobox"]'))
+        .find((candidate) => candidate.getAttribute("aria-label") === accessibleName)
+        ?.getAttribute("aria-expanded") === "false",
+    { timeout: 3000 },
+    label,
+  );
+  const afterDismiss = await page.evaluate((accessibleName) => {
+    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
+      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+    );
+    const native = Array.from(document.querySelectorAll("select")).find(
+      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+    );
+    return {
+      focused: document.activeElement === trigger,
+      value: native?.value,
+    };
+  }, label);
+  if (
+    beforeNavigation.active === afterArrow ||
+    beforeNavigation.value !== afterDismiss.value ||
+    !afterDismiss.focused
+  ) {
+    failures.push(
+      `${viewport.name}/${stage}-keyboard: ${JSON.stringify({ beforeNavigation, afterArrow, afterDismiss })}`,
+    );
+  }
+}
+
+const LISTBOX_EDGE_TOLERANCE = 7;
+
 async function inspectIdPhotoDropdowns(page, viewport) {
   if (viewport.width <= 600) {
     await page.evaluate(() => {
@@ -214,6 +386,22 @@ async function inspectIdPhotoDropdowns(page, viewport) {
   await page.waitForFunction(() => !document.querySelector("[data-tool-panel-loading]"), {
     timeout: 5000,
   });
+  await page.waitForFunction(
+    () => {
+      const labels = Array.from(document.querySelectorAll('[role="slider"]')).map((slider) => {
+        const labelId = slider.getAttribute("aria-labelledby");
+        return labelId
+          ? document.getElementById(labelId)?.textContent?.trim()
+          : slider.getAttribute("aria-label");
+      });
+      return (
+        labels.includes("Framing") &&
+        labels.includes("Horizontal position") &&
+        labels.includes("Vertical position")
+      );
+    },
+    { timeout: 5000 },
+  );
   await new Promise((resolveDelay) => setTimeout(resolveDelay, 160));
 
   const inspect = async (stage) => {
@@ -280,9 +468,133 @@ async function inspectIdPhotoDropdowns(page, viewport) {
     fullPage: false,
   });
 
-  await page.select('select[aria-label="Photo standard"]', "india-visa");
+  await inspectOpenSelectList(page, viewport, "Photo standard", "id-photo-standard-menu");
+  if (viewport.name === "desktop") {
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "dark" }]);
+    await inspectOpenSelectList(page, viewport, "Photo standard", "id-photo-standard-menu-dark");
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
+  }
+
+  // The portrait fixture starts with a crop that can move horizontally,
+  // while its full image height leaves no vertical travel until zoomed.
+  // Verify that unavailable state is honest, then zoom and drive both
+  // axes independently through their keyboard contract.
+  const framingState = () =>
+    page.evaluate(() => {
+      const sliderByName = (name) =>
+        Array.from(document.querySelectorAll('[role="slider"]')).find((slider) => {
+          const labelId = slider.getAttribute("aria-labelledby");
+          const label = labelId
+            ? document.getElementById(labelId)?.textContent
+            : slider.getAttribute("aria-label");
+          return label?.trim() === name;
+        });
+      const horizontal = sliderByName("Horizontal position");
+      const vertical = sliderByName("Vertical position");
+      const guides = Array.from(document.querySelectorAll('[data-id-photo-cut-guides="corner"]'));
+      return {
+        horizontalDisabled: horizontal?.getAttribute("aria-disabled") === "true",
+        verticalDisabled: vertical?.getAttribute("aria-disabled") === "true",
+        horizontalValue: Number(horizontal?.getAttribute("aria-valuenow")),
+        verticalValue: Number(vertical?.getAttribute("aria-valuenow")),
+        guideCount: guides.length,
+        invalidGuideLineCount: guides.filter((guide) => guide.querySelectorAll("line").length !== 8)
+          .length,
+        outlinedSlots: guides.filter(
+          (guide) => getComputedStyle(guide.parentElement).outlineStyle !== "none",
+        ).length,
+      };
+    });
+  const focusSlider = (name) =>
+    page.evaluate((sliderName) => {
+      const slider = Array.from(document.querySelectorAll('[role="slider"]')).find((candidate) => {
+        const labelId = candidate.getAttribute("aria-labelledby");
+        const label = labelId
+          ? document.getElementById(labelId)?.textContent
+          : candidate.getAttribute("aria-label");
+        return label?.trim() === sliderName;
+      });
+      slider?.focus();
+      return !!slider;
+    }, name);
+
+  const beforeFraming = await framingState();
+  if (
+    beforeFraming.horizontalDisabled ||
+    !beforeFraming.verticalDisabled ||
+    beforeFraming.guideCount === 0 ||
+    beforeFraming.invalidGuideLineCount > 0 ||
+    beforeFraming.outlinedSlots > 0
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-before: ${JSON.stringify(beforeFraming)}`);
+  }
+
+  await focusSlider("Framing");
+  await page.keyboard.press("End");
+  await page.waitForFunction(() => {
+    const sliders = Array.from(document.querySelectorAll('[role="slider"]'));
+    const named = (name) =>
+      sliders.find((slider) => {
+        const labelId = slider.getAttribute("aria-labelledby");
+        return document.getElementById(labelId)?.textContent?.trim() === name;
+      });
+    return (
+      named("Horizontal position")?.getAttribute("aria-disabled") !== "true" &&
+      named("Vertical position")?.getAttribute("aria-disabled") !== "true"
+    );
+  });
+  await focusSlider("Horizontal position");
+  await page.keyboard.press("End");
+  await focusSlider("Vertical position");
+  await page.keyboard.press("Home");
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 120));
+
+  const afterFraming = await framingState();
+  if (
+    afterFraming.horizontalDisabled ||
+    afterFraming.verticalDisabled ||
+    Math.abs(afterFraming.horizontalValue - 1) > 0.001 ||
+    Math.abs(afterFraming.verticalValue) > 0.001
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-after: ${JSON.stringify(afterFraming)}`);
+  }
+  console.log(
+    JSON.stringify({
+      viewport: viewport.name,
+      stage: "id-photo-framing",
+      before: beforeFraming,
+      after: afterFraming,
+    }),
+  );
+
+  await page.click('button[role="combobox"][aria-label="Photo standard"]');
+  await page.waitForSelector('.select-control__listbox[data-ready="true"]', { timeout: 3000 });
+  const indiaVisaSelected = await page.evaluate(() => {
+    const select = document.querySelector('select[aria-label="Photo standard"]');
+    const indiaOption = Array.from(select?.options ?? []).find(
+      (option) => option.value === "india-visa",
+    );
+    const trigger = document.querySelector('button[role="combobox"][aria-label="Photo standard"]');
+    const listbox = trigger?.getAttribute("aria-controls")
+      ? document.getElementById(trigger.getAttribute("aria-controls"))
+      : null;
+    const option = indiaOption
+      ? listbox?.querySelector(`[data-option-index="${indiaOption.index}"]`)
+      : null;
+    option?.click();
+    return !!option;
+  });
+  if (!indiaVisaSelected) {
+    failures.push(`${viewport.name}/id-photo-standard-menu: India visa item missing`);
+  }
   await page.waitForFunction(
-    () => document.querySelector(".select-control__value")?.textContent?.trim() === "India · Visa",
+    () =>
+      document.querySelector('select[aria-label="Photo standard"]')?.value === "india-visa" &&
+      document
+        .querySelector('select[aria-label="Photo standard"]')
+        ?.closest(".select-control")
+        ?.querySelector(".select-control__value")
+        ?.textContent?.trim() === "India · Visa",
     { timeout: 3000 },
   );
   await inspect("india-visa");
@@ -291,6 +603,7 @@ async function inspectIdPhotoDropdowns(page, viewport) {
     select.closest(".select-control")?.scrollIntoView({ block: "center" });
   });
   await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
+  await inspectOpenSelectList(page, viewport, "Paper size", "id-photo-paper-menu");
   await page.screenshot({
     path: `/tmp/cloakimg-${viewport.name}-id-photo-paper.png`,
     fullPage: false,
@@ -341,6 +654,7 @@ async function inspectBatchDropdown(page, viewport) {
   if (state.missing || state.arrowInset < 8 || state.escaped || state.overflow) {
     failures.push(`${viewport.name}/batch-select: ${JSON.stringify(state)}`);
   }
+  await inspectOpenSelectList(page, viewport, "Format", "batch-format-menu");
   await page.screenshot({
     path: `/tmp/cloakimg-${viewport.name}-batch-select.png`,
     fullPage: false,

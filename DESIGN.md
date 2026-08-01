@@ -101,8 +101,9 @@ mono section markers, hairline divisions, and the dark statement close.
 - Inputs: stable height, 1px rule, visible focus, no error layout shift.
 - Fields share `.control-field`; state changes may alter colour or outline but
   never border width or surrounding geometry.
-- Native dropdowns render through `SelectControl`, with a visible selected
-  value, protected text space, and a 12–16px arrow inset at every width.
+- Dropdowns render through `SelectControl`: a native form value beneath an
+  accessible, portalled listbox whose grouped items, selected marker, focus,
+  long-label wrapping, and 12–16px arrow inset remain consistent at every width.
 - Segmented controls expose their selection state; binary toggles use switch
   semantics. Read-only controls are disabled rather than behaving like no-op
   buttons.

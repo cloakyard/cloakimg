@@ -36,6 +36,13 @@ export interface SheetLayout {
   slots: SheetSlot[];
 }
 
+export interface CutGuideSegment {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
 export const PAPER_PRESETS: readonly PaperPreset[] = [
   {
     id: "photo-4x6",
@@ -225,6 +232,27 @@ function mmToPx(mm: number, dpi: number): number {
   return (mm * dpi) / 25.4;
 }
 
+/** Corner-only cut marks in any shared unit (millimetres for preview,
+ * pixels for the output canvas). Keeping the geometry unit-agnostic
+ * ensures the editor preview and generated sheet stay identical. */
+export function cutGuideSegments(
+  width: number,
+  height: number,
+  requestedLength: number,
+): readonly CutGuideSegment[] {
+  const length = Math.max(0, Math.min(requestedLength, width / 2, height / 2));
+  return [
+    { x1: 0, y1: length, x2: 0, y2: 0 },
+    { x1: 0, y1: 0, x2: length, y2: 0 },
+    { x1: width - length, y1: 0, x2: width, y2: 0 },
+    { x1: width, y1: 0, x2: width, y2: length },
+    { x1: width, y1: height - length, x2: width, y2: height },
+    { x1: width, y1: height, x2: width - length, y2: height },
+    { x1: length, y1: height, x2: 0, y2: height },
+    { x1: 0, y1: height, x2: 0, y2: height - length },
+  ];
+}
+
 export function renderIdPhotoSheet(
   source: HTMLCanvasElement,
   crop: Rect,
@@ -274,22 +302,15 @@ function drawCutGuide(
 ) {
   const line = Math.max(1, mmToPx(0.12, dpi));
   const length = Math.max(4, mmToPx(2, dpi));
+  const segments = cutGuideSegments(width, height, length);
   ctx.save();
   ctx.strokeStyle = "rgba(20, 18, 16, 0.72)";
   ctx.lineWidth = line;
   ctx.beginPath();
-  ctx.moveTo(x, y + length);
-  ctx.lineTo(x, y);
-  ctx.lineTo(x + length, y);
-  ctx.moveTo(x + width - length, y);
-  ctx.lineTo(x + width, y);
-  ctx.lineTo(x + width, y + length);
-  ctx.moveTo(x + width, y + height - length);
-  ctx.lineTo(x + width, y + height);
-  ctx.lineTo(x + width - length, y + height);
-  ctx.moveTo(x + length, y + height);
-  ctx.lineTo(x, y + height);
-  ctx.lineTo(x, y + height - length);
+  for (const segment of segments) {
+    ctx.moveTo(x + segment.x1, y + segment.y1);
+    ctx.lineTo(x + segment.x2, y + segment.y2);
+  }
   ctx.stroke();
   ctx.restore();
 }
