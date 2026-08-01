@@ -1,5 +1,7 @@
 import { I } from "../components/icons";
 import { GITHUB_REPO_URL } from "../constants/links";
+import { PAPER_PRESETS } from "../editor/tools/idPhotoLayout";
+import { ID_PHOTO_PRESETS } from "../editor/tools/idPhotoPresets";
 import { ALL_TOOLS } from "../editor/tools";
 
 const CAPABILITIES = [
@@ -14,7 +16,8 @@ const CAPABILITIES = [
     index: "02",
     icon: I.Eraser,
     title: "Retouch and isolate",
-    description: "Spot heal, portrait blur, background removal, and contextual tap-to-fix flows.",
+    description:
+      "Spot heal, portrait blur, and background removal with transparent, solid, gradient, or vignette output.",
     meta: "Local canvas + optional AI",
   },
   {
@@ -35,8 +38,9 @@ const CAPABILITIES = [
     index: "05",
     icon: I.Crop,
     title: "Frame and geometry",
-    description: "Crop, rotate, perspective correction, resize, borders, and presentation frames.",
-    meta: "Non-destructive workflow",
+    description:
+      "Crop, rotate, correct perspective, resize, frame, or build exact passport and visa photo sheets.",
+    meta: "Exact mm + cut guides",
   },
   {
     index: "06",
@@ -112,6 +116,41 @@ export function Features() {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section id="id-photo-workflow" className="cloak-id-feature">
+        <div className="site-frame cloak-id-feature__inner">
+          <div className="cloak-id-feature__copy">
+            <h2 className="cloak-section-title">Passport photos, ready for paper.</h2>
+            <p>
+              Start with one portrait, replace its background locally, frame it to an authority
+              size, then fill the selected paper with exact 300-DPI copies and cut guides.
+            </p>
+            <a className="cloak-text-link" href="#workbench">
+              Prepare an ID photo
+              <I.ArrowRight size={15} className="cloak-link-arrow" />
+            </a>
+          </div>
+
+          <dl className="cloak-id-feature__ledger">
+            <div>
+              <dt>Photo standards</dt>
+              <dd>{ID_PHOTO_PRESETS.length} passport, ID, visa, and custom formats</dd>
+            </div>
+            <div>
+              <dt>Background</dt>
+              <dd>Transparent, solid colour, one-colour gradient, or vignette</dd>
+            </div>
+            <div>
+              <dt>Paper</dt>
+              <dd>{PAPER_PRESETS.length} photo and office sizes, packed automatically</dd>
+            </div>
+            <div>
+              <dt>Output</dt>
+              <dd>Exact-size PDF or browser print, with cut guides on by default</dd>
+            </div>
+          </dl>
+        </div>
       </section>
 
       <section id="privacy-model" className="cloak-proof-band">

@@ -9,6 +9,7 @@
 import type { Canvas as FabricCanvas } from "fabric";
 import { createCanvas, type EditorDoc, type Layer } from "./doc";
 import { filterAndInjectExif, type KeepRules } from "./tools/exifFilter";
+import { TRANSIENT_CLOAK_KINDS } from "./tools/penPath";
 
 export type Format = "jpeg" | "png" | "webp" | "avif" | "heic";
 
@@ -104,35 +105,7 @@ export async function exportDoc(
   outW = Math.max(1, outW);
   outH = Math.max(1, outH);
 
-  const out = createCanvas(outW, outH);
-  const ctx = out.getContext("2d");
-  if (!ctx) throw new Error("Could not create export context");
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(doc.working, 0, 0, outW, outH);
-
-  // All non-destructive layers (text, watermark, watermarkImage, draw)
-  // are now Fabric objects (Phases F2-B-1 through F2-B-4). The
-  // `layers` array is retained as a typed slot for future reuse but
-  // contributes nothing to the export bake.
-  void layers;
-  const sx = outW / doc.width;
-  const sy = outH / doc.height;
-
-  // Bake Fabric objects (Phase F2-B onwards). Their coordinates live
-  // in image-space, so a single ctx.scale(sx, sy) brings them to the
-  // export canvas's output-space; each object's own matrix
-  // (left/top/scaleX/scaleY/angle/originX/originY) is applied by
-  // Fabric.Object.render.
-  if (fabricCanvas) {
-    ctx.save();
-    ctx.scale(sx, sy);
-    for (const obj of fabricCanvas.getObjects()) {
-      if (!obj.visible) continue;
-      obj.render(ctx);
-    }
-    ctx.restore();
-  }
-
+  const out = renderCompositeCanvas(doc, layers, outW, outH, fabricCanvas);
   let blob = await encode(out, format, settings.quality);
   // JPEG-only: optionally splice the source's EXIF (filtered per the
   // metadata panel toggles) into the freshly-encoded bytes.
@@ -146,6 +119,49 @@ export async function exportDoc(
   }
   const fileName = renameForFormat(doc.fileName, format);
   return { blob, format, width: outW, height: outH, fileName };
+}
+
+/** Render the editable raster plus persistent Fabric layers to a
+ *  canvas. Tool-owned handles and crop guides are intentionally
+ *  omitted so output actions can run while a tool is still active. */
+export function renderCompositeCanvas(
+  doc: EditorDoc,
+  layers: Layer[],
+  outW = doc.width,
+  outH = doc.height,
+  fabricCanvas?: FabricCanvas | null,
+): HTMLCanvasElement {
+  const out = createCanvas(Math.max(1, Math.round(outW)), Math.max(1, Math.round(outH)));
+  const ctx = out.getContext("2d");
+  if (!ctx) throw new Error("Could not create export context");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(doc.working, 0, 0, out.width, out.height);
+
+  // All non-destructive layers (text, watermark, watermarkImage, draw)
+  // are now Fabric objects (Phases F2-B-1 through F2-B-4). The
+  // `layers` array is retained as a typed slot for future reuse but
+  // contributes nothing to the export bake.
+  void layers;
+  const sx = out.width / doc.width;
+  const sy = out.height / doc.height;
+
+  // Bake Fabric objects (Phase F2-B onwards). Their coordinates live
+  // in image-space, so a single ctx.scale(sx, sy) brings them to the
+  // export canvas's output-space; each object's own matrix
+  // (left/top/scaleX/scaleY/angle/originX/originY) is applied by
+  // Fabric.Object.render.
+  if (fabricCanvas) {
+    ctx.save();
+    ctx.scale(sx, sy);
+    for (const obj of fabricCanvas.getObjects()) {
+      if (!obj.visible) continue;
+      const kind = (obj as { cloakKind?: string }).cloakKind ?? "";
+      if (TRANSIENT_CLOAK_KINDS.has(kind)) continue;
+      obj.render(ctx);
+    }
+    ctx.restore();
+  }
+  return out;
 }
 
 async function encode(canvas: HTMLCanvasElement, format: Format, quality: number): Promise<Blob> {

@@ -13,11 +13,9 @@ scaffolding is in place.
 ## TL;DR
 
 The chrome, document model, history, layout, theme switching, landing
-flow, batch runner, and export pipeline are real. All **21 tools** in
-the rail (the 14 originals plus Shapes / Pen / Stickers from the F4.5
-rollup and Levels / Selective colour / Perspective / Border from the
-F4.10 additions) have working, non-placeholder behaviour with accurate
-live previews and keyboard shortcuts.
+flow, batch runner, and export pipeline are real. All **26 tools** in
+the rail have working, non-placeholder behaviour with accurate live
+previews and keyboard shortcuts where appropriate.
 
 - **Phases 1–4** (the original feature build) are **done**.
 - **Phases F0–F3** of the Fabric.js integration are **done**: Fabric is
@@ -67,11 +65,16 @@ live previews and keyboard shortcuts.
   component for live preview, a Panel for desktop/tablet/mobile
   parity, history commit, auto-flush on tool switch where
   appropriate, and a keyboard shortcut.
-- **Phases F5 (project save / load), F6 (polish), F7 (verify & ship)**
-  remain.
+- **Phase F4.11 (design-system UX audit)** is **done** — shared field,
+  segmented-control, switch, focus, disabled, and coarse-pointer contracts
+  are consistent across the workbench. All 26 tool panels pass automated
+  accessible-name, bounds, and 44px touch-target checks; responsive visual
+  audits pass from desktop through 280px Android layouts.
+- **Phases F5 (project save / load) and F6 (object polish)** remain.
+  F7 automation is complete; its manual ship checklist and bundle target remain.
 
-Bundle: ~649 KB raw / ~196 KB gzipped (slightly over the 110 KB
-Fabric-delta target — F7 audit will prune if we go more).
+The production build is clean. Optional AI and WASM assets are emitted as
+separate lazy-loaded chunks; F7 retains the final application bundle audit.
 
 ---
 
@@ -96,9 +99,10 @@ Fabric-delta target — F7 audit will prune if we go more).
 | F4.8  | Tone curve                                     | Done — Catmull-Rom curve editor over the histogram in Adjust; LUT bakes after every other adjust stage; live preview                                                                             |
 | F4.9  | Refinement (touch / usability pass)            | Done — curve editor square aspect + drag-off delete + coarse-pointer geometry; numeric readout coarse sizing; iOS-safe slider double-tap; tighter two-finger-tap; export modal mobile button row |
 | F4.10 | New tools pack (Levels / HSL / Persp / Border) | Done — four new rail entries, each with desktop/tablet/mobile parity, live preview where it makes sense, and a single-key shortcut                                                               |
+| F4.11 | Design-system UX audit                         | Done — shared control states, semantic switches, compact desktop density, coarse-pointer targets, and six responsive viewport audits                                                             |
 | F5    | Project save / load                            | Pending                                                                                                                                                                                          |
 | F6    | Polish (group, lock, copy, etc.)               | Pending                                                                                                                                                                                          |
-| F7    | Verify & ship Fabric-era                       | Pending                                                                                                                                                                                          |
+| F7    | Verify & ship Fabric-era                       | In progress — check, unit, tool-rail, component, responsive visual, and production-build automation pass; manual ship matrix remains                                                             |
 
 ---
 
@@ -988,9 +992,9 @@ commit on apply).
       so the rail reads identical-output until the user changes
       something.
 
-`vp check` clean across all 119 files. `vp build` clean. The mobile
-rail is already a horizontal scroller (Phase F4.5) so the four new
-entries fit without any chrome refactor.
+Current validation is clean across 258 source files and 434 unit/component
+tests. The 26-tool sweep, shared component audit, production build, and six
+responsive viewport audits also pass.
 
 ### ⏳ Phase F5 — Project save / load
 
@@ -1019,7 +1023,10 @@ entries fit without any chrome refactor.
 
 ### ⏳ Phase F7 — Verify & ship Fabric-era
 
-- [ ] `vp check` clean.
+- [x] `vp check`, `vp test`, and `vp build` clean.
+- [x] Automated 26-tool control/accessibility sweep clean.
+- [x] Automated responsive visual audit clean at 1440, 768, 414, 375,
+      320, and 280px.
 - [ ] Manual smoke matrix re-run focused on layer behaviour:
   - Every tool × every theme × every layout.
   - Multi-select + transform.
@@ -1045,8 +1052,8 @@ entries fit without any chrome refactor.
    Chaikin pass).
 6. i18n layer (strings are hardcoded English).
 7. Explicit focus-return on modal close.
-8. A test harness — `vp test` is wired but no `*.test.ts` files
-   exist.
+8. Continue expanding browser regression coverage for long-running AI,
+   offline, and large-image stress cases.
 9. Custom branded transform handles via Fabric custom controls.
 10. WebGL Fabric backend for very large canvases.
 11. Animation timeline (Fabric supports per-property animations).

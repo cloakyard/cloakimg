@@ -19,7 +19,7 @@ const ROOT = resolve(__dirname, "..");
 const chromePath =
   process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
-const TEST_JPG = resolve(ROOT, "test-fixtures/IMG_1804.jpg");
+const TEST_JPG = resolve(ROOT, "test-fixtures/00554.jpg");
 
 if (!existsSync(chromePath) || !existsSync(TEST_JPG)) {
   console.error("Chrome or test fixture missing");
@@ -50,6 +50,7 @@ const TOOLS = [
   "Place image",
   "Color picker",
   "Resize",
+  "ID photo sheet",
   "Frame",
   "Border",
 ];
@@ -58,7 +59,10 @@ const profileDir = mkdtempSync(resolve(tmpdir(), "cloakimg-sweep-"));
 const browser = await puppeteer.launch({
   executablePath: chromePath,
   headless: true,
-  defaultViewport: { width: 1400, height: 900 },
+  // Keep the desktop workbench composition while enabling coarse-pointer
+  // media queries. This catches controls that look tidy with a mouse but
+  // miss the 44px touch contract on tablets and touch-screen laptops.
+  defaultViewport: { width: 1400, height: 900, hasTouch: true, isMobile: false },
   args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", `--user-data-dir=${profileDir}`],
 });
 
@@ -130,6 +134,45 @@ for (const label of TOOLS) {
   // consent/confirmation dialog behind the user's back.
   const state = await page.evaluate((l) => {
     const norm = (s) => (s ?? "").toLowerCase();
+    const isVisible = (element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        style.display !== "none" &&
+        style.visibility !== "hidden"
+      );
+    };
+    const accessibleName = (element) => {
+      const direct = element.getAttribute("aria-label")?.trim();
+      if (direct) return direct;
+
+      const labelledBy = element.getAttribute("aria-labelledby");
+      if (labelledBy) {
+        const referenced = labelledBy
+          .split(/\s+/)
+          .map((id) => document.getElementById(id)?.textContent?.trim() ?? "")
+          .filter(Boolean)
+          .join(" ");
+        if (referenced) return referenced;
+      }
+
+      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement) {
+        const labels = Array.from(element.labels ?? [])
+          .map((label) => label.textContent?.trim() ?? "")
+          .filter(Boolean)
+          .join(" ");
+        if (labels) return labels;
+      }
+
+      return (
+        element.textContent?.trim() ||
+        element.getAttribute("title")?.trim() ||
+        element.getAttribute("alt")?.trim() ||
+        ""
+      );
+    };
     const active = Array.from(document.querySelectorAll(".editor-toolrail button")).some(
       (button) =>
         button.getAttribute("aria-pressed") === "true" &&
@@ -146,12 +189,8 @@ for (const label of TOOLS) {
           )
             .filter((control) => {
               const rect = control.getBoundingClientRect();
-              const style = getComputedStyle(control);
               return (
-                rect.width > 0 &&
-                rect.height > 0 &&
-                style.display !== "none" &&
-                style.visibility !== "hidden" &&
+                isVisible(control) &&
                 rect.right > panelRect.left &&
                 rect.left < panelRect.right &&
                 !control.closest(".overflow-x-auto")
@@ -166,14 +205,56 @@ for (const label of TOOLS) {
                 control.getAttribute("aria-label") || control.textContent?.trim().slice(0, 40),
             )
         : [];
+    const missingNames = panelScroller
+      ? Array.from(
+          panelScroller.querySelectorAll(
+            'button, input, select, textarea, [role="slider"], [role="tab"], [role="radio"], [role="switch"]',
+          ),
+        )
+          .filter((control) => isVisible(control))
+          .filter((control) => !accessibleName(control))
+          .map((control) => ({
+            tag: control.tagName.toLowerCase(),
+            type: control.getAttribute("type"),
+            role: control.getAttribute("role"),
+          }))
+      : [];
+    const tinyTouchTargets = panelScroller
+      ? Array.from(
+          panelScroller.querySelectorAll(
+            'button, a[href], input:not([type="hidden"]), select, textarea, [role="slider"], [role="switch"]',
+          ),
+        )
+          .filter((control) => isVisible(control))
+          .filter((control) => {
+            const rect = control.getBoundingClientRect();
+            return rect.width < 43 || rect.height < 43;
+          })
+          .map((control) => {
+            const rect = control.getBoundingClientRect();
+            return {
+              name: accessibleName(control).slice(0, 48),
+              size: `${Math.round(rect.width)}×${Math.round(rect.height)}`,
+            };
+          })
+      : [];
     return {
       active,
       canvas: !!document.querySelector("canvas"),
       dialog: document.querySelector('[role="dialog"]')?.textContent?.trim().slice(0, 80) ?? null,
       escapedControls,
+      missingNames,
+      tinyTouchTargets,
     };
   }, label);
-  if (!state.canvas || !state.active || state.dialog || state.escapedControls.length > 0) {
+  if (
+    !state.canvas ||
+    !state.active ||
+    state.dialog ||
+    state.escapedControls.length > 0 ||
+    state.missingNames.length > 0 ||
+    state.tinyTouchTargets.length > 0
+  ) {
     console.error(`  ✗ ${label}: ${JSON.stringify(state)}`);
     fails++;
     continue;
@@ -194,6 +275,7 @@ if (filteredErrors.length > 0) {
 if (filteredConsole.length > 0) {
   console.error("\nconsole errors:");
   for (const t of filteredConsole) console.error("  ", t);
+  fails++;
 }
 
 await browser.close();

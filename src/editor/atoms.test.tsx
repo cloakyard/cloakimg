@@ -23,7 +23,7 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { PropRow, Segment, Slider } from "./atoms";
+import { NumericReadout, PropRow, Segment, Slider, ToggleSwitch } from "./atoms";
 
 describe("Segment", () => {
   it("renders one <button> per option", () => {
@@ -83,6 +83,12 @@ describe("Segment", () => {
     expect(screen.getByRole("button", { name: "C" })).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("disables every option when no change handler is provided", () => {
+    render(<Segment options={["A", "B"]} active={0} />);
+    expect(screen.getByRole("button", { name: "A" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "B" })).toBeDisabled();
+  });
+
   it("renders no buttons when options=[] (graceful empty state)", () => {
     const { container } = render(<Segment options={[]} active={0} onChange={() => undefined} />);
     expect(container.querySelectorAll("button")).toHaveLength(0);
@@ -122,5 +128,58 @@ describe("Slider", () => {
     const slider = screen.getByRole("slider", { name: "Read only" });
     expect(slider).toHaveAttribute("aria-disabled", "true");
     expect(slider).toHaveAttribute("tabindex", "-1");
+  });
+});
+
+describe("PropRow accessibility", () => {
+  it("names an editable numeric readout with its property label", () => {
+    render(
+      <PropRow
+        label="Exposure"
+        valueInput={
+          <NumericReadout
+            display="+0.0"
+            normalized={0.5}
+            fromNormalized={(value) => value}
+            toNormalized={(value) => value}
+            onCommit={() => undefined}
+          />
+        }
+      >
+        <Slider value={0.5} onChange={() => undefined} />
+      </PropRow>,
+    );
+
+    expect(screen.getByRole("textbox", { name: "Exposure" })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: "Exposure" })).toBeInTheDocument();
+  });
+
+  it("names a toggle placed in the value slot with its property label", () => {
+    render(
+      <PropRow
+        label="Progressive falloff"
+        valueInput={<ToggleSwitch on={false} onChange={() => undefined} />}
+      >
+        <span>Details</span>
+      </PropRow>,
+    );
+
+    expect(screen.getByRole("switch", { name: "Progressive falloff" })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+  });
+
+  it("supports an explicit toggle name outside PropRow", () => {
+    render(<ToggleSwitch ariaLabel="Grayscale" on onChange={() => undefined} />);
+    expect(screen.getByRole("switch", { name: "Grayscale" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("disables a read-only toggle instead of leaving a no-op button", () => {
+    render(<ToggleSwitch ariaLabel="Read only" on={false} />);
+    expect(screen.getByRole("switch", { name: "Read only" })).toBeDisabled();
   });
 });

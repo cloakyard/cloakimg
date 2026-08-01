@@ -73,6 +73,14 @@ export interface DrawLayer extends BaseLayer {
 
 export type Layer = TextLayer | WatermarkLayer | WatermarkImageLayer | DrawLayer;
 
+/** Semantic background state captured alongside pixels in history.
+ *  "original" means the editor has not deliberately isolated the
+ *  subject yet; the remaining values are outputs of Remove BG. Keeping
+ *  this tiny bit of metadata with the document lets ID Photo report an
+ *  opaque replacement background as ready and keeps that status honest
+ *  across undo / redo. */
+export type BackgroundTreatment = "original" | "transparent" | "solid" | "gradient" | "vignette";
+
 export interface EditorDoc {
   width: number;
   height: number;
@@ -92,6 +100,8 @@ export interface EditorDoc {
   fileName: string;
   /** Layered, non-destructive primitives. */
   layers: Layer[];
+  /** Last deliberate subject/background treatment baked into working. */
+  backgroundTreatment: BackgroundTreatment;
 }
 
 export function createCanvas(
@@ -198,6 +208,7 @@ export async function createDoc(choice: StartChoice): Promise<EditorDoc> {
       exif: null,
       fileName: `untitled_${choice.w}x${choice.h}.png`,
       layers: [],
+      backgroundTreatment: "original",
     };
   }
   const isJpeg = choice.file.type === "image/jpeg" || /\.jpe?g$/i.test(choice.file.name);
@@ -219,6 +230,7 @@ export async function createDoc(choice: StartChoice): Promise<EditorDoc> {
     exif,
     fileName: choice.file.name,
     layers: [],
+    backgroundTreatment: "original",
   };
 }
 

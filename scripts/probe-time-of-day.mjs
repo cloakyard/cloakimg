@@ -29,7 +29,7 @@ async function openEditor(page) {
   await new Promise((r) => setTimeout(r, 400));
   await page.waitForSelector('input[type="file"]', { timeout: 10000 });
   const fileInputs = await page.$$('input[type="file"]');
-  await fileInputs[0].uploadFile(TEST_JPG);
+  await fileInputs.at(-1).uploadFile(TEST_JPG);
   await page.waitForFunction(
     () =>
       Array.from(document.querySelectorAll("button")).some((b) =>
@@ -79,13 +79,20 @@ async function checkLabels(page, viewportLabel) {
   const labels = await page.evaluate(() => {
     // The label legend buttons all have aria-pressed + aria-label
     // starting with "Snap to ". Grab them in document order.
-    const buttons = Array.from(document.querySelectorAll('button[aria-label^="Snap to "]'));
+    const buttons = Array.from(document.querySelectorAll('button[aria-label^="Snap to "]')).filter(
+      (button) => {
+        const rect = button.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      },
+    );
     return buttons.map((b) => {
       const r = b.getBoundingClientRect();
       return {
         label: b.textContent?.trim() ?? "",
         left: r.left,
         right: r.right,
+        top: r.top,
+        bottom: r.bottom,
         width: r.width,
       };
     });
@@ -96,25 +103,25 @@ async function checkLabels(page, viewportLabel) {
     return false;
   }
 
-  // Verify no two labels overlap horizontally.
+  // The legend deliberately wraps into two rows. Compare rectangle
+  // intersections rather than consecutive horizontal positions — the
+  // old check treated the first button on row 2 as overlapping the last
+  // button on row 1 even when the rendered controls were clean.
   let overlap = false;
-  for (let i = 1; i < labels.length; i++) {
-    const prev = labels[i - 1];
-    const cur = labels[i];
-    if (cur.left < prev.right) {
-      console.log(
-        `  ${viewportLabel}: OVERLAP — "${prev.label}" (right ${prev.right.toFixed(1)}) into "${cur.label}" (left ${cur.left.toFixed(1)})`,
-      );
-      overlap = true;
+  for (let i = 0; i < labels.length; i++) {
+    for (let j = i + 1; j < labels.length; j++) {
+      const a = labels[i];
+      const b = labels[j];
+      const intersects =
+        a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+      if (intersects) {
+        console.log(`  ${viewportLabel}: OVERLAP — "${a.label}" with "${b.label}"`);
+        overlap = true;
+      }
     }
   }
   if (!overlap) {
-    console.log(
-      `  ${viewportLabel}: OK — 6 labels, gaps ${labels
-        .slice(1)
-        .map((c, i) => (c.left - labels[i].right).toFixed(0))
-        .join(", ")}px`,
-    );
+    console.log(`  ${viewportLabel}: OK — 6 labels, no rectangle overlaps`);
   }
   return !overlap;
 }

@@ -126,6 +126,14 @@ export const I = {
       <path d="M15 9 V15 H9" />
     </Icon>
   ),
+  IdPhoto: (p: P) => (
+    <Icon {...p}>
+      <rect x="3" y="4" width="18" height="16" rx="1.5" />
+      <circle cx="9" cy="10" r="2.25" />
+      <path d="M5.75 16c.55-2 1.65-3 3.25-3s2.7 1 3.25 3" />
+      <path d="M15 8h3M15 12h3M15 16h2" />
+    </Icon>
+  ),
   Eraser: (p: P) => (
     <Icon
       {...p}
@@ -151,6 +159,14 @@ export const I = {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" x2="12" y1="15" y2="3" />
+    </Icon>
+  ),
+  Printer: (p: P) => (
+    <Icon {...p}>
+      <path d="M6 9V2h12v7" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
+      <path d="M18 12h.01" />
     </Icon>
   ),
   Upload: (p: P) => (

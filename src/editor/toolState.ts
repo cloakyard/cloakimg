@@ -82,6 +82,14 @@ export interface ToolState {
   flipH: boolean;
   flipV: boolean;
 
+  // ID photo sheet — non-destructive crop + physical output settings.
+  idPhotoPresetId: string;
+  idPhotoPaperId: string;
+  idPhotoCrop: Rect | null;
+  idPhotoCustomW: number;
+  idPhotoCustomH: number;
+  idPhotoCutLines: boolean;
+
   // Resize
   resizeW: number;
   resizeH: number;
@@ -209,6 +217,12 @@ export interface ToolState {
    *  sampling). Auto is the default; chroma stays available for
    *  flat studio backdrops where it's faster + needs no model load. */
   bgMode: number;
+  /** Output behind the cutout: 0 transparent, 1 solid, 2 gradient,
+   *  3 vignette. Gradient/vignette derive their tones from the single
+   *  user-selected base colour. */
+  bgFillMode: number;
+  /** Base colour used by solid, gradient, and vignette output. */
+  bgFillColor: string;
   /** Auto-mode quality / size trade-off (ISNet ONNX dump):
    *    0 = small  (~42 MB q8 model, fastest, fits any device)
    *    1 = medium (~84 MB fp16 model, sharper edges)
@@ -335,6 +349,13 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   flipH: false,
   flipV: false,
 
+  idPhotoPresetId: "us-passport",
+  idPhotoPaperId: "photo-4x6",
+  idPhotoCrop: null,
+  idPhotoCustomW: 35,
+  idPhotoCustomH: 45,
+  idPhotoCutLines: true,
+
   resizeW: 0,
   resizeH: 0,
   resizeAspectLock: true,
@@ -425,6 +446,8 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   bgSample: null,
   bgPickActive: false,
   bgMode: 0,
+  bgFillMode: 0,
+  bgFillColor: "#ffffff",
   bgQuality: 0,
   // 0.5 = balanced; matches the centre of the dial and the alpha
   // threshold the lib was implicitly using before we exposed the

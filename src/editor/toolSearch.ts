@@ -21,6 +21,7 @@ const SEARCH_ALIASES: Partial<Record<ToolId, string>> = {
   mark: "logo copyright stamp",
   image: "overlay composite photo",
   color: "eyedropper sample pixel",
+  idphoto: "passport visa country biometric print paper copies ID photo",
 };
 
 export function searchEditorTools(query: string, tools: readonly Tool[] = ALL_TOOLS): Tool[] {

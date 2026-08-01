@@ -130,7 +130,7 @@ export function TextPanel() {
             else patchTool("textValue", e.target.value);
           }}
           rows={2}
-          className="w-full resize-y rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500"
+          className="control-field min-h-24 w-full resize-y bg-page-bg py-2"
         />
       </PropRow>
       <PropRow label="Font">
@@ -332,9 +332,10 @@ function StyleToggle({ label, on, italic, underline, onChange }: StyleToggleProp
   return (
     <button
       type="button"
+      aria-label={label}
       aria-pressed={on}
       onClick={() => onChange(!on)}
-      className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded border-none font-[inherit] text-[12px] font-semibold ${
+      className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded border-none font-[inherit] text-[12px] font-semibold pointer-coarse:h-11 pointer-coarse:w-11 ${
         on
           ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
           : "bg-page-bg text-text-muted"

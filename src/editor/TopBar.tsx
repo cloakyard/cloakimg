@@ -67,7 +67,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           type="button"
           onClick={onLogoClick}
           aria-label="Back to start"
-          className="editor-topbar__brand flex cursor-pointer items-center gap-2 border-none bg-transparent p-0 font-[inherit] text-inherit"
+          className="editor-topbar__brand flex cursor-pointer items-center gap-2 rounded-md border-none bg-transparent p-0 font-[inherit] text-inherit pointer-coarse:min-h-11"
         >
           <BrandMark size={40} />
           {/* Brand mark + wordmark sized identically across breakpoints
@@ -88,7 +88,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="editor-topbar__file flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12px] text-inherit transition-colors hover:bg-surface"
+            className="editor-topbar__file flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-md border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12px] text-inherit transition-colors hover:bg-surface pointer-coarse:min-h-11"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
@@ -107,7 +107,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             feature most sessions never touch; the tighter pair keeps
             Batch one click away without dominating the chrome. */}
         {!isMobile && (
-          <div className="flex rounded-md border border-border-soft p-0.5">
+          <div className="flex rounded-md border border-border-soft p-0.5 pointer-coarse:p-0">
             {(["single", "batch"] as const).map((m) => {
               const active = mode === m;
               const Ic = m === "single" ? I.FileImage : I.Layers;
@@ -119,9 +119,9 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
                   title={m === "single" ? "Single photo" : "Batch"}
                   aria-label={m === "single" ? "Single photo" : "Batch"}
                   aria-pressed={active}
-                  className={`flex h-6 w-7 cursor-pointer items-center justify-center rounded-sm border-none font-[inherit] transition-colors ${
+                  className={`flex h-6 w-7 cursor-pointer items-center justify-center rounded-sm border-none font-[inherit] transition-colors pointer-coarse:h-11 pointer-coarse:w-11 ${
                     active
-                      ? "bg-surface text-text shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+                      ? "bg-surface text-text shadow-[var(--shadow-control)]"
                       : "bg-transparent text-text-muted hover:text-text"
                   }`}
                 >

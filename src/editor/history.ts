@@ -15,7 +15,7 @@
 // Restoring a compressed entry pays a single decodeImageBitmap on
 // undo/redo (a few ms for typical sizes); that's the trade.
 
-import { copyInto, type Layer, releaseCanvas, snapshot } from "./doc";
+import { type BackgroundTreatment, copyInto, type Layer, releaseCanvas, snapshot } from "./doc";
 
 export interface HistoryEntry {
   label: string;
@@ -32,6 +32,8 @@ export interface HistoryEntry {
    *  (`canvas.toJSON()` output). Null when no Fabric canvas is
    *  mounted or has nothing to serialise. */
   fabric: object | null;
+  /** Semantic background state paired with this pixel snapshot. */
+  backgroundTreatment: BackgroundTreatment;
   /** Tiny preview (≤96 px long edge) used by the History Scrubber so
    *  the user can "see" every step in the timeline rather than reading
    *  labels. Generated synchronously on push (a 24 MP downsample to
@@ -71,7 +73,13 @@ export class History {
    *  Kept uncompressed so consumers can paint it synchronously. */
   private baseEntry: HistoryEntry | null = null;
 
-  push(label: string, canvas: HTMLCanvasElement, layers: Layer[], fabric: object | null) {
+  push(
+    label: string,
+    canvas: HTMLCanvasElement,
+    layers: Layer[],
+    fabric: object | null,
+    backgroundTreatment: BackgroundTreatment = "original",
+  ) {
     // Drop any redo branch.
     const dropped = this.stack.splice(this.cursor + 1);
     for (const e of dropped) this.dispose(e);
@@ -84,6 +92,7 @@ export class History {
       height: snap.height,
       layers: cloneLayers(layers),
       fabric,
+      backgroundTreatment,
       thumb: makeThumb(snap),
     };
     this.stack.push(entry);

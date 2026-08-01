@@ -177,7 +177,7 @@ export function ImagePanel() {
   return (
     <>
       <PropRow label="Add an image">
-        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs">
+        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs pointer-coarse:min-h-11">
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
@@ -236,11 +236,7 @@ export function ImagePanel() {
 
 function ReorderButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="cursor-pointer rounded-md border border-border bg-surface px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text"
-    >
+    <button type="button" onClick={onClick} className="btn btn-secondary btn-xs justify-center">
       {label}
     </button>
   );

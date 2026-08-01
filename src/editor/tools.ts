@@ -1,4 +1,4 @@
-// tools.ts — The 15 tools the unified editor exposes, plus their group
+// tools.ts — The tools the unified editor exposes, plus their group
 // metadata for separators in the rail and mobile toolbar.
 
 import type { ComponentType } from "react";
@@ -29,6 +29,7 @@ export type ToolId =
   | "color"
   | "frame"
   | "border"
+  | "idphoto"
   | "resize";
 
 export type ToolGroup = "select" | "tone" | "privacy" | "retouch" | "mark" | "color" | "output";
@@ -132,8 +133,11 @@ export const ALL_TOOLS: Tool[] = [
   { id: "color", name: "Color picker", icon: I.Pipette, group: "color", tab: "refine" },
 
   // Output — finishing work before export. Resize first (every
-  // export needs it); Frame and Border are decorative.
+  // export needs it); ID photo creates a print product without
+  // destructively resizing the working image; Frame and Border are
+  // decorative.
   { id: "resize", name: "Resize", icon: I.Resize, group: "output", tab: "fix" },
+  { id: "idphoto", name: "ID photo sheet", icon: I.IdPhoto, group: "output", tab: "fix" },
   { id: "frame", name: "Frame", icon: I.Frame, group: "output", tab: "style" },
   { id: "border", name: "Border", icon: I.Border, group: "output", tab: "style" },
 ];

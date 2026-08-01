@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
+import { ColorPicker } from "../ColorPicker";
 import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
@@ -30,6 +31,13 @@ import { SmartActionError } from "../ai/ui/SmartActionError";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { DetectionProgressCard } from "../ai/ui/DetectionStatus";
 import { applyAlphaThreshold } from "./aiInspector";
+import {
+  backgroundFillForMode,
+  backgroundFillLabel,
+  backgroundPalette,
+  compositeCutout,
+  type BackgroundFill,
+} from "./backgroundFill";
 import { computeAutoParams, looksAlreadyRemoved, removeBackground } from "./removeBg";
 import { type BgQuality, getTierById } from "../ai/runtime/bgModels";
 import type { SmartRemoveProgress } from "../ai/runtime/segment";
@@ -56,11 +64,22 @@ export function RemoveBgPanel() {
   const [applying, setApplying] = useState(false);
 
   const isAuto = toolState.bgMode === 0;
+  const backgroundFill = backgroundFillForMode(toolState.bgFillMode);
+  const appliedTreatment =
+    doc?.backgroundTreatment === "solid" ||
+    doc?.backgroundTreatment === "gradient" ||
+    doc?.backgroundTreatment === "vignette"
+      ? doc.backgroundTreatment
+      : null;
 
   // Re-derive on every render so it tracks undo / redo. Cheap — touches
   // four 1px-thick strips of the perimeter.
   const alreadyRemoved = useMemo(
-    () => (doc ? looksAlreadyRemoved(doc.working) : false),
+    () =>
+      doc
+        ? doc.backgroundTreatment === "transparent" ||
+          (doc.backgroundTreatment === "original" && looksAlreadyRemoved(doc.working))
+        : false,
     // doc.working is mutated in place, so trigger on doc identity.
     [doc],
   );
@@ -92,40 +111,79 @@ export function RemoveBgPanel() {
   }, [doc, patchTool]);
 
   const applyChroma = useCallback(() => {
-    if (!doc || alreadyRemoved) return;
+    if (!doc || appliedTreatment || (alreadyRemoved && backgroundFill === "transparent")) {
+      return;
+    }
     setBgError(null);
-    void runBusy("Removing background…", () => {
+    const busyLabel = alreadyRemoved
+      ? "Adding background…"
+      : backgroundFill === "transparent"
+        ? "Removing background…"
+        : "Replacing background…";
+    void runBusy(busyLabel, () => {
+      let cutout: HTMLCanvasElement | null = null;
+      let composed: HTMLCanvasElement | null = null;
       try {
-        const out = removeBackground(doc.working, {
-          threshold: toolState.genericStrength,
-          feather: toolState.feather,
-          sample: parseHexSample(toolState.bgSample),
-        });
-        copyInto(doc.working, out);
-        releaseCanvas(out);
+        if (!alreadyRemoved) {
+          cutout = removeBackground(doc.working, {
+            threshold: toolState.genericStrength,
+            feather: toolState.feather,
+            sample: parseHexSample(toolState.bgSample),
+          });
+        }
+        const transparentSource = cutout ?? doc.working;
+        const output =
+          backgroundFill === "transparent"
+            ? transparentSource
+            : (composed = compositeCutout(
+                transparentSource,
+                backgroundFill,
+                toolState.bgFillColor,
+              ));
+        copyInto(doc.working, output);
+        doc.backgroundTreatment = backgroundFill;
         patchTool("bgSample", null);
         patchTool("bgPickActive", false);
-        commit("Remove BG");
+        commit(commitLabel(backgroundFill, alreadyRemoved));
       } catch (err) {
         setBgError(err instanceof Error ? err.message : "Couldn't remove background");
+      } finally {
+        if (composed) releaseCanvas(composed);
+        if (cutout) releaseCanvas(cutout);
       }
     });
   }, [
     alreadyRemoved,
+    appliedTreatment,
+    backgroundFill,
     commit,
     doc,
     patchTool,
     runBusy,
     toolState.bgSample,
+    toolState.bgFillColor,
     toolState.feather,
     toolState.genericStrength,
   ]);
 
   const applyAuto = useCallback(async () => {
-    if (!doc || alreadyRemoved) return;
+    if (!doc || appliedTreatment || (alreadyRemoved && backgroundFill === "transparent")) {
+      return;
+    }
     setBgError(null);
     setApplying(true);
     try {
+      // A transparent source needs no second segmentation pass. This is
+      // the fast path for imported PNG cutouts and for Remove BG → pick
+      // background as a two-step workflow.
+      if (alreadyRemoved) {
+        const composed = compositeCutout(doc.working, backgroundFill, toolState.bgFillColor);
+        copyInto(doc.working, composed);
+        releaseCanvas(composed);
+        doc.backgroundTreatment = backgroundFill;
+        commit(commitLabel(backgroundFill, true));
+        return;
+      }
       // Routes through the shared mask service — if another tool
       // already detected the subject for this image, this returns the
       // cached cut instantly and we skip straight to compositing.
@@ -146,14 +204,24 @@ export function RemoveBgPanel() {
       // the previous behaviour, so users who never touch the dial
       // see identical output to the pre-dial version.
       applyAlphaThreshold(cut, toolState.bgConfidence);
-      copyInto(doc.working, cut);
+      let composed: HTMLCanvasElement | null = null;
+      try {
+        const output =
+          backgroundFill === "transparent"
+            ? cut
+            : (composed = compositeCutout(cut, backgroundFill, toolState.bgFillColor));
+        copyInto(doc.working, output);
+      } finally {
+        if (composed) releaseCanvas(composed);
+      }
+      doc.backgroundTreatment = backgroundFill;
       // The mask is now identical to the working canvas alpha-keyed,
       // so further scoped tools won't benefit from re-detecting.
       // Drop the cache to free its memory.
       subjectMask.invalidate();
       patchTool("bgSample", null);
       patchTool("bgPickActive", false);
-      commit("Remove BG");
+      commit(commitLabel(backgroundFill, false));
     } catch (err) {
       // Consent flow surfaces via the host modal, not as an error
       // chip. Swallow MaskConsentError silently — the user already
@@ -163,7 +231,17 @@ export function RemoveBgPanel() {
     } finally {
       setApplying(false);
     }
-  }, [alreadyRemoved, commit, doc, patchTool, subjectMask, toolState.bgConfidence]);
+  }, [
+    alreadyRemoved,
+    appliedTreatment,
+    backgroundFill,
+    commit,
+    doc,
+    patchTool,
+    subjectMask,
+    toolState.bgConfidence,
+    toolState.bgFillColor,
+  ]);
 
   const togglePick = useCallback(() => {
     patchTool("bgPickActive", !toolState.bgPickActive);
@@ -179,7 +257,8 @@ export function RemoveBgPanel() {
   // button stay inert so the canvas keeps showing the original image.
   const chromaEngaged =
     toolState.genericStrength > 0 || toolState.feather > 0 || toolState.bgSample !== null;
-  const chromaApplyDisabled = alreadyRemoved || !chromaEngaged;
+  const chromaApplyDisabled =
+    !!appliedTreatment || (alreadyRemoved ? backgroundFill === "transparent" : !chromaEngaged);
 
   // Auto-bake registration exists for the mobile footer's global ✓.
   // Desktop/tablet already expose an explicit Apply button; registering
@@ -188,8 +267,21 @@ export function RemoveBgPanel() {
   // still registers on every layout after the user has engaged the
   // keyer because its preview needs to bake on tool switch.
   const applyActive = isAuto ? applyAuto : applyChroma;
-  const applyDirty = isAuto ? isMobile && !alreadyRemoved : !chromaApplyDisabled;
+  const applyDirty = appliedTreatment
+    ? false
+    : isAuto
+      ? isMobile && (!alreadyRemoved || backgroundFill !== "transparent")
+      : !chromaApplyDisabled;
   useApplyOnToolSwitch(applyActive, applyDirty);
+
+  if (appliedTreatment) {
+    return (
+      <>
+        <AppliedBackground treatment={appliedTreatment} />
+        <SmartActionError message={bgError} onDismiss={() => setBgError(null)} />
+      </>
+    );
+  }
 
   return (
     <>
@@ -227,6 +319,16 @@ export function RemoveBgPanel() {
           onPatchConfidence={(v) => patchTool("bgConfidence", v)}
           aiInspector={toolState.aiInspector}
           onToggleInspector={() => patchTool("aiInspector", !toolState.aiInspector)}
+          backgroundFillMode={toolState.bgFillMode}
+          backgroundColor={toolState.bgFillColor}
+          onChangeBackgroundFill={(value) => {
+            patchTool("bgFillMode", value);
+            setBgError(null);
+          }}
+          onChangeBackgroundColor={(value) => {
+            patchTool("bgFillColor", value);
+            setBgError(null);
+          }}
           // Only offer Cancel while the *central* detection is
           // running. The applying-to-canvas window after detection
           // resolves isn't cancellable in any honest sense — the
@@ -246,6 +348,16 @@ export function RemoveBgPanel() {
           bgPickActive={toolState.bgPickActive}
           alreadyRemoved={alreadyRemoved}
           applyDisabled={chromaApplyDisabled}
+          backgroundFillMode={toolState.bgFillMode}
+          backgroundColor={toolState.bgFillColor}
+          onChangeBackgroundFill={(value) => {
+            patchTool("bgFillMode", value);
+            setBgError(null);
+          }}
+          onChangeBackgroundColor={(value) => {
+            patchTool("bgFillColor", value);
+            setBgError(null);
+          }}
           onPatchFeather={(v) => patchTool("feather", v)}
           onPatchThreshold={(v) => patchTool("genericStrength", v)}
           onTogglePick={togglePick}
@@ -286,6 +398,10 @@ interface AutoProps {
    *  the overlay's coverage move. */
   aiInspector: boolean;
   onToggleInspector: () => void;
+  backgroundFillMode: number;
+  backgroundColor: string;
+  onChangeBackgroundFill: (value: number) => void;
+  onChangeBackgroundColor: (value: string) => void;
   /** Has detection ever completed in this session? Drives the
    *  "first-time download (cold)" vs "already downloaded (warm)" copy
    *  in the progress card. */
@@ -326,6 +442,10 @@ function AutoPanel({
   onPatchConfidence,
   aiInspector,
   onToggleInspector,
+  backgroundFillMode,
+  backgroundColor,
+  onChangeBackgroundFill,
+  onChangeBackgroundColor,
   onCancel,
   onChangeModel,
   onApply,
@@ -345,7 +465,7 @@ function AutoPanel({
   return (
     <>
       <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-        <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+        <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" aria-hidden="true" />
         On-device AI
       </div>
       {/* Model readout. Single source of truth for the tier picker
@@ -360,7 +480,7 @@ function AutoPanel({
             <span className="t-mono text-[11px] text-text-muted">~{meta.mb} MB</span>
             {modelCached && (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/70 bg-emerald-50 px-1.5 py-px text-[10px] font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
-                <I.Check size={9} stroke={2.5} /> Cached
+                <I.Check size={9} stroke={2.5} aria-hidden="true" /> Cached
               </span>
             )}
           </span>
@@ -368,8 +488,7 @@ function AutoPanel({
             type="button"
             onClick={onChangeModel}
             disabled={busy}
-            className="cursor-pointer rounded-md border-none bg-transparent p-0 text-[12px] font-semibold text-coral-600 hover:text-coral-700 disabled:opacity-50 dark:text-coral-300 dark:hover:text-coral-200"
-            style={{ opacity: busy ? 0.5 : 1 }}
+            className="cursor-pointer rounded-md border-none bg-transparent p-0 text-[12px] font-semibold text-coral-600 outline-2 outline-transparent hover:text-coral-700 focus-visible:outline-coral-500 active:text-coral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:text-coral-300 dark:hover:text-coral-200 dark:active:text-coral-100"
           >
             Change
           </button>
@@ -396,8 +515,9 @@ function AutoPanel({
         type="button"
         onClick={onToggleInspector}
         disabled={busy || alreadyRemoved || !maskReady}
-        aria-pressed={aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[13px] ${
+        role="switch"
+        aria-checked={aiInspector}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold outline-2 outline-transparent transition-colors focus-visible:outline-coral-500 active:bg-coral-50 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
           aiInspector
             ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
             : "bg-page-bg text-text-muted hover:bg-page-bg/70"
@@ -411,20 +531,28 @@ function AutoPanel({
         }
       >
         <span className="flex items-center gap-1.5">
-          <I.Sparkles size={12} /> See what the AI sees
+          <I.Sparkles size={12} aria-hidden="true" /> See what the AI sees
         </span>
         <span
+          aria-hidden="true"
           className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
             aiInspector ? "bg-coral-500" : "bg-text-muted/30"
           }`}
         >
           <span
-            className={`h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${
+            className={`h-3 w-3 rounded-full bg-surface shadow-[var(--shadow-control)] transition-transform ${
               aiInspector ? "translate-x-3" : "translate-x-0"
             }`}
           />
         </span>
       </button>
+
+      <BackgroundControls
+        mode={backgroundFillMode}
+        color={backgroundColor}
+        onChangeMode={onChangeBackgroundFill}
+        onChangeColor={onChangeBackgroundColor}
+      />
 
       {/* "Mask ready" pill — when the cut is already cached for this
           image (some other smart-action ran first), Apply is instant.
@@ -436,12 +564,12 @@ function AutoPanel({
           type="button"
           className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
           onClick={onApply}
-          disabled={alreadyRemoved || busy}
-          style={{ opacity: alreadyRemoved || busy ? 0.6 : 1 }}
+          disabled={(alreadyRemoved && backgroundFillMode === 0) || busy}
+          style={{ opacity: (alreadyRemoved && backgroundFillMode === 0) || busy ? 0.6 : 1 }}
         >
-          {alreadyRemoved ? (
+          {alreadyRemoved && backgroundFillMode === 0 ? (
             <>
-              <I.Check size={13} /> Background removed
+              <I.Check size={13} aria-hidden="true" /> Background removed
             </>
           ) : busy ? (
             <>
@@ -449,7 +577,14 @@ function AutoPanel({
             </>
           ) : (
             <>
-              <I.Wand size={13} /> Remove background
+              <I.Wand size={13} aria-hidden="true" />
+              {alreadyRemoved
+                ? "Add background"
+                : backgroundFillMode > 0
+                  ? "Remove + add background"
+                  : maskReady
+                    ? "Apply cutout"
+                    : "Remove background"}
             </>
           )}
         </button>
@@ -466,10 +601,14 @@ function AutoPanel({
 
       <div className="text-[11.5px] leading-relaxed text-text-muted">
         {alreadyRemoved
-          ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
-          : readyForInstant
-            ? `${meta.label} model is loaded on this device — detection is instant. Switch tiers anytime via Change.`
-            : `Downloads ~${meta.mb} MB on first apply, then runs offline. Pick a different size via Change.`}
+          ? backgroundFillMode > 0
+            ? "Transparent cutout ready. Apply the selected background without running detection again."
+            : "The background is already cleared. Choose a fill above to add one, or leave it transparent."
+          : maskReady
+            ? "Subject mask ready. Apply the cutout without running detection again."
+            : readyForInstant
+              ? `${meta.label} model is loaded on this device — detection is instant. Switch tiers anytime via Change.`
+              : `Downloads ~${meta.mb} MB on first apply, then runs offline. Pick a different size via Change.`}
       </div>
     </>
   );
@@ -485,14 +624,14 @@ function CapabilityHints() {
   return (
     <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
       <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-        <I.Info size={12} /> What it detects
+        <I.Info size={12} aria-hidden="true" /> What it detects
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11.5px] leading-snug">
         <div className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
-          <I.Check size={13} stroke={2.5} /> Works well
+          <I.Check size={13} stroke={2.5} aria-hidden="true" /> Works well
         </div>
         <div className="flex items-center gap-1.5 font-semibold text-coral-700 dark:text-coral-300">
-          <I.X size={13} stroke={2.5} /> Less reliable
+          <I.X size={13} stroke={2.5} aria-hidden="true" /> Less reliable
         </div>
         <ul className="list-none space-y-0.5 text-text-muted">
           <li>People, portraits</li>
@@ -520,6 +659,10 @@ interface ChromaProps {
   bgPickActive: boolean;
   alreadyRemoved: boolean;
   applyDisabled: boolean;
+  backgroundFillMode: number;
+  backgroundColor: string;
+  onChangeBackgroundFill: (value: number) => void;
+  onChangeBackgroundColor: (value: string) => void;
   onPatchFeather: (v: number) => void;
   onPatchThreshold: (v: number) => void;
   onTogglePick: () => void;
@@ -537,6 +680,10 @@ function ChromaPanel({
   bgPickActive,
   alreadyRemoved,
   applyDisabled,
+  backgroundFillMode,
+  backgroundColor,
+  onChangeBackgroundFill,
+  onChangeBackgroundColor,
   onPatchFeather,
   onPatchThreshold,
   onTogglePick,
@@ -560,19 +707,20 @@ function ChromaPanel({
             onClick={onTogglePick}
             disabled={alreadyRemoved}
             aria-pressed={bgPickActive}
-            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold outline-2 outline-transparent focus-visible:outline-coral-500 active:bg-page-bg disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
               bgPickActive
                 ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
                 : "bg-page-bg text-text-muted"
             }`}
-            style={{ opacity: alreadyRemoved ? 0.5 : 1 }}
           >
-            <I.Pipette size={12} />
+            <I.Pipette size={12} aria-hidden="true" />
             {bgPickActive ? "Click image…" : "Pick"}
           </button>
           {bgSample && (
             <>
               <span
+                role="img"
+                aria-label={`Sampled background colour ${bgSample}`}
                 className="h-6 w-6 shrink-0 rounded-md border border-border"
                 style={{ background: bgSample }}
                 title={bgSample}
@@ -581,9 +729,9 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8"
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-coral-500 active:bg-page-bg pointer-coarse:h-11 pointer-coarse:w-11"
               >
-                <I.X size={11} />
+                <I.X size={11} aria-hidden="true" />
               </button>
             </>
           )}
@@ -596,8 +744,14 @@ function ChromaPanel({
         disabled={alreadyRemoved}
         style={{ opacity: alreadyRemoved ? 0.5 : 1 }}
       >
-        <I.Wand size={12} /> Auto-detect
+        <I.Wand size={12} aria-hidden="true" /> Auto-detect
       </button>
+      <BackgroundControls
+        mode={backgroundFillMode}
+        color={backgroundColor}
+        onChangeMode={onChangeBackgroundFill}
+        onChangeColor={onChangeBackgroundColor}
+      />
       {showApplyButton && (
         <button
           type="button"
@@ -606,24 +760,141 @@ function ChromaPanel({
           disabled={applyDisabled}
           style={{ opacity: applyDisabled ? 0.5 : 1 }}
         >
-          {alreadyRemoved ? (
+          {alreadyRemoved && backgroundFillMode === 0 ? (
             <>
-              <I.Check size={13} /> Background removed
+              <I.Check size={13} aria-hidden="true" /> Background removed
             </>
           ) : (
             <>
-              <I.Layers size={13} /> Remove background
+              <I.Layers size={13} aria-hidden="true" />
+              {alreadyRemoved
+                ? "Add background"
+                : backgroundFillMode > 0
+                  ? "Remove + add background"
+                  : "Remove background"}
             </>
           )}
         </button>
       )}
       <div className="text-[11.5px] leading-relaxed text-text-muted">
         {alreadyRemoved
-          ? "The background is already cleared. Undo to bring it back, or place a new image to start over."
+          ? backgroundFillMode > 0
+            ? "Transparent cutout ready. Apply the selected background without keying the image again."
+            : "The background is already cleared. Choose a fill above to add one, or leave it transparent."
           : "Auto-detect tunes threshold + feather from the perimeter. Use Pick to click a specific colour on the image — useful when the subject and background share a similar tone."}
       </div>
     </>
   );
+}
+
+// ── Output background ─────────────────────────────────────────────
+
+const BACKGROUND_CHOICES: readonly { fill: BackgroundFill; label: string }[] = [
+  { fill: "transparent", label: "None" },
+  { fill: "solid", label: "Solid" },
+  { fill: "gradient", label: "Gradient" },
+  { fill: "vignette", label: "Vignette" },
+];
+
+interface BackgroundControlsProps {
+  mode: number;
+  color: string;
+  onChangeMode: (value: number) => void;
+  onChangeColor: (value: string) => void;
+}
+
+function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: BackgroundControlsProps) {
+  return (
+    <div className="space-y-2.5 border-t border-border-soft pt-2.5">
+      <PropRow label="Output background">
+        <div className="grid grid-cols-2 gap-1.5" role="group" aria-label="Output background">
+          {BACKGROUND_CHOICES.map((choice, index) => {
+            const active = index === mode;
+            return (
+              <button
+                key={choice.fill}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onChangeMode(index)}
+                className={`flex min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[11.5px] font-semibold outline-2 outline-transparent transition-colors focus-visible:outline-coral-500 active:bg-page-bg pointer-coarse:min-h-11 pointer-coarse:text-[12.5px] ${
+                  active
+                    ? "border-coral-400 bg-coral-50 text-coral-800 dark:border-coral-500 dark:bg-coral-900/25 dark:text-coral-200"
+                    : "border-border-soft bg-page-bg text-text-muted hover:border-border hover:bg-surface"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`h-6 w-6 shrink-0 rounded border border-border ${
+                    choice.fill === "transparent" ? "checker" : ""
+                  }`}
+                  style={backgroundSwatch(choice.fill, color)}
+                />
+                <span className="truncate">{choice.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </PropRow>
+
+      {mode > 0 ? (
+        <PropRow label="Base colour">
+          <ColorPicker
+            value={color}
+            onChange={onChangeColor}
+            label="Choose background colour"
+            enableEyedropper={false}
+          />
+        </PropRow>
+      ) : null}
+
+      <div className="flex gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-2 text-[10.75px] leading-relaxed text-text-muted">
+        <I.Info size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
+        <span>
+          Plain white or light grey is safest for official photos. Gradient and vignette are for
+          non-official portrait prints.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function backgroundSwatch(fill: BackgroundFill, color: string) {
+  if (fill === "transparent") return undefined;
+  const palette = backgroundPalette(color, fill);
+  if (fill === "solid") return { background: palette.first };
+  if (fill === "gradient") {
+    return { background: `linear-gradient(135deg, ${palette.first}, ${palette.second})` };
+  }
+  return {
+    background: `radial-gradient(circle at 50% 42%, ${palette.first}, ${palette.second})`,
+  };
+}
+
+function AppliedBackground({ treatment }: { treatment: "solid" | "gradient" | "vignette" }) {
+  return (
+    <div
+      role="status"
+      className="flex gap-2.5 rounded-md border border-emerald-300/60 bg-emerald-50/70 px-3 py-3 text-emerald-900 dark:border-emerald-500/25 dark:bg-emerald-900/15 dark:text-emerald-200"
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+        <I.Check size={14} stroke={2.5} aria-hidden="true" />
+      </span>
+      <span className="min-w-0">
+        <strong className="block text-[12.5px]">
+          {backgroundFillLabel(treatment)} background applied
+        </strong>
+        <span className="mt-0.5 block text-[11px] leading-relaxed text-emerald-800/80 dark:text-emerald-200/75">
+          The replacement is baked into this history step. Undo once to choose another style or
+          colour.
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function commitLabel(fill: BackgroundFill, backgroundWasTransparent: boolean): string {
+  if (fill === "transparent") return "Remove BG";
+  return backgroundWasTransparent ? "Add background" : "Replace background";
 }
 
 function parseHexSample(hex: string | null): { r: number; g: number; b: number } | null {

@@ -25,13 +25,15 @@ export function ResizePanel() {
   const [fit, setFit] = useState(0);
   const [resizing, setResizing] = useState(false);
 
-  // Initialize resize fields from the doc's actual size.
+  // Keep the pending target aligned with history navigation. A user can
+  // Apply 1080 px, Undo back to 600 px, then leave Resize; if the fields
+  // still say 1080 the tool-switch auto-apply silently reapplies the
+  // resize they just undid. Doc dimensions only change on a committed
+  // edit / undo / redo, so syncing here never overwrites mid-typing.
   useEffect(() => {
     if (!doc) return;
-    if (toolState.resizeW === 0 || toolState.resizeH === 0) {
-      patchTool("resizeW", doc.width);
-      patchTool("resizeH", doc.height);
-    }
+    patchTool("resizeW", doc.width);
+    patchTool("resizeH", doc.height);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc?.width, doc?.height]);
 
@@ -218,8 +220,9 @@ export function ResizePanel() {
             type="button"
             onClick={() => patchTool("resizeAspectLock", !toolState.resizeAspectLock)}
             aria-pressed={toolState.resizeAspectLock}
+            aria-label={toolState.resizeAspectLock ? "Unlock aspect ratio" : "Lock aspect ratio"}
             title={toolState.resizeAspectLock ? "Aspect locked" : "Aspect unlocked"}
-            className={`inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-md border p-0 ${
+            className={`inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-md border p-0 pointer-coarse:h-11 pointer-coarse:w-11 ${
               toolState.resizeAspectLock
                 ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
                 : "border-border bg-surface text-text-muted"

@@ -86,7 +86,7 @@ await page.evaluate(() => {
 await new Promise((r) => setTimeout(r, 1500));
 await page.waitForSelector('input[type="file"]', { timeout: 10000 });
 const inputs = await page.$$('input[type="file"]');
-await inputs[0].uploadFile(testImagePath);
+await inputs.at(-1).uploadFile(testImagePath);
 await page.waitForFunction(
   () =>
     Array.from(document.querySelectorAll("button")).some((b) =>

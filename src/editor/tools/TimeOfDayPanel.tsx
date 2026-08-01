@@ -279,7 +279,7 @@ export function TimeOfDayPanel() {
                 onClick={() => patchTool("timeOfDay", k.t)}
                 aria-pressed={isActive}
                 aria-label={`Snap to ${k.label}`}
-                className={`flex h-8 min-w-0 cursor-pointer items-center justify-center rounded-md border-none px-1 font-[inherit] text-[10.5px] font-semibold whitespace-nowrap transition-colors pointer-coarse:h-10 ${
+                className={`flex h-8 min-w-0 cursor-pointer items-center justify-center rounded-md border-none px-1 font-[inherit] text-[10.5px] font-semibold whitespace-nowrap transition-colors pointer-coarse:h-11 ${
                   isActive
                     ? "bg-coral-50 text-coral-700 dark:bg-[var(--color-accent-soft)] dark:text-coral-300"
                     : "bg-page-bg text-text-muted hover:text-text"

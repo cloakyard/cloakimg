@@ -46,7 +46,7 @@ export default defineConfig({
         name: "CloakIMG",
         short_name: "CloakIMG",
         description:
-          "A complete browser-based photo workbench for crop, retouch, redact, colour, composition, and local export.",
+          "A private browser photo workbench for editing, background replacement, and exact passport or visa photo print sheets.",
         theme_color: "#faf8f5",
         background_color: "#faf8f5",
         display: "standalone",

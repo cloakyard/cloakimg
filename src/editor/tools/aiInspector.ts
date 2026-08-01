@@ -59,16 +59,36 @@ export function applyAlphaThreshold(cut: HTMLCanvasElement, threshold: number): 
  *  and is easy to spot against typical photo content. */
 const ACCENT_RGB = "245, 97, 58";
 
+const MASK_OVERLAY_CACHE = new WeakMap<HTMLCanvasElement, HTMLCanvasElement>();
+
+function getTintedMask(cut: HTMLCanvasElement): HTMLCanvasElement {
+  const cached = MASK_OVERLAY_CACHE.get(cut);
+  if (cached) return cached;
+
+  const overlay = document.createElement("canvas");
+  overlay.width = cut.width;
+  overlay.height = cut.height;
+  const context = overlay.getContext("2d");
+  if (!context) return cut;
+
+  context.drawImage(cut, 0, 0);
+  context.globalCompositeOperation = "source-in";
+  context.fillStyle = `rgb(${ACCENT_RGB})`;
+  context.fillRect(0, 0, overlay.width, overlay.height);
+  context.globalCompositeOperation = "source-over";
+  MASK_OVERLAY_CACHE.set(cut, overlay);
+  return overlay;
+}
+
 /** Paint a subject-mask cut as a translucent coral overlay onto the
  *  visible canvas. The cut is the same RGBA bitmap that
  *  `subjectMask.peek()` returns: subject pixels have non-zero alpha,
  *  background has alpha=0. We re-tint the cut so the user sees the
  *  AI's segmentation directly on the photo without committing.
  *
- *  Pixels with alpha BELOW `confidenceThreshold` get a striped fringe
- *  treatment — they're what the AI is uncertain about, which is also
- *  what the Confidence dial decides to keep or drop on Apply. The
- *  fringe + the dial are the same idea visualised + controllable.
+ *  The mask's soft alpha is preserved, so uncertain edges appear
+ *  lighter than the model's confident subject pixels. The Confidence
+ *  dial decides which of those pixels survive when Apply is pressed.
  *
  *  Coords: the overlay paints in image-space first (via the same
  *  Transform the toolstack uses), so it stays aligned through pan /
@@ -84,21 +104,11 @@ export function paintMaskOverlay(
   // Move into image-space so we can drawImage at native coordinates.
   ctx.translate(t.ox, t.oy);
   ctx.scale(t.scale, t.scale);
-  // 1. Tint pass — paint the cut bitmap (alpha = subject confidence)
-  //    multiplied by the accent colour. `source-in` would also work
-  //    but requires an offscreen buffer; using globalCompositeOperation
-  //    on a temp paint of a solid rect masked by the cut alpha is
-  //    cheaper and stays on the visible context.
+  // Tint the cut on a small cached offscreen canvas. Applying
+  // `source-in` directly to the visible context would also intersect
+  // the photo that was already painted there, tinting the whole image.
   ctx.globalAlpha = 0.45;
-  // Draw the cut so its alpha lands on the canvas alpha channel.
-  ctx.drawImage(cut, 0, 0, imageWidth, imageHeight);
-  // Now `source-in` paints colour only where alpha exists from our
-  // last draw.
-  ctx.globalCompositeOperation = "source-in";
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = `rgb(${ACCENT_RGB})`;
-  ctx.fillRect(0, 0, imageWidth, imageHeight);
-  ctx.globalCompositeOperation = "source-over";
+  ctx.drawImage(getTintedMask(cut), 0, 0, imageWidth, imageHeight);
   ctx.restore();
 }
 

@@ -23,9 +23,9 @@
 Everything runs 100% client-side. Tools marked ✨ use on-device AI.
 
 - **Edit** — Crop & Rotate, Perspective, Adjust ✨, Levels ✨, Selective Colour ✨, Filters ✨ (40+ presets incl. Seasons), Time of Day, Relight ✨ (depth-aware lighting), Resize (Lanczos-3).
-- **Retouch & privacy** — Spot Heal, Portrait Blur ✨, Remove BG ✨, Redact ✨ (blur / pixelate / solid + one-tap Smart Anonymize of people or faces), Tap-to-Fix (context-aware quick action).
+- **Retouch & privacy** — Spot Heal, Portrait Blur ✨, Remove BG ✨ with transparent / solid / one-colour gradient / vignette output, Redact ✨ (blur / pixelate / solid + one-tap Smart Anonymize of people or faces), Tap-to-Fix (context-aware quick action).
 - **Annotate** — Text, Shapes, Draw, Pen, Emoji, Watermark, Place Image, Colour Picker.
-- **Finish** — Frame (Polaroid, Film, Cinema, Vignette + more) and Border (solid or aspect-padded matte).
+- **Finish** — Frame (Polaroid, Film, Cinema, Vignette + more), Border (solid or aspect-padded matte), and ID Photo sheets with 26 passport / ID / visa / custom standards, six paper sizes, exact 300-DPI PDF or print output, and cut guides enabled by default.
 
 ### 🧠 On-device AI
 
@@ -43,7 +43,7 @@ The subject mask is detected once per image and reused across every subject-awar
 
 Layered non-destructive overlays · undo/redo (`⌘Z` / `⌘⇧Z`) · hold-to-compare · reset to original · pan + pinch-zoom · single-key shortcuts · light/dark mode · mobile bottom-sheet UI.
 
-Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata strip · recents + autosave (IndexedDB) · batch mode · export to JPEG/PNG/WebP · wide-gamut (Display-P3) output.
+Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata strip · recents + autosave (IndexedDB) · batch mode · export to JPEG/PNG/WebP · exact-size ID-photo PDF/print sheets · wide-gamut (Display-P3) output.
 
 ---
 
@@ -80,13 +80,16 @@ vp install   # install dependencies
 vp dev       # dev server with hot reload
 ```
 
-| Command      | Description                   |
-| ------------ | ----------------------------- |
-| `vp dev`     | Dev server with hot reload    |
-| `vp build`   | Type-check + production build |
-| `vp preview` | Preview the production build  |
-| `vp check`   | Format, lint, type-check      |
-| `vp test`    | Run tests                     |
+| Command              | Description                                                    |
+| -------------------- | -------------------------------------------------------------- |
+| `vp dev`             | Dev server with hot reload                                     |
+| `vp build`           | Type-check + production build                                  |
+| `vp preview`         | Preview the production build                                   |
+| `vp check`           | Format, lint, and type-check                                   |
+| `vp test`            | Run the unit and component suite                               |
+| `vp run test:tools`  | Open every editor tool and audit names, bounds, and touch size |
+| `vp run test:visual` | Audit desktop, tablet, phone, and narrow Android layouts       |
+| `vp run test:audit`  | Audit shared dialogs and responsive component contracts        |
 
 ---
 

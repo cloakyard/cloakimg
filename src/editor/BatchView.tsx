@@ -9,6 +9,7 @@ import { useEditor } from "./EditorContext";
 import { buildStoreZip } from "./zip";
 import { FILTER_PRESETS_RECIPES } from "./tools/filterPresets";
 import { I } from "../components/icons";
+import { SelectControl } from "./SelectControl";
 
 interface CanvasProps {
   isMobile: boolean;
@@ -538,20 +539,24 @@ interface SelectRowProps {
 }
 
 function SelectRow({ label, value, options, onChange }: SelectRowProps) {
+  const selected = options.find((option) => option.value === value);
   return (
-    <label className="flex items-center justify-between gap-2.5 py-1.5 text-[11.5px]">
-      <span className="text-text-muted">{label}</span>
-      <select
+    <div className="flex min-w-0 items-center justify-between gap-2.5 py-1.5 text-[11.5px]">
+      <span className="shrink-0 text-text-muted">{label}</span>
+      <SelectControl
+        aria-label={label}
         value={value}
         onChange={(e) => onChange(+e.target.value)}
-        className="rounded border border-border bg-surface px-1.5 py-1 font-[inherit] text-[11.5px] text-text"
+        displayValue={selected?.label ?? String(value)}
+        compact
+        className="min-w-0 max-w-36 flex-1"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>
         ))}
-      </select>
-    </label>
+      </SelectControl>
+    </div>
   );
 }

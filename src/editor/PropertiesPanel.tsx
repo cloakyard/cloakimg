@@ -70,7 +70,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
             onClick={() => void cancelCurrentTool()}
             title="Cancel changes (Esc)"
             aria-label="Cancel changes"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-text-muted transition-colors hover:bg-surface hover:text-text"
+            className="btn btn-ghost btn-icon-xs rounded-md pointer-coarse:h-11 pointer-coarse:w-11"
           >
             <I.X size={14} stroke={2} />
           </button>

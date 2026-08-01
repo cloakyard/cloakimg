@@ -9,7 +9,7 @@
 //   2. CHROME_PATH=/path/to/chrome BASE_URL=http://localhost:5174 \
 //      node scripts/probe-face-detect.mjs
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
@@ -26,18 +26,14 @@ if (!existsSync(chromePath)) {
   process.exit(1);
 }
 
-// Test image — any image works for probing the flow. We use the iPad
-// screenshot from public/screenshots/. Even with zero faces detected,
-// we can observe whether the model loaded, the worker dispatched,
-// and the inference completed.
-const testImagePath = resolve(ROOT, "public/screenshots/iPad.png");
+// Use the portrait fixture so the journey verifies both the detector
+// lifecycle and a positive face result instead of only the zero-result
+// path from an old product screenshot.
+const testImagePath = resolve(ROOT, "test-fixtures/00554.jpg");
 if (!existsSync(testImagePath)) {
   console.error(`Test image not found at ${testImagePath}`);
   process.exit(1);
 }
-const testImageBuffer = readFileSync(testImagePath);
-const testImageBase64 = testImageBuffer.toString("base64");
-
 const browser = await puppeteer.launch({
   executablePath: chromePath,
   headless: true,
@@ -135,12 +131,11 @@ await new Promise((r) => setTimeout(r, 1500));
 console.log("→ Looking for file input…");
 await page.waitForSelector('input[type="file"]', { timeout: 10000 });
 
-// Inject the file. Puppeteer's elementHandle.uploadFile takes a path,
-// so we use the existing iPad.png path on disk.
+// Inject the portrait fixture through the active modal's file input.
 const fileInputs = await page.$$('input[type="file"]');
 if (fileInputs.length === 0) throw new Error("No file input found");
-console.log(`→ Found ${fileInputs.length} file input(s); uploading test image to first one`);
-await fileInputs[0].uploadFile(testImagePath);
+console.log(`→ Found ${fileInputs.length} file input(s); uploading to the active modal`);
+await fileInputs.at(-1).uploadFile(testImagePath);
 
 // Wait for the editor to be open. After upload, an "Open in editor"
 // confirmation appears — click it to actually mount the editor.
@@ -170,17 +165,10 @@ const railSummary = await page.evaluate(() => {
 });
 console.log(`→ Found ${railSummary.length} buttons in editor`);
 
-// Click whichever button looks like Redact.
+// Target the rail contract directly. A broad /redact/ text search can
+// accidentally match explanatory or modal copy when the UI grows.
 const redactClicked = await page.evaluate(() => {
-  const btn = Array.from(document.querySelectorAll("button")).find((b) => {
-    const txt =
-      (b.textContent ?? "") +
-      " " +
-      (b.getAttribute("title") ?? "") +
-      " " +
-      (b.getAttribute("aria-label") ?? "");
-    return /redact/i.test(txt);
-  });
+  const btn = document.querySelector('.editor-toolrail button[aria-label="Redact"]');
   if (!btn) return false;
   btn.click();
   return true;
@@ -191,23 +179,36 @@ if (!redactClicked) {
   process.exit(1);
 }
 console.log("→ Clicked Redact tool");
+await page.waitForFunction(
+  () =>
+    !document.querySelector("[data-tool-panel-loading]") &&
+    document
+      .querySelector('.editor-toolrail button[aria-label="Redact"]')
+      ?.getAttribute("aria-pressed") === "true" &&
+    /Smart anonymize/i.test(document.querySelector(".editor-properties")?.textContent ?? ""),
+  { timeout: 20000 },
+);
 
 // Wait for the Faces button to appear.
 console.log("→ Waiting for Faces button…");
 await page.waitForFunction(
   () => {
     const buttons = Array.from(document.querySelectorAll("button"));
-    return buttons.some((b) => /^\s*Faces\s*$/i.test(b.textContent ?? ""));
+    return buttons.some((b) => {
+      const name = b.getAttribute("aria-label") ?? b.textContent ?? "";
+      return /^\s*Faces/i.test(name) && !!b.closest(".editor-properties");
+    });
   },
-  { timeout: 10000 },
+  { timeout: 20000 },
 );
 
 // Click Faces.
 console.log("→ Clicking Faces button…");
 await page.evaluate(() => {
-  const btn = Array.from(document.querySelectorAll("button")).find((b) =>
-    /^\s*Faces\s*$/i.test(b.textContent ?? ""),
-  );
+  const btn = Array.from(document.querySelectorAll("button")).find((b) => {
+    const name = b.getAttribute("aria-label") ?? b.textContent ?? "";
+    return /^\s*Faces/i.test(name) && !!b.closest(".editor-properties");
+  });
   if (btn) btn.click();
 });
 
@@ -273,19 +274,19 @@ if (dialogProbe.downloadButtons.length > 0) {
   for (let i = 1; i <= 12; i++) {
     await new Promise((r) => setTimeout(r, 5000));
     const tick = await page.evaluate(() => {
-      const facesBtn = Array.from(document.querySelectorAll("button")).find(
-        (b) =>
-          /Faces|Working/i.test(b.textContent ?? "") &&
-          b.closest("[class*='grid']")?.querySelectorAll("button").length === 3,
+      const facesBtn = Array.from(document.querySelectorAll(".editor-properties button")).find(
+        (b) => /^\s*(Faces|Working)/i.test(b.textContent ?? ""),
       );
       const errorChip = document.querySelector('[role="alert"]');
       return {
         facesBtnText: facesBtn?.textContent?.trim().slice(0, 30) ?? null,
+        facesActive: facesBtn?.getAttribute("aria-pressed") === "true",
+        facesDisabled: facesBtn instanceof HTMLButtonElement ? facesBtn.disabled : null,
         errorChipText: errorChip?.textContent?.slice(0, 200) ?? null,
       };
     });
     console.log(`  ${i * 5}s:`, JSON.stringify(tick));
-    if (tick.errorChipText || (tick.facesBtnText && !/Working/i.test(tick.facesBtnText))) {
+    if (tick.errorChipText || tick.facesActive) {
       break;
     }
   }
@@ -299,8 +300,12 @@ if (dialogProbe.downloadButtons.length > 0) {
 const state = await page.evaluate(() => {
   // Read the inline error chip if present.
   const errorChip = document.querySelector('[role="alert"]');
+  const facesBtn = Array.from(document.querySelectorAll(".editor-properties button")).find((b) =>
+    /^\s*(Faces|Working)/i.test(b.textContent ?? ""),
+  );
   return {
     errorChipText: errorChip?.textContent ?? null,
+    facesActive: facesBtn?.getAttribute("aria-pressed") === "true",
     busyButtons: Array.from(document.querySelectorAll("button"))
       .filter((b) => /Working/i.test(b.textContent ?? ""))
       .map((b) => b.textContent),
@@ -326,6 +331,21 @@ console.log("\nWorker errors:");
 for (const err of workerErrors) console.log(err.message);
 
 await browser.close();
-process.exit(0);
-
-void testImageBase64; // unused placeholder kept in case we want to inject via clipboard later
+const failedRequests = networkRequests.filter(
+  (request) =>
+    request.phase === "request-failed" ||
+    (request.phase === "response" && typeof request.status === "number" && request.status >= 400),
+);
+const passed =
+  state.facesActive &&
+  !state.errorChipText &&
+  state.busyButtons.length === 0 &&
+  pageErrors.length === 0 &&
+  workerErrors.length === 0 &&
+  failedRequests.length === 0;
+console.log(
+  passed
+    ? "\nPASS: detected and anonymized the portrait face ✓"
+    : "\nFAIL: face flow did not complete cleanly",
+);
+process.exit(passed ? 0 : 1);

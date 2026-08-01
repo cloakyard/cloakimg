@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createCanvas, releaseCanvas } from "../doc";
+import { compositeCutout, type BackgroundFill } from "./backgroundFill";
 import { removeBackground } from "./removeBg";
 
 const PREVIEW_LONG_EDGE = 720;
@@ -17,6 +18,8 @@ export function useRemoveBgPreview(
   threshold: number,
   feather: number,
   sampleHex: string | null,
+  backgroundFill: BackgroundFill,
+  backgroundColor: string,
   /** Bumps whenever the source canvas's pixels may have changed without
    *  changing canvas identity (undo, redo, reset, replaceWithFile). The
    *  caller passes the doc reference itself — `setDoc` produces a new
@@ -122,6 +125,14 @@ export function useRemoveBgPreview(
           releaseCanvas(cleared);
           cleared = null;
         }
+        // Background replacement stays part of the same live preview
+        // and final commit as removal. Compose only after upsampling so
+        // a gradient/vignette is calculated at document resolution.
+        if (out && backgroundFill !== "transparent") {
+          const composed = compositeCutout(out, backgroundFill, backgroundColor);
+          releaseCanvas(out);
+          out = composed;
+        }
       } catch (err) {
         console.error("[useRemoveBgPreview] keyer failed", err);
         if (cleared) releaseCanvas(cleared);
@@ -142,7 +153,16 @@ export function useRemoveBgPreview(
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
-  }, [feather, source, threshold, sampleHex, invalidationKey, clearPublished]);
+  }, [
+    backgroundColor,
+    backgroundFill,
+    clearPublished,
+    feather,
+    invalidationKey,
+    sampleHex,
+    source,
+    threshold,
+  ]);
 
   // Drop the last preview on unmount so the pool reclaims the canvas.
   // Release happens via the ref-tracked publishedCanvasRef, NOT inside

@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · theme: studied-DNA (source: /Users/sumitsahoo/Developer/cloakpdf) · macrostructure: Workbench · tone: technical-editorial · anchor hue: Signal Coral */
 /* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
-/* Hallmark · contrast: pass (46–50) · nav: N7 · footer: Ft5 · slop: pass (51–60) · mobile: pass (36, 59, 61–69) */
+/* Hallmark · contrast: pass (40–41) · nav: N7 · footer: Ft5 · slop: pass (42–49) · mobile: pass (34, 49–57) */
 :root {
   --color-paper: oklch(0.978 0.008 55);
   --color-paper-2: oklch(0.949 0.014 55);
@@ -69,6 +69,10 @@
   --radius-card: 0.5rem;
   --radius-input: 0.375rem;
   --radius-pill: 999px;
+  --control-height-compact: 2.25rem;
+  --control-height: 2.5rem;
+  --control-touch-size: 2.75rem;
+  --shadow-control: 0 0.0625rem 0.125rem color-mix(in oklab, var(--color-night) 7%, transparent);
   --shadow-popover: 0 0.75rem 2rem color-mix(in oklab, var(--color-night) 14%, transparent);
   --shadow-overlay: 0 1.5rem 4rem color-mix(in oklab, var(--color-night) 22%, transparent);
   --shadow-focus: 0 0 0 0.1875rem color-mix(in oklab, var(--color-accent) 18%, transparent);

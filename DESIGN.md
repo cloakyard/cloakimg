@@ -99,6 +99,13 @@ mono section markers, hairline divisions, and the dark statement close.
 - Drop zone: a bordered local-input instrument with an operational header.
 - Buttons: 6px radius, mono label, coral primary, neutral secondary.
 - Inputs: stable height, 1px rule, visible focus, no error layout shift.
+- Fields share `.control-field`; state changes may alter colour or outline but
+  never border width or surrounding geometry.
+- Native dropdowns render through `SelectControl`, with a visible selected
+  value, protected text space, and a 12–16px arrow inset at every width.
+- Segmented controls expose their selection state; binary toggles use switch
+  semantics. Read-only controls are disabled rather than behaving like no-op
+  buttons.
 - Modals: solid paper, 8px desktop corners, named scrim/elevation, no glass.
 - Tool rail: icon plus a single coral edge marker for the active tool.
 - Status: semantic colour only; progress remains functional motion.
@@ -109,7 +116,9 @@ mono section markers, hairline divisions, and the dark statement close.
 - Split layouts stack below 860px.
 - Four-column facts become 2×2 below 640px.
 - Verify 320, 375, 414, and 768px with no horizontal scrolling.
-- Interactive controls keep visible focus and at least 44px touch targets where practical.
+- Interactive controls keep visible focus and at least 44px touch targets on coarse pointers.
+- Pointer-precise layouts retain the compact workbench density; touch geometry
+  expands without changing the information hierarchy.
 - `html` and `body` use `overflow-x: clip`, never `hidden`.
 - Reduced motion collapses spatial transitions to an opacity change at 150ms or less.
 
