@@ -262,7 +262,7 @@ export function WatermarkPanel() {
             autoComplete="off"
             value={toolState.watermarkText}
             onChange={(e) => patchTool("watermarkText", e.target.value)}
-            className="w-full rounded-lg border border-border bg-page-bg px-2.5 py-2 font-[inherit] text-[12.5px] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500"
+            className="control-field w-full bg-page-bg"
           />
         </PropRow>
       )}
@@ -276,7 +276,7 @@ export function WatermarkPanel() {
       )}
       {isImage && (
         <PropRow label="Image">
-          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs">
+          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs pointer-coarse:min-h-11">
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"

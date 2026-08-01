@@ -515,8 +515,9 @@ function AutoPanel({
         type="button"
         onClick={onToggleInspector}
         disabled={busy || alreadyRemoved || !maskReady}
-        aria-pressed={aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold outline-2 outline-transparent transition-colors focus-visible:outline-coral-500 active:bg-coral-50 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[13px] ${
+        role="switch"
+        aria-checked={aiInspector}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold outline-2 outline-transparent transition-colors focus-visible:outline-coral-500 active:bg-coral-50 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
           aiInspector
             ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
             : "bg-page-bg text-text-muted hover:bg-page-bg/70"
@@ -539,7 +540,7 @@ function AutoPanel({
           }`}
         >
           <span
-            className={`h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${
+            className={`h-3 w-3 rounded-full bg-surface shadow-[var(--shadow-control)] transition-transform ${
               aiInspector ? "translate-x-3" : "translate-x-0"
             }`}
           />
@@ -728,7 +729,7 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-coral-500 active:bg-page-bg pointer-coarse:h-8 pointer-coarse:w-8"
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-coral-500 active:bg-page-bg pointer-coarse:h-11 pointer-coarse:w-11"
               >
                 <I.X size={11} aria-hidden="true" />
               </button>

@@ -342,8 +342,9 @@ export function RedactPanel() {
       <button
         type="button"
         onClick={() => patchTool("aiInspector", !toolState.aiInspector)}
-        aria-pressed={toolState.aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold transition-colors pointer-coarse:py-2.5 pointer-coarse:text-[13px] ${
+        role="switch"
+        aria-checked={toolState.aiInspector}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold transition-colors pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
           toolState.aiInspector
             ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
             : "bg-page-bg text-text-muted hover:bg-page-bg/70"
@@ -358,12 +359,13 @@ export function RedactPanel() {
           <I.Sparkles size={12} /> See what the AI sees
         </span>
         <span
+          aria-hidden="true"
           className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
             toolState.aiInspector ? "bg-coral-500" : "bg-text-muted/30"
           }`}
         >
           <span
-            className={`h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${
+            className={`h-3 w-3 rounded-full bg-surface shadow-[var(--shadow-control)] transition-transform ${
               toolState.aiInspector ? "translate-x-3" : "translate-x-0"
             }`}
           />

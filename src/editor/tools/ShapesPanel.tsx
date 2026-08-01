@@ -64,9 +64,9 @@ export function ShapesPanel() {
                 title={s.name}
                 aria-label={s.name}
                 aria-pressed={active}
-                className={`flex h-8 cursor-pointer items-center justify-center rounded border-none p-0 sm:h-7 ${
+                className={`flex h-8 cursor-pointer items-center justify-center rounded border-none p-0 sm:h-7 pointer-coarse:h-11 ${
                   active
-                    ? "bg-surface text-coral-600 shadow-[0_1px_2px_rgba(0,0,0,0.08)] dark:text-coral-400"
+                    ? "bg-surface text-coral-600 shadow-[var(--shadow-control)] dark:text-coral-400"
                     : "bg-transparent text-text-muted"
                 }`}
               >

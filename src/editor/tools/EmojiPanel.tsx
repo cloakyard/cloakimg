@@ -88,7 +88,7 @@ export function EmojiPanel() {
                 title={c.label}
                 aria-label={c.label}
                 aria-pressed={isActive}
-                className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 text-[15px] leading-none ${
+                className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 text-[15px] leading-none pointer-coarse:h-11 pointer-coarse:min-w-11 ${
                   isActive
                     ? "border border-coral-500 bg-coral-500/10"
                     : "border border-border bg-surface"
@@ -110,7 +110,7 @@ export function EmojiPanel() {
             users to disambiguate which scrollbar they were trying to
             engage. Letting the grid grow to its natural height collapses
             the editor to a single vertical scroll surface. */}
-        <div className="grid grid-cols-8 gap-1">
+        <div className="grid grid-cols-6 gap-1">
           {category.items.map((char) => {
             const isActive = char === active;
             return (
@@ -151,7 +151,7 @@ export function EmojiPanel() {
             }}
             placeholder="🙂"
             aria-label="Paste any emoji"
-            className="h-8 min-w-0 flex-1 rounded-md border border-border bg-surface px-2 text-[14px] leading-none"
+            className="control-field h-9 flex-1 leading-none"
             style={{ fontFamily: EMOJI_FONT_STACK }}
           />
           <button

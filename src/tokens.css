@@ -175,6 +175,17 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
+button,
+a[href],
+select,
+label[for] {
+  touch-action: manipulation;
+}
+
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+
 ::selection {
   background: var(--color-accent-soft);
   color: var(--color-ink);
@@ -183,6 +194,45 @@ textarea {
 :where(button, a, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+  transition-property: none;
+}
+
+/* Shared compact field chrome for editor text, number, and search inputs.
+ * Border geometry stays fixed across states; focus uses an outline so
+ * typing never shifts the surrounding panel by a pixel.
+ */
+.control-field {
+  min-width: 0;
+  min-height: var(--control-height-compact);
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-input);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  padding-inline: var(--space-2xs);
+  font-size: 0.78125rem;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.control-field:hover:not(:disabled) {
+  border-color: var(--color-rule-strong);
+  background: color-mix(in oklab, var(--color-surface) 78%, var(--color-paper-2));
+}
+
+.control-field:focus-visible {
+  border-color: var(--color-accent);
+  outline-color: var(--color-focus);
+}
+
+.control-field[aria-invalid="true"] {
+  border-color: var(--color-status-danger);
+}
+
+.control-field:disabled {
+  opacity: 0.5;
 }
 
 /* Hallmark · component: select · genre: modern-minimal · theme: DESIGN.md
@@ -676,6 +726,22 @@ html,
 }
 
 @media (pointer: coarse) {
+  .editor-shell button,
+  .cloak-dialog button {
+    min-height: var(--control-touch-size);
+  }
+
+  .editor-topbar button:not(.editor-topbar__brand):not(.editor-topbar__file) {
+    min-width: var(--control-touch-size);
+  }
+
+  .control-field,
+  .editor-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .editor-shell textarea {
+    min-height: var(--control-touch-size);
+    font-size: 1rem;
+  }
+
   .cloak-brand-button,
   .cloak-text-link,
   .cloak-site-footer a,

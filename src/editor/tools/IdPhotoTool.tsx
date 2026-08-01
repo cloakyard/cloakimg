@@ -446,7 +446,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
             href={preset.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-1 flex min-h-7 w-fit items-center gap-1 whitespace-nowrap rounded-sm font-semibold text-coral-700 underline decoration-coral-300 underline-offset-2 outline-2 outline-transparent hover:text-coral-800 focus-visible:outline-coral-500 active:text-coral-900 dark:text-coral-300 dark:hover:text-coral-200"
+            className="mt-1 flex min-h-7 w-fit items-center gap-1 whitespace-nowrap rounded-sm font-semibold text-coral-700 underline decoration-coral-300 underline-offset-2 outline-2 outline-transparent hover:text-coral-800 focus-visible:outline-coral-500 active:text-coral-900 pointer-coarse:min-h-11 dark:text-coral-300 dark:hover:text-coral-200"
           >
             Check {preset.sourceLabel ?? "authority guidance"}{" "}
             <I.ArrowUpRight size={11} aria-hidden="true" />

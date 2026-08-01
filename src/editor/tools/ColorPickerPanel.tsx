@@ -51,7 +51,7 @@ export function ColorPickerPanel() {
         <div
           role="img"
           aria-label="Picked color swatch"
-          className="h-14 w-14 shrink-0 rounded-xl border border-border shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)]"
+          className="h-14 w-14 shrink-0 rounded-lg border border-border shadow-[var(--shadow-control)]"
           style={{ background: swatch }}
         />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -65,7 +65,7 @@ export function ColorPickerPanel() {
               disabled={!toolState.pickedColor}
               aria-label={pickerCopied ? "Copied" : "Copy hex code"}
               title={pickerCopied ? "Copied" : "Copy hex code"}
-              className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-11 pointer-coarse:w-11 ${
                 pickerCopied
                   ? "text-coral-600 dark:text-coral-400"
                   : "text-text-muted hover:text-text"
@@ -91,7 +91,7 @@ export function ColorPickerPanel() {
             type="button"
             onClick={reExtract}
             aria-label="Re-extract palette"
-            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 text-text-muted"
+            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 text-text-muted hover:bg-page-bg hover:text-text pointer-coarse:h-11 pointer-coarse:w-11"
           >
             <I.Refresh size={12} />
           </button>

@@ -19,7 +19,7 @@ const ROOT = resolve(__dirname, "..");
 const chromePath =
   process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
-const TEST_JPG = resolve(ROOT, "test-fixtures/IMG_1804.jpg");
+const TEST_JPG = resolve(ROOT, "test-fixtures/00554.jpg");
 
 if (!existsSync(chromePath) || !existsSync(TEST_JPG)) {
   console.error("Chrome or test fixture missing");
@@ -59,7 +59,10 @@ const profileDir = mkdtempSync(resolve(tmpdir(), "cloakimg-sweep-"));
 const browser = await puppeteer.launch({
   executablePath: chromePath,
   headless: true,
-  defaultViewport: { width: 1400, height: 900 },
+  // Keep the desktop workbench composition while enabling coarse-pointer
+  // media queries. This catches controls that look tidy with a mouse but
+  // miss the 44px touch contract on tablets and touch-screen laptops.
+  defaultViewport: { width: 1400, height: 900, hasTouch: true, isMobile: false },
   args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", `--user-data-dir=${profileDir}`],
 });
 
@@ -216,12 +219,32 @@ for (const label of TOOLS) {
             role: control.getAttribute("role"),
           }))
       : [];
+    const tinyTouchTargets = panelScroller
+      ? Array.from(
+          panelScroller.querySelectorAll(
+            'button, a[href], input:not([type="hidden"]), select, textarea, [role="slider"], [role="switch"]',
+          ),
+        )
+          .filter((control) => isVisible(control))
+          .filter((control) => {
+            const rect = control.getBoundingClientRect();
+            return rect.width < 43 || rect.height < 43;
+          })
+          .map((control) => {
+            const rect = control.getBoundingClientRect();
+            return {
+              name: accessibleName(control).slice(0, 48),
+              size: `${Math.round(rect.width)}×${Math.round(rect.height)}`,
+            };
+          })
+      : [];
     return {
       active,
       canvas: !!document.querySelector("canvas"),
       dialog: document.querySelector('[role="dialog"]')?.textContent?.trim().slice(0, 80) ?? null,
       escapedControls,
       missingNames,
+      tinyTouchTargets,
     };
   }, label);
   if (
@@ -229,7 +252,8 @@ for (const label of TOOLS) {
     !state.active ||
     state.dialog ||
     state.escapedControls.length > 0 ||
-    state.missingNames.length > 0
+    state.missingNames.length > 0 ||
+    state.tinyTouchTargets.length > 0
   ) {
     console.error(`  ✗ ${label}: ${JSON.stringify(state)}`);
     fails++;

@@ -105,6 +105,8 @@ export function NumericReadout({
       ref={inputRef}
       type="text"
       inputMode="numeric"
+      autoComplete="off"
+      spellCheck={false}
       defaultValue={display}
       // Keep the visible chip in sync when the slider is dragged, but
       // not while the user is mid-edit (or their typing would be wiped
@@ -136,7 +138,7 @@ export function NumericReadout({
       // clears the ~44 pt minimum without dominating desktop's denser
       // panel layout. The visible chip stays compact on hover-precise
       // pointers; only width / padding / type-size grow on coarse.
-      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500 pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px]"
+      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500 pointer-coarse:h-11 pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:text-base"
       aria-label={propRowLabelId ? undefined : "Edit value"}
       aria-labelledby={propRowLabelId}
     />
@@ -357,10 +359,10 @@ export function Slider({
       </div>
       <div
         ref={thumbRef}
-        className="pointer-events-none absolute h-3.5 w-3.5 -translate-x-1/2 rounded-full border-[1.5px] border-coral-500 bg-white pointer-coarse:h-5.5 pointer-coarse:w-5.5 pointer-coarse:border-2"
+        className="pointer-events-none absolute h-3.5 w-3.5 -translate-x-1/2 rounded-full border-[1.5px] border-coral-500 bg-surface pointer-coarse:h-5.5 pointer-coarse:w-5.5 pointer-coarse:border-2"
         style={{
           left: `${value * 100}%`,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+          boxShadow: "var(--shadow-control)",
         }}
       />
     </div>
@@ -375,6 +377,7 @@ interface SegmentProps {
 }
 
 export function Segment({ options, active, onChange, style }: SegmentProps) {
+  const propRowLabelId = useContext(PropRowLabelContext);
   // Sliding indicator: a single absolutely-positioned pill animates
   // between options instead of the active background discretely
   // jumping. Width = 100/N % per slot; transform: translateX picks
@@ -391,20 +394,22 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
   const slotPct = n > 0 ? 100 / n : 0;
   return (
     <div
-      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 [--seg-inset:2px] pointer-coarse:p-1 pointer-coarse:[--seg-inset:4px]"
+      role="group"
+      aria-labelledby={propRowLabelId}
+      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 [--seg-inset:2px] pointer-coarse:min-h-11 pointer-coarse:[--seg-inset:4px]"
       style={style}
     >
       {n > 0 && (
         <span
           aria-hidden
-          className="pointer-events-none absolute rounded-[5px] bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+          className="pointer-events-none absolute rounded-[5px] bg-surface shadow-[var(--shadow-control)]"
           style={{
             top: "var(--seg-inset)",
             bottom: "var(--seg-inset)",
             left: "var(--seg-inset)",
             width: `calc(${slotPct}% - var(--seg-inset) * 2)`,
             transform: `translateX(calc(${active} * 100% + ${active} * var(--seg-inset) * 2))`,
-            transition: "transform 200ms cubic-bezier(0.32, 0.72, 0, 1)",
+            transition: "transform var(--dur-base) var(--ease-out)",
           }}
         />
       )}
@@ -415,6 +420,7 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             key={o}
             type="button"
             onClick={() => onChange?.(i)}
+            disabled={!onChange}
             aria-pressed={isActive}
             // Touch devices get larger padding + slightly bigger label
             // so each segment clears the ~44 pt minimum tap target.
@@ -422,7 +428,7 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             // above provides the active background. We toggle text
             // colour on `isActive` so the active label snaps to the
             // foreground colour while the pill animates underneath.
-            className={`relative z-1 min-w-0 flex-1 cursor-pointer whitespace-nowrap rounded border-none bg-transparent px-2 py-1 text-center font-[inherit] text-[11px] font-semibold transition-colors pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+            className={`relative z-1 min-w-0 flex-1 cursor-pointer whitespace-nowrap rounded border-none bg-transparent px-2 py-1 text-center font-[inherit] text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:px-3 pointer-coarse:text-[12.5px] ${
               isActive ? "text-text" : "text-text-muted"
             }`}
           >
@@ -542,10 +548,12 @@ export function ToggleSwitch({ on, onChange, ariaLabel }: ToggleProps) {
     <button
       type="button"
       onClick={() => onChange?.(!on)}
-      aria-pressed={on}
+      role="switch"
+      aria-checked={on}
       aria-label={ariaLabel}
       aria-labelledby={ariaLabel ? undefined : propRowLabelId}
-      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:p-2"
+      disabled={!onChange}
+      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:h-11 pointer-coarse:w-11"
     >
       <span
         className={`relative inline-block h-4 w-7 rounded-full transition-colors pointer-coarse:h-6 pointer-coarse:w-10 ${
@@ -557,10 +565,9 @@ export function ToggleSwitch({ on, onChange, ariaLabel }: ToggleProps) {
           // (desktop) / 16 px (touch) to land inset 2 px from the on-side
           // — width and pad scale together so the same translate values
           // bottom out at both sizes.
-          className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white transition-transform pointer-coarse:top-1 pointer-coarse:left-1 pointer-coarse:h-4 pointer-coarse:w-4 ${
+          className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-surface shadow-[var(--shadow-control)] transition-transform pointer-coarse:top-1 pointer-coarse:left-1 pointer-coarse:h-4 pointer-coarse:w-4 ${
             on ? "translate-x-3 pointer-coarse:translate-x-4" : "translate-x-0"
           }`}
-          style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
         />
       </span>
     </button>
