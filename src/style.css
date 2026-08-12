@@ -82,9 +82,7 @@
   display: none;
 }
 
-.cloak-brand-button img,
-.cloak-link-arrow,
-.cloak-ledger__icon {
+.cloak-link-arrow {
   transition: transform var(--dur-medium) var(--ease-out);
 }
 
@@ -135,7 +133,7 @@
   border-color: var(--color-accent);
 }
 
-.cloak-outline-link:active {
+.cloak-outline-link:active:not(:focus-visible) {
   transform: translateY(1px);
 }
 
@@ -252,7 +250,6 @@
   display: inline-block;
   border-radius: var(--radius-pill);
   background: var(--color-accent);
-  animation: cloak-status-arrive var(--dur-long) var(--ease-out) both;
 }
 
 .cloak-workbench__body {
@@ -433,7 +430,7 @@
   gap: var(--space-2xs);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .cloak-dropzone:hover {
     border-color: var(--color-accent);
   }
@@ -588,9 +585,7 @@
   align-items: start;
   gap: var(--space-xs);
   padding: var(--space-sm);
-  transition:
-    background-color var(--dur-fast) var(--ease-standard),
-    box-shadow var(--dur-fast) var(--ease-standard);
+  transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
 .cloak-capability-ledger li + li {
@@ -1029,9 +1024,9 @@
     color var(--dur-fast) var(--ease-standard);
 }
 
-.editor-toolrail button:active,
-.editor-properties button:active,
-.editor-mobile-surface button:active {
+.editor-toolrail button:active:not(:focus-visible),
+.editor-properties button:active:not(:focus-visible),
+.editor-mobile-surface button:active:not(:focus-visible) {
   transform: translateY(1px);
 }
 
@@ -1044,11 +1039,7 @@
   border-top-color: var(--color-rule);
 }
 
-@media (hover: hover) {
-  .cloak-brand-button:hover img {
-    transform: rotate(-4deg);
-  }
-
+@media (hover: hover) and (pointer: fine) {
   .cloak-text-link:hover .cloak-link-arrow {
     transform: translateX(4px);
   }
@@ -1056,10 +1047,6 @@
   .cloak-site-footer a:hover,
   .cloak-site-footer button:hover {
     color: var(--color-coral-400);
-  }
-
-  .cloak-capability-ledger li:hover .cloak-ledger__icon {
-    transform: rotate(-5deg);
   }
 }
 
@@ -1211,17 +1198,6 @@
   }
 }
 
-@keyframes cloak-status-arrive {
-  from {
-    opacity: 0;
-    transform: scale(0.75);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 /* Remove the double-tap delay from controls without disabling browser
    pinch zoom. The editor canvas opts into full gesture ownership via
    `touch-action: none` on its own container. */
@@ -1247,19 +1223,33 @@ body {
   }
 }
 
-/* Indeterminate progress shimmer — the highlight stripe slides
-   across a filled bar so the user sees motion during phases we
-   can't measure (e.g. ML inference inside a Web Worker, where the
-   ONNX runtime doesn't surface per-step progress). The
-   background-position runs from off-left to off-right so the bright
-   stripe enters and exits cleanly. */
-@keyframes ci-bg-shimmer {
+/* Indeterminate progress uses a translated highlight layer. The prior
+   background-position animation repainted the entire bar on every
+   frame; this transform-only version stays on the compositor. */
+@keyframes ci-progress-shimmer {
   from {
-    background-position: -40% 0;
+    transform: translateX(-100%);
   }
   to {
-    background-position: 140% 0;
+    transform: translateX(350%);
   }
+}
+
+.ci-progress-shimmer::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 50%), transparent);
+  pointer-events: none;
+  will-change: transform;
+  animation: ci-progress-shimmer 1.4s linear infinite;
+}
+
+.ci-progress-shimmer {
+  position: relative;
 }
 
 /* Subtle rotation cue used by the OrientationLock overlay — tilts a
@@ -1278,89 +1268,12 @@ body {
   }
 }
 
-/* The workbench chrome sits on solid tokenized surfaces. Photo pixels
-   are the only visually complex layer; controls stay flat and legible. */
-/* Mobile bottom sheet — animate the slot's *height* so the drawer's
-   space above the toolbar genuinely extends/collapses. Translate-based
-   transitions made it look like the toolbar itself was sliding (the
-   drawer rendered over it during the travel). With max-height the
-   toolbar never moves; only the canvas-above and drawer share the
-   reclaimed space.
-
-   The drawer lives in a sub-container that holds only the canvas + the
-   sheet (the bottom toolbar is its sibling, not part of the column).
-   That makes `max-height: 50%` resolve against the canvas+drawer pair
-   exactly, so the drawer can never grow taller than the canvas above
-   it — keeping live edits visible while the user adjusts controls. */
-@keyframes ci-sheet-up {
+/* Pointer-opened popovers share one restrained, trigger-aware entry.
+   Keyboard-opened popovers opt out with data-animate="false" so
+   frequent navigation never waits on motion. */
+@keyframes ci-popover-in-below {
   from {
-    max-height: 0;
-  }
-  to {
-    max-height: var(--ci-sheet-max, 45vh);
-  }
-}
-@keyframes ci-sheet-down {
-  from {
-    max-height: var(--ci-sheet-max, 45vh);
-  }
-  to {
-    max-height: 0;
-  }
-}
-/* X-centering is handled by Tailwind's `-translate-x-1/2` (which uses
-   the `translate` property in v4); animate `transform` only so the
-   two don't compose into a doubled offset. */
-@keyframes ci-fab-in {
-  from {
-    transform: translateY(16px) scale(0.7);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-
-/* Mobile toolbar overflow chevron: a gentle horizontal nudge that draws
-   the eye toward more tools waiting off the right edge. Subtle so it
-   doesn't feel like a notification badge — opacity dips between cycles
-   so the chevron reads as a soft suggestion rather than a hard ping. */
-@keyframes ci-tool-hint {
-  0%,
-  100% {
-    transform: translateX(0);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateX(3px);
-    opacity: 1;
-  }
-}
-
-/* Mirror of ci-tool-hint for the left-edge indicator: nudges in the
-   opposite direction so both chevrons read as "swipe this way." */
-@keyframes ci-tool-hint-left {
-  0%,
-  100% {
-    transform: translateX(0);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateX(-3px);
-    opacity: 1;
-  }
-}
-
-/* Properties panel cross-fade on desktop tool switch (V3 desktop
-   redesign): when the user clicks a new tool in the rail the scroll
-   container remounts (key={activeTool}) which jumps the new panel in
-   instantly. This animation gives a brief opacity + translateY ease
-   so the swap feels intentional rather than abrupt, matching the
-   motion language of the mobile editor surface's morphing card. */
-@keyframes ci-panel-in {
-  from {
-    transform: translateY(4px);
+    transform: translateY(calc(-1 * var(--motion-distance-2))) scale(var(--motion-scale-subtle));
     opacity: 0;
   }
   to {
@@ -1368,14 +1281,64 @@ body {
     opacity: 1;
   }
 }
-.panel-fade-in {
-  animation: ci-panel-in 180ms var(--ease-out-ios);
-}
-/* Honor reduced-motion: skip the slide, keep the fade only. */
-@media (prefers-reduced-motion: reduce) {
-  .panel-fade-in {
-    animation: none;
+@keyframes ci-popover-in-above {
+  from {
+    transform: translateY(var(--motion-distance-2)) scale(var(--motion-scale-subtle));
+    opacity: 0;
   }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.ci-popover-surface {
+  transform-origin: top center;
+}
+.ci-popover-surface[data-placement="above"] {
+  transform-origin: bottom center;
+}
+.ci-popover-surface[data-animate="true"] {
+  animation: ci-popover-in-below var(--dur-fast) var(--ease-out) both;
+}
+.ci-popover-surface[data-animate="true"][data-placement="above"] {
+  animation-name: ci-popover-in-above;
+}
+
+.ci-pressable {
+  transition: transform var(--dur-instant) var(--ease-out);
+}
+.ci-pressable:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* The PWA status toast is occasional system feedback. It enters from
+   and exits toward the edge where it lives; both paths stay within the
+   small-distance vocabulary and never animate layout. */
+@keyframes ci-toast-in {
+  from {
+    transform: translateY(var(--motion-distance-8));
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes ci-toast-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(var(--motion-distance-8));
+    opacity: 0;
+  }
+}
+.ci-toast-enter {
+  animation: ci-toast-in var(--dur-base) var(--ease-out) both;
+}
+.ci-toast-exit {
+  animation: ci-toast-out var(--dur-fast) var(--ease-out) both;
 }
 
 /* ── Modal motion ──────────────────────────────────────────────
@@ -1388,11 +1351,9 @@ body {
                 centered card on desktop)
 
    The backdrop is a pure opacity crossfade so the page behind the
-   modal doesn't flicker. The dialog uses transform + opacity only
-   (the hallmark rule for performance: never animate layout). iOS-
-   inspired easing — fast at the start, soft at the settle — comes
-   from the --ease-out-ios / --ease-in-ios tokens so the rest of
-   the app can lean on the same curves. */
+   modal doesn't flicker. The dialog uses transform + opacity only;
+   enter and exit both begin immediately with the shared strong
+   ease-out curve. */
 @keyframes ci-modal-backdrop-in {
   from {
     opacity: 0;
@@ -1411,7 +1372,7 @@ body {
 }
 @keyframes ci-modal-card-in {
   from {
-    transform: translateY(12px) scale(0.97);
+    transform: translateY(var(--motion-distance-8)) scale(0.98);
     opacity: 0;
   }
   to {
@@ -1425,7 +1386,7 @@ body {
     opacity: 1;
   }
   to {
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(var(--motion-distance-6)) scale(0.98);
     opacity: 0;
   }
 }
@@ -1447,25 +1408,39 @@ body {
 }
 
 .ci-modal-backdrop-enter {
-  animation: ci-modal-backdrop-in var(--dur-base) var(--ease-out-ios) both;
+  animation: ci-modal-backdrop-in var(--dur-base) var(--ease-out) both;
 }
 .ci-modal-backdrop-exit {
-  animation: ci-modal-backdrop-out var(--dur-fast) var(--ease-in-ios) both;
+  animation: ci-modal-backdrop-out var(--dur-fast) var(--ease-out) both;
 }
 .ci-modal-card-enter {
-  animation: ci-modal-card-in var(--dur-modal) var(--ease-out-ios) both;
+  animation: ci-modal-card-in var(--dur-modal) var(--ease-out) both;
 }
 .ci-modal-card-exit {
-  animation: ci-modal-card-out var(--dur-fast) var(--ease-in-ios) both;
+  animation: ci-modal-card-out var(--dur-fast) var(--ease-out) both;
 }
 .ci-modal-sheet-enter {
-  animation: ci-modal-sheet-in var(--dur-sheet) var(--ease-out-ios) both;
+  animation: ci-modal-sheet-in var(--dur-sheet) var(--ease-out) both;
 }
 .ci-modal-sheet-exit {
-  animation: ci-modal-sheet-out var(--dur-base) var(--ease-in-ios) both;
+  animation: ci-modal-sheet-out var(--dur-base) var(--ease-out) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ci-popover-surface[data-animate="true"] {
+    animation-name: ci-modal-backdrop-in;
+    animation-duration: var(--dur-instant) !important;
+  }
+
+  .ci-toast-enter,
+  .ci-toast-exit {
+    animation-name: ci-modal-backdrop-in;
+    animation-duration: var(--dur-instant) !important;
+  }
+  .ci-toast-exit {
+    animation-name: ci-modal-backdrop-out;
+  }
+
   .ci-modal-backdrop-enter,
   .ci-modal-backdrop-exit,
   .ci-modal-card-enter,
@@ -1475,7 +1450,7 @@ body {
     /* Drop spatial motion but keep a short opacity crossfade so the
        transition still reads as deliberate. */
     animation-name: ci-modal-backdrop-in;
-    animation-duration: 120ms;
+    animation-duration: var(--dur-instant) !important;
   }
   .ci-modal-backdrop-exit,
   .ci-modal-card-exit,

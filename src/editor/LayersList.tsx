@@ -179,7 +179,7 @@ export function LayersList() {
           size={11}
           style={{
             transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)",
-            transition: "transform 120ms",
+            transition: "transform var(--dur-instant) var(--ease-out)",
           }}
         />
         Layers

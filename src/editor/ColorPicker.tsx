@@ -56,6 +56,7 @@ export function ColorPicker({
   swatchStyle,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [animateOpen, setAnimateOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
 
   return (
@@ -63,7 +64,10 @@ export function ColorPicker({
       <button
         ref={anchorRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={(event) => {
+          if (!open) setAnimateOpen(event.detail > 0);
+          setOpen((current) => !current);
+        }}
         aria-label={label ?? "Pick a color"}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -84,6 +88,7 @@ export function ColorPicker({
       {open && anchorRef.current && (
         <ColorPopover
           anchor={anchorRef.current}
+          animateOpen={animateOpen}
           value={value}
           onChange={onChange}
           onClose={() => setOpen(false)}
@@ -96,15 +101,28 @@ export function ColorPicker({
 
 interface PopoverProps {
   anchor: HTMLElement;
+  animateOpen: boolean;
   value: string;
   onChange: (next: string) => void;
   onClose: () => void;
   enableEyedropper: boolean;
 }
 
-function ColorPopover({ anchor, value, onChange, onClose, enableEyedropper }: PopoverProps) {
+function ColorPopover({
+  anchor,
+  animateOpen,
+  value,
+  onChange,
+  onClose,
+  enableEyedropper,
+}: PopoverProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    originX: number;
+    placement: "above" | "below";
+  }>({ top: 0, left: 0, originX: 0, placement: "below" });
   const recents = useSyncExternalStore(subscribeRecents, getRecentColors, getRecentColors);
 
   const rgb = useMemo(() => parseColor(value), [value]);
@@ -148,10 +166,15 @@ function ColorPopover({ anchor, value, onChange, onClose, enableEyedropper }: Po
     const pw = cnt.offsetWidth;
     const margin = 8;
     let top = rect.bottom + margin;
-    if (top + ph > window.innerHeight - 8) top = Math.max(8, rect.top - ph - margin);
+    let placement: "above" | "below" = "below";
+    if (top + ph > window.innerHeight - 8) {
+      top = Math.max(8, rect.top - ph - margin);
+      placement = "above";
+    }
     let left = rect.left;
     if (left + pw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - pw - 8);
-    setPos({ top, left });
+    const originX = Math.min(pw, Math.max(0, rect.left + rect.width / 2 - left));
+    setPos({ top, left, originX, placement });
   }, [anchor]);
 
   // Click outside / Esc to close.
@@ -216,10 +239,13 @@ function ColorPopover({ anchor, value, onChange, onClose, enableEyedropper }: Po
       ref={containerRef}
       role="dialog"
       aria-label="Color picker"
-      className="fixed z-200 flex w-60 flex-col gap-2.5 rounded-xl border border-border bg-surface p-3"
+      className="ci-popover-surface fixed z-200 flex w-60 flex-col gap-2.5 rounded-xl border border-border bg-surface p-3"
+      data-animate={animateOpen}
+      data-placement={pos.placement}
       style={{
         top: pos.top,
         left: pos.left,
+        transformOrigin: `${pos.originX}px ${pos.placement === "above" ? "100%" : "0"}`,
         boxShadow: "var(--shadow-float)",
       }}
     >

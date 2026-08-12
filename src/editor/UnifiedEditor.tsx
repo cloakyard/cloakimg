@@ -90,6 +90,12 @@ function EditorShell() {
   });
   const [filePropsOpen, setFilePropsOpen] = useState(false);
   const [toolSearchOpen, setToolSearchOpen] = useState(false);
+  const [toolSearchKeyboardOpen, setToolSearchKeyboardOpen] = useState(false);
+
+  const openToolSearch = useCallback((keyboard: boolean) => {
+    setToolSearchKeyboardOpen(keyboard);
+    setToolSearchOpen(true);
+  }, []);
 
   // Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z global shortcuts.
   useEffect(() => {
@@ -140,11 +146,11 @@ function EditorShell() {
       }
       if (exportOpen || filePropsOpen) return;
       event.preventDefault();
-      setToolSearchOpen(true);
+      openToolSearch(true);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [exportOpen, filePropsOpen, isMobile]);
+  }, [exportOpen, filePropsOpen, isMobile, openToolSearch]);
 
   // Paste-to-replace inside the editor: catch Cmd/Ctrl-V on the document
   // and grab the first image off the clipboard.
@@ -214,7 +220,7 @@ function EditorShell() {
             <ToolRail
               activeTool={activeTool}
               onSelect={setActiveTool}
-              onOpenSearch={() => setToolSearchOpen(true)}
+              onOpenSearch={() => openToolSearch(false)}
             />
           )}
 
@@ -283,7 +289,11 @@ function EditorShell() {
       )}
 
       {toolSearchOpen && !isMobile && mode === "single" && (
-        <ToolSearchModal onClose={() => setToolSearchOpen(false)} onSelect={setActiveTool} />
+        <ToolSearchModal
+          instant={toolSearchKeyboardOpen}
+          onClose={() => setToolSearchOpen(false)}
+          onSelect={setActiveTool}
+        />
       )}
 
       {/* Silent boundary — a render failure in the AI consent subtree

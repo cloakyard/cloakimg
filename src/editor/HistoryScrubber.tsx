@@ -41,7 +41,7 @@ export function HistoryScrubber() {
   // off-screen and the user loses their "you are here" feedback.
   const activeRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    activeRef.current?.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" });
   }, [cursor]);
 
   // Hide on mobile + when the stack has ≤1 entry (the base alone).
@@ -97,7 +97,7 @@ export function HistoryScrubber() {
               // CSS background — works whether the entry is still
               // live (canvas-backed) or already compressed (the
               // thumb is independent of canvas/blob).
-              className={`group relative flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-none p-0 transition-[background-color,color,opacity,transform] duration-150 ${
+              className={`group relative flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-none p-0 ${
                 active
                   ? "outline-2 outline-offset-2 outline-coral-500 dark:outline-coral-400"
                   : "outline-1 outline-offset-1 outline-border-soft hover:outline-text-muted/40"

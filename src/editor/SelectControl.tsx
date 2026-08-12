@@ -66,6 +66,7 @@ interface ListboxPosition {
   left: number;
   width: number;
   maxHeight: number;
+  originX: number;
   placement: "above" | "below";
   ready: boolean;
 }
@@ -176,6 +177,7 @@ function setNativeSelectValue(select: HTMLSelectElement, nextValue: string) {
 interface SelectListboxProps {
   anchor: HTMLButtonElement;
   activeIndex: number;
+  animateOpen: boolean;
   ariaLabel?: string;
   ariaLabelledBy?: string;
   listboxId: string;
@@ -190,6 +192,7 @@ interface SelectListboxProps {
 function SelectListbox({
   anchor,
   activeIndex,
+  animateOpen,
   ariaLabel,
   ariaLabelledBy,
   listboxId,
@@ -207,6 +210,7 @@ function SelectListbox({
     left: 0,
     width: LISTBOX_MIN_WIDTH,
     maxHeight: LISTBOX_MAX_HEIGHT,
+    originX: LISTBOX_MIN_WIDTH / 2,
     placement: "below",
     ready: false,
   });
@@ -259,6 +263,7 @@ function SelectListbox({
               viewportHeight - renderedHeight - LISTBOX_EDGE_GAP,
             )
           : Math.max(LISTBOX_EDGE_GAP, rect.top - renderedHeight - LISTBOX_ANCHOR_GAP);
+      const originX = Math.min(width, Math.max(0, rect.left + rect.width / 2 - left));
 
       setPosition((current) => {
         const next = {
@@ -266,6 +271,7 @@ function SelectListbox({
           left: Math.round(left),
           width: Math.round(width),
           maxHeight: Math.round(maxHeight),
+          originX: Math.round(originX),
           placement,
           ready: true,
         } satisfies ListboxPosition;
@@ -273,6 +279,7 @@ function SelectListbox({
           current.left === next.left &&
           current.width === next.width &&
           current.maxHeight === next.maxHeight &&
+          current.originX === next.originX &&
           current.placement === next.placement &&
           current.ready
           ? current
@@ -335,7 +342,8 @@ function SelectListbox({
       role="listbox"
       aria-label={ariaLabel ? `${ariaLabel} options` : ariaLabelledBy ? undefined : "Options"}
       aria-labelledby={ariaLabel ? undefined : ariaLabelledBy}
-      className="select-control__listbox scroll-thin"
+      className="ci-popover-surface select-control__listbox scroll-thin"
+      data-animate={animateOpen}
       data-placement={position.placement}
       data-ready={position.ready}
       popover="manual"
@@ -344,6 +352,7 @@ function SelectListbox({
         left: position.left,
         width: position.width,
         maxHeight: position.maxHeight,
+        transformOrigin: `${position.originX}px ${position.placement === "above" ? "100%" : "0"}`,
       }}
     >
       {groups.map((group, groupIndex) => {
@@ -441,6 +450,7 @@ export function SelectControl({
       ? selectedIndex
       : firstEnabledIndex(options);
   const [open, setOpen] = useState(false);
+  const [animateOpen, setAnimateOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const nativeRef = useRef<HTMLSelectElement>(null);
@@ -483,9 +493,10 @@ export function SelectControl({
   );
 
   const openList = useCallback(
-    (preference: OpenPreference = "selected") => {
+    (preference: OpenPreference = "selected", animate = true) => {
       if (effectiveDisabled || options.length === 0) return;
       setActiveIndex(preferredIndex(preference));
+      setAnimateOpen(animate);
       setOpen(true);
     },
     [effectiveDisabled, options.length, preferredIndex],
@@ -518,7 +529,10 @@ export function SelectControl({
           !options[index].disabled && options[index].label.toLocaleLowerCase().startsWith(query),
       );
       if (match !== undefined) setActiveIndex(match);
-      if (!isOpen) setOpen(true);
+      if (!isOpen) {
+        setAnimateOpen(false);
+        setOpen(true);
+      }
 
       if (typeaheadRef.current.timeout !== null) {
         window.clearTimeout(typeaheadRef.current.timeout);
@@ -538,17 +552,17 @@ export function SelectControl({
       if (!isOpen) {
         if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
           event.preventDefault();
-          openList("selected");
+          openList("selected", false);
           return;
         }
         if (event.key === "ArrowUp") {
           event.preventDefault();
-          openList("last");
+          openList("last", false);
           return;
         }
         if (event.key === "Home" || event.key === "End") {
           event.preventDefault();
-          openList(event.key === "Home" ? "first" : "last");
+          openList(event.key === "Home" ? "first" : "last", false);
           return;
         }
       } else {
@@ -701,6 +715,7 @@ export function SelectControl({
         <SelectListbox
           anchor={triggerRef.current}
           activeIndex={activeIndex}
+          animateOpen={animateOpen}
           ariaLabel={ariaLabel}
           ariaLabelledBy={ariaLabelledBy}
           listboxId={listboxId}

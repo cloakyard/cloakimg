@@ -58,12 +58,18 @@
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dur-instant: 120ms;
   --dur-fast: 160ms;
   --dur-base: 220ms;
   --dur-medium: 260ms;
   --dur-long: 400ms;
   --dur-modal: 280ms;
-  --dur-sheet: 320ms;
+  --dur-sheet: 280ms;
+  --motion-distance-2: 2px;
+  --motion-distance-4: 4px;
+  --motion-distance-6: 6px;
+  --motion-distance-8: 8px;
+  --motion-scale-subtle: 0.98;
 
   --rule-thin: 1px;
   --radius-card: 0.5rem;

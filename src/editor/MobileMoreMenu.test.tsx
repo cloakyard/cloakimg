@@ -14,9 +14,8 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileMoreMenu } from "./MobileMoreMenu";
 
-// ModalFrame routes every close path through a ~260ms exit animation
-// so the bottom sheet slides down before unmount. Tests that assert
-// onClose timing use fake timers to advance past that window.
+// ModalFrame routes pointer close paths through a ~260ms exit budget
+// so the sheet settles before unmount. Escape remains immediate.
 const EXIT_MS = 260;
 
 const baseProps = {
@@ -118,16 +117,12 @@ describe("MobileMoreMenu", () => {
       expect(calls).toEqual(["close", "reset"]);
     });
 
-    it("Escape key dismisses the menu (onClose) after the exit animation", () => {
+    it("Escape key dismisses the menu immediately", () => {
       const onClose = vi.fn();
       render(<MobileMoreMenu {...baseProps} onClose={onClose} />);
       const ev = new KeyboardEvent("keydown", { key: "Escape", bubbles: true });
       act(() => {
         window.dispatchEvent(ev);
-      });
-      expect(onClose).not.toHaveBeenCalled();
-      act(() => {
-        vi.advanceTimersByTime(EXIT_MS + 16);
       });
       expect(onClose).toHaveBeenCalledTimes(1);
     });

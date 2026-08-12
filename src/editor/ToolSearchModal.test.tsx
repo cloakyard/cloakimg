@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ToolSearchModal } from "./ToolSearchModal";
 
@@ -17,8 +17,7 @@ describe("ToolSearchModal", () => {
     expect(screen.getByRole("option", { name: /Redact/i })).toBeInTheDocument();
   });
 
-  it("supports keyboard selection and closes before switching tools", () => {
-    vi.useFakeTimers();
+  it("supports keyboard selection and closes immediately before switching tools", () => {
     const onClose = vi.fn();
     const onSelect = vi.fn();
     render(<ToolSearchModal onClose={onClose} onSelect={onSelect} />);
@@ -26,13 +25,6 @@ describe("ToolSearchModal", () => {
     const input = screen.getByRole("combobox", { name: "Search editor tools" });
     fireEvent.change(input, { target: { value: "crop" } });
     fireEvent.keyDown(input, { key: "Enter" });
-
-    expect(onClose).not.toHaveBeenCalled();
-    expect(onSelect).not.toHaveBeenCalled();
-
-    act(() => {
-      vi.advanceTimersByTime(300);
-    });
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith("crop");

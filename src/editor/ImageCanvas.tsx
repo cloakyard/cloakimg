@@ -1069,6 +1069,7 @@ function MobileZoomControl({
   onZoomChange: (next: number) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [animateOpen, setAnimateOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // Auto-dismiss on outside tap. We listen on `pointerdown` rather
@@ -1101,10 +1102,13 @@ function MobileZoomControl({
     >
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={(event) => {
+          if (!open) setAnimateOpen(event.detail > 0);
+          setOpen((current) => !current);
+        }}
         aria-label={`Zoom ${displayZoom}% · tap for controls`}
         aria-expanded={open}
-        className="cursor-pointer rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white active:scale-[0.96]"
+        className="ci-pressable cursor-pointer rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white"
         style={{
           background: open ? "var(--color-night)" : "var(--color-editor-overlay-control)",
           transition: "background-color var(--dur-fast) var(--ease-standard)",
@@ -1116,10 +1120,12 @@ function MobileZoomControl({
         <div
           role="dialog"
           aria-label="Zoom controls"
-          className="absolute right-0 mt-1.5 flex items-center gap-0.5 rounded-full border border-white/10 p-0.5"
+          className="ci-popover-surface absolute right-0 mt-1.5 flex items-center gap-0.5 rounded-full border border-white/10 p-0.5"
+          data-animate={animateOpen}
+          data-placement="below"
           style={{
             background: "var(--color-night)",
-            animation: "ci-fab-in 160ms ease-out both",
+            transformOrigin: "calc(100% - 1.5rem) top",
           }}
         >
           <button

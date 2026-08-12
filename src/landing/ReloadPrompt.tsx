@@ -14,17 +14,23 @@ const UPDATE_CHECK_INTERVAL_MS = 10 * 60 * 1000;
 const UPDATE_CHECK_THROTTLE_MS = 60 * 1000;
 const OFFLINE_READY_DISMISS_MS = 4000;
 const RELOAD_FALLBACK_MS = 1500;
+const TOAST_EXIT_MS = 160;
+const REDUCED_TOAST_EXIT_MS = 120;
 
 export function ReloadPrompt() {
   const updateIntervalRef = useRef<number | null>(null);
   const reloadFallbackRef = useRef<number | null>(null);
   const offlineDismissRef = useRef<number | null>(null);
+  const promptExitRef = useRef<number | null>(null);
+  const closeRequestedRef = useRef(false);
+  const wasVisibleRef = useRef(false);
   const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
   const swUrlRef = useRef("");
   const lastCheckRef = useRef(0);
   const promptRef = useRef<HTMLDivElement | null>(null);
   const pointerInsideRef = useRef(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const checkForUpdate = useCallback(async () => {
     const registration = registrationRef.current;
@@ -81,6 +87,10 @@ export function ReloadPrompt() {
         window.clearTimeout(offlineDismissRef.current);
         offlineDismissRef.current = null;
       }
+      if (promptExitRef.current !== null) {
+        window.clearTimeout(promptExitRef.current);
+        promptExitRef.current = null;
+      }
     };
   }, [checkForUpdate]);
 
@@ -98,9 +108,28 @@ export function ReloadPrompt() {
   }, [isUpdating, updateServiceWorker]);
 
   const close = useCallback(() => {
-    setOfflineReady(false);
-    setNeedRefresh(false);
+    if (closeRequestedRef.current) return;
+    closeRequestedRef.current = true;
+    setClosing(true);
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    promptExitRef.current = window.setTimeout(
+      () => {
+        setOfflineReady(false);
+        setNeedRefresh(false);
+        promptExitRef.current = null;
+      },
+      reduceMotion ? REDUCED_TOAST_EXIT_MS : TOAST_EXIT_MS,
+    );
   }, [setOfflineReady, setNeedRefresh]);
+
+  const visible = offlineReady || needRefresh;
+  useEffect(() => {
+    if (visible && !wasVisibleRef.current) {
+      closeRequestedRef.current = false;
+      setClosing(false);
+    }
+    wasVisibleRef.current = visible;
+  }, [visible]);
 
   const clearOfflineDismiss = useCallback(() => {
     if (offlineDismissRef.current === null) return;
@@ -120,7 +149,7 @@ export function ReloadPrompt() {
     return clearOfflineDismiss;
   }, [clearOfflineDismiss, scheduleOfflineDismiss]);
 
-  if (!offlineReady && !needRefresh) return null;
+  if (!visible) return null;
 
   const Icon = needRefresh ? I.Refresh : I.ShieldCheck;
   const title = needRefresh ? "Update available" : "Core editor cached";
@@ -150,7 +179,9 @@ export function ReloadPrompt() {
       <div
         ref={promptRef}
         data-state={needRefresh ? "update" : "offline"}
-        className="pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-lg border border-border bg-surface p-4 text-text shadow-[var(--shadow-popover)] sm:w-auto sm:min-w-80"
+        className={`pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-lg border border-border bg-surface p-4 text-text shadow-[var(--shadow-popover)] sm:w-auto sm:min-w-80 ${
+          closing ? "ci-toast-exit" : "ci-toast-enter"
+        }`}
         onPointerEnter={pauseOfflineDismiss}
         onPointerLeave={resumeOfflineDismiss}
         onFocusCapture={clearOfflineDismiss}
@@ -186,7 +217,7 @@ export function ReloadPrompt() {
                 <I.Refresh
                   size={13}
                   aria-hidden="true"
-                  className={isUpdating ? "animate-spin" : undefined}
+                  style={isUpdating ? { animation: "ci-spin 0.9s linear infinite" } : undefined}
                 />
                 {isUpdating ? "Updating…" : "Update"}
               </button>

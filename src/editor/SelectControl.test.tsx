@@ -70,6 +70,7 @@ describe("SelectControl", () => {
     await user.click(trigger);
 
     const listbox = screen.getByRole("listbox", { name: "Photo standard options" });
+    expect(listbox).toHaveAttribute("data-animate", "true");
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(within(listbox).getAllByRole("group")).toHaveLength(2);
     expect(within(listbox).getAllByRole("option")).toHaveLength(3);
@@ -114,6 +115,10 @@ describe("SelectControl", () => {
 
     await user.keyboard("i");
     expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("listbox", { name: "Photo standard options" })).toHaveAttribute(
+      "data-animate",
+      "false",
+    );
     expect(trigger.getAttribute("aria-activedescendant")).toContain("option-1");
     await user.keyboard("{Escape}");
     expect(trigger).toHaveAttribute("aria-expanded", "false");

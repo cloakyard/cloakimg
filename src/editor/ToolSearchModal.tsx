@@ -10,11 +10,12 @@ import { searchEditorTools, TOOL_GROUP_LABELS } from "./toolSearch";
 import { ALL_TOOLS, type ToolId } from "./tools";
 
 interface Props {
+  instant?: boolean;
   onClose: () => void;
   onSelect: (id: ToolId) => void;
 }
 
-export function ToolSearchModal({ onClose, onSelect }: Props) {
+export function ToolSearchModal({ instant = false, onClose, onSelect }: Props) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +43,7 @@ export function ToolSearchModal({ onClose, onSelect }: Props) {
   return (
     <ModalFrame
       onClose={onClose}
+      instant={instant}
       position="absolute"
       maxWidth="max-w-168"
       labelledBy="tool-search-title"
@@ -89,8 +91,13 @@ function ToolSearchBody({
 }: BodyProps) {
   const animatedClose = useModalClose();
 
-  const choose = (id: ToolId | undefined) => {
+  const choose = (id: ToolId | undefined, immediate = false) => {
     if (!id) return;
+    if (immediate) {
+      onClose();
+      onSelect(id);
+      return;
+    }
     if (animatedClose) {
       animatedClose(() => onSelect(id));
       return;
@@ -108,7 +115,7 @@ function ToolSearchBody({
       onActive(results.length === 0 ? 0 : (activeIndex - 1 + results.length) % results.length);
     } else if (event.key === "Enter") {
       event.preventDefault();
-      choose(results[activeIndex]?.id);
+      choose(results[activeIndex]?.id, true);
     }
   };
 

@@ -15,8 +15,8 @@
 //     materialises (background fades to white, top corners round to
 //     16 px, hairline inset) as the shell grows from icon-sized to
 //     full-sheet.
-//   • In-flow geometry. Wrapper height animates so the canvas above
-//     reflows; the entire photo stays visible during a tool session.
+//   • In-flow geometry. Wrapper height updates immediately so the
+//     canvas reflows once; the photo stays visible during a tool session.
 //   • Pinned tool header. Like CloakPDF, ✕ and ✓ stay together at the
 //     top-right while only the controls body scrolls. This keeps the
 //     session actions reachable without stealing a second row below
@@ -33,6 +33,7 @@
 
 import {
   type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -67,17 +68,16 @@ const TOOL_HEADER_H = 56;
 // Surface colour settles on the same restrained timing as the shared
 // dialogs. Width and height update immediately so the canvas does not
 // re-layout across several frames while a live preview is painting.
-const MORPH_MS = 320;
+const MORPH_MS = 220;
 const EASING = "var(--ease-out)";
 
 // Hoisted because the drag handlers temporarily disable transitions
 // and must restore the same string React owns afterward.
-const SHEET_TRANSITION = [
-  `background-color ${MORPH_MS}ms ${EASING}`,
-  `box-shadow ${MORPH_MS}ms ${EASING}`,
-].join(", ");
+const SHEET_TRANSITION = `background-color ${MORPH_MS}ms ${EASING}`;
 
 const DRAG_DISMISS_PX = 100;
+const DRAG_DISMISS_VELOCITY = 0.11;
+const DRAG_SETTLE_MS = 220;
 const MOBILE_TOOLS = toolsForTab(null);
 
 interface SurfaceProps {
@@ -256,38 +256,107 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     return () => window.removeEventListener("keydown", onKey);
   }, [expanded, handleClose]);
 
-  // Drag-to-dismiss on the drag handle. Same gesture as the V3.1
-  // MobileSheet (tested on iOS Safari) — only the handle area
-  // intercepts, so native scrolling inside the content area stays
-  // untouched.
-  const touchStartY = useRef<number | null>(null);
+  // Drag-to-dismiss on the drag handle. Pointer capture keeps the
+  // gesture stable off-edge; velocity lets a short flick dismiss; a
+  // short drag retargets from its current position and settles back.
+  // Only the handle intercepts, so content keeps native scrolling.
+  const dragPointerIdRef = useRef<number | null>(null);
+  const dragStartYRef = useRef(0);
+  const dragStartTimeRef = useRef(0);
+  const dragBaseYRef = useRef(0);
   const dragDeltaRef = useRef(0);
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0]?.clientY ?? null;
-    dragDeltaRef.current = 0;
-    if (sheetRef.current) sheetRef.current.style.transition = "none";
-  }, []);
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
-    if (touchStartY.current == null) return;
-    const y = e.touches[0]?.clientY;
-    if (y == null) return;
-    const delta = Math.max(0, y - touchStartY.current);
-    if (sheetRef.current) {
-      dragDeltaRef.current = delta;
-      sheetRef.current.style.transform = `translateY(${delta}px)`;
+  const dragSettleTimerRef = useRef<number | null>(null);
+  const suppressHandleClickRef = useRef(false);
+
+  useEffect(
+    () => () => {
+      if (dragSettleTimerRef.current !== null) {
+        window.clearTimeout(dragSettleTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const onDragStart = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (dragPointerIdRef.current !== null) return;
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+    if (dragSettleTimerRef.current !== null) {
+      window.clearTimeout(dragSettleTimerRef.current);
+      dragSettleTimerRef.current = null;
     }
+    dragPointerIdRef.current = event.pointerId;
+    dragStartYRef.current = event.clientY;
+    dragStartTimeRef.current = performance.now();
+    suppressHandleClickRef.current = false;
+    const transform = window.getComputedStyle(sheet).transform;
+    const currentY = transform === "none" ? 0 : new DOMMatrixReadOnly(transform).m42;
+    dragBaseYRef.current = currentY;
+    dragDeltaRef.current = currentY;
+    sheet.style.transition = "none";
+    sheet.style.transform = `translateY(${currentY}px)`;
+    event.currentTarget.setPointerCapture(event.pointerId);
   }, []);
-  const onTouchEnd = useCallback(() => {
-    touchStartY.current = null;
-    if (!sheetRef.current) return;
-    // Restore the exact morph transition React believes is set (NOT "")
-    // — otherwise React, seeing `transition` unchanged on later renders,
-    // never re-writes it and the next open/close stops animating.
-    sheetRef.current.style.transition = SHEET_TRANSITION;
-    sheetRef.current.style.transform = "";
-    const d = dragDeltaRef.current;
-    dragDeltaRef.current = 0;
-    if (d > DRAG_DISMISS_PX) void handleClose();
+
+  const onDragMove = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (dragPointerIdRef.current !== event.pointerId) return;
+    const travel = Math.max(0, event.clientY - dragStartYRef.current);
+    const delta = dragBaseYRef.current + travel;
+    if (travel > 4) suppressHandleClickRef.current = true;
+    dragDeltaRef.current = delta;
+    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${delta}px)`;
+  }, []);
+
+  const finishDrag = useCallback(
+    (event: ReactPointerEvent<HTMLElement>, cancelled = false) => {
+      if (dragPointerIdRef.current !== event.pointerId) return;
+      dragPointerIdRef.current = null;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      const sheet = sheetRef.current;
+      if (!sheet) return;
+      const elapsed = Math.max(1, performance.now() - dragStartTimeRef.current);
+      const travel = Math.max(0, dragDeltaRef.current - dragBaseYRef.current);
+      const velocity = travel / elapsed;
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      const dismiss =
+        !cancelled && (dragDeltaRef.current >= DRAG_DISMISS_PX || velocity > DRAG_DISMISS_VELOCITY);
+      sheet.style.transition = reduceMotion
+        ? "none"
+        : `transform ${DRAG_SETTLE_MS}ms ${EASING}, ${SHEET_TRANSITION}`;
+      if (!dismiss) {
+        sheet.style.transform = "";
+        dragDeltaRef.current = 0;
+        if (reduceMotion) sheet.style.transition = SHEET_TRANSITION;
+        else {
+          dragSettleTimerRef.current = window.setTimeout(() => {
+            sheet.style.transition = SHEET_TRANSITION;
+            dragSettleTimerRef.current = null;
+          }, DRAG_SETTLE_MS);
+        }
+        return;
+      }
+      sheet.style.transform = reduceMotion ? "" : "translateY(100%)";
+      const settle = () => {
+        sheet.style.transition = SHEET_TRANSITION;
+        sheet.style.transform = "";
+        dragDeltaRef.current = 0;
+        dragSettleTimerRef.current = null;
+        void handleClose();
+      };
+      if (reduceMotion) settle();
+      else dragSettleTimerRef.current = window.setTimeout(settle, DRAG_SETTLE_MS);
+    },
+    [handleClose],
+  );
+
+  const onHandleClick = useCallback(() => {
+    if (suppressHandleClickRef.current) {
+      suppressHandleClickRef.current = false;
+      return;
+    }
+    void handleClose();
   }, [handleClose]);
 
   const handleSelectTool = useCallback(
@@ -370,10 +439,10 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
               >
                 <div
                   className="flex min-w-0 flex-1 touch-none items-center"
-                  onTouchStart={onTouchStart}
-                  onTouchMove={onTouchMove}
-                  onTouchEnd={onTouchEnd}
-                  onTouchCancel={onTouchEnd}
+                  onPointerDown={onDragStart}
+                  onPointerMove={onDragMove}
+                  onPointerUp={finishDrag}
+                  onPointerCancel={(event) => finishDrag(event, true)}
                 >
                   <span className="truncate text-[13px] font-semibold tracking-[-0.01em] text-text">
                     {activeTool.name}
@@ -401,11 +470,11 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
             ) : (
               <button
                 type="button"
-                onClick={() => void handleClose()}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-                onTouchCancel={onTouchEnd}
+                onClick={onHandleClick}
+                onPointerDown={onDragStart}
+                onPointerMove={onDragMove}
+                onPointerUp={finishDrag}
+                onPointerCancel={(event) => finishDrag(event, true)}
                 aria-label="Close — drag down to dismiss"
                 className="group flex shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
                 style={{ height: HANDLE_H }}
