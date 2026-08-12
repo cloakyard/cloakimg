@@ -64,9 +64,7 @@
   --radius-2xl: var(--radius-card);
   --radius-3xl: var(--radius-card);
 
-  --ease-out-ios: var(--ease-out);
-  --ease-in-ios: var(--ease-in);
-  --ease-in-out-ios: var(--ease-in-out);
+  --dur-instant: var(--dur-instant);
   --dur-fast: var(--dur-fast);
   --dur-base: var(--dur-base);
   --dur-modal: var(--dur-modal);
@@ -197,6 +195,20 @@ label[for] {
   transition-property: none;
 }
 
+/* Tailwind transition utilities inherit the same small vocabulary as
+ * the hand-written components. Local duration/easing one-offs should
+ * be reserved for surfaces with a documented reason. */
+.transition-colors,
+.transition-opacity {
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.transition-transform {
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-out);
+}
+
 /* Shared compact field chrome for editor text, number, and search inputs.
  * Border geometry stays fixed across states; focus uses an outline so
  * typing never shifts the surrounding panel by a pixel.
@@ -312,7 +324,9 @@ label[for] {
   outline-color: var(--color-focus);
 }
 
-.select-control:has(.select-control__trigger:active):not([data-state="disabled"]),
+.select-control:has(.select-control__trigger:active:not(:focus-visible)):not(
+    [data-state="disabled"]
+  ),
 .select-control.is-active:not([data-state="disabled"]) {
   transform: translateY(1px);
 }
@@ -452,16 +466,10 @@ label[for] {
   color: var(--color-ink);
   box-shadow: var(--shadow-popover);
   font-family: var(--font-body);
-  animation: ci-select-listbox-in var(--dur-fast) var(--ease-out) both;
-  transform-origin: top center;
 }
 
 .select-control__listbox[data-ready="false"] {
   visibility: hidden;
-}
-
-.select-control__listbox[data-placement="above"] {
-  transform-origin: bottom center;
 }
 
 .select-control__listbox::backdrop {
@@ -550,41 +558,11 @@ label[for] {
   }
 }
 
-@keyframes ci-select-listbox-in {
-  from {
-    opacity: 0;
-    transform: translateY(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.select-control__listbox[data-placement="above"] {
-  animation-name: ci-select-listbox-in-above;
-}
-
-@keyframes ci-select-listbox-in-above {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .select-control,
   .select-control__indicator,
   .select-control__indicator svg {
     transition-duration: 0s;
-  }
-
-  .select-control__listbox {
-    animation: none;
   }
 }
 
@@ -756,7 +734,7 @@ label[for] {
     color var(--dur-fast) var(--ease-standard);
 }
 
-.btn:active:not(:disabled) {
+.btn:active:not(:disabled):not(:focus-visible) {
   transform: translateY(1px);
 }
 
@@ -855,7 +833,6 @@ label[for] {
   background: var(--color-surface);
   box-shadow: none;
   transition:
-    transform var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-standard),
     border-color var(--dur-fast) var(--ease-standard);
 }

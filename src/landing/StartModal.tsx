@@ -423,7 +423,7 @@ function BlankTab({
               type="button"
               onClick={() => setPresetIdx(i)}
               aria-pressed={active}
-              className={`relative flex cursor-pointer flex-col gap-2 rounded-lg p-3 text-left font-[inherit] transition-[border-color,background-color,box-shadow] duration-150 ${
+              className={`relative flex cursor-pointer flex-col gap-2 rounded-lg p-3 text-left font-[inherit] transition-[border-color,background-color] duration-150 ${
                 active
                   ? "border-2 border-coral-500 bg-coral-50 shadow-[var(--shadow-focus)] dark:bg-coral-900/25"
                   : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-coral-200"

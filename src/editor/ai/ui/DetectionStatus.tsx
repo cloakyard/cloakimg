@@ -105,22 +105,15 @@ export function DetectionProgressCard({
         aria-label={label}
       >
         <div
-          className="h-full origin-left rounded-full bg-coral-500"
+          className={`h-full origin-left overflow-hidden rounded-full bg-coral-500 ${
+            animateStripe ? "ci-progress-shimmer" : ""
+          }`}
           style={{
             width: "100%",
             transform: `scaleX(${widthPct / 100})`,
             transition: animateStripe
               ? undefined
               : "transform var(--dur-base) var(--ease-standard)",
-            ...(animateStripe
-              ? {
-                  backgroundImage:
-                    "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)",
-                  backgroundSize: "40% 100%",
-                  backgroundRepeat: "no-repeat",
-                  animation: "ci-bg-shimmer 1.4s linear infinite",
-                }
-              : {}),
           }}
         />
       </div>

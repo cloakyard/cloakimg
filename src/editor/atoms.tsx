@@ -409,7 +409,7 @@ export function Segment({ options, active, onChange, style }: SegmentProps) {
             left: "var(--seg-inset)",
             width: `calc(${slotPct}% - var(--seg-inset) * 2)`,
             transform: `translateX(calc(${active} * 100% + ${active} * var(--seg-inset) * 2))`,
-            transition: "transform var(--dur-base) var(--ease-out)",
+            transition: "transform var(--dur-fast) var(--ease-out)",
           }}
         />
       )}

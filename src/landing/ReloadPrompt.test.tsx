@@ -67,6 +67,11 @@ describe("ReloadPrompt", () => {
     act(() => {
       vi.advanceTimersByTime(4000);
     });
+    expect(prompt).toHaveClass("ci-toast-exit");
+    expect(pwa.setOfflineReady).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(160);
+    });
     expect(pwa.setOfflineReady).toHaveBeenCalledWith(false);
     expect(pwa.setNeedRefresh).toHaveBeenCalledWith(false);
   });

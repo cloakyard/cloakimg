@@ -56,7 +56,7 @@ export function MobileCompareButton({ compareActive, setCompareActive }: Props) 
             : "Hold this pill, or rest two fingers on the photo, to compare with the original"
         }
         aria-pressed={compareActive}
-        className="flex cursor-pointer touch-none items-center gap-1.5 rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white select-none active:scale-[0.96]"
+        className="ci-pressable flex cursor-pointer touch-none items-center gap-1.5 rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white select-none"
         style={{
           background: compareActive ? "var(--color-accent)" : "var(--color-editor-overlay-control)",
           transition: "background-color var(--dur-fast) var(--ease-standard)",

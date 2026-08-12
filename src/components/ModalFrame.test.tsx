@@ -25,8 +25,7 @@ function Harness() {
 }
 
 describe("ModalFrame", () => {
-  it("isolates a stacked dialog, moves focus, and restores the page after Escape", async () => {
-    vi.useFakeTimers();
+  it("isolates a stacked dialog, moves focus, and restores the page immediately after Escape", () => {
     render(<Harness />);
 
     const launch = screen.getByRole("button", { name: "Launch dialog" });
@@ -46,14 +45,28 @@ describe("ModalFrame", () => {
     expect(underlying?.inert).toBe(true);
 
     fireEvent.keyDown(window, { key: "Escape" });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(300);
-    });
 
     expect(screen.queryByRole("dialog", { name: "Test dialog" })).toBeNull();
     expect(underlying).not.toHaveAttribute("aria-hidden");
     expect(underlying?.inert).not.toBe(true);
     expect(launch).toHaveFocus();
+  });
+
+  it("can render a keyboard-first dialog without enter or exit motion", () => {
+    function InstantHarness() {
+      const [open, setOpen] = useState(true);
+      return open ? (
+        <ModalFrame instant onClose={() => setOpen(false)} labelledBy="instant-title">
+          <h2 id="instant-title">Instant dialog</h2>
+        </ModalFrame>
+      ) : null;
+    }
+
+    render(<InstantHarness />);
+    const dialog = screen.getByRole("dialog", { name: "Instant dialog" });
+    expect(dialog.className).not.toContain("ci-modal-card-enter");
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Instant dialog" })).toBeNull();
   });
 
   it("routes scrim dismissal through the exit-motion budget", async () => {

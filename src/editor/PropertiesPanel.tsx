@@ -93,7 +93,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           own vertical scroll. */}
       <div
         key={activeTool}
-        className="panel-fade-in scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
+        className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
       >
         <ToolControls />
       </div>

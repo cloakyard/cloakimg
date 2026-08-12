@@ -571,7 +571,7 @@ function MetadataSection({
           className="text-text-muted"
           style={{
             transform: metaOpen ? "rotate(180deg)" : "none",
-            transition: "transform 120ms ease",
+            transition: "transform var(--dur-instant) var(--ease-out)",
           }}
         />
       </button>

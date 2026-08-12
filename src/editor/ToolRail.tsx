@@ -50,10 +50,9 @@ export const ToolRail = memo(function ToolRail({ activeTool, onSelect, onOpenSea
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   useEffect(() => {
-    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     activeButtonRef.current?.scrollIntoView?.({
       block: "nearest",
-      behavior: reduceMotion ? "auto" : "smooth",
+      behavior: "auto",
     });
   }, [activeTool]);
 

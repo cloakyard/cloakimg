@@ -3,13 +3,14 @@
 // the desktop-centered vs mobile-bottom-sheet split, positioning
 // (`fixed` for full-viewport modals on the landing, `absolute` for
 // modals scoped to the editor's `<main>` shell), and owns the open /
-// close motion for every modal in the app.
+// close motion for every pointer-opened modal in the app. Keyboard-first
+// surfaces can opt out, and Escape always closes immediately.
 //
 // Motion lifecycle:
-//   • On mount → backdrop + modal play their enter animations
+//   • On pointer-opened mount → backdrop + modal play their enter animations
 //     (`ci-modal-backdrop-enter` + `ci-modal-card-enter` /
 //     `ci-modal-sheet-enter`).
-//   • When the consumer's onClose request arrives, ModalFrame flips
+//   • When a pointer close request arrives, ModalFrame flips
 //     into `closing` mode: the exit animations run (`ci-modal-…-exit`),
 //     and only after they settle does the real `onClose` fire so the
 //     parent can unmount. Consumers keep their existing
@@ -39,6 +40,8 @@ interface ModalFrameProps {
   onClose: () => void;
   /** Render as a bottom sheet (mobile) instead of a centered card. */
   bottomSheet?: boolean;
+  /** Skip enter/exit motion for keyboard-first, high-frequency surfaces. */
+  instant?: boolean;
   /** `fixed` for full-viewport (landing) or `absolute` for editor-scoped. */
   position?: "fixed" | "absolute";
   /** Tailwind max-width utility, e.g. `max-w-160`. */
@@ -58,15 +61,16 @@ interface ModalFrameProps {
 const MODAL_BASE = "cloak-dialog relative flex w-full overflow-hidden";
 
 // Exit-animation budget. Must stay in sync with the longer of the
-// `ci-modal-*-exit` keyframe durations in style.css (sheet exit
-// runs --dur-base = 240 ms; card exit runs --dur-fast = 180 ms). We
-// pad a frame so the animation has visibly settled before the parent
-// unmounts the modal.
+// `ci-modal-*-exit` keyframe durations in style.css (sheet exit is
+// --dur-base = 220 ms; card exit is --dur-fast = 160 ms). We pad the
+// longer path so it has visibly settled before the parent unmounts.
 const EXIT_MS = 260;
+const REDUCED_EXIT_MS = 120;
 
 export function ModalFrame({
   onClose,
   bottomSheet = false,
+  instant = false,
   position = "fixed",
   maxWidth = "max-w-160",
   labelledBy,
@@ -91,15 +95,27 @@ export function ModalFrame({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  const requestClose = useCallback((onSettled?: () => void) => {
-    if (closeRequestedRef.current) return;
-    closeRequestedRef.current = true;
-    setClosing(true);
-    closeTimerRef.current = window.setTimeout(() => {
-      onCloseRef.current();
-      onSettled?.();
-    }, EXIT_MS);
-  }, []);
+  const requestClose = useCallback(
+    (onSettled?: () => void, immediate = false) => {
+      if (closeRequestedRef.current) return;
+      closeRequestedRef.current = true;
+      if (instant || immediate) {
+        onCloseRef.current();
+        onSettled?.();
+        return;
+      }
+      setClosing(true);
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      closeTimerRef.current = window.setTimeout(
+        () => {
+          onCloseRef.current();
+          onSettled?.();
+        },
+        reduceMotion ? REDUCED_EXIT_MS : EXIT_MS,
+      );
+    },
+    [instant],
+  );
 
   useEffect(() => {
     return () => {
@@ -108,22 +124,21 @@ export function ModalFrame({
   }, []);
 
   // Centralised Escape handling. Every prior modal duplicated this
-  // effect at the consumer level just to call its onClose; with the
-  // animation lifecycle owned here, doing it once in ModalFrame both
-  // saves the duplication and makes Esc go through the same animated
-  // path as backdrop clicks / X-button clicks. Consumers that want a
+  // effect at the consumer level just to call its onClose. Escape is
+  // intentionally immediate: keyboard-driven dismissal should never
+  // wait on motion. Consumers that want a
   // different Esc behaviour (e.g. a Crop session that has its own
   // rollback) wire it as a no-op on their own — but for a modal,
-  // Esc should always animate out.
+  // Esc should always dismiss without delay.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        requestClose();
+        requestClose(undefined, true);
       }
     };
     // Capture so we run before any consumer-level Esc handlers that
-    // might still be wired to a non-animated onClose. We swallow Esc
+    // might still be wired to a separate onClose. We swallow Esc
     // via stopPropagation so the underlying handlers don't double-fire.
     window.addEventListener("keydown", onKey, { capture: true });
     return () => window.removeEventListener("keydown", onKey, { capture: true });
@@ -220,14 +235,20 @@ export function ModalFrame({
     };
   }, []);
 
-  const backdropMotion = closing ? "ci-modal-backdrop-exit" : "ci-modal-backdrop-enter";
-  const modalMotion = closing
-    ? bottomSheet
-      ? "ci-modal-sheet-exit"
-      : "ci-modal-card-exit"
-    : bottomSheet
-      ? "ci-modal-sheet-enter"
-      : "ci-modal-card-enter";
+  const backdropMotion = instant
+    ? ""
+    : closing
+      ? "ci-modal-backdrop-exit"
+      : "ci-modal-backdrop-enter";
+  const modalMotion = instant
+    ? ""
+    : closing
+      ? bottomSheet
+        ? "ci-modal-sheet-exit"
+        : "ci-modal-card-exit"
+      : bottomSheet
+        ? "ci-modal-sheet-enter"
+        : "ci-modal-card-enter";
 
   return (
     <div
