@@ -124,13 +124,14 @@ function ModalHeader({ isPhone, onCancel }: { isPhone: boolean; onCancel: () => 
       className={`cloak-dialog__header items-start ${isPhone ? "px-5 pt-4.5 pb-3" : "px-7 pt-6 pb-4"}`}
     >
       <div className="min-w-0 flex-1">
-        <div id="start-modal-title" className="t-headline">
+        <p className="cloak-dialog__eyebrow">New canvas / local execution</p>
+        <div id="start-modal-title" className="cloak-dialog__title">
           Start a new project
         </div>
         {/* Privacy reassurance lives in the header now — it sets the
             tone before the user picks anything, instead of crowding
             the action footer with a stray label. */}
-        <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
+        <div className="cloak-dialog__description inline-flex items-center gap-1.5">
           <I.Lock size={11} stroke={2.25} className="text-coral-600 dark:text-coral-400" />
           Files never leave your browser
         </div>
