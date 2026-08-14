@@ -151,8 +151,9 @@ export function Landing({ onStart, onIntent }: Props) {
         </section>
 
         <Features />
-        <Footer onPrivacy={() => setPrivacyOpen(true)} />
       </main>
+
+      <Footer onPrivacy={() => setPrivacyOpen(true)} />
 
       {modalOpen && (
         <StartModal

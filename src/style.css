@@ -96,6 +96,10 @@
   gap: var(--space-2xs);
 }
 
+.cloak-site-header__actions .btn-sm {
+  min-height: 2.5rem;
+}
+
 .cloak-site-header__actions .cloak-outline-link {
   display: none;
 }
@@ -1141,7 +1145,7 @@
   }
 
   .cloak-site-footer__statement {
-    font-size: clamp(2.4rem, 6vw, 5.2rem);
+    font-size: clamp(2.4rem, 5vw, 5.2rem);
   }
 
   .cloak-site-footer__inner {
@@ -1168,7 +1172,7 @@
   }
 
   .cloak-display {
-    font-size: clamp(2.75rem, 5.5vw, 5.5rem);
+    font-size: clamp(2.75rem, 5.5vw, 5.6rem);
   }
 
   .cloak-workbench__body {
