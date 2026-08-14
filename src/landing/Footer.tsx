@@ -24,7 +24,9 @@ export function Footer({ onPrivacy }: Props) {
       <div className="site-frame cloak-site-footer__inner">
         <div className="cloak-site-footer__statement-row">
           <div>
-            <p className="cloak-mono-label cloak-site-footer__eyebrow">CloakIMG / Cloakyard</p>
+            <p className="cloak-mono-label cloak-site-footer__eyebrow" translate="no">
+              CloakIMG / Cloakyard
+            </p>
             <p className="cloak-site-footer__statement">
               Open a photo. <span>Keep it local.</span>
             </p>

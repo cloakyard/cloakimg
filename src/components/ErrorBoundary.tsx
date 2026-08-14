@@ -101,7 +101,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, info: ErrorInfo) {
     const subsystem = this.props.subsystem ?? "panel";
     const variant = this.props.variant ?? "modal";
-    this.setState({ componentStack: info.componentStack ?? "" });
+    this.setState({ componentStack: info.componentStack ?? "" }, () => {
+      window.requestAnimationFrame(() => this.primaryRef.current?.focus());
+    });
     aiLog.error(subsystem, `${variant} boundary caught render error`, error, {
       componentStack: info.componentStack ?? "",
       variant,
@@ -204,21 +206,28 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="cloak-eb-title"
+        aria-describedby="cloak-eb-description"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            primaryOnClick();
+          }
+        }}
         className="absolute inset-0 flex items-center justify-center px-6"
         style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
       >
-        <div
-          className="flex w-full max-w-sm flex-col items-center gap-5 rounded-lg border border-border bg-surface px-7 py-8 text-center"
-          style={{ boxShadow: "var(--shadow-overlay)" }}
-        >
+        <div className="cloak-dialog flex w-full max-w-sm flex-col items-center gap-5 rounded-lg px-7 py-8 text-center">
           <div className="cloak-dialog__icon h-14 w-14">
             <I.Triangle size={26} stroke={1.75} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <div id="cloak-eb-title" className="text-[17px] font-semibold tracking-tight">
+            <p className="cloak-dialog__eyebrow">Recovery / local session</p>
+            <h2 id="cloak-eb-title" className="cloak-dialog__title">
               {title}
-            </div>
-            <div className="text-[13px] leading-relaxed text-text-muted">{description}</div>
+            </h2>
+            <p id="cloak-eb-description" className="cloak-dialog__description">
+              {description}
+            </p>
             {error.message && (
               <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted">
                 {error.message}
@@ -267,6 +276,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="ci-error-title"
+        aria-describedby="ci-error-description"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            primaryOnClick();
+          }
+        }}
         className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-6"
         style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
       >
@@ -276,10 +292,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <I.AlertTriangle size={20} stroke={2.25} />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 id="ci-error-title" className="t-headline text-[17px] sm:text-[18px]">
+              <p className="cloak-dialog__eyebrow">Recovery / local session</p>
+              <h2 id="ci-error-title" className="cloak-dialog__title">
                 {title}
               </h2>
-              <p className="mt-1 text-[12.5px] leading-[1.5] text-text-muted sm:text-[13px]">
+              <p id="ci-error-description" className="cloak-dialog__description">
                 Your image is still on this device — nothing was uploaded. Send the details below
                 and we'll fix the bug.
               </p>
@@ -310,7 +327,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
             <pre
               id="ci-error-details"
-              className="t-mono m-0 rounded-lg border border-border-soft bg-page-bg p-3 text-[11.5px] leading-[1.55] break-words whitespace-pre-wrap text-text"
+              className="t-mono m-0 rounded-md border border-border-soft bg-page-bg p-3 text-[11.5px] leading-[1.55] break-words whitespace-pre-wrap text-text"
             >
               {details}
             </pre>

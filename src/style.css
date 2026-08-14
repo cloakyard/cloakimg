@@ -96,6 +96,10 @@
   gap: var(--space-2xs);
 }
 
+.cloak-site-header__actions .btn-sm {
+  min-height: 2.5rem;
+}
+
 .cloak-site-header__actions .cloak-outline-link {
   display: none;
 }
@@ -947,6 +951,59 @@
   border-bottom: var(--rule-thin) solid var(--color-rule);
 }
 
+.cloak-dialog__eyebrow {
+  color: var(--color-ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.cloak-dialog__title {
+  margin: 0.2rem 0 0;
+  color: var(--color-ink);
+  font-size: 1rem;
+  font-weight: 680;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.cloak-dialog__description {
+  margin-top: 0.25rem;
+  color: var(--color-ink-3);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.cloak-dialog__close {
+  display: grid;
+  width: var(--control-touch-size);
+  height: var(--control-touch-size);
+  flex: none;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-input);
+  color: var(--color-ink-3);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+}
+
+.cloak-dialog__close:hover:not(:disabled) {
+  color: var(--color-ink);
+  background: var(--color-paper-2);
+}
+
+.cloak-dialog__close:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .cloak-dialog__icon {
   width: 2rem;
   height: 2rem;
@@ -991,6 +1048,301 @@
 
 .cloak-dialog [class*="bg-page-bg"] {
   background: color-mix(in oklab, var(--color-paper-2) 55%, var(--color-surface));
+}
+
+@media (max-width: 639px) {
+  .cloak-dialog__footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .cloak-dialog__footer > :where(a, button) {
+    width: 100%;
+  }
+}
+
+/* Privacy is presented as an inspectable system receipt followed by the full
+   ruled document—the same architecture-first pattern used across Cloakyard. */
+.cloak-privacy-dialog {
+  color: var(--color-ink);
+  background: var(--color-surface);
+}
+
+.cloak-privacy-dialog__bar {
+  display: flex;
+  min-height: var(--banner-height);
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-inline: var(--space-md) var(--space-sm);
+  color: var(--color-night-muted);
+  background: var(--color-night);
+  border-bottom: var(--rule-thin) solid var(--color-night-rule);
+}
+
+.cloak-privacy-dialog__bar p {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.cloak-privacy-dialog__bar p svg {
+  color: var(--color-accent);
+}
+
+.cloak-privacy-dialog__bar .cloak-dialog__close {
+  color: var(--color-night-muted);
+}
+
+.cloak-privacy-dialog__bar .cloak-dialog__close:hover:not(:disabled) {
+  color: var(--color-night-ink);
+  background: var(--color-night-2);
+}
+
+.cloak-privacy-dialog__scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-surface);
+}
+
+.cloak-privacy-dialog__architecture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xl);
+  padding: var(--space-lg) var(--space-md) var(--space-xl);
+  color: var(--color-night-ink);
+  background: var(--color-night);
+}
+
+.cloak-privacy-dialog__promise,
+.cloak-privacy-dialog__path {
+  min-width: 0;
+}
+
+.cloak-privacy-dialog__kicker,
+.cloak-privacy-dialog__path-head,
+.cloak-privacy-dialog__facts,
+.cloak-privacy-dialog__absent,
+.cloak-privacy-policy__marker {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cloak-privacy-dialog__kicker {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-accent);
+}
+
+.cloak-privacy-dialog__promise h2 {
+  max-width: 12ch;
+  margin: 0;
+  color: var(--color-night-ink);
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 4.9rem);
+  font-weight: 760;
+  letter-spacing: -0.06em;
+  line-height: 0.94;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.cloak-privacy-dialog__lede {
+  max-width: 40rem;
+  margin: var(--space-md) 0 0;
+  color: var(--color-night-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.cloak-privacy-dialog__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md) var(--space-sm);
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-sm);
+  border-top: var(--rule-thin) solid var(--color-night-rule);
+}
+
+.cloak-privacy-dialog__facts div:last-child {
+  grid-column: 1 / -1;
+}
+
+.cloak-privacy-dialog__facts dt {
+  color: var(--color-night-muted);
+}
+
+.cloak-privacy-dialog__facts dd {
+  margin: var(--space-3xs) 0 0;
+  color: var(--color-night-ink);
+}
+
+.cloak-privacy-dialog__path {
+  align-self: end;
+  border-top: var(--rule-thin) solid var(--color-night-rule);
+}
+
+.cloak-privacy-dialog__path-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-block: var(--space-xs);
+  color: var(--color-night-muted);
+  border-bottom: var(--rule-thin) solid var(--color-night-rule);
+}
+
+.cloak-privacy-dialog__path-head span:last-child {
+  color: var(--color-accent);
+}
+
+.cloak-privacy-dialog__path-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs);
+  padding-block: var(--space-sm);
+  border-bottom: var(--rule-thin) solid var(--color-night-rule);
+}
+
+.cloak-privacy-dialog__path-row > span,
+.cloak-privacy-dialog__path-row p,
+.cloak-privacy-dialog__path-row strong {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.cloak-privacy-dialog__path-row > span,
+.cloak-privacy-dialog__path-row p {
+  color: var(--color-night-muted);
+}
+
+.cloak-privacy-dialog__path-row h3,
+.cloak-privacy-dialog__path-row p {
+  margin: 0;
+}
+
+.cloak-privacy-dialog__path-row h3 {
+  color: var(--color-night-ink);
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.cloak-privacy-dialog__path-row p {
+  margin-top: 0.2rem;
+}
+
+.cloak-privacy-dialog__path-row strong {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.cloak-privacy-dialog__absent {
+  padding-top: var(--space-sm);
+  color: var(--color-night-muted);
+}
+
+.cloak-privacy-dialog__absent p {
+  margin: 0 0 var(--space-2xs);
+  color: var(--color-accent);
+}
+
+.cloak-privacy-dialog__absent div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-md);
+}
+
+.cloak-privacy-policy {
+  width: min(48rem, calc(100% - (var(--space-md) * 2)));
+  margin-inline: auto;
+}
+
+.cloak-privacy-policy__section {
+  padding-block: var(--space-xl);
+  border-bottom: var(--rule-thin) solid var(--color-rule);
+}
+
+.cloak-privacy-policy__marker {
+  margin: 0;
+  color: var(--color-accent);
+}
+
+.cloak-privacy-policy__section h3 {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-ink);
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.cloak-privacy-policy__copy {
+  margin-top: var(--space-md);
+  color: var(--color-ink-2);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+.cloak-privacy-policy__copy > * {
+  margin: 0;
+}
+
+.cloak-privacy-policy__copy > * + * {
+  margin-top: var(--space-sm);
+}
+
+.cloak-privacy-policy__copy ul {
+  display: grid;
+  gap: var(--space-2xs);
+  padding-left: 1.2rem;
+}
+
+.cloak-privacy-policy__copy li::marker {
+  color: var(--color-accent);
+}
+
+.cloak-privacy-policy__link {
+  color: var(--color-accent);
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--color-accent) 45%, transparent);
+  text-underline-offset: 0.22em;
+}
+
+@media (min-width: 48rem) {
+  .cloak-privacy-dialog__architecture {
+    grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+    gap: var(--space-2xl);
+    padding: var(--space-xl);
+  }
+
+  .cloak-privacy-dialog__facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cloak-privacy-dialog__facts div:last-child {
+    grid-column: auto;
+  }
+
+  .cloak-privacy-policy {
+    width: min(48rem, calc(100% - (var(--space-xl) * 2)));
+  }
 }
 
 /* ── Persistent editor workbench ──────────────────────────────── */
@@ -1141,7 +1493,7 @@
   }
 
   .cloak-site-footer__statement {
-    font-size: clamp(2.4rem, 6vw, 5.2rem);
+    font-size: clamp(2.4rem, 5vw, 5.2rem);
   }
 
   .cloak-site-footer__inner {
@@ -1168,7 +1520,7 @@
   }
 
   .cloak-display {
-    font-size: clamp(2.75rem, 5.5vw, 5.5rem);
+    font-size: clamp(2.75rem, 5.5vw, 5.6rem);
   }
 
   .cloak-workbench__body {

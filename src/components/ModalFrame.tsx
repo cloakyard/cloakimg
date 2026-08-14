@@ -336,7 +336,7 @@ export function ModalCloseButton({
   return (
     <button
       type="button"
-      className={`btn btn-ghost btn-icon-sm ${className}`}
+      className={`cloak-dialog__close ${className}`}
       aria-label={label}
       onClick={dismiss}
     >
