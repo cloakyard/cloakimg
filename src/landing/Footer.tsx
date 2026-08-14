@@ -2,7 +2,7 @@ import { I } from "../components/icons";
 import {
   GITHUB_AUTHOR_URL,
   GITHUB_LICENSE_URL,
-  GITHUB_ORG_URL,
+  CLOAKYARD_URL,
   GITHUB_REPO_URL,
 } from "../constants/links";
 import { ALL_TOOLS } from "../editor/tools";
@@ -40,7 +40,7 @@ export function Footer({ onPrivacy }: Props) {
             <button type="button" onClick={onPrivacy}>
               Privacy policy
             </button>
-            <a href={GITHUB_ORG_URL} target="_blank" rel="noreferrer">
+            <a href={CLOAKYARD_URL} target="_blank" rel="noreferrer">
               Cloakyard
               <I.ArrowUpRight size={12} aria-hidden="true" />
             </a>
