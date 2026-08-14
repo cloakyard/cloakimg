@@ -1,5 +1,5 @@
 // links.ts — Single source of truth for every external URL the app
-// links to (GitHub repo, issues, license, the Cloakyard org page,
+// links to (GitHub repo, issues, license, the Cloakyard family site,
 // the author's profile). Keeping these in one module means a rename
 // or move only touches this file instead of hunting through Header,
 // Footer, PrivacyModal, ErrorBoundary, etc.
@@ -21,8 +21,8 @@ export const GITHUB_NEW_ISSUE_URL = `${GITHUB_REPO_URL}/issues/new`;
 /** Direct link to the LICENSE file on `main`. */
 export const GITHUB_LICENSE_URL = `${GITHUB_REPO_URL}/blob/main/LICENSE`;
 
-/** Cloakyard organisation page — the family of tools this app belongs to. */
-export const GITHUB_ORG_URL = "https://github.com/cloakyard";
+/** Cloakyard family site — the suite this app belongs to. */
+export const CLOAKYARD_URL = "https://cloakyard.com";
 
 /** Author profile — surfaced in the footer attribution row. */
 export const GITHUB_AUTHOR_URL = "https://github.com/sumitsahoo";
