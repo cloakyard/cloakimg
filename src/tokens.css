@@ -548,7 +548,7 @@ label[for] {
   color: var(--color-accent);
 }
 
-@media (pointer: coarse) {
+@media (max-width: 639px), (pointer: coarse) {
   .select-control--compact {
     min-height: var(--control-touch-size);
   }
@@ -899,7 +899,7 @@ html,
   color: var(--color-accent);
 }
 
-@media (pointer: coarse) {
+@media (max-width: 639px), (pointer: coarse) {
   .editor-shell button,
   .cloak-dialog button {
     min-height: var(--control-touch-size);

@@ -1050,6 +1050,17 @@
   background: color-mix(in oklab, var(--color-paper-2) 55%, var(--color-surface));
 }
 
+@media (max-width: 639px) {
+  .cloak-dialog__footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .cloak-dialog__footer > :where(a, button) {
+    width: 100%;
+  }
+}
+
 /* Privacy is presented as an inspectable system receipt followed by the full
    ruled document—the same architecture-first pattern used across Cloakyard. */
 .cloak-privacy-dialog {

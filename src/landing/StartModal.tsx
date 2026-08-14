@@ -376,7 +376,7 @@ function RecentsRow({ onPick }: { onPick: (f: File | null) => void }) {
                 void deleteRecent(r.id);
               }}
               aria-label={`Remove ${r.name} from recents`}
-              className="absolute top-1 right-1 flex h-4.5 w-4.5 cursor-pointer items-center justify-center rounded-full border-none bg-black/55 p-0 text-white"
+              className="absolute top-1 right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-none bg-black/55 p-0 text-white max-sm:h-11 max-sm:w-11"
             >
               <I.X size={10} />
             </button>
@@ -426,7 +426,7 @@ function BlankTab({
               aria-pressed={active}
               className={`relative flex cursor-pointer flex-col gap-2 rounded-lg p-3 text-left font-[inherit] transition-[border-color,background-color] duration-150 ${
                 active
-                  ? "border-2 border-coral-500 bg-coral-50 shadow-[var(--shadow-focus)] dark:bg-coral-900/25"
+                  ? "border-2 border-coral-500 bg-coral-50 dark:bg-coral-900/25"
                   : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-coral-200"
               }`}
             >
@@ -475,18 +475,18 @@ function BlankTab({
           Background controls below. Wider viewports collapse the
           three groups back into a single flex-wrap row with the
           background pushed to the right via sm:ml-auto. */}
-      <div className="mt-4 flex flex-col gap-3 rounded-xl bg-page-bg p-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+      <div className="mt-4 flex flex-col gap-3 rounded-lg bg-page-bg p-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
         <div className="t-eyebrow t-eyebrow-slate text-[10px]">Custom</div>
         <div className="flex items-center gap-2 sm:gap-2.5">
           <DimensionInput label="W" value={customW} onChange={setCustomW} />
           <I.X size={11} className="shrink-0 text-text-muted" />
           <DimensionInput label="H" value={customH} onChange={setCustomH} />
-          <div className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text-muted">
+          <div className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-border bg-surface px-2.5 text-xs text-text-muted sm:min-h-0 sm:py-1.5">
             px
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5 sm:ml-auto">
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted">
+          <label className="flex min-h-11 cursor-pointer items-center gap-1.5 text-xs text-text-muted sm:min-h-0">
             <input
               type="checkbox"
               checked={bgEnabled}
@@ -521,7 +521,7 @@ function DimensionInput({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="t-mono flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500">
+    <div className="t-mono flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-[13px] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500 sm:min-h-0 sm:py-1.5">
       <span className="text-[11px] text-text-muted">{label}</span>
       <input
         name={`canvas-${label.toLowerCase()}`}
@@ -530,7 +530,7 @@ function DimensionInput({
         autoComplete="off"
         value={value}
         onChange={(e) => onChange(Math.max(1, Math.min(20000, +e.target.value || 0)))}
-        className="w-17.5 border-none bg-transparent font-[inherit] text-[13px] text-text outline-none"
+        className="h-11 w-17.5 border-none bg-transparent font-[inherit] text-[13px] text-text outline-none sm:h-auto"
       />
     </div>
   );
