@@ -1,0 +1,19 @@
+packages:
+  - "."
+
+# Keep transitive tooling on maintained releases when upstream packages lag.
+# `canvas` is an API-compatible alias used only by Node-side Fabric/jsdom code;
+# the browser application continues to use the native Canvas APIs.
+overrides:
+  adm-zip: 0.6.0
+  canvas: npm:@napi-rs/canvas@1.0.8
+  glob: 13.0.6
+  jsdom: 30.0.1
+  onnxruntime-node: 1.29.0
+  sharp: 0.35.3
+
+# Transformers.js declares its Node backend for server consumers, but
+# CloakIMG ships the browser/WebAssembly backend. Do not run the unused
+# native package's install script in this browser-only application.
+ignoredBuiltDependencies:
+  - onnxruntime-node

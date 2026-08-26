@@ -3,7 +3,7 @@
 // Two decode branches in production:
 //   • Browser-native (JPEG / PNG / WebP / AVIF / GIF):
 //     URL.createObjectURL → <img src> (synchronous).
-//   • HEIC / HEIF: libheif-js → ImageBitmap → canvas → data URL (async).
+//   • HEIC / HEIF: local libheif WASM → ImageBitmap → canvas → data URL (async).
 //
 // The HEIC branch can't fully resolve under jsdom (canvas getContext
 // returns null and libheif's wasm doesn't load), but we can still
@@ -119,14 +119,14 @@ describe("DropZone", () => {
     });
   });
 
-  // ── Format coverage — HEIC / HEIF (libheif-js path) ─────────────────
+  // ── Format coverage — HEIC / HEIF (local libheif path) ──────────────
   //
   // The bug that prompted this work: an iPhone HEIC drop showed only
   // the FileImage icon and the user couldn't tell whether the right
-  // photo was queued. The fix routes HEIC through libheif-js. These
+  // photo was queued. The fix routes HEIC through local libheif WASM. These
   // tests pin every detection branch + the loading state, so a future
   // refactor can't silently regress to "always FileImage for HEIC".
-  describe("HEIC / HEIF formats route through libheif-js", () => {
+  describe("HEIC / HEIF formats route through the local codec", () => {
     const heicCases: Array<{ name: string; type: string; label: string }> = [
       { name: "IMG_1804.heic", type: "image/heic", label: ".heic + image/heic" },
       { name: "IMG_1804.HEIC", type: "image/heic", label: "uppercase .HEIC extension" },
@@ -136,6 +136,7 @@ describe("DropZone", () => {
       { name: "photo.heic", type: "", label: "extension-only (Safari empty type)" },
       // Multi-image HEIF burst — the type variant must also detect.
       { name: "burst.heic", type: "image/heic-sequence", label: "image/heic-sequence" },
+      { name: "burst.heif", type: "image/heif-sequence", label: "image/heif-sequence" },
       // Type-only signal: no extension, content-type set by some upload
       // pipelines.
       { name: "blob-from-clipboard", type: "image/heic", label: "type-only (no extension)" },

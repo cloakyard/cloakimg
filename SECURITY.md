@@ -24,7 +24,7 @@ CloakIMG is a **client-side only** application — every image edit, filter, red
 
 - Third-party npm dependencies (monitored via automated CI security audits and Dependabot)
 - Browser sandbox escape (out of scope — report to the browser vendor)
-- WebAssembly modules bundled with the app (libheif-js for HEIC decode) — served from the same origin under hashed filenames
+- WebAssembly modules bundled with the app (pinned libheif/libde265/Kvazaar for HEIF import/export) — served from the same origin under hashed filenames
 
 ## Dependency Vulnerabilities
 

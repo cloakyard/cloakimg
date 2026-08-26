@@ -31,7 +31,7 @@ interface DropZoneProps {
   subtitle?: string;
   /** Accept attribute for the file input. Default covers the formats
    *  the editor decodes natively (createImageBitmap) plus HEIC/HEIF
-   *  via libheif-js. */
+   *  via the local libheif WASM codec. */
   accept?: string;
   /** Show the "Paste from clipboard" button. Default true. */
   showPasteButton?: boolean;
@@ -62,7 +62,7 @@ export function DropZone({
   //     URL.createObjectURL → <img src>.
   //
   //   • HEIC / HEIF (popular among iPhone users): <img> can't decode
-  //     these in Chrome / Firefox, so we route through libheif-js
+  //     these in Chrome / Firefox, so we route through the local codec
   //     (the same decoder doc.ts uses) → ImageBitmap → small canvas
   //     → data URL. The wasm bundle + decoder instance are singleton-
   //     cached, so the second decode (when the user clicks "Open in

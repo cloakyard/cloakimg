@@ -18,7 +18,7 @@ export default defineConfig({
   // startup. These are imported only inside the AI worker
   // (`@huggingface/transformers`), a lazy main-thread runner
   // (`@mediapipe/tasks-vision` for face detection), or on first HEIC
-  // open (`libheif-js`) — so Vite's dep optimizer doesn't discover them
+  // open — so Vite's dep optimizer doesn't discover them
   // until the user first triggers that path. When it discovers a new
   // dep mid-session it logs "optimized dependencies changed. reloading"
   // and force-reloads the tab; because the editor's chosen document
@@ -27,7 +27,7 @@ export default defineConfig({
   // model. Pre-including them here means they're optimized before the
   // app mounts, so the first model download no longer reloads the tab.
   optimizeDeps: {
-    include: ["@huggingface/transformers", "@mediapipe/tasks-vision", "libheif-js"],
+    include: ["@huggingface/transformers", "@mediapipe/tasks-vision"],
   },
   plugins: [
     react(),
@@ -107,7 +107,8 @@ export default defineConfig({
               "image/webp": [".webp"],
               "image/avif": [".avif"],
               "image/gif": [".gif"],
-              "image/heic": [".heic", ".heif"],
+              "image/heic": [".heic"],
+              "image/heif": [".heif"],
             },
           },
         ],
@@ -127,11 +128,29 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
-        // libheif's WASM bundle is ~1.4MB and only loads when a user
-        // opens a HEIC/HEIF — pre-caching it would bloat first-install
-        // by ~half a meg gzipped for everyone. Excluded here; the
-        // browser caches it on first use through normal HTTP caching.
-        globIgnores: ["**/wasm-bundle-*.js"],
+        globIgnores: [
+          // Modern export codecs are lazy by design. The HEIC WASM is
+          // emitted as its own lazy chunk; pre-caching either chunk would
+          // make every first visit pay for codecs most users never use.
+          "**/exportCodec.worker-*.js",
+          "**/heif-codec-*.js",
+          "**/avif_enc_mt.worker-*.js",
+        ],
+        runtimeCaching: [
+          {
+            // Cache modern export codecs after first use. This preserves a
+            // small initial PWA install while keeping AVIF/HEIC export
+            // available offline once the user has loaded that local codec.
+            urlPattern:
+              /\/assets\/(?:exportCodec\.worker|heif-codec|avif_enc(?:_mt)?(?:\.worker)?)-[^/]+\.(?:js|wasm)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "cloakimg-modern-image-codecs",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 8, maxAgeSeconds: 31_536_000 },
+            },
+          },
+        ],
         skipWaiting: false,
         cleanupOutdatedCaches: true,
         // Every shell asset and local webfont is precached. Without a
@@ -144,6 +163,9 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
+  fmt: {
+    ignorePatterns: ["src/editor/vendor/heif-codec.js"],
+  },
   lint: {
     ignorePatterns: [
       "handoff-readonly/**",
@@ -153,6 +175,9 @@ export default defineConfig({
       // promise rules that we don't enforce on third-party code.
       ".claude/skills/**",
       ".agents/skills/**",
+      // Generated from the pinned, reviewable C++ sources under
+      // vendor/heif-codec; lint the source and wrapper, not Emscripten output.
+      "src/editor/vendor/heif-codec.js",
     ],
     options: { typeAware: true, typeCheck: true },
   },
