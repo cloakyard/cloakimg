@@ -7,6 +7,7 @@ import { clearDraft } from "../landing/draft";
 import { I } from "../components/icons";
 import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
 import { PropRow, Segment, Slider, Spinner, ToggleSwitch } from "./atoms";
+import { startBlobDownload } from "./download";
 import { useEditor } from "./EditorContext";
 import { PrivacyAuditCard } from "./PrivacyAuditCard";
 import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
@@ -15,7 +16,9 @@ import {
   estimateBytesByEncode,
   type ExportSettings,
   exportDoc,
-  isHeicEncodeSupported,
+  formatSupportsQuality,
+  renderCompositeCanvas,
+  resolveExportDimensions,
   settingsToFormat,
 } from "./exportPipeline";
 import { exifToFields } from "./tools/exif";
@@ -39,7 +42,7 @@ interface Props {
 
 export type { ExportSettings };
 
-const BASE_FORMATS = ["JPG", "PNG", "WebP", "AVIF"] as const;
+const FORMATS = ["JPG", "PNG", "WebP", "AVIF", "HEIC"] as const;
 
 export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   const { doc, layers, toolState, patchTool, getFabricCanvas, flushPendingApply } = useEditor();
@@ -50,13 +53,13 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   // can read the failure right next to the Download button instead of
   // chasing a transient toast.
   const [exportError, setExportError] = useState<string | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
   // Mobile renders the metadata section inline (always expanded) so
   // the strip toggles are unmissable; desktop keeps the accordion to
   // save vertical space. On mobile the accordion previously hid the
   // toggles below the scroll fold even when expanded, since the new
   // content rendered below the visible viewport.
   const [metaOpen, setMetaOpen] = useState(false);
-  const [heicSupported, setHeicSupported] = useState(false);
   // Gate preview generation on a one-shot flush of any pending tool
   // apply (Adjust/Filter/Crop sliders that haven't been committed yet).
   // Running flush in a deferred effect — instead of synchronously in
@@ -91,73 +94,42 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
     };
   }, [flushPendingApply]);
 
-  // Probe Safari-only HEIC encode support once on mount. Other engines
-  // silently fall back to PNG, so we keep the option hidden there.
-  useEffect(() => {
-    let cancelled = false;
-    void isHeicEncodeSupported().then((ok) => {
-      if (!cancelled) setHeicSupported(ok);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const formats = useMemo(
-    () => (heicSupported ? [...BASE_FORMATS, "HEIC"] : BASE_FORMATS.slice()),
-    [heicSupported],
-  );
-
-  // If the user had HEIC selected and the probe came back negative
-  // (or they re-opened on a different browser), fall back to AVIF —
-  // closest in-spirit cross-browser option.
-  useEffect(() => {
-    if (!heicSupported && settings.format === 4) {
-      onPatch({ format: 3 });
-    }
-  }, [heicSupported, settings.format, onPatch]);
-
-  // Preview the working canvas as an <img> so it reflects the current
-  // working state including Fabric overlays (text, shapes, stickers,
-  // strokes). Mirrors the bake step in `exportDoc` so the preview
-  // matches what the user will actually download. Waits on `prepared`
-  // so it sees the post-flush doc.working, not a stale frame.
+  // Preview the exact composite path used by export so persistent
+  // Fabric layers are included and tool-only guides are omitted. Wait
+  // on `prepared` so this sees the post-flush doc.working, not a stale
+  // frame from before Crop / Resize / Perspective was committed.
   useEffect(() => {
     if (!doc || !prepared) return;
     let cancelled = false;
-    const off = document.createElement("canvas");
-    off.width = doc.width;
-    off.height = doc.height;
-    const ctx = off.getContext("2d");
-    if (!ctx) return;
-    ctx.drawImage(doc.working, 0, 0);
-    const fc = getFabricCanvas();
-    if (fc) {
-      for (const obj of fc.getObjects()) {
-        if (!obj.visible) continue;
-        obj.render(ctx);
-      }
+    let objectUrl: string | null = null;
+    setPreviewUrl(null);
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
     }
+    const off = renderCompositeCanvas(doc, layers, doc.width, doc.height, getFabricCanvas());
     off.toBlob((b) => {
       if (cancelled || !b) return;
-      const url = URL.createObjectURL(b);
-      setPreviewUrl(url);
+      objectUrl = URL.createObjectURL(b);
+      previewUrlRef.current = objectUrl;
+      setPreviewUrl(objectUrl);
     }, "image/png");
     return () => {
       cancelled = true;
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (objectUrl && previewUrlRef.current === objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        previewUrlRef.current = null;
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc, prepared, getFabricCanvas]);
+  }, [doc, layers, prepared, getFabricCanvas]);
 
-  const targetW = useMemo(() => {
-    if (!doc) return 0;
-    return settings.width ?? Math.round(doc.width * (settings.sizeBucket === 2 ? 0.5 : 1));
-  }, [doc, settings.sizeBucket, settings.width]);
-  const targetH = useMemo(() => {
-    if (!doc) return 0;
-    return settings.height ?? Math.round(doc.height * (settings.sizeBucket === 2 ? 0.5 : 1));
-  }, [doc, settings.height, settings.sizeBucket]);
+  const targetDimensions = useMemo(
+    () =>
+      doc ? resolveExportDimensions(doc.width, doc.height, settings) : { width: 0, height: 0 },
+    [doc, settings],
+  );
+  const targetW = targetDimensions.width;
+  const targetH = targetDimensions.height;
 
   // Cheap synchronous fallback that renders immediately, then a real
   // thumb-encode pass refines it (within ~5% of actual export size).
@@ -227,46 +199,12 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
     try {
       const result = await exportDoc(doc, layers, settings, toolState.meta, getFabricCanvas());
 
-      // iOS Safari path: prefer the Web Share API with a File payload.
-      // The native share sheet routes to Save to Photos / Save to Files
-      // without navigating the current tab. The `<a download>` fallback
-      // below is unreliable on iOS — Safari either ignores `download`
-      // and navigates the current tab to the blob URL, or evicts the
-      // editor tab from memory while the system download UI is up. In
-      // both cases the user returns to a re-mounted SPA and lands on
-      // the start screen with their working image gone.
-      const file = new File([result.blob], result.fileName, { type: result.blob.type });
-      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file] });
-          void clearDraft();
-          onClose();
-          return;
-        } catch (err) {
-          // AbortError = the user dismissed the share sheet; keep the
-          // modal + draft open so they can pick a different format /
-          // quality and retry. Any other error: fall through to the
-          // anchor path so the user still ends up with their file.
-          if (err instanceof Error && err.name === "AbortError") return;
-        }
-      }
-
-      const url = URL.createObjectURL(result.blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = result.fileName;
-      // target="_blank" + rel="noopener" — defends the editor tab on
-      // browsers that don't honour the `download` attribute (older iOS
-      // Safari) by opening the file in a new tab instead of navigating
-      // the current one away from the editor.
-      a.target = "_blank";
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      // Long revoke so iOS Safari's system download UI has time to
-      // finish reading the blob before it disappears.
-      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      // Download and Share are distinct user intents. The primary
+      // Download action must never invoke navigator.share: on Safari
+      // and macOS that opens the system share sheet, exactly contrary
+      // to the button label. A same-document download anchor gives the
+      // browser a real file download on desktop and mobile browsers.
+      startBlobDownload(result.blob, result.fileName);
       // Successful export → drop the auto-saved draft, otherwise the
       // landing page would offer to "resume" something the user has
       // already shipped. The browser's own download UI is the success
@@ -324,8 +262,8 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             alt="Export preview"
             width={doc?.width ?? 1}
             height={doc?.height ?? 1}
-            className={`rounded-xs ${
-              isMobile ? "max-h-full max-w-full object-contain" : "max-h-90 max-w-full"
+            className={`h-auto w-auto max-w-full rounded-xs object-contain ${
+              isMobile ? "max-h-full" : "max-h-90"
             }`}
             style={{ boxShadow: "var(--shadow-popover)" }}
           />
@@ -372,23 +310,25 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
 
           <PropRow label="Format">
             <Segment
-              options={formats}
+              options={FORMATS}
               active={settings.format}
               onChange={(i) => onPatch({ format: i })}
             />
           </PropRow>
-          {heicSupported && settings.format === 4 && (
+          {settings.format === 4 && (
             <p className="-mt-2 text-[11px] leading-[1.45] text-text-muted">
-              HEIC export uses Safari's native encoder. For the same wide-gamut + small-file
-              benefits in Chrome/Firefox, use AVIF.
+              HEIC is encoded locally as a HEIF/HEVC file. The first export may take a little longer
+              while the private on-device codec loads.
             </p>
           )}
 
           <PropRow
             label="Quality"
             value={
-              settingsToFormat(settings) === "png"
-                ? "lossless"
+              !formatSupportsQuality(settingsToFormat(settings))
+                ? settingsToFormat(settings) === "png"
+                  ? "lossless"
+                  : "optimized"
                 : `${Math.round(settings.quality * 100)}%`
             }
           >
@@ -396,7 +336,11 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
               value={settings.quality}
               accent
               defaultValue={0.92}
-              onChange={(v) => onPatch({ quality: v })}
+              onChange={
+                formatSupportsQuality(settingsToFormat(settings))
+                  ? (v) => onPatch({ quality: v })
+                  : undefined
+              }
             />
           </PropRow>
           <PropRow label="Size">
@@ -407,11 +351,19 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             />
           </PropRow>
 
-          <PropRow label="Resize to">
-            <div className="flex items-center gap-1.5 text-[12.5px]">
-              <DimInput label="W" value={targetW} onChange={(n) => onPatch({ width: n })} />
-              <I.X size={11} className="text-text-muted" />
-              <DimInput label="H" value={targetH} onChange={(n) => onPatch({ height: n })} />
+          <PropRow label="Resize to" value="ratio locked">
+            <div className="flex items-center gap-1.5 text-[12.5px]" title="Aspect ratio locked">
+              <DimInput
+                label="W"
+                value={targetW}
+                onChange={(n) => onPatch({ width: n, height: undefined })}
+              />
+              <I.Lock size={11} className="shrink-0 text-text-muted" aria-hidden="true" />
+              <DimInput
+                label="H"
+                value={targetH}
+                onChange={(n) => onPatch({ width: undefined, height: n })}
+              />
             </div>
           </PropRow>
 

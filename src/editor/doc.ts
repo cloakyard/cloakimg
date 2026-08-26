@@ -241,7 +241,7 @@ async function readFileBytes(file: File): Promise<Uint8Array> {
 
 async function loadFile(file: File): Promise<ImageBitmap> {
   // HEIC/HEIF: only Safari can decode these via createImageBitmap;
-  // everywhere else we drop into libheif-js (lazy-loaded WASM). Doing
+  // everywhere else we drop into the local libheif codec (lazy WASM). Doing
   // this branch first means Chrome/Firefox don't waste a roundtrip
   // through createImageBitmap before falling back.
   if (isHeicFile(file)) {

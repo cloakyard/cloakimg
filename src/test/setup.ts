@@ -18,14 +18,37 @@ afterEach(() => {
 // need real canvas pixels; focused rendering tests install their own
 // context fakes. Install these immediately because some editor
 // modules probe canvas support during import, before test hooks run.
-Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
-  configurable: true,
-  value: vi.fn(() => null),
-});
-Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
-  configurable: true,
-  value: vi.fn((callback: BlobCallback) => callback(null)),
-});
+if (typeof HTMLCanvasElement !== "undefined") {
+  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+    configurable: true,
+    value: vi.fn(() => null),
+  });
+  Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
+    configurable: true,
+    value: vi.fn((callback: BlobCallback) => callback(null)),
+  });
+}
+
+// jsdom 30 ships the browser's default `[popover]:not(:popover-open)` rule,
+// but does not yet implement showPopover()/hidePopover(). Without this small
+// test-only bridge, a correctly opened popover stays `display: none` in the
+// accessibility tree and role queries cannot reach it.
+if (typeof HTMLElement !== "undefined" && typeof HTMLElement.prototype.showPopover !== "function") {
+  Object.defineProperties(HTMLElement.prototype, {
+    showPopover: {
+      configurable: true,
+      value(this: HTMLElement) {
+        this.style.display = "block";
+      },
+    },
+    hidePopover: {
+      configurable: true,
+      value(this: HTMLElement) {
+        this.style.display = "none";
+      },
+    },
+  });
+}
 
 // CacheStorage stub. Tests that need it (cache.test.ts) replace this
 // with a fake bucket via Object.defineProperty(globalThis, "caches", …).

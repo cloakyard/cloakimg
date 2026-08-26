@@ -59,11 +59,11 @@ Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata stri
 
 |              |                                                                                 |
 | ------------ | ------------------------------------------------------------------------------- |
-| Framework    | React 19 + TypeScript 6                                                         |
+| Framework    | React 19 + TypeScript 7                                                         |
 | Styling      | Tailwind CSS 4                                                                  |
 | Canvas       | Fabric.js 7 + a 2D-canvas pipeline for filters & per-pixel ops                  |
 | On-device AI | Transformers.js (ISNet, Depth Anything V2) + MediaPipe Tasks Vision (BlazeFace) |
-| HEIC         | libheif-js (WASM, lazy-loaded)                                                  |
+| HEIC / HEIF  | libheif + libde265 + Kvazaar (local WASM, lazy-loaded)                          |
 | Build / PWA  | Vite+ (`vp`) + vite-plugin-pwa (Workbox)                                        |
 | Hosting      | Cloudflare Workers — deployed on every push to `main`                           |
 

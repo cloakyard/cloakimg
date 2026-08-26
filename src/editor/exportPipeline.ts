@@ -8,6 +8,7 @@
 
 import type { Canvas as FabricCanvas } from "fabric";
 import { createCanvas, type EditorDoc, type Layer } from "./doc";
+import { encodeModernCanvas } from "./exportCodec";
 import { filterAndInjectExif, type KeepRules } from "./tools/exifFilter";
 import { TRANSIENT_CLOAK_KINDS } from "./tools/penPath";
 
@@ -31,7 +32,7 @@ const FORMAT_TO_EXTENSION: Record<Format, string> = {
 };
 
 export interface ExportSettings {
-  /** 0..4 → JPG | PNG | WebP | AVIF | HEIC (HEIC is Safari-only). */
+  /** 0..4 → JPG | PNG | WebP | AVIF | HEIC. */
   format: number;
   /** 0..1, ignored for PNG. */
   quality: number;
@@ -54,35 +55,8 @@ export function settingsToFormat(s: ExportSettings): Format {
   return FORMAT_INDEX_TO_MIME[s.format] ?? "webp";
 }
 
-/**
- * HEIC export availability — Safari is the only browser whose
- * `canvas.toBlob('image/heic', …)` actually returns HEIC bytes; every
- * other engine silently falls back to PNG. We probe once on first
- * call and cache. The check encodes a 1×1 canvas, so it's cheap.
- *
- * Note: AVIF gives the same wide-gamut + small-file benefits cross-
- * browser via canvas.toBlob('image/avif'), with no patent baggage.
- * The HEIC option is offered when supported but the export modal
- * surfaces this so users on Chrome/Firefox aren't confused.
- */
-let heicSupportPromise: Promise<boolean> | null = null;
-export function isHeicEncodeSupported(): Promise<boolean> {
-  if (!heicSupportPromise) {
-    heicSupportPromise = (async () => {
-      try {
-        const c = document.createElement("canvas");
-        c.width = 1;
-        c.height = 1;
-        const blob = await new Promise<Blob | null>((resolve) =>
-          c.toBlob((b) => resolve(b), "image/heic", 0.5),
-        );
-        return !!blob && blob.type === "image/heic";
-      } catch {
-        return false;
-      }
-    })();
-  }
-  return heicSupportPromise;
+export function formatSupportsQuality(format: Format): boolean {
+  return format !== "png";
 }
 
 function sizeMultiplier(bucket: number): number {
@@ -90,6 +64,35 @@ function sizeMultiplier(bucket: number): number {
   // bucket 0 == Original (1x of doc), bucket 1 == @2x (full),
   // bucket 2 == @1x (half). The design's mockup labels "@2x" as the
   // active middle tab so we treat that as the doc's native size.
+}
+
+/** Resolve export dimensions without ever changing the edited image's
+ * aspect ratio. A single explicit edge is authoritative; when both are
+ * present (for example from settings persisted by an older build), width
+ * wins so a stale height cannot stretch the output. */
+export function resolveExportDimensions(
+  sourceWidth: number,
+  sourceHeight: number,
+  settings: ExportSettings,
+): { width: number; height: number } {
+  const safeWidth = Math.max(1, Math.round(sourceWidth));
+  const safeHeight = Math.max(1, Math.round(sourceHeight));
+  const aspect = safeWidth / safeHeight;
+
+  if (settings.width !== undefined) {
+    const width = Math.max(1, Math.round(settings.width));
+    return { width, height: Math.max(1, Math.round(width / aspect)) };
+  }
+  if (settings.height !== undefined) {
+    const height = Math.max(1, Math.round(settings.height));
+    return { width: Math.max(1, Math.round(height * aspect)), height };
+  }
+
+  const multiplier = sizeMultiplier(settings.sizeBucket);
+  return {
+    width: Math.max(1, Math.round(safeWidth * multiplier)),
+    height: Math.max(1, Math.round(safeHeight * multiplier)),
+  };
 }
 
 export async function exportDoc(
@@ -100,13 +103,10 @@ export async function exportDoc(
   fabricCanvas?: FabricCanvas | null,
 ): Promise<RenderResult> {
   const format = settingsToFormat(settings);
-  let outW = settings.width ?? Math.round(doc.width * sizeMultiplier(settings.sizeBucket));
-  let outH = settings.height ?? Math.round(doc.height * sizeMultiplier(settings.sizeBucket));
-  outW = Math.max(1, outW);
-  outH = Math.max(1, outH);
+  const { width: outW, height: outH } = resolveExportDimensions(doc.width, doc.height, settings);
 
   const out = renderCompositeCanvas(doc, layers, outW, outH, fabricCanvas);
-  let blob = await encode(out, format, settings.quality);
+  let blob = await encodeCanvas(out, format, settings.quality);
   // JPEG-only: optionally splice the source's EXIF (filtered per the
   // metadata panel toggles) into the freshly-encoded bytes.
   if (format === "jpeg" && metaRules && doc.sourceIsJpeg && doc.sourceBytes) {
@@ -164,26 +164,31 @@ export function renderCompositeCanvas(
   return out;
 }
 
-async function encode(canvas: HTMLCanvasElement, format: Format, quality: number): Promise<Blob> {
+/** Encode a canvas without ever relabelling one format's bytes as
+ * another. Browser canvas implementations are allowed to fall back to
+ * PNG for an unsupported MIME type, so both the reported MIME and the
+ * binary signature are checked before the result can be downloaded. */
+export async function encodeCanvas(
+  canvas: HTMLCanvasElement,
+  format: Format,
+  quality: number,
+): Promise<Blob> {
   const mime = FORMAT_TO_MIME[format];
   const blob = await canvasToBlob(canvas, mime, quality);
-  if (blob && blob.type === mime) return blob;
-  // HEIC: only Safari encodes natively. If the browser fell back to
-  // PNG we surface a clear error rather than handing the user a
-  // mislabeled blob — the export modal already gates this path on
-  // `isHeicEncodeSupported`, so reaching here means the user's browser
-  // claimed support and then reneged.
-  if (format === "heic") {
-    throw new Error("HEIC export needs Safari 17+ — try AVIF for the same benefits cross-browser.");
+  if (blob?.type === mime && (await blobMatchesFormat(blob, format))) return blob;
+
+  // AVIF and HEIC get real WASM fallbacks. WebP/JPEG/PNG are supported
+  // by all target browsers; if one of those encoders refuses or lies,
+  // fail visibly rather than produce a corrupt/misnamed download.
+  if (format === "avif" || format === "heic") {
+    const encoded = await encodeModernCanvas(canvas, format, quality);
+    if (encoded.type === mime && (await blobMatchesFormat(encoded, format))) return encoded;
+    throw new Error(`${format.toUpperCase()} encoder returned invalid bytes`);
   }
-  // AVIF fallback: a few older engines can't encode AVIF; fall through
-  // to WebP and quietly relabel.
-  if (format === "avif") {
-    const webp = await canvasToBlob(canvas, "image/webp", quality);
-    if (webp) return webp;
-  }
+
   if (!blob) throw new Error(`Browser refused to encode ${mime}`);
-  return blob;
+  if (blob.type === mime) throw new Error(`Browser returned invalid ${mime} bytes`);
+  throw new Error(`Browser returned ${blob.type || "an unknown format"} instead of ${mime}`);
 }
 
 function canvasToBlob(
@@ -194,7 +199,65 @@ function canvasToBlob(
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), mime, quality));
 }
 
-function renameForFormat(name: string, format: Format): string {
+function ascii(bytes: Uint8Array, start: number, length: number): string {
+  return String.fromCharCode(...bytes.subarray(start, start + length));
+}
+
+/** Validate the file's magic bytes. This is intentionally exported for
+ * regression tests and for any future file-system writer that bypasses
+ * the modal. */
+export async function blobMatchesFormat(blob: Blob, format: Format): Promise<boolean> {
+  const bytes = new Uint8Array(await readBlobBytes(blob.slice(0, 64)));
+  switch (format) {
+    case "jpeg":
+      return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    case "png":
+      return (
+        bytes[0] === 0x89 &&
+        ascii(bytes, 1, 3) === "PNG" &&
+        bytes[4] === 0x0d &&
+        bytes[5] === 0x0a &&
+        bytes[6] === 0x1a &&
+        bytes[7] === 0x0a
+      );
+    case "webp":
+      return ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WEBP";
+    case "avif":
+      return isIsoBaseMedia(bytes, new Set(["avif", "avis"]));
+    case "heic":
+      return isIsoBaseMedia(bytes, new Set(["heic", "heix", "hevc", "hevx"]));
+  }
+}
+
+function readBlobBytes(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === "function") return blob.arrayBuffer();
+  // Blob.arrayBuffer is universal in target browsers, but FileReader
+  // keeps this validator usable in older WebViews and jsdom's smaller
+  // Blob implementation used by the regression suite.
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error("Could not read encoded image"));
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
+      else reject(new Error("Could not read encoded image"));
+    };
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
+function isIsoBaseMedia(bytes: Uint8Array, brands: ReadonlySet<string>): boolean {
+  if (bytes.length < 12 || ascii(bytes, 4, 4) !== "ftyp") return false;
+  // Major brand starts at byte 8; compatible brands follow the minor
+  // version at byte 16. Checking the complete ftyp header accepts the
+  // variants emitted by native encoders without confusing AVIF/HEIC.
+  if (brands.has(ascii(bytes, 8, 4))) return true;
+  for (let offset = 16; offset + 4 <= bytes.length; offset += 4) {
+    if (brands.has(ascii(bytes, offset, 4))) return true;
+  }
+  return false;
+}
+
+export function renameForFormat(name: string, format: Format): string {
   const base = name.replace(/\.[^.]+$/, "");
   return `${base}${FORMAT_TO_EXTENSION[format]}`;
 }
@@ -239,9 +302,7 @@ export async function estimateBytesByEncode(
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(source, 0, 0, tw, th);
   const format = settingsToFormat(s);
-  const blob = await new Promise<Blob | null>((resolve) =>
-    thumb.toBlob((b) => resolve(b), FORMAT_TO_MIME[format], s.quality),
-  );
+  const blob = await encodeCanvas(thumb, format, s.quality).catch(() => null);
   if (!blob) return estimateBytes(targetW, targetH, s);
   const targetPx = Math.max(1, targetW * targetH);
   const thumbPx = Math.max(1, tw * th);

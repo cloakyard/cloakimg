@@ -47,7 +47,7 @@ const CAPABILITIES = [
     icon: I.Download,
     title: "Local export",
     description:
-      "Write JPEG, PNG, WebP, AVIF, or supported HEIC with quality, size, metadata, and privacy controls.",
+      "Write JPEG, PNG, WebP, AVIF, or HEIC/HEIF locally with size, metadata, and privacy controls.",
     meta: "Direct browser download",
   },
 ] as const;
@@ -80,7 +80,7 @@ export function Features() {
             <span className="cloak-stat__label">Editor tools</span>
           </div>
           <div className="cloak-stat">
-            <span className="cloak-stat__value">4+</span>
+            <span className="cloak-stat__value">5</span>
             <span className="cloak-stat__label">Export formats</span>
           </div>
           <div className="cloak-stat">

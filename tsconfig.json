@@ -3,7 +3,7 @@
     "target": "es2023",
     "module": "esnext",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["vite/client", "vite-plugin-pwa/react", "vite-plugin-pwa/client"],
+    "types": ["node", "vite/client", "vite-plugin-pwa/react", "vite-plugin-pwa/client"],
     "skipLibCheck": true,
 
     /* Bundler mode */

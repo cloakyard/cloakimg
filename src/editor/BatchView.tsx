@@ -187,7 +187,7 @@ const STEP_KIND_META: Record<StepKind, { Icon: typeof I.Resize; title: string }>
   convert: { Icon: I.FileImage, title: "Convert" },
 };
 
-const FORMAT_LABELS = ["JPG", "PNG", "WebP", "AVIF"] as const;
+const FORMAT_LABELS = ["JPG", "PNG", "WebP", "AVIF", "HEIC"] as const;
 
 function defaultStep(kind: StepKind): RecipeStep {
   const id = newStepId();
@@ -223,6 +223,8 @@ function describeStep(step: RecipeStep): string {
       return "GPS · camera · timestamp";
     case "convert": {
       const fmt = FORMAT_LABELS[step.settings.format] ?? "JPG";
+      if (fmt === "PNG") return `${fmt} · lossless`;
+      if (fmt === "HEIC") return `${fmt} · optimized`;
       return `${fmt} · ${Math.round(step.settings.quality * 100)}%`;
     }
   }
@@ -473,14 +475,18 @@ function StepEditor({ step, onChange }: StepEditorProps) {
           options={FORMAT_LABELS.map((l, i) => ({ value: i, label: l }))}
           onChange={(v) => onChange({ ...step, settings: { ...step.settings, format: v } })}
         />
-        <NumberRow
-          label="Quality"
-          value={Math.round(step.settings.quality * 100)}
-          min={1}
-          max={100}
-          suffix="%"
-          onChange={(n) => onChange({ ...step, settings: { ...step.settings, quality: n / 100 } })}
-        />
+        {step.settings.format !== 1 && step.settings.format !== 4 && (
+          <NumberRow
+            label="Quality"
+            value={Math.round(step.settings.quality * 100)}
+            min={1}
+            max={100}
+            suffix="%"
+            onChange={(n) =>
+              onChange({ ...step, settings: { ...step.settings, quality: n / 100 } })
+            }
+          />
+        )}
       </>
     );
   }
