@@ -387,19 +387,11 @@ async function inspectIdPhotoDropdowns(page, viewport) {
     timeout: 5000,
   });
   await page.waitForFunction(
-    () => {
-      const labels = Array.from(document.querySelectorAll('[role="slider"]')).map((slider) => {
-        const labelId = slider.getAttribute("aria-labelledby");
-        return labelId
-          ? document.getElementById(labelId)?.textContent?.trim()
-          : slider.getAttribute("aria-label");
-      });
-      return (
-        labels.includes("Framing") &&
-        labels.includes("Horizontal position") &&
-        labels.includes("Vertical position")
-      );
-    },
+    () =>
+      Boolean(
+        document.querySelector('canvas.upper-canvas[role="application"]') &&
+        window.__editorDebug?.toolState.idPhotoCrop,
+      ),
     { timeout: 5000 },
   );
   await new Promise((resolveDelay) => setTimeout(resolveDelay, 160));
@@ -472,31 +464,60 @@ async function inspectIdPhotoDropdowns(page, viewport) {
   if (viewport.name === "desktop") {
     await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "dark" }]);
     await inspectOpenSelectList(page, viewport, "Photo standard", "id-photo-standard-menu-dark");
+    await page.screenshot({
+      path: "/tmp/cloakimg-desktop-id-photo-dark.png",
+      fullPage: false,
+    });
     await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
   }
 
-  // The portrait fixture starts with a crop that can move horizontally,
-  // while its full image height leaves no vertical travel until zoomed.
-  // Verify that unavailable state is honest, then zoom and drive both
-  // axes independently through their keyboard contract.
+  // ID framing now lives directly on the canvas. Audit the complete
+  // replacement contract: the legacy sliders are gone, the Fabric
+  // surface is keyboard-accessible, move / edge / corner gestures all
+  // update state, and every resize preserves the selected photo ratio.
   const framingState = () =>
     page.evaluate(() => {
-      const sliderByName = (name) =>
-        Array.from(document.querySelectorAll('[role="slider"]')).find((slider) => {
-          const labelId = slider.getAttribute("aria-labelledby");
-          const label = labelId
-            ? document.getElementById(labelId)?.textContent
-            : slider.getAttribute("aria-label");
-          return label?.trim() === name;
-        });
-      const horizontal = sliderByName("Horizontal position");
-      const vertical = sliderByName("Vertical position");
+      const debug = window.__editorDebug;
+      const crop = debug?.toolState.idPhotoCrop;
+      const dimensions = debug?.docDims;
+      const image = document.querySelector(".checker");
+      const canvas = document.querySelector("canvas.upper-canvas");
+      const imageRect = image?.getBoundingClientRect();
+      const scale = crop && dimensions && imageRect ? imageRect.width / dimensions.w : 0;
       const guides = Array.from(document.querySelectorAll('[data-id-photo-cut-guides="corner"]'));
       return {
-        horizontalDisabled: horizontal?.getAttribute("aria-disabled") === "true",
-        verticalDisabled: vertical?.getAttribute("aria-disabled") === "true",
-        horizontalValue: Number(horizontal?.getAttribute("aria-valuenow")),
-        verticalValue: Number(vertical?.getAttribute("aria-valuenow")),
+        crop,
+        dimensions,
+        cropAspect: crop ? crop.w / crop.h : null,
+        withinBounds: Boolean(
+          crop &&
+          dimensions &&
+          crop.x >= -0.01 &&
+          crop.y >= -0.01 &&
+          crop.x + crop.w <= dimensions.w + 0.01 &&
+          crop.y + crop.h <= dimensions.h + 0.01,
+        ),
+        frame:
+          crop && imageRect
+            ? {
+                left: imageRect.left + crop.x * scale,
+                top: imageRect.top + crop.y * scale,
+                right: imageRect.left + (crop.x + crop.w) * scale,
+                bottom: imageRect.top + (crop.y + crop.h) * scale,
+                width: crop.w * scale,
+                height: crop.h * scale,
+              }
+            : null,
+        canvasAccessible: Boolean(
+          canvas &&
+          canvas.getAttribute("role") === "application" &&
+          canvas.getAttribute("tabindex") === "0" &&
+          canvas.getAttribute("aria-label")?.includes("Drag an edge or corner handle"),
+        ),
+        legacySliderCount: document.querySelectorAll('[role="slider"]').length,
+        instructionsPresent:
+          document.body.textContent?.includes("drag inside the frame") === true &&
+          document.body.textContent?.includes("drag any edge or corner") === true,
         guideCount: guides.length,
         invalidGuideLineCount: guides.filter((guide) => guide.querySelectorAll("line").length !== 8)
           .length,
@@ -505,23 +526,35 @@ async function inspectIdPhotoDropdowns(page, viewport) {
         ).length,
       };
     });
-  const focusSlider = (name) =>
-    page.evaluate((sliderName) => {
-      const slider = Array.from(document.querySelectorAll('[role="slider"]')).find((candidate) => {
-        const labelId = candidate.getAttribute("aria-labelledby");
-        const label = labelId
-          ? document.getElementById(labelId)?.textContent
-          : candidate.getAttribute("aria-label");
-        return label?.trim() === sliderName;
-      });
-      slider?.focus();
-      return !!slider;
-    }, name);
+  const dragFrame = async (from, to) => {
+    const path = Array.from({ length: 5 }, (_, index) => {
+      const progress = index / 4;
+      return {
+        x: from.x + (to.x - from.x) * progress,
+        y: from.y + (to.y - from.y) * progress,
+      };
+    });
+    if (viewport.touch) {
+      await page.touchscreen.touchStart(path[0].x, path[0].y);
+      for (const point of path.slice(1)) await page.touchscreen.touchMove(point.x, point.y);
+      await page.touchscreen.touchEnd();
+    } else {
+      await page.mouse.move(path[0].x, path[0].y);
+      await page.mouse.down();
+      for (const point of path.slice(1)) await page.mouse.move(point.x, point.y);
+      await page.mouse.up();
+    }
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 160));
+  };
 
   const beforeFraming = await framingState();
   if (
-    beforeFraming.horizontalDisabled ||
-    !beforeFraming.verticalDisabled ||
+    !beforeFraming.crop ||
+    !beforeFraming.frame ||
+    !beforeFraming.withinBounds ||
+    !beforeFraming.canvasAccessible ||
+    beforeFraming.legacySliderCount !== 0 ||
+    !beforeFraming.instructionsPresent ||
     beforeFraming.guideCount === 0 ||
     beforeFraming.invalidGuideLineCount > 0 ||
     beforeFraming.outlinedSlots > 0
@@ -529,43 +562,130 @@ async function inspectIdPhotoDropdowns(page, viewport) {
     failures.push(`${viewport.name}/id-photo-framing-before: ${JSON.stringify(beforeFraming)}`);
   }
 
-  await focusSlider("Framing");
-  await page.keyboard.press("End");
-  await page.waitForFunction(() => {
-    const sliders = Array.from(document.querySelectorAll('[role="slider"]'));
-    const named = (name) =>
-      sliders.find((slider) => {
-        const labelId = slider.getAttribute("aria-labelledby");
-        return document.getElementById(labelId)?.textContent?.trim() === name;
-      });
-    return (
-      named("Horizontal position")?.getAttribute("aria-disabled") !== "true" &&
-      named("Vertical position")?.getAttribute("aria-disabled") !== "true"
-    );
-  });
-  await focusSlider("Horizontal position");
-  await page.keyboard.press("End");
-  await focusSlider("Vertical position");
-  await page.keyboard.press("Home");
-  await new Promise((resolveDelay) => setTimeout(resolveDelay, 120));
+  await page.evaluate(() => document.querySelector("canvas.upper-canvas")?.focus());
+  await page.keyboard.press("+");
+  await page.keyboard.press("+");
+  await page.keyboard.press("+");
+  await page.keyboard.press("+");
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowDown");
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, 160));
 
-  const afterFraming = await framingState();
+  const afterKeyboard = await framingState();
+  const aspect = beforeFraming.cropAspect;
   if (
-    afterFraming.horizontalDisabled ||
-    afterFraming.verticalDisabled ||
-    Math.abs(afterFraming.horizontalValue - 1) > 0.001 ||
-    Math.abs(afterFraming.verticalValue) > 0.001
+    !afterKeyboard.crop ||
+    !afterKeyboard.frame ||
+    !afterKeyboard.withinBounds ||
+    !(afterKeyboard.crop.w < beforeFraming.crop.w) ||
+    !(afterKeyboard.crop.x > beforeFraming.crop.x) ||
+    !(afterKeyboard.crop.y > beforeFraming.crop.y) ||
+    Math.abs(afterKeyboard.cropAspect - aspect) > 0.0001
   ) {
-    failures.push(`${viewport.name}/id-photo-framing-after: ${JSON.stringify(afterFraming)}`);
+    failures.push(`${viewport.name}/id-photo-framing-keyboard: ${JSON.stringify(afterKeyboard)}`);
+  }
+
+  if (afterKeyboard.frame) {
+    await dragFrame(
+      {
+        x: (afterKeyboard.frame.left + afterKeyboard.frame.right) / 2,
+        y: (afterKeyboard.frame.top + afterKeyboard.frame.bottom) / 2,
+      },
+      {
+        x: (afterKeyboard.frame.left + afterKeyboard.frame.right) / 2 + 8,
+        y: (afterKeyboard.frame.top + afterKeyboard.frame.bottom) / 2 + 6,
+      },
+    );
+  }
+  const afterMove = await framingState();
+  if (
+    !afterMove.crop ||
+    !afterMove.frame ||
+    !afterMove.withinBounds ||
+    !(afterMove.crop.x > afterKeyboard.crop.x) ||
+    !(afterMove.crop.y > afterKeyboard.crop.y) ||
+    Math.abs(afterMove.cropAspect - aspect) > 0.0001
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-move: ${JSON.stringify(afterMove)}`);
+  }
+
+  if (afterMove.frame) {
+    const edgeDelta = Math.max(8, Math.min(24, afterMove.frame.width * 0.15));
+    await dragFrame(
+      { x: afterMove.frame.right, y: (afterMove.frame.top + afterMove.frame.bottom) / 2 },
+      {
+        x: afterMove.frame.right - edgeDelta,
+        y: (afterMove.frame.top + afterMove.frame.bottom) / 2,
+      },
+    );
+  }
+  const afterEdge = await framingState();
+  if (
+    !afterEdge.crop ||
+    !afterEdge.frame ||
+    !afterEdge.withinBounds ||
+    !(afterEdge.crop.w < afterMove.crop.w) ||
+    Math.abs(afterEdge.cropAspect - aspect) > 0.0001 ||
+    Math.abs(afterEdge.frame.left - afterMove.frame.left) > 2
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-edge: ${JSON.stringify(afterEdge)}`);
+  }
+
+  if (afterEdge.frame) {
+    const cornerDelta = Math.max(8, Math.min(20, afterEdge.frame.width * 0.12));
+    await dragFrame(
+      { x: afterEdge.frame.right, y: afterEdge.frame.bottom },
+      { x: afterEdge.frame.right - cornerDelta, y: afterEdge.frame.bottom - cornerDelta },
+    );
+  }
+  const afterCorner = await framingState();
+  if (
+    !afterCorner.crop ||
+    !afterCorner.frame ||
+    !afterCorner.withinBounds ||
+    !(afterCorner.crop.w < afterEdge.crop.w) ||
+    Math.abs(afterCorner.cropAspect - aspect) > 0.0001
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-corner: ${JSON.stringify(afterCorner)}`);
   }
   console.log(
     JSON.stringify({
       viewport: viewport.name,
       stage: "id-photo-framing",
       before: beforeFraming,
-      after: afterFraming,
+      afterKeyboard,
+      afterMove,
+      afterEdge,
+      afterCorner,
     }),
   );
+  await page.screenshot({
+    path: `/tmp/cloakimg-${viewport.name}-id-photo-framing.png`,
+    fullPage: false,
+  });
+
+  await page.evaluate(() => {
+    Array.from(document.querySelectorAll("button"))
+      .find((button) => button.textContent?.trim() === "Reset framing")
+      ?.click();
+  });
+  await page.waitForFunction(
+    (expectedWidth) =>
+      Math.abs((window.__editorDebug?.toolState.idPhotoCrop?.w ?? 0) - expectedWidth) < 0.01,
+    { timeout: 3000 },
+    beforeFraming.crop.w,
+  );
+  const afterReset = await framingState();
+  if (
+    !afterReset.crop ||
+    !afterReset.withinBounds ||
+    Math.abs(afterReset.crop.x - beforeFraming.crop.x) > 0.01 ||
+    Math.abs(afterReset.crop.y - beforeFraming.crop.y) > 0.01 ||
+    Math.abs(afterReset.crop.w - beforeFraming.crop.w) > 0.01 ||
+    Math.abs(afterReset.crop.h - beforeFraming.crop.h) > 0.01
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-reset: ${JSON.stringify(afterReset)}`);
+  }
 
   await page.click('button[role="combobox"][aria-label="Photo standard"]');
   await page.waitForSelector('.select-control__listbox[data-ready="true"]', { timeout: 3000 });
@@ -597,6 +717,23 @@ async function inspectIdPhotoDropdowns(page, viewport) {
         ?.textContent?.trim() === "India · Visa",
     { timeout: 3000 },
   );
+  await page.waitForFunction(
+    () =>
+      Math.abs(
+        window.__editorDebug?.toolState.idPhotoCrop?.w /
+          window.__editorDebug?.toolState.idPhotoCrop?.h -
+          1,
+      ) < 0.0001,
+    { timeout: 3000 },
+  );
+  const afterPreset = await framingState();
+  if (
+    !afterPreset.crop ||
+    !afterPreset.withinBounds ||
+    Math.abs(afterPreset.cropAspect - 1) > 0.0001
+  ) {
+    failures.push(`${viewport.name}/id-photo-framing-preset: ${JSON.stringify(afterPreset)}`);
+  }
   await inspect("india-visa");
 
   await page.$eval('select[aria-label="Paper size"]', (select) => {

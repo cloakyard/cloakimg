@@ -7,10 +7,15 @@
 // exact-size print-sheet output. Selecting this tool never mutates the
 // working image or history; it only creates a PDF/print product.
 
-import { type FabricObject, Rect as FabricRect } from "fabric";
+import {
+  controlsUtils,
+  type FabricObject,
+  Rect as FabricRect,
+  type TransformActionHandler,
+} from "fabric";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
-import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment } from "../atoms";
 import { useEditor } from "../EditorContext";
 import { renderCompositeCanvas } from "../exportPipeline";
 import { FABRIC_SELECTION_COLOR } from "../fabricDefaults";
@@ -25,12 +30,10 @@ import {
   PAPER_PRESETS,
   calculateSheetLayout,
   clampCrop,
-  cropPosition,
   cropZoom,
   cutGuideSegments,
   findPaperPreset,
   largestCenteredCrop,
-  moveCrop,
   renderCropThumbnail,
   renderIdPhotoSheet,
   sheetToPdfBlob,
@@ -42,6 +45,7 @@ import { looksAlreadyRemoved } from "./removeBg";
 
 const CROP_TAG = "cloak:cropOverlay";
 const PRESET_GROUPS: readonly IdPhotoPresetGroup[] = ["Passport & ID", "Visa", "General"];
+const MIN_FRAME_SCALE = 1 / 3;
 
 interface TaggedFabricObject extends FabricObject {
   cloakKind?: string;
@@ -54,6 +58,72 @@ function readCropBox(rect: FabricObject): Rect {
     w: (rect.width ?? 0) * (rect.scaleX ?? 1),
     h: (rect.height ?? 0) * (rect.scaleY ?? 1),
   };
+}
+
+function minimumScaleForFrame(
+  frameWidth: number,
+  frameHeight: number,
+  imageWidth: number,
+  imageHeight: number,
+) {
+  const width = Math.max(1, frameWidth);
+  const height = Math.max(1, frameHeight);
+  const maximum = largestCenteredCrop(imageWidth, imageHeight, width / height);
+  return Math.max((maximum.w * MIN_FRAME_SCALE) / width, (maximum.h * MIN_FRAME_SCALE) / height);
+}
+
+/** Fabric's default edge controls stretch one axis, which would break
+ *  the authority-defined photo ratio. Keep the opposite edge anchored
+ *  while scaling both axes from a left/right/top/bottom handle. */
+function createFixedAspectEdgeScaleHandler(
+  axis: "x" | "y",
+  imageWidth: number,
+  imageHeight: number,
+): TransformActionHandler {
+  return controlsUtils.wrapWithFireEvent(
+    "scaling",
+    controlsUtils.wrapWithFixedAnchor((_event, transform, pointerX, pointerY) => {
+      const { target } = transform;
+      const localPoint = controlsUtils.getLocalPoint(
+        transform,
+        transform.originX,
+        transform.originY,
+        pointerX,
+        pointerY,
+      );
+      const axisPoint = axis === "x" ? localPoint.x : localPoint.y;
+      const crossedAnchor =
+        (transform.corner === "mr" && axisPoint <= 0) ||
+        (transform.corner === "ml" && axisPoint >= 0) ||
+        (transform.corner === "mb" && axisPoint <= 0) ||
+        (transform.corner === "mt" && axisPoint >= 0);
+      if (crossedAnchor) return false;
+
+      const dimensions = target._getTransformedDimensions();
+      const currentScale = axis === "x" ? target.scaleX : target.scaleY;
+      const currentDimension = axis === "x" ? dimensions.x : dimensions.y;
+      const width = Math.max(1, target.width);
+      const height = Math.max(1, target.height);
+      const maxCrop = largestCenteredCrop(imageWidth, imageHeight, width / height);
+      const minimumScale = minimumScaleForFrame(width, height, imageWidth, imageHeight);
+      const maximumScale = Math.min(maxCrop.w / width, maxCrop.h / height);
+      const nextScale = Math.min(
+        maximumScale,
+        Math.max(
+          minimumScale,
+          Math.abs((axisPoint * currentScale) / Math.max(1, currentDimension)),
+        ),
+      );
+      const changed = target.scaleX !== nextScale || target.scaleY !== nextScale;
+      target.set({ scaleX: nextScale, scaleY: nextScale });
+      return changed;
+    }),
+  );
+}
+
+function restoreAttribute(element: HTMLElement, name: string, value: string | null) {
+  if (value == null) element.removeAttribute(name);
+  else element.setAttribute(name, value);
 }
 
 function photoSize(toolState: ToolState) {
@@ -74,6 +144,8 @@ export function IdPhotoTool() {
   const cropObjectRef = useRef<FabricObject | null>(null);
   const { preset, widthMm, heightMm } = photoSize(toolState);
   const aspect = widthMm / heightMm;
+  const aspectRef = useRef(aspect);
+  aspectRef.current = aspect;
 
   const paintOverlay = useCallback(
     (ctx: CanvasRenderingContext2D, transform: Transform) => {
@@ -123,7 +195,7 @@ export function IdPhotoTool() {
     },
     [doc, heightMm, preset.headHeightMm],
   );
-  useStageProps({ paintOverlay });
+  useStageProps({ paintOverlay, fabricInteractive: true, cursor: "default" });
 
   // Own one transient Fabric rectangle. It uses the existing crop tag,
   // so history, Layers, export, and tool hand-off already know to omit it.
@@ -135,10 +207,11 @@ export function IdPhotoTool() {
     }
 
     const stored = toolState.idPhotoCrop;
+    const maximumCrop = largestCenteredCrop(doc.width, doc.height, aspect);
     const validStored =
       stored && stored.w > 0 && stored.h > 0 && Math.abs(stored.w / stored.h - aspect) < 0.01
         ? clampCrop(stored, doc.width, doc.height)
-        : largestCenteredCrop(doc.width, doc.height, aspect);
+        : maximumCrop;
     const rect = new FabricRect({
       left: validStored.x,
       top: validStored.y,
@@ -157,18 +230,52 @@ export function IdPhotoTool() {
       padding: 0,
       lockRotation: true,
       lockUniScaling: true,
+      lockSkewingX: true,
+      lockSkewingY: true,
+      minScaleLimit: minimumScaleForFrame(validStored.w, validStored.h, doc.width, doc.height),
       objectCaching: false,
       selectable: true,
       evented: true,
       hasControls: true,
       hasBorders: true,
+      hoverCursor: "grab",
+      moveCursor: "grabbing",
     });
-    rect.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false, mtr: false });
+    const horizontalScale = createFixedAspectEdgeScaleHandler("x", doc.width, doc.height);
+    const verticalScale = createFixedAspectEdgeScaleHandler("y", doc.width, doc.height);
+    for (const key of ["ml", "mr"] as const) {
+      const control = rect.controls[key];
+      control.actionHandler = horizontalScale;
+      control.cursorStyleHandler = controlsUtils.scaleCursorStyleHandler;
+      control.actionName = "scaling";
+      control.getActionName = () => "scaling";
+    }
+    for (const key of ["mt", "mb"] as const) {
+      const control = rect.controls[key];
+      control.actionHandler = verticalScale;
+      control.cursorStyleHandler = controlsUtils.scaleCursorStyleHandler;
+      control.actionName = "scaling";
+      control.getActionName = () => "scaling";
+    }
+    rect.setControlsVisibility({ mtr: false });
     (rect as TaggedFabricObject).cloakKind = CROP_TAG;
     fabricCanvas.add(rect);
     fabricCanvas.setActiveObject(rect);
     cropObjectRef.current = rect;
     patchTool("idPhotoCrop", validStored);
+
+    const interactiveCanvas = fabricCanvas.upperCanvasEl;
+    const previousCanvasAttributes = {
+      tabIndex: interactiveCanvas.getAttribute("tabindex"),
+      role: interactiveCanvas.getAttribute("role"),
+      label: interactiveCanvas.getAttribute("aria-label"),
+    };
+    interactiveCanvas.setAttribute("tabindex", "0");
+    interactiveCanvas.setAttribute("role", "application");
+    interactiveCanvas.setAttribute(
+      "aria-label",
+      "ID photo framing canvas. Drag inside the frame to position it. Drag an edge or corner handle to resize it. Arrow keys move the frame; plus and minus resize it.",
+    );
 
     const keepInside = (event?: { target?: FabricObject }) => {
       if (event?.target && event.target !== rect) return;
@@ -199,20 +306,77 @@ export function IdPhotoTool() {
         height: current.h,
         scaleX: 1,
         scaleY: 1,
+        minScaleLimit: minimumScaleForFrame(current.w, current.h, doc.width, doc.height),
       });
       rect.setCoords();
       patchTool("idPhotoCrop", current);
       fabricCanvas.requestRenderAll();
     };
+    const setCropFromKeyboard = (next: Rect) => {
+      rect.set({
+        left: next.x,
+        top: next.y,
+        width: next.w,
+        height: next.h,
+        scaleX: 1,
+        scaleY: 1,
+        minScaleLimit: minimumScaleForFrame(next.w, next.h, doc.width, doc.height),
+      });
+      rect.setCoords();
+      patchTool("idPhotoCrop", next);
+      fabricCanvas.setActiveObject(rect);
+      fabricCanvas.requestRenderAll();
+    };
+    const handleFrameKeyDown = (event: KeyboardEvent) => {
+      const current = clampCrop(readCropBox(rect), doc.width, doc.height);
+      const viewportScale = Math.max(0.01, fabricCanvas.getZoom());
+      const moveStep = (event.shiftKey ? 10 : 1) / viewportScale;
+      let next: Rect | null = null;
+
+      if (event.key === "ArrowLeft") next = { ...current, x: current.x - moveStep };
+      else if (event.key === "ArrowRight") next = { ...current, x: current.x + moveStep };
+      else if (event.key === "ArrowUp") next = { ...current, y: current.y - moveStep };
+      else if (event.key === "ArrowDown") next = { ...current, y: current.y + moveStep };
+      else if (event.key === "+" || event.key === "=") {
+        const currentAspect = aspectRef.current;
+        const zoom = cropZoom(current, doc.width, doc.height, currentAspect);
+        next = zoomCrop(
+          current,
+          doc.width,
+          doc.height,
+          currentAspect,
+          zoom + (event.shiftKey ? 0.1 : 0.025),
+        );
+      } else if (event.key === "-" || event.key === "_") {
+        const currentAspect = aspectRef.current;
+        const zoom = cropZoom(current, doc.width, doc.height, currentAspect);
+        next = zoomCrop(
+          current,
+          doc.width,
+          doc.height,
+          currentAspect,
+          zoom - (event.shiftKey ? 0.1 : 0.025),
+        );
+      }
+
+      if (!next) return;
+      event.preventDefault();
+      setCropFromKeyboard(clampCrop(next, doc.width, doc.height));
+    };
     fabricCanvas.on("object:moving", keepInside);
     fabricCanvas.on("object:scaling", keepInside);
     fabricCanvas.on("object:modified", commitCrop);
+    interactiveCanvas.addEventListener("keydown", handleFrameKeyDown);
     fabricCanvas.requestRenderAll();
 
     return () => {
       fabricCanvas.off("object:moving", keepInside);
       fabricCanvas.off("object:scaling", keepInside);
       fabricCanvas.off("object:modified", commitCrop);
+      interactiveCanvas.removeEventListener("keydown", handleFrameKeyDown);
+      restoreAttribute(interactiveCanvas, "tabindex", previousCanvasAttributes.tabIndex);
+      restoreAttribute(interactiveCanvas, "role", previousCanvasAttributes.role);
+      restoreAttribute(interactiveCanvas, "aria-label", previousCanvasAttributes.label);
       fabricCanvas.remove(rect);
       fabricCanvas.discardActiveObject();
       fabricCanvas.requestRenderAll();
@@ -223,7 +387,7 @@ export function IdPhotoTool() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc, getFabricCanvas, patchTool]);
 
-  // Panel sliders and preset changes write image-space crop state.
+  // Keyboard controls and preset changes write image-space crop state.
   // Mirror those changes into the live Fabric object without remounting.
   useEffect(() => {
     const fabricCanvas = getFabricCanvas();
@@ -252,6 +416,7 @@ export function IdPhotoTool() {
       height: next.h,
       scaleX: 1,
       scaleY: 1,
+      minScaleLimit: minimumScaleForFrame(next.w, next.h, doc.width, doc.height),
     });
     rect.setCoords();
     fabricCanvas.setActiveObject(rect);
@@ -389,10 +554,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
     }
   }, [busy, createSheet, paper.heightMm, paper.widthMm]);
 
-  const position = crop && doc ? cropPosition(crop, doc.width, doc.height) : { x: 0.5, y: 0.5 };
   const zoom = crop && doc ? cropZoom(crop, doc.width, doc.height, aspect) : 0;
-  const canMoveHorizontal = !!(crop && doc && doc.width - crop.w > 0.5);
-  const canMoveVertical = !!(crop && doc && doc.height - crop.h > 0.5);
 
   return (
     <>
@@ -503,63 +665,20 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       {doc && crop ? (
         <>
           <PropRow label="Framing" value={`${Math.round(zoom * 200 + 100)}%`}>
-            <Slider
-              value={zoom}
-              accent={zoom > 0}
-              defaultValue={0}
-              ariaValueText={`${Math.round(zoom * 200 + 100)}% zoom`}
-              onChange={(value) =>
-                patchTool("idPhotoCrop", zoomCrop(crop, doc.width, doc.height, aspect, value))
-              }
-            />
-          </PropRow>
-          <PropRow
-            label="Horizontal position"
-            value={canMoveHorizontal ? undefined : "Zoom in to move"}
-          >
-            <Slider
-              value={position.x}
-              accent={canMoveHorizontal}
-              defaultValue={0.5}
-              ariaValueText={
-                canMoveHorizontal
-                  ? `${Math.round(position.x * 100)}% from left`
-                  : "No horizontal travel; zoom in to reposition"
-              }
-              onChange={
-                canMoveHorizontal
-                  ? (value) =>
-                      patchTool(
-                        "idPhotoCrop",
-                        moveCrop(crop, doc.width, doc.height, value, position.y),
-                      )
-                  : undefined
-              }
-            />
-          </PropRow>
-          <PropRow
-            label="Vertical position"
-            value={canMoveVertical ? undefined : "Zoom in to move"}
-          >
-            <Slider
-              value={position.y}
-              accent={canMoveVertical}
-              defaultValue={0.5}
-              ariaValueText={
-                canMoveVertical
-                  ? `${Math.round(position.y * 100)}% from top`
-                  : "No vertical travel; zoom in to reposition"
-              }
-              onChange={
-                canMoveVertical
-                  ? (value) =>
-                      patchTool(
-                        "idPhotoCrop",
-                        moveCrop(crop, doc.width, doc.height, position.x, value),
-                      )
-                  : undefined
-              }
-            />
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1.5 text-[11px] leading-snug text-text-muted">
+              <I.Move size={14} aria-hidden="true" />
+              <span>
+                <strong className="font-semibold text-text">Position</strong> — drag inside the
+                frame.
+              </span>
+              <I.Resize size={14} aria-hidden="true" />
+              <span>
+                <strong className="font-semibold text-text">Resize</strong> — drag any edge or
+                corner.
+              </span>
+              <span aria-hidden="true" />
+              <span className="t-mono text-[10px]">Keys: arrows move · + / − resize</span>
+            </div>
           </PropRow>
           <button type="button" className="btn btn-secondary btn-sm w-full" onClick={resetCrop}>
             <I.Refresh size={12} aria-hidden="true" /> Reset framing
