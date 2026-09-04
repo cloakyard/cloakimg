@@ -10,10 +10,24 @@ overrides:
   glob: 13.0.6
   jsdom: 30.0.1
   onnxruntime-node: 1.29.0
-  sharp: 0.35.3
+  sharp: 0.35.4
 
-# Transformers.js declares its Node backend for server consumers, but
-# CloakIMG ships the browser/WebAssembly backend. Do not run the unused
-# native package's install script in this browser-only application.
-ignoredBuiltDependencies:
-  - onnxruntime-node
+# Vite+ is installed as a versioned Vite-compatible alias, and the canvas
+# override is API-compatible but intentionally has its own package version.
+peerDependencyRules:
+  allowAny:
+    - canvas
+    - vite
+    - vitest
+
+minimumReleaseAgeExclude:
+  - "@puppeteer/browsers@3.2.2"
+  - "@types/react-dom@19.2.7"
+  - puppeteer-core@25.10.0
+
+allowBuilds:
+  # Transformers.js ships this Node backend for server consumers; CloakIMG
+  # uses only the browser/WebAssembly backend.
+  onnxruntime-node: false
+  # This dependency's postinstall is not required by the browser bundle.
+  protobufjs: false
