@@ -1,13 +1,20 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import { defineConfig } from "vite-plus";
+import { defaultClientConditions, defineConfig } from "vite-plus";
 import pkg from "./package.json" with { type: "json" };
 
 declare const process: { env: Record<string, string | undefined> };
 
 export default defineConfig({
   base: process.env.VITE_APP_BASE_PATH || "/",
+  resolve: {
+    // Transformers.js already loads version-matched ORT WASM from its CDN.
+    // Select ORT's supported external-WASM entry so Vite does not also emit
+    // its 25.6 MiB fallback binary (Workers assets are limited to 25 MiB).
+    // Keep Vite's defaults for all other conditional package exports.
+    conditions: ["onnxruntime-web-use-extern-wasm", ...defaultClientConditions],
+  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
