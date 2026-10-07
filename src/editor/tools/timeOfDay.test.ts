@@ -4,7 +4,7 @@
 // array; if that composition drifts off identity at the rest point,
 // every photo gets a permanent tint baked into the preview.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { ADJUST_KEYS } from "../toolState";
 import { composeTimeOfDay, KEYFRAMES, timeOfDayLabel } from "./timeOfDay";
 

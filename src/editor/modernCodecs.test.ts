@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import decodeAvif, { init as initAvifDecoder } from "@jsquash/avif/decode.js";
 import { init as initAvifEncoder } from "@jsquash/avif/encode.js";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vite-plus/test";
 import { encodeAvifPixels } from "./avifCodec";
 import { decodeHeicPixels, encodeHeicPixels } from "./heifCodec";
 

@@ -9,7 +9,7 @@
 // A regression here would either silently drop an aspect option from
 // the UI, or leave saved sessions pointing at a stale slot.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { ASPECT_OPTIONS, clampRectToImage, translate } from "./cropMath";
 
 describe("ASPECT_OPTIONS", () => {

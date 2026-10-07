@@ -4,7 +4,7 @@
 // require a real canvas 2D context (jsdom can't paint) — they're
 // exercised via the live editor probes.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { applyAlphaThreshold } from "./aiInspector";
 
 /** Build a canvas with a single row of pixels whose alpha values

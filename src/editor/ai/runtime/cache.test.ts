@@ -7,7 +7,7 @@
 // because of a false positive. The test fakes CacheStorage with a
 // scriptable bucket of URLs so we can drive every branch.
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 import { isHfModelCached } from "./cache";
 import { ACTIVE_FAMILY, QUALITY_KEYS } from "./bgModels";
 

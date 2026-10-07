@@ -2,7 +2,7 @@
 // no canvas — pins the tier contract the CapabilityService + consent
 // modal depend on, mirroring the guarantees bgModels relies on.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import {
   ACTIVE_DEPTH_FAMILY,
   getDepthInferenceLongEdge,

@@ -18,7 +18,7 @@
 // directly; we mock runFaceDetect at the module boundary so no actual
 // MediaPipe SDK / WASM init / network fetch fires.
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 const runFaceDetectMock = vi.hoisted(() => vi.fn());
 vi.mock("./runner", () => ({

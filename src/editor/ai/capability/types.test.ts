@@ -3,7 +3,7 @@
 // readout — a bad fallback here means the UI shows the wrong size
 // or no selection.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { indexForTier, tierById, tierByIndex, tiersForLayout } from "./types";
 import type { CapabilityTier } from "./types";
 

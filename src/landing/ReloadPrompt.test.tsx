@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { RegisterSWOptions } from "virtual:pwa-register/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { ReloadPrompt } from "./ReloadPrompt";
 
 const pwa = vi.hoisted(() => ({

@@ -2,7 +2,7 @@
 // 2D isn't available under jsdom, so we exercise the pure `relightPixels`
 // loop directly against plain RGBA + depth arrays.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { isRelightIdentity, type RelightParams, relightPixels, shadeFromDepth } from "./relight";
 
 const BASE: RelightParams = {

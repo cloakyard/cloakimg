@@ -19,7 +19,7 @@
 // doesn't care what the inference does, only that it returns a result
 // and respects the abort signal + onProgress callback.
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { CapabilityAbortError, CapabilityConsentError, CapabilityService } from "./service";
 import type { CapabilityFamily, CapabilityState, CapabilityTier } from "./types";
 

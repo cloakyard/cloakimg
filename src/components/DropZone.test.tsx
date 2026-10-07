@@ -16,7 +16,7 @@
 // detection logic that ships in production.
 
 import { render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 // Mock decodeHeic only — keep isHeicFile real so the format-detection
 // branches below exercise the production logic.
