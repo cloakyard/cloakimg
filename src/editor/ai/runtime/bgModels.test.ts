@@ -3,7 +3,7 @@
 // that breaks the contract (missing tier, mismatched index, layout
 // filter regression) trips here before the editor even mounts.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import {
   ACTIVE_FAMILY,
   type BgQuality,

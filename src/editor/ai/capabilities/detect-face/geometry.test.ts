@@ -4,7 +4,7 @@
 // face; this helper is what makes hairline / chin / ear pixels land
 // inside the painted region.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { padFaceBox } from "./geometry";
 
 const BOX = { x: 100, y: 100, width: 50, height: 50, score: 0.9 } as const;

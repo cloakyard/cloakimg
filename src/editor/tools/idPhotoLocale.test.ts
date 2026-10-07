@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { findIdPhotoPreset } from "./idPhotoPresets";
 import { detectBrowserIdPhotoPreference } from "./idPhotoLocale";
 

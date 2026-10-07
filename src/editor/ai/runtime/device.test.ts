@@ -3,7 +3,7 @@
 // to "wasm", while every other platform stays on "auto" (webgpu →
 // wasm fallback). UA strings below are real samples.
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { isIOS, preferredAiDevice } from "./device";
 
 function stubNavigator(userAgent: string, maxTouchPoints = 0) {

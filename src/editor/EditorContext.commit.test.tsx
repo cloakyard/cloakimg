@@ -16,7 +16,7 @@
 // "doc identity changes after commit" assertion.
 
 import { act, render } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import type { EditorDoc } from "./doc";
 
 // createDoc constructs an EditorDoc from a StartChoice. The real path

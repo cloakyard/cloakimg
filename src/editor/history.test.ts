@@ -4,7 +4,7 @@
 // WebP compression path — that's flaky in jsdom (no real toBlob) and
 // covered indirectly by the live editor probes.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { History } from "./history";
 
 function makeCanvas(w: number, h: number, fill = "#abcdef"): HTMLCanvasElement {

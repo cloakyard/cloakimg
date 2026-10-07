@@ -5,12 +5,13 @@ packages:
 # `canvas` is an API-compatible alias used only by Node-side Fabric/jsdom code;
 # the browser application continues to use the native Canvas APIs.
 overrides:
-  adm-zip: 0.6.0
-  canvas: npm:@napi-rs/canvas@1.0.8
+  adm-zip: 0.6.1
+  canvas: npm:@napi-rs/canvas@1.0.10
   glob: 13.0.6
-  jsdom: 30.0.1
-  onnxruntime-node: 1.29.0
-  sharp: 0.35.4
+  jsdom: 30.1.2
+  onnxruntime-node: 1.30.0
+  sharp: 0.35.5
+  vite@*: "catalog:"
 
 # Vite+ is installed as a versioned Vite-compatible alias, and the canvas
 # override is API-compatible but intentionally has its own package version.
@@ -18,12 +19,25 @@ peerDependencyRules:
   allowAny:
     - canvas
     - vite
-    - vitest
+  allowedVersions:
+    vite: "*"
 
 minimumReleaseAgeExclude:
+  - "@huggingface/transformers@4.3.1"
+  - "@mediapipe/tasks-vision@1.1.0"
   - "@puppeteer/browsers@3.2.2"
   - "@types/react-dom@19.2.7"
   - puppeteer-core@25.10.0
+  - "@voidzero-dev/vite-plus-core@1.1.0"
+  - "@voidzero-dev/vite-plus-darwin-arm64@1.1.0"
+  - "@voidzero-dev/vite-plus-darwin-x64@1.1.0"
+  - "@voidzero-dev/vite-plus-linux-arm64-gnu@1.1.0"
+  - "@voidzero-dev/vite-plus-linux-arm64-musl@1.1.0"
+  - "@voidzero-dev/vite-plus-linux-x64-gnu@1.1.0"
+  - "@voidzero-dev/vite-plus-linux-x64-musl@1.1.0"
+  - "@voidzero-dev/vite-plus-win32-arm64-msvc@1.1.0"
+  - "@voidzero-dev/vite-plus-win32-x64-msvc@1.1.0"
+  - vite-plus@1.1.0
 
 allowBuilds:
   # Transformers.js ships this Node backend for server consumers; CloakIMG
@@ -31,3 +45,6 @@ allowBuilds:
   onnxruntime-node: false
   # This dependency's postinstall is not required by the browser bundle.
   protobufjs: false
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.1.0
+  vite-plus: 1.1.0

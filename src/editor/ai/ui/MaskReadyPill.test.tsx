@@ -9,7 +9,7 @@
 //   • align prop drives the row alignment
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { MaskReadyPill } from "./MaskReadyPill";
 
 describe("MaskReadyPill", () => {

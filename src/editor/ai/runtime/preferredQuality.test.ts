@@ -10,7 +10,7 @@
 //     was returned anyway (re-prompted users for a download they had
 //     already paid for in a prior session).
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 const { isModelCached } = vi.hoisted(() => ({
   isModelCached: vi.fn<(q: string) => Promise<boolean>>(),

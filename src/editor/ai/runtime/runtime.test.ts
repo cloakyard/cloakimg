@@ -11,7 +11,7 @@
 // drive the fake's `onmessage`/`onerror` to simulate ready / result /
 // progress / self-error / module-load failure.
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 interface FakeWorker extends EventTarget {
   postMessage: ReturnType<typeof vi.fn>;

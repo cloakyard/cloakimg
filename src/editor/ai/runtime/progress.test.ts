@@ -2,7 +2,7 @@
 // download bar reads. transformers.js fires per-file events so the
 // aggregator merges them into a single monotonic ratio.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { createProgressAggregator } from "./progress";
 
 describe("progress — aggregation across multiple files", () => {

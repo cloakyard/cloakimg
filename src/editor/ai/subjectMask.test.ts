@@ -13,7 +13,7 @@
 // `vi.resetModules()` so the consentGranted / userDenied bits don't
 // bleed across cases.
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { QUALITY_KEYS } from "./runtime/bgModels";
 import type { BgQuality } from "./runtime/segment";
 

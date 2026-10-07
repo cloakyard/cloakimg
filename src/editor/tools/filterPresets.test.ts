@@ -12,7 +12,7 @@
 //      categories in FILTER_CATEGORIES order, registry order within
 //      each, indices intact, empty categories pruned.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import {
   type FilterCategory,
   FILTER_CATEGORIES,

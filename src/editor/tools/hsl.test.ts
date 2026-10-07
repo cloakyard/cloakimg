@@ -9,7 +9,7 @@
 // inside this file so the bake's behaviour stays pinned even if the
 // production loop is rewritten again later.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { buildHslLUT, hslIdentity, type HslParams, isHslIdentity } from "./hsl";
 
 // ── Reference implementation (pre-optimisation; do not edit) ─────────
