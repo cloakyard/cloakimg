@@ -17,7 +17,9 @@
     "test:audit": "node scripts/audit-redesign.mjs",
     "build:heif-codec": "node scripts/build-heif-codec.mjs",
     "generate-icons": "pwa-assets-generator && mv public/icons/apple-touch-icon-180x180.png public/icons/apple-touch-icon.png",
-    "generate-screenshots": "node scripts/generate-pwa-screenshots.mjs"
+    "generate-screenshots": "node scripts/generate-pwa-screenshots.mjs",
+    "design:check": "node scripts/check-air-design.mjs",
+    "design:inventory": "node scripts/air-inventory.mjs"
   },
   "dependencies": {
     "@fontsource/archivo": "^5.3.0",

@@ -26,6 +26,19 @@ release. Add a tool name to select part of the graph. For example, run
 
 <!--VITE PLUS END-->
 
+# Cloakyard Air refresh
+
+Read `DESIGN.md` before changing UI. It is the portable family-wide Air contract
+and supersedes earlier Workbench styling. It applies to all custom controls,
+editors, canvas surrounds, overlays, loading/error states and responsive layouts.
+Image pixels and functional visual data keep their own appearance.
+
+Track each source/state in `docs/air/surfaces.json` and run
+`node scripts/check-air-design.mjs`. Implement one bounded piece, inspect
+desktop/laptop/tablet/phone themes and input modes, run required checks and feature
+tests, record evidence, then commit only on a complete pass. Preserve all AI and
+canvas lifecycle requirements below.
+
 # AI capability architecture (Phase 0)
 
 The AI subsystem is built around two primitives that any future

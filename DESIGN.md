@@ -1,175 +1,340 @@
 ---
-name: CloakIMG — Cloakyard Photo Workbench
-description: >-
-  A technical-editorial design system for a privacy-first browser photo editor.
-  It shares Archivo, JetBrains Mono, declarative headlines, flat paper,
-  hairline rules, real workbench instruments, and dark privacy receipts with
-  CloakPDF while retaining CloakIMG's Signal Coral accent and photographic
-  canvas language.
-mode: light-and-dark
-genre: modern-minimal
-design-system: app-wide
-primary: "Signal Coral"
-paper: "oklch(0.978 0.008 55)"
-ink: "oklch(0.22 0.026 45)"
-fonts:
-  display: Archivo
-  body: Archivo
-  mono: JetBrains Mono
-macrostructures:
-  marketing: Workbench
-  editor: Persistent canvas workbench
-  content: Long document
-navigation: N7 workbench status header
-footer: Ft5 statement band
+name: CloakIMG — Cloakyard Air
+version: 1.0.0
+status: authoritative-target
+date: 2026-10-11
+scope: complete-web-product
+family-contract-sha256: d5c2e7f5e07afc0b9949d1ba28bb4dd35f0b1d8bcad5ff26e5d12f08c3f0eeea
 ---
 
-# CloakIMG design system
+<!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
-## Family signature
+# Cloakyard Air design contract
 
-CloakIMG and CloakPDF are siblings, not reskins. They share:
+Version: **1.0.0** · Approved direction: **Air** · Effective: **2026-10-11**
 
-- Archivo for forceful, tightly set headlines and durable UI copy.
-- JetBrains Mono for status, provenance, dimensions, tool groups, and model metadata.
-- Flat paper surfaces, dark engineering chapters, and slate-like hairline rules.
-- Real product instruments as visual proof; never fake browser or OS chrome.
-- Compact 6–8px radii, one-pixel active motion, and no resting card shadows.
-- A full 40px circular Cloakyard-family mark and a tightly set wordmark.
+This is the portable, normative design contract for the Cloakyard web family.
+It applies to existing and future products, all routes, all states, and every
+custom or third-party control rendered inside a product. A landing page alone
+cannot establish conformance. Product-specific requirements follow this contract
+in each repository's `DESIGN.md`.
 
-CloakIMG stays distinct through Signal Coral, checkerboard transparency, image
-dimensions, photo previews, colour controls, and a persistent raster canvas.
+Air supersedes the former Workbench visual specification: heavy Archivo display,
+uppercase mono control labels, product-tinted application surfaces, compact square
+cards, obligatory dark statement footers, and decorative technical ledgers.
+Existing functional requirements, privacy boundaries, output fidelity, and data
+integrity remain requirements. This document describes the target; completion is
+recorded separately in the refresh TODO and validation evidence.
 
-## Product truth
+## 1. Priority and ownership
 
-The central line is: **“A complete photo workbench. Your pixels stay put.”**
+1. Accessible, correct operation and preservation of user work.
+2. Consistency across the family, including custom components and edge states.
+3. Clear hierarchy, comfortable reading, direct actions, and responsive layouts.
+4. Air's quiet visual character and restrained motion.
 
-Image content remains in the browser. The app can download static code,
-MediaPipe/transformers.js runtimes, and on-device model weights when a capability
-is first used. Copy must not imply that a cold-cache AI flow is network-free.
+The family contract owns typography, semantic colour, component geometry, spacing,
+elevation, focus, icons, overlays, responsive behaviour, and motion. A product may
+choose its tools, content, document format, and task-specific composition. It may
+not invent a different control skin. New shared patterns are added to this contract
+and the shared assets first, then adopted by all affected products.
 
-The proof path is:
+Every exception must name the exact surface, its functional reason, owner, and
+validation. An exception cannot be justified by preference, convenience, or an
+existing hardcoded value. Document and image output are explicit exceptions to UI
+colour/typography; their surrounding controls are not exceptions.
 
-1. Image bytes enter browser memory through a local file handle.
-2. Canvas, Fabric, WASM, and optional on-device models process the image in the tab.
-3. The browser writes a local JPEG, PNG, or WebP result for download.
+## 2. Visual signature
 
-## Colour
+- Open neutral space, softly separated solid surfaces, light borders, restrained
+  shadows, rounded controls, and readable sentence-case labels.
+- Display typography is regular/medium with natural line lengths. Body copy
+  explains the user's task. Technical architecture belongs in details or docs.
+- A low-contrast blue light field may enrich a landing hero. It never sits behind
+  editable content, reading text, a document canvas, or an inspector.
+- One monochrome primary action treatment across all apps; one shared blue for
+  links, selection, focus, and interactive indicators. Product logo artwork may
+  retain its established colour; it must not recolour the surrounding UI.
+- An editor is a calm place to work. Content, selection, and the next useful action
+  have priority over branding and decoration.
 
-`tokens.css` is the source of truth.
+## 3. Portable foundations
 
-- Signal Coral is the only product accent. It owns CTAs, active tools, links,
-  focus rings, progress, and proof markers.
-- Paper is a warm photographic near-white. Dark mode uses warm charcoal rather
-  than pure black.
-- Red, amber, and green are reserved for semantic states.
-- Marketing backgrounds are flat. Grainient, aurora glows, cursor spotlights,
-  and decorative radial gradients are outside the system.
+Implement these as semantic CSS properties with an `--air-` prefix. Framework
+theme utilities and legacy aliases must reference these properties, never maintain
+parallel literal palettes. Values are identical across products. The maintained
+family bundle is versioned and copied into each repository; builds must work from
+a standalone checkout without sibling repositories, a CDN, or a private package.
+Copies have a revision/hash check. Local component overrides cannot redefine the
+family tokens. System appearance is the default in every app.
 
-## Typography
+### Colour
 
-- Display and body: Archivo.
-- Operational metadata: JetBrains Mono, 10–11px, uppercase, tracked.
-- Hero: `clamp(2.75rem, 5.5vw, 5.6rem)`, weight 760, line-height 0.91.
-- Section display: `clamp(2.15rem, 4.7vw, 4.9rem)`, weight 720.
-- Body: Archivo 400–600, line-height 1.5–1.6.
-- Mono is never used for paragraphs or oversized display copy.
+| Token suffix    | Light     | Dark      | Purpose                               |
+| --------------- | --------- | --------- | ------------------------------------- |
+| `page`          | `#fafbfc` | `#101216` | Page background                       |
+| `surface`       | `#ffffff` | `#1a1d23` | Controls, panels, dialogs             |
+| `surface-soft`  | `#f0f2f6` | `#232830` | Canvas surround, selected neutral row |
+| `surface-hover` | `#e9edf3` | `#2d333e` | Hovered neutral surface               |
+| `ink`           | `#202329` | `#f1f3f7` | Primary text                          |
+| `ink-secondary` | `#525b68` | `#b6becb` | Body/supporting text                  |
+| `ink-muted`     | `#646b76` | `#a7afbc` | Secondary metadata                    |
+| `line`          | `#e1e5eb` | `#363d48` | Surface separation                    |
+| `line-control`  | `#858e9b` | `#778395` | Required control boundary             |
+| `action`        | `#222831` | `#e9eef7` | Primary button                        |
+| `on-action`     | `#ffffff` | `#18212e` | Primary button content                |
+| `accent`        | `#285ad7` | `#9ebcff` | Focus, links, active indicators       |
+| `accent-soft`   | `#edf2ff` | `#202f4e` | Selected accent surface               |
+| `danger`        | `#b42335` | `#ff9ea8` | Destructive/error content             |
+| `danger-soft`   | `#fff0f1` | `#382229` | Error surface                         |
+| `warning`       | `#875700` | `#f4ca7c` | Warning content                       |
+| `warning-soft`  | `#fff6df` | `#352d1c` | Warning surface                       |
+| `success`       | `#236444` | `#8dd5b0` | Success content                       |
+| `success-soft`  | `#eaf7ef` | `#1c3027` | Success surface                       |
+| `checker-a`     | `#f0f2f6` | `#232830` | Transparency grid                     |
+| `checker-b`     | `#dce1e8` | `#363d48` | Transparency grid                     |
 
-## Macrostructure
+Muted text is not disabled text. Check actual foreground/background contrast, not
+just individual token values: 4.5:1 normal text, 3:1 large text and required UI
+indicators. `line` is decorative separation and cannot be the sole indicator of a
+control. Errors/warnings/success also use text and an appropriate icon.
 
-### Marketing — Workbench
+### Type
 
-Solid header → split declaration → real image-input instrument → fact strip →
-capability ledgers → dark local-processing receipt → statement footer.
+- UI and display: `-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`.
+  This reproduces Air's native, light typography without remote font requests.
+- Code and machine identifiers only: `ui-monospace, "SFMono-Regular", Consolas,
+  monospace`. Button labels, navigation, ordinary status, and headings use UI sans.
+- Weight 400 for body; 500 for labels/headings; 600 only for limited emphasis.
+  No 700–900 display or control weights. Logos and document output are exempt.
+- Hero: `clamp(2.5rem, 5.5vw, 4.5rem)`, weight 500, line-height 1.05, tracking
+  `-0.045em`. Section title: `clamp(1.75rem, 3vw, 2.75rem)`, 500, 1.15,
+  `-0.03em`. Workspace/dialog heading: 20–24px, 500, 1.25.
+- Page prose 16–18px/1.6; UI body 14px/1.5; labels 13px/1.4; metadata minimum
+  12px/1.5. Mobile editable text remains at least 16px to avoid focus zoom.
+- Sentence case. Tabular numerals for dimensions, sizes, percentages, and aligned
+  counts. No tracked uppercase eyebrows, pipeline IDs, or marketing tool counts.
+- Natural word boundaries; wrap long filenames/URLs without forcing normal prose
+  into arbitrary letter breaks. Never shrink text to conceal overflow.
 
-### Editor — Persistent canvas workbench
+### Geometry
 
-Preserve the full-screen composition, 64px top bar, 72px rail, properties
-widths, stage persistence, and mobile canvas/sheet behavior. Chrome uses flat
-paper, hairline borders, compact radii, coral active cues, and mono metadata.
+| Primitive              | Normative value                                       |
+| ---------------------- | ----------------------------------------------------- |
+| Spacing scale          | 4, 8, 12, 16, 20, 24, 32, 48, 64, 96px                |
+| Page max width         | 1200px                                                |
+| Page gutters           | 16px phone; 24px tablet; 32px laptop/desktop          |
+| Marketing header       | 72px desktop; at least 64px narrow                    |
+| Editor top bar         | 64px; may wrap/reflow on narrow screens               |
+| Icon rail              | 72px with visible labels or accessible tooltips       |
+| Inspector              | 288–360px; 328px default desktop                      |
+| Content entry panel    | 328px default; up to 560px if writing needs the space |
+| Control radius         | 10px                                                  |
+| Small chip/tab radius  | 8px                                                   |
+| Panel/card radius      | 18px                                                  |
+| Dialog radius          | 20px                                                  |
+| Floating menu radius   | 12px                                                  |
+| Normal control height  | 40px; 44px minimum touch target                       |
+| Compact control height | 32px on fine pointers only                            |
+| Field/row interior     | 12–16px; section group gap 24px                       |
+| Reading measure        | 65ch maximum                                          |
 
-### Content — Long document
+Full-bleed app rails may meet an edge without rounded outer corners. Do not nest
+several padded cards. Use whitespace and modest section dividers inside inspectors.
+Primary action groups contain one dominant action. A 2px focus outline with 3px
+offset uses `accent` and remains visible inside scrolling and clipped containers.
 
-Privacy and explanatory copy use a narrow reading measure, strong title,
-mono section markers, hairline divisions, and the dark statement close.
+Elevations: surface `0 8px 28px #1822340a`; menu `0 12px 32px #1018281a`;
+dialog `0 24px 64px #10182826`. In dark mode use opaque surfaces and `line`
+separation in addition to shadow. Scrim: `rgb(12 18 28 / 40%)`.
+No glass blur behind forms, body copy, tables, or document content.
 
-## Components
+## 4. Component contracts — custom controls included
 
-- Cards: 1px border, 6–8px radius, no resting shadow.
-- Drop zone: a bordered local-input instrument with an operational header.
-- Buttons: 6px radius, mono label, coral primary, neutral secondary.
-- Inputs: stable height, 1px rule, visible focus, no error layout shift.
-- Fields share `.control-field`; state changes may alter colour or outline but
-  never border width or surrounding geometry.
-- Dropdowns render through `SelectControl`: a native form value beneath an
-  accessible, portalled listbox whose grouped items, selected marker, focus,
-  long-label wrapping, and 12–16px arrow inset remain consistent at every width.
-- Segmented controls expose their selection state; binary toggles use switch
-  semantics. Read-only controls are disabled rather than behaving like no-op
-  buttons.
-- Modals: solid paper, 8px desktop corners, named scrim/elevation, no glass.
-- Tool rail: icon plus a single coral edge marker for the active tool.
-- Status: semantic colour only; progress remains functional motion.
+| Component                       | Required shared behaviour and appearance                                                                                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Brand/header/footer             | Same wordmark spacing and header rhythm; existing family mark, 32px in editor and 36px marketing. Compact neutral footer with product links, privacy, source, and version where useful. |
+| Buttons                         | Sans label; stable box; neutral secondary; monochrome primary; visible hover/press/focus; descriptive action verb; busy state preserves width.                                          |
+| Icon buttons                    | Accessible name, tooltip for unfamiliar meaning, 40px fine/44px touch target; selected and disabled semantics.                                                                          |
+| Text/number/date fields         | Visible persistent label; shared boundary, height, radius, focus; unit beside value; help/error beneath; correct input type and autocomplete.                                           |
+| Select/listbox                  | Native semantics or established accessible primitive; same field shell; arrow inset; wrapping long labels; keyboard navigation; viewport-aware menu.                                    |
+| Check/radio/switch              | Label and control share hit target; explicit state; keyboard operation; same accent/focus.                                                                                              |
+| Slider/scrubber                 | Label, current value/unit, keyboard input, touch-friendly hit area, reset or precise entry when needed; no hidden critical gesture.                                                     |
+| Segments/tabs                   | Neutral group, one clear selection, correct roles/states and arrow keys where expected; same radius/density.                                                                            |
+| Tool/section rail               | Stable order, labels/accessible names, neutral selected tile and blue indicator; search/more access on small screens; no coloured tool rainbow.                                         |
+| Inspector/entry group           | Consistent heading, help, spacing and primary action; advanced settings disclosed; controls stay in reach on short screens.                                                             |
+| Colour picker/curves            | UI shell follows Air; actual colour field/histogram/curve are functional data, not branding. Provide labels, numeric entry, focus, clipping protection.                                 |
+| Lists/layers/history            | Same row states, selection/focus, progress and empty-state language; long names wrap/truncate with full-name access; accessible reorder alternatives.                                   |
+| Drop zone/import                | Clear local-file action and supported types; equivalent browse action; drag-over, wrong type, encrypted/invalid/large-file states; readable progress.                                   |
+| Dialog/sheet                    | Named title/description; close, scroll body, action region; focus containment/return; Escape; background inert; preserve state across resizing.                                         |
+| Popover/menu/tooltip            | Anchored, viewport-aware, opaque; common elevation/radius; keyboard dismissal; no clipping inside parent scroll regions.                                                                |
+| Toast/notice/error              | Shared icon/text/action layout, semantic role/live region, understandable recovery; never cover primary or modal actions.                                                               |
+| Progress/AI model state         | Honest determinate progress when known; explicit size, consent, download/cancel/retry/error/cached/ready states; no fake percentages.                                                   |
+| Rich text/signature/drawing     | Air toolbar and focus; preserve content formatting; keyboard/tap alternative where feasible; undo/reset; visible selection.                                                             |
+| Privacy/help/404/error boundary | Same typography, width, navigation and controls; clear return/retry path; technical detail only when relevant.                                                                          |
+| PWA/install/update              | Same notice/dialog language; do not reload over unsaved work; readable offline/cache/download distinctions.                                                                             |
 
-## Responsive and accessibility
+A custom implementation is reviewed against the same contract. Native controls,
+accessible existing primitives, and shared shells are preferred to new widgets.
+Every component must define default, hover, focus, pressed/selected, disabled,
+busy, empty, success, error, and overflow behaviour where applicable. Mark truly
+inapplicable states with a reason in the inventory; do not silently skip them.
 
-- Maximum page frame: 88rem; 16px phone gutter and 24px gutter from 640px.
-- Split layouts stack below 860px.
-- Four-column facts become 2×2 below 640px.
-- Verify 320, 375, 414, and 768px with no horizontal scrolling.
-- Interactive controls keep visible focus and at least 44px touch targets on coarse pointers.
-- Pointer-precise layouts retain the compact workbench density; touch geometry
-  expands without changing the information hierarchy.
-- `html` and `body` use `overflow-x: clip`, never `hidden`.
-- Reduced motion collapses spatial transitions to an opacity change at 150ms or less.
+## 5. Composition and workflow
 
-## Invariants
+### Landing pages
 
-1. Signal Coral owns interaction.
-2. Hairline rules; no resting card shadows.
-3. Real photo-workbench proof; no fake chrome.
-4. Archivo + JetBrains Mono on every surface.
-5. Functional labels and editor state-machine behavior stay stable.
-6. Live-preview hooks keep canvas-pool release side effects outside React state updaters.
+Shared sequence: quiet header → short centred promise → direct primary action →
+real product entry/preview where useful → concise capability groups → factual
+privacy explanation → compact family footer. A subtle blue light field may sit
+below the hero copy. Avoid fake product capabilities, excessive feature counts,
+industrial grids, oversized decorative icons, or compulsory dark sections.
 
-## Exports
+The family home is a product directory. Each card says what the app does, its
+platform, and how to open it. KERR is a text exploration link with brief context;
+no screenshot, simulation, orbital illustration, animated preview, or embedded app.
 
-The canonical CSS export lives in `tokens.css`. Tailwind maps the same values in
-`src/tokens.css`; no component may improvise a new brand colour or font family.
+### Editors and canvases
 
-### DTCG core
+- Consistent action placement: identity/document at start; undo/view/tool context
+  in the middle when space permits; export/finish at end. No marketing navigation
+  inside a working editor.
+- Persistent content stage. Tool changes cannot remount the document, lose edits,
+  reset selection/zoom/history, or trigger a decorative page transition.
+- Neutral canvas surround. PDF/résumé paper stays white and output-accurate;
+  photos retain their actual colours; transparency uses the shared checkerboard.
+- Real selection handles, masks, redaction marks, rulers and annotations remain
+  distinct from UI decoration. Their controls and surrounding panels use Air.
+- Large screens use rail + stage + inspector, or rail + entry form + preview for
+  writing. Preserve task-specific placement while sharing widths and controls.
+- Small screens use one active tool/section, a persistent preview, and a reachable
+  working panel. Default split can be 50:50 when usable; short heights and software
+  keyboards require an expanded editing/preview mode instead of clipped controls.
+- Opening, replacing, editing, undoing, cancelling, saving/exporting, and returning
+  must have consistent feedback. Destructive actions require confirmation or undo.
 
-```json
-{
-  "color": {
-    "paper": { "$value": "oklch(0.978 0.008 55)", "$type": "color" },
-    "ink": { "$value": "oklch(0.22 0.026 45)", "$type": "color" },
-    "accent": { "$value": "oklch(0.57 0.18 35)", "$type": "color" },
-    "rule": { "$value": "oklch(0.858 0.022 55)", "$type": "color" }
-  },
-  "font": {
-    "display": { "$value": "Archivo", "$type": "fontFamily" },
-    "body": { "$value": "Archivo", "$type": "fontFamily" },
-    "mono": { "$value": "JetBrains Mono", "$type": "fontFamily" }
-  }
-}
-```
+### Overlays
 
-### shadcn/ui core
+Standard dialog width 576px; wide gallery/review 1040px; viewport gutter 16px
+mobile/24px desktop. Maximum height `calc(100dvh - 32px)` with internal body
+scroll and reachable actions. At ≤640px, use the same content in a bottom sheet
+with 20px upper corners and safe-area padding. Large/complex work may use a full
+screen dialog with an explicit close/back. Never hide essential actions on mobile.
 
-```css
-:root {
-  --background: 97.8% 0.008 55;
-  --foreground: 22% 0.026 45;
-  --card: 99.4% 0.006 55;
-  --card-foreground: 22% 0.026 45;
-  --primary: 57% 0.18 35;
-  --primary-foreground: 99% 0.006 55;
-  --muted: 94.9% 0.014 55;
-  --muted-foreground: 51% 0.025 45;
-  --border: 85.8% 0.022 55;
-  --input: 85.8% 0.022 55;
-  --ring: 67% 0.19 35;
-  --radius: 0.375rem;
-}
-```
+Z levels: sticky 30; navigation 50; editor 100; toast 150; dialog 200; popover 900;
+system recovery 1000. Preserve nesting/portal correctness; avoid ad-hoc z-indexes.
+
+## 6. Responsive and accessibility contract
+
+| Class           | Required inspection sizes (CSS pixels) |
+| --------------- | -------------------------------------- |
+| Minimum/phones  | 320×568, 375×812, 390×844, 430×932     |
+| Landscape phone | 844×390 with coarse pointer            |
+| Tablet          | 768×1024, 1024×768                     |
+| Laptop          | 1280×720, 1366×768                     |
+| Desktop         | 1440×900, 1920×1080                    |
+
+Use content-driven reflow with shared breakpoints at 640, 1024, and 1280px. Inspect
+one pixel either side of changed breakpoints. A product may add a breakpoint only
+for a documented content collision, without inventing a new visual language.
+
+No horizontal document overflow, cropped controls, inaccessible tool options, or
+forced orientation as a substitute for responsive design. Editing regions may
+scroll deliberately; the surrounding page may not hide layout bugs with overflow
+clipping. Long filenames, translated labels, empty/large lists and 200% browser
+zoom are required cases. Pinch zoom stays enabled. Respect safe-area insets and
+software keyboards. DOM order follows reading/focus order.
+
+Semantic buttons/links/landmarks, labels, visible focus, contrast, screen-reader
+state, keyboard alternatives to drag, and recoverable errors are release criteria.
+Test real rendered light and dark themes, keyboard-only operation, coarse and fine
+pointers, reduced motion, and no-WebGPU/static fallback. Automated checks support
+human visual inspection; passing a linter does not establish UX conformance.
+
+## 7. Motion and shader discipline
+
+- Shared motion: press 120ms; hover/colour 160ms; popover 180ms; dialog 240ms;
+  exit 160ms. Ease-out `cubic-bezier(0.23, 1, 0.32, 1)`; reversible spatial motion
+  `cubic-bezier(0.77, 0, 0.175, 1)`. No unapproved spring or per-app timing scale.
+- Frequent tool/section switching and keyboard commands are immediate. Motion
+  explains state or confirms an action; it must never delay editing.
+- Animate transform/opacity; scale from 0.98, translate at most 4px for small
+  surfaces; sheets enter from their edge. No layout-property animation or
+  `transition: all`. Hover movement is fine-pointer/hover-capable only.
+- Reduced motion removes spatial/decorative movement, preserves immediate state
+  and progress, and uses opacity only when useful. Focus never animates.
+- One optional Air light effect on a landing page, never in an active workspace.
+  Code is local/lazy; use the approved Shaders library only if it improves the
+  chosen light treatment. A static CSS/image fallback must render first.
+- Pause offscreen, hidden, reduced-motion, and constrained-device effects. An
+  autonomous loop longer than five seconds needs a visible pause/stop control.
+  Prefer one short entrance or deliberate pointer response. Content and actions
+  never depend on GPU support or successful effect loading.
+- Measure impact on startup, scrolling, input, memory, and battery-sensitive
+  devices; no shader competes with document rendering or on-device AI work.
+
+## 8. Scope exceptions
+
+- Native macOS software keeps SwiftUI, SF Symbols, system materials, system fonts,
+  native navigation, and platform conventions. Its website follows Air. Shared
+  brand assets do not justify replacing native controls with web imitations.
+- KERR's application is excluded. Only its listing on the family home changes.
+- User-created PDF, image, and résumé content retains its chosen appearance and
+  export fidelity. Document themes, image pixels, colour-picker gradients,
+  semantic charts and selection overlays are functional data exceptions.
+- Existing app-specific security/privacy/data-loss requirements remain in force.
+
+## 9. Governance and release gate
+
+Each repository ships a self-contained `DESIGN.md`, pinned family tokens/styles,
+its product appendix, a surface inventory and its validation command. No absolute
+machine path, sibling import, external font dependency, or private service is
+required to apply this specification. A new app adopts these before its first UI.
+
+For each bounded implementation piece:
+
+1. Name the affected surfaces, states, behaviours, and test matrix in the TODO.
+2. Implement with shared primitives/tokens; update custom component shells too.
+3. Review source and rendered output, including light/dark, mobile/laptop/desktop,
+   keyboard, touch, reduced motion, error/loading/empty and long-content states.
+4. Run the repository's required format/lint/type, unit/logic, build/dead-code and
+   applicable browser tests. Inspect exported artifacts when the flow changes.
+5. Record commands, results, screenshots, exceptions and feature coverage. A
+   blocked test is not a pass. Fix failures before committing that piece.
+6. Review the complete diff, then make a focused commit with validation evidence.
+   Never silently bless a visual regression or weaken a functional assertion.
+
+Maintain a gallery/reference of shared controls and editor states. CI checks token
+and contract drift, forbidden arbitrary UI styling, and reference screenshots.
+Screenshot updates require visual review. A new state/component is incomplete
+until its inventory and tests are added. Final family sign-off repeats the same
+journeys across all apps; it is not inferred from the pilot alone.
+
+<!-- END CLOAKYARD AIR CONTRACT -->
+
+## CloakIMG product requirements
+
+- Scope: landing/start/import, full editor/canvas, every tool and panel, layers,
+  history/scrubber/compare, batch, file properties/privacy audit, AI flows, export,
+  custom colour/curve/slider/select controls, mobile UI, policy and PWA updates.
+- Photo editing is the domain; document/OCR workflows belong in CloakPDF.
+- Actual image pixels, alpha checkerboard, colour fields, histograms, masks,
+  handles and effect previews are functional visual content. Their shells, labels,
+  controls, menus, progress and errors use the shared Air system.
+- Preserve history, preview/apply/cancel semantics, tool switching, selection,
+  imported metadata, crop geometry, exact ID-photo dimensions and export fidelity.
+- Never release pooled canvases inside React state updaters; retain the existing
+  published-canvas reference lifecycle and StrictMode safety.
+- All model downloads remain behind the existing capability consent/state system:
+  show size, requirements, progress, cancellation, cached/ready/error/retry states.
+  A disabled AI control must explain how to make it available.
+- Preserve local HEIC/HEIF import and JPEG/PNG/WebP/AVIF/HEIC export capabilities,
+  print/PDF output, metadata removal, and the deploy asset-size gate.
+- Use shared `SelectControl`, `ModalFrame` and field/atom shells; custom widgets
+  obey identical focus, target-size, radius, colour and responsive contracts.
+- Required gates: `vp check`, `vp test run`, `pnpm run build`, `pnpm test:tools`,
+  applicable `test:audit`/PWA scripts and feature probes for export/history, AI,
+  mobile apply/cancel, crop, masks and all changed tools. Record actual coverage;
+  unchanged or unavailable model paths are never described as exercised.
+- Keep a per-component/state inventory and evidence in `docs/air/`. Local tokens
+  and this complete contract travel with the repository.
