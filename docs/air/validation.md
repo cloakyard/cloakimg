@@ -14,3 +14,47 @@ This commit establishes governance only. Runtime Air styles, component/state aud
 responsive screenshots and feature sweeps are still pending. The full phased plan
 is maintained in Cloakyard's `UX_REFRESH_TODO.md`; this repository's surface record
 tracks local evidence so it remains usable independently.
+
+## 2026-10-11 — shared component bundle
+
+The pinned local CSS and working `docs/air/components.html` reference are identical
+across the family. They are not yet imported into product screens. Contract/bundle
+hashes, palette equality and standalone-copy validation pass. All 15 required and
+breakpoint-neighbour viewport sizes have no document overflow in light and dark.
+The reference was visually inspected on desktop, laptop and phone, including the
+390px dark sheet and 320px light controls. Evidence images are recorded in the
+family repository's `docs/air/evidence/reference-*.jpg`.
+
+Verified: field/select editing; checkbox and segment selection; slider keyboard
+increment; dialog initial focus, forward/reverse focus wrap, Escape, Done and focus
+return; 44px coarse-pointer controls; 16px mobile inputs; zero-duration reduced
+motion. Fixed the native dialog's default max-width narrowing the phone sheet.
+Contrast calculations: all tested normal text/semantic pairs >=4.5:1; required
+field boundaries >=3:1 (light 3.31:1, dark 4.39:1). Source review covers disabled,
+busy, hover/press and status variants. Product-specific controls, real app state
+sweeps, 200% browser zoom and software-keyboard behaviour remain separate gates.
+
+The CSS is an explicit standalone reference entry for PDF's dead-code tool because
+its HTML reference imports it; it is not a dead-code ignore. Product migration will
+replace this entry with the application's normal stylesheet import.
+
+## Full default-panel audit and Air precision study — 2026-10-11
+
+All 26 desktop default tool panels and 25 mobile picker tools inspected. See
+`editor-audit.md` for per-tool requirements, exact state/viewport coverage, the
+Cancel/re-entry baseline finding and remaining feature probes. The audit is not
+an Air implementation pass. No AI model download or export was performed.
+
+Synchronized the complete portable contract and opt-in reference at hash
+`80ae0cf6d1d6` (prefix), including actual IMG numeric ranges, curve accessibility,
+compact curve geometry, real layer/history semantics and commit boundaries.
+The canonical reference passed 70 IMG panel cases and 14 curve cases in both
+light/dark, plus focused-field, precise-entry and curve interactions; full evidence
+is recorded in Cloakyard's `docs/air/validation.md`. This local bundle remains
+self-contained and no production entry point imports `src/styles/air.css`.
+
+Passed `vp check`, `vp test run` (470/470, 46 files), `pnpm run build` and its
+100-file deployment asset gate (all ≤25 MiB), inventory/contract checks and
+exact-copy synchronization. Existing build chunk-size warnings remain. This is a
+documentation/reference checkpoint; runtime tool-rail, model, export and PWA probes
+were not run for unchanged product code and remain migration requirements.

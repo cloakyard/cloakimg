@@ -174,10 +174,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline selected text layer inspected"],
+      "viewports": ["1440x900 light"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/MobileCompareButton.tsx",
@@ -226,13 +226,13 @@
     {
       "path": "src/editor/PropertiesPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/SelectControl.preview.tsx",
@@ -270,13 +270,13 @@
     {
       "path": "src/editor/ToolControls.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/ToolRail.tsx",
@@ -490,13 +490,13 @@
     {
       "path": "src/editor/tools/AdjustPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/AdjustTool.tsx",
@@ -515,10 +515,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/BgBlurTool.tsx",
@@ -537,10 +537,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/BorderTool.tsx",
@@ -559,10 +559,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/ColorPickerTool.tsx",
@@ -581,21 +581,21 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/CurveEditor.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/DefaultPanel.tsx",
@@ -614,10 +614,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/DrawTool.tsx",
@@ -636,10 +636,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/EmojiTool.tsx",
@@ -658,10 +658,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/FilterTool.tsx",
@@ -680,10 +680,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/HslPanel.tsx",
@@ -691,10 +691,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/HslTool.tsx",
@@ -713,10 +713,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/ImagePanel.tsx",
@@ -724,10 +724,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/ImageTool.tsx",
@@ -746,10 +746,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/LevelsTool.tsx",
@@ -768,10 +768,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/PenPanel.tsx",
@@ -779,10 +779,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/PenTool.tsx",
@@ -801,10 +801,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/PerspectiveTool.tsx",
@@ -823,10 +823,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/RedactTool.tsx",
@@ -845,10 +845,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/RelightTool.tsx",
@@ -867,10 +867,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/RemoveBgTool.tsx",
@@ -889,10 +889,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/ShapesPanel.tsx",
@@ -900,10 +900,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/ShapesTool.tsx",
@@ -919,13 +919,13 @@
     {
       "path": "src/editor/tools/SpotHealPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/SpotHealTool.tsx",
@@ -944,10 +944,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/TapFixTool.tsx",
@@ -966,10 +966,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/TextTool.tsx",
@@ -988,10 +988,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/editor/tools/TimeOfDayTool.tsx",
@@ -1010,10 +1010,10 @@
       "sourceReviewed": false,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["baseline default panel inspected"],
+      "viewports": ["1440x900 light", "390x844 dark coarse"],
+      "evidence": ["docs/air/editor-audit.md"],
+      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
       "path": "src/landing/Features.tsx",
@@ -1113,6 +1113,51 @@
       "viewports": [],
       "evidence": [],
       "notes": ""
+    },
+    {
+      "path": "src/styles/air.css",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "default",
+        "hover/press (CSS review)",
+        "focus",
+        "selected",
+        "disabled",
+        "busy",
+        "error",
+        "success",
+        "warning",
+        "dialog open/close/focus return",
+        "narrow sheet",
+        "light/dark",
+        "reduced motion",
+        "coarse/fine pointer"
+      ],
+      "viewports": [
+        "320x568",
+        "375x812",
+        "390x844",
+        "430x932",
+        "844x390",
+        "768x1024",
+        "1024x768",
+        "1280x720",
+        "1366x768",
+        "1440x900",
+        "1920x1080",
+        "639x800",
+        "641x800",
+        "1023x768",
+        "1025x768"
+      ],
+      "evidence": [
+        "docs/air/validation.md \u2014 refinement 02 candidate",
+        "docs/air/components.html"
+      ],
+      "notes": "Refinement 02 design candidate. Reference checks recorded; final design review, product import and all real app states remain pending. No product is considered migrated."
     },
     {
       "path": "src/tokens.css",

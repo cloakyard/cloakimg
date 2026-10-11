@@ -1,0 +1,129 @@
+{
+  "date": "2026-10-11",
+  "states": [
+    {
+      "name": "Adjust / sliders",
+      "snapshot": "- main:\n  - button \"Back to start\":\n    - img \"CloakIMG\"\n    - generic: CloakIMG\n  - button \"Undo\" [disabled]:\n  - button \"Redo\":\n  - button \"Export\":\n  - button \"More actions\":\n  - dialog \"Tool controls\":\n    - generic: Adjust\n    - button \"Cancel\":\n    - button \"Done\":\n    - button \"Histogram\"\n    - button \"Adjust\" [active] [pressed]\n    - text: Smart adjustments\n    - generic: Apply to\n    - group \"Apply to\":\n      - button \"Whole\" [pressed]\n      - button \"Subject\"\n      - button \"Background\"\n    - generic: Exposure\n    - textbox \"Exposure\": \"+0.0\"\n    - slider \"Exposure\"\n    - generic: Contrast\n    - textbox \"Contrast\": \"+0\"\n    - slider \"Contrast\"\n    - generic: Highlights\n    - textbox \"Highlights\": \"+0\"\n    - slider \"Highlights\"\n    - generic: Shadows\n    - textbox \"Shadows\": \"+0\"\n    - slider \"Shadows\"\n    - generic: Whites\n    - textbox \"Whites\": \"+0\"\n    - slider \"Whites\"\n    - generic: Blacks\n    - textbox \"Blacks\": \"+0\"\n    - slider \"Blacks\"\n    - generic: Saturation\n    - textbox \"Saturation\": \"+0\"\n    - slider \"Saturation\"\n    - generic: Vibrance\n    - textbox \"Vibrance\": \"+0\"\n    - slider \"Vibrance\"\n    - generic: Temp\n    - textbox \"Temp\": \"+0\"\n    - slider \"Temp\"\n    - generic: Vignette\n    - textbox \"Vignette\": \"+0\"\n    - slider \"Vignette\"\n    - generic: Sharpen\n    - textbox \"Sharpen\": \"+0\"\n    - slider \"Sharpen\"",
+      "geometry": {
+        "actions": [
+          {
+            "disabled": false,
+            "name": "Cancel",
+            "rect": {
+              "height": 44,
+              "width": 44,
+              "x": 282,
+              "y": 460.5
+            }
+          },
+          {
+            "disabled": false,
+            "name": "Done",
+            "rect": {
+              "height": 44,
+              "width": 44,
+              "x": 330,
+              "y": 460.5
+            }
+          }
+        ],
+        "dialogs": [
+          {
+            "name": "Tool controls",
+            "rect": {
+              "height": 390,
+              "width": 390,
+              "x": 0,
+              "y": 454
+            }
+          }
+        ],
+        "fields": [
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          },
+          {
+            "font": "16px",
+            "height": 44,
+            "label": null,
+            "type": "text"
+          }
+        ],
+        "height": 844,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "name": "Text layer selected / history",
+      "snapshot": "- main:\n  - button \"Back to start\":\n    - img \"CloakIMG\"\n    - generic: CloakIMG\n  - button \"00554.jpg · 1200×630\":\n    - generic: 00554.jpg\n    - generic: · 1200×630\n  - button \"Single photo\" [pressed]:\n  - button \"Batch\":\n  - button \"Undo\":\n  - button \"Redo\" [disabled]:\n  - button \"Reset to original\":\n  - button \"Zoom out\":\n  - generic: 100%\n  - button \"Zoom in\":\n  - button \"Hold to compare with original\":\n  - button \"Export\":\n    - text: Export\n  - navigation \"Editor tools\":\n    - button \"Search tools\":\n    - button \"Move\":\n    - button \"Tap to fix\":\n    - button \"Crop & rotate\":\n    - button \"Perspective\":\n    - button \"Adjust\":\n    - button \"Time of day\":\n    - button \"Relight\":\n    - button \"Filters\":\n    - button \"Levels\":\n    - button \"Selective color\":\n    - button \"Spot heal\":\n    - button \"Portrait blur\":\n    - button \"Remove BG\":\n    - button \"Redact\":\n    - button \"Text\" [pressed]:\n    - button \"Shapes\":\n    - button \"Draw\":\n    - button \"Emoji\":\n    - button \"Watermark\":\n    - button \"Pen\":\n    - button \"Place image\":\n    - button \"Color picker\":\n    - button \"Resize\":\n    - button \"ID photo sheet\":\n    - button \"Frame\":\n    - button \"Border\":\n  - generic: Space\n  - text: to pan · Cmd+scroll to zoom\n  - toolbar \"Edit history timeline\":\n    - generic: History\n    - 'button \"Jump to step 0: Open\"'\n    - 'button \"Jump to step 1: Add text\" [pressed]'\n  - generic: Textmark\n  - button \"Cancel changes\":\n  - generic: Caption\n  - textbox \"Caption\": Air study\n  - generic: Font\n  - group \"Font\":\n    - button \"Inter\" [pressed]\n    - button \"Serif\"\n    - button \"Sans\"\n    - button \"Mono\"\n  - generic: Weight\n  - group \"Weight\":\n    - button \"Regular\"\n    - button \"Semibold\" [pressed]\n    - button \"Bold\"\n  - generic: Align\n  - group \"Align\":\n    - button \"Left\" [pressed]\n    - button \"Center\"\n    - button \"Right\"\n  - generic: Size\n  - generic: 64 px\n  - slider \"Size\"\n  - generic: Color\n  - button \"Pick a color\":\n    - generic: \"#FFFFFF\"\n  - generic: Style\n  - button \"I\"\n  - button \"U\"\n  - generic: Letter spacing\n  - generic: \"0\"\n  - slider \"Letter spacing\"\n  - generic: Curve\n  - generic: none\n  - slider \"Curve\"\n  - generic: Outline\n  - generic: 1.0 px\n  - slider \"Outline\"\n  - generic: Outline color\n  - button \"Pick a color\":\n    - generic: \"#000000\"\n  - button \"Straight\" [pressed]\n  - button \"Arc up\"\n  - button \"Arc down\"\n  - generic: Editing the selected text. Esc exits inline edit; Delete removes the layer (via the Layers panel).\n  - button \"Layers 1\" [expanded]:\n    - text: Layers\n    - generic: \"1\"\n  - button \"Hide layer Air study Delete layer\":\n    - button \"Hide layer\":\n    - generic: Air study\n    - button \"Delete layer\":"
+    },
+    {
+      "name": "Colour picker / selected text",
+      "snapshot": "- main:\n  - button \"Back to start\":\n    - img \"CloakIMG\"\n    - generic: CloakIMG\n  - button \"00554.jpg · 1200×630\":\n    - generic: 00554.jpg\n    - generic: · 1200×630\n  - button \"Single photo\" [pressed]:\n  - button \"Batch\":\n  - button \"Undo\":\n  - button \"Redo\" [disabled]:\n  - button \"Reset to original\":\n  - button \"Zoom out\":\n  - generic: 100%\n  - button \"Zoom in\":\n  - button \"Hold to compare with original\":\n  - button \"Export\":\n    - text: Export\n  - navigation \"Editor tools\":\n    - button \"Search tools\":\n    - button \"Move\":\n    - button \"Tap to fix\":\n    - button \"Crop & rotate\":\n    - button \"Perspective\":\n    - button \"Adjust\":\n    - button \"Time of day\":\n    - button \"Relight\":\n    - button \"Filters\":\n    - button \"Levels\":\n    - button \"Selective color\":\n    - button \"Spot heal\":\n    - button \"Portrait blur\":\n    - button \"Remove BG\":\n    - button \"Redact\":\n    - button \"Text\" [pressed]:\n    - button \"Shapes\":\n    - button \"Draw\":\n    - button \"Emoji\":\n    - button \"Watermark\":\n    - button \"Pen\":\n    - button \"Place image\":\n    - button \"Color picker\":\n    - button \"Resize\":\n    - button \"ID photo sheet\":\n    - button \"Frame\":\n    - button \"Border\":\n  - generic: Space\n  - text: to pan · Cmd+scroll to zoom\n  - toolbar \"Edit history timeline\":\n    - generic: History\n    - 'button \"Jump to step 0: Open\"'\n    - 'button \"Jump to step 1: Add text\" [pressed]'\n  - generic: Textmark\n  - button \"Cancel changes\":\n  - generic: Caption\n  - textbox \"Caption\": Air study\n  - generic: Font\n  - group \"Font\":\n    - button \"Inter\" [pressed]\n    - button \"Serif\"\n    - button \"Sans\"\n    - button \"Mono\"\n  - generic: Weight\n  - group \"Weight\":\n    - button \"Regular\"\n    - button \"Semibold\" [pressed]\n    - button \"Bold\"\n  - generic: Align\n  - group \"Align\":\n    - button \"Left\" [pressed]\n    - button \"Center\"\n    - button \"Right\"\n  - generic: Size\n  - generic: 64 px\n  - slider \"Size\"\n  - generic: Color\n  - button \"Pick a color\" [expanded] [active]:\n    - generic: \"#FFFFFF\"\n  - generic: Style\n  - button \"I\"\n  - button \"U\"\n  - generic: Letter spacing\n  - generic: \"0\"\n  - slider \"Letter spacing\"\n  - generic: Curve\n  - generic: none\n  - slider \"Curve\"\n  - generic: Outline\n  - generic: 1.0 px\n  - slider \"Outline\"\n  - generic: Outline color\n  - button \"Pick a color\":\n    - generic: \"#000000\"\n  - button \"Straight\" [pressed]\n  - button \"Arc up\"\n  - button \"Arc down\"\n  - generic: Editing the selected text. Esc exits inline edit; Delete removes the layer (via the Layers panel).\n  - button \"Layers 1\" [expanded]:\n    - text: Layers\n    - generic: \"1\"\n  - button \"Hide layer Air study Delete layer\":\n    - button \"Hide layer\":\n    - generic: Air study\n    - button \"Delete layer\":\n- dialog \"Color picker\":\n  - textbox \"Hex value\": \"#ffffff\"\n  - generic: R\n  - spinbutton \"R\": \"255\"\n  - generic: G\n  - spinbutton \"G\": \"255\"\n  - generic: B\n  - spinbutton \"B\": \"255\"\n  - button \"Eyedrop\":\n    - text: Eyedrop\n  - button \"Done\""
+    }
+  ],
+  "observations": [
+    "Mobile exposure +0.4 remained in the field after Cancel and re-entry; record as baseline regression to resolve, not a passed rollback test.",
+    "Mobile exposure +0.2 and Done enabled Undo. Undo returned the history to Open.",
+    "Desktop text sample added a selected layer and history entry. Cancel changes returned to Move after inspection. No export or model download.",
+    "Colour popup DOM was inspected, but screenshot did not capture its painted overlay; no screenshot validation claimed for popup."
+  ]
+}
