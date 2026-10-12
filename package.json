@@ -19,7 +19,8 @@
     "generate-icons": "pwa-assets-generator && mv public/icons/apple-touch-icon-180x180.png public/icons/apple-touch-icon.png",
     "generate-screenshots": "node scripts/generate-pwa-screenshots.mjs",
     "design:check": "node scripts/check-air-design.mjs",
-    "design:inventory": "node scripts/air-inventory.mjs"
+    "design:inventory": "node scripts/air-inventory.mjs",
+    "design:portability": "node scripts/check-air-portability.mjs"
   },
   "dependencies": {
     "@fontsource/archivo": "^5.3.0",

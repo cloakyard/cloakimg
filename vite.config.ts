@@ -171,10 +171,16 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    ignorePatterns: ["src/editor/vendor/heif-codec.js", ".agents/**", ".claude/skills/**"],
+    ignorePatterns: [
+      "src/editor/vendor/heif-codec.js",
+      ".agents/**",
+      ".claude/skills/**",
+      "docs/air/assets/**",
+    ],
   },
   lint: {
     ignorePatterns: [
+      "docs/air/assets/**",
       "handoff-readonly/**",
       // Vendored skill bundles — third-party UI for Hallmark, mirrored
       // to both `.claude/` (Claude Code) and `.agents/` (Agent SDK).
