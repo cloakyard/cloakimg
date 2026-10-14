@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.0.0",
+  "contractVersion": "1.0.1",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -1153,10 +1153,7 @@
         "1023x768",
         "1025x768"
       ],
-      "evidence": [
-        "docs/air/validation.md \u2014 refinement 02 candidate",
-        "docs/air/components.html"
-      ],
+      "evidence": ["docs/air/validation.md — refinement 02 candidate", "docs/air/components.html"],
       "notes": "Refinement 02 design candidate. Reference checks recorded; final design review, product import and all real app states remain pending. No product is considered migrated."
     },
     {
