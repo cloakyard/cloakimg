@@ -1,0 +1,13 @@
+note: You are running `vp test` as a Vite+ built-in command. If you meant to run the test npm script, use `vpr test` instead.
+
+ RUN  v5.0.3 /Users/sumitsahoo/Developer/cloakimg
+
+
+ Test Files  46 passed (46)
+      Tests  475 passed (475)
+   Start at  18:47:22
+   Duration  4.55s (environment 58%, tests 24%, setup 11%, transform 6%, import 2%)
+
+    Isolate  46 workers spawned · ~638ms startup each (spawn + environment, per file)
+             at least ~2.03s faster with isolate: false — reuses workers across files instead of one per file
+

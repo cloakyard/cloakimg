@@ -1,0 +1,181 @@
+[
+  {
+    "app": "cloakimg",
+    "url": "http://127.0.0.1:8175",
+    "layouts": [
+      {
+        "width": 1440,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1440,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1280,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1280,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 768,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 768,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 390,
+        "height": 120,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 390,
+        "height": 120,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 320,
+        "height": 120,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 320,
+        "height": 120,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 844,
+        "height": 64,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 844,
+        "height": 64,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      }
+    ],
+    "gpu": [
+      {
+        "theme": "light",
+        "lightState": "idle",
+        "lightFrames": "2",
+        "lightFirstDraw": "72.8",
+        "lightReady": "true"
+      },
+      {
+        "theme": "dark",
+        "lightState": "idle",
+        "lightFrames": "2",
+        "lightFirstDraw": "47.0",
+        "lightReady": "true"
+      }
+    ],
+    "errors": []
+  }
+]

@@ -4,10 +4,14 @@
   block-size: 160px;
   margin-inline: auto;
   color: var(--air-light-cloakimg);
-  background-color: var(--color-paper);
+  background-color: var(--air-page);
   outline-color: var(--air-surface-soft);
   pointer-events: none;
   overflow: clip;
+}
+/* The released landing still uses the legacy page; the parked Air draft does not. */
+.cloak-site .img-horizon {
+  background-color: var(--color-paper);
 }
 .img-horizon svg,
 .img-horizon canvas {

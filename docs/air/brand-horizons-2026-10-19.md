@@ -23,3 +23,11 @@ IMG originally had no landing horizon. This bounded change adds the canonical ru
 This is a local checkpoint. These colour changes have not been pushed or deployed.
 Physical GPU/battery/thermal and assistive-device gates remain open; emulation
 and desktop Chromium do not establish those results.
+
+The parked Air draft was restored byte-for-byte except the two intentional horizon
+integration additions. Its build and all 475 tests also pass. A final visual check
+caught the legacy warm base against Air: the artwork now defaults to `--air-page`,
+with the legacy base scoped to the still-existing `.cloak-site` landing only.
+The family browser check verifies that the artwork base equals its nearest painted
+ancestor. Remove that legacy scope when the full IMG landing migration is committed.
+Both compositions retain the coral shader and exact image output.
