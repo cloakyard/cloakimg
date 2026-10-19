@@ -1,0 +1,157 @@
+[
+  {
+    "app": "cloakimg",
+    "url": "http://127.0.0.1:8174",
+    "layouts": [
+      {
+        "width": 1440,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1440,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1280,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1280,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 768,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 768,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 390,
+        "height": 120,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 390,
+        "height": 120,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 320,
+        "height": 120,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 320,
+        "height": 120,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 844,
+        "height": 64,
+        "theme": "light",
+        "expected": "rgb(244, 81, 44)",
+        "colour": "rgb(244, 81, 44)",
+        "strokes": ["rgb(244, 81, 44)", "rgb(244, 81, 44)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 844,
+        "height": 64,
+        "theme": "dark",
+        "expected": "rgb(255, 154, 118)",
+        "colour": "rgb(255, 154, 118)",
+        "strokes": ["rgb(255, 154, 118)", "rgb(255, 154, 118)"],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      }
+    ],
+    "gpu": [
+      {
+        "theme": "light",
+        "lightState": "idle",
+        "lightFrames": "1",
+        "lightFirstDraw": "74.5",
+        "lightReady": "true"
+      },
+      {
+        "theme": "dark",
+        "lightState": "idle",
+        "lightFrames": "1",
+        "lightFirstDraw": "44.3",
+        "lightReady": "true"
+      }
+    ],
+    "errors": []
+  }
+]

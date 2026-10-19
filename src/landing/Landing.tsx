@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { DropZone } from "../components/DropZone";
 import { I } from "../components/icons";
+import { AirHorizon } from "./AirHorizon";
 import { Features } from "./Features";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
@@ -150,6 +151,7 @@ export function Landing({ onStart, onIntent }: Props) {
           </div>
         </section>
 
+        <AirHorizon />
         <Features />
       </main>
 

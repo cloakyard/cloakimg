@@ -1,0 +1,34 @@
+.img-horizon {
+  position: relative;
+  inline-size: min(calc(100% - 2 * var(--air-gutter)), var(--air-page-max));
+  block-size: 160px;
+  margin-inline: auto;
+  color: var(--air-light-cloakimg);
+  background-color: var(--color-paper);
+  outline-color: var(--air-surface-soft);
+  pointer-events: none;
+  overflow: clip;
+}
+.img-horizon svg,
+.img-horizon canvas {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.img-horizon canvas {
+  visibility: hidden;
+}
+.img-horizon[data-light-ready="true"] canvas {
+  visibility: visible;
+}
+@media (max-width: 639px) {
+  .img-horizon {
+    block-size: 120px;
+  }
+}
+@media (max-height: 500px) {
+  .img-horizon {
+    block-size: 64px;
+  }
+}

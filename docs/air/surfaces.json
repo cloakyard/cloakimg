@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.0.2",
+  "contractVersion": "1.0.3",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -1016,6 +1016,26 @@
       "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
+      "path": "src/landing/AirHorizon.tsx",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "light",
+        "dark",
+        "reduced-motion",
+        "forced-colors",
+        "unsupported",
+        "constrained",
+        "offscreen",
+        "editor-unmount"
+      ],
+      "viewports": ["1440x900", "1280x720", "768x1024", "390x844", "320x568", "844x390"],
+      "evidence": ["docs/air/evidence/brand-horizons-2026-10-19/checks.json"],
+      "notes": " 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
+    },
+    {
       "path": "src/landing/Features.tsx",
       "kind": "app-surface",
       "sourceReviewed": false,
@@ -1115,6 +1135,26 @@
       "notes": ""
     },
     {
+      "path": "src/styles/air-horizon.css",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "light",
+        "dark",
+        "reduced-motion",
+        "forced-colors",
+        "unsupported",
+        "constrained",
+        "offscreen",
+        "editor-unmount"
+      ],
+      "viewports": ["1440x900", "1280x720", "768x1024", "390x844", "320x568", "844x390"],
+      "evidence": ["docs/air/evidence/brand-horizons-2026-10-19/checks.json"],
+      "notes": " 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
+    },
+    {
       "path": "src/styles/air.css",
       "kind": "app-surface",
       "sourceReviewed": true,
@@ -1153,7 +1193,10 @@
         "1023x768",
         "1025x768"
       ],
-      "evidence": ["docs/air/validation.md — refinement 02 candidate", "docs/air/components.html"],
+      "evidence": [
+        "docs/air/validation.md \u2014 refinement 02 candidate",
+        "docs/air/components.html"
+      ],
       "notes": "Refinement 02 design candidate. Reference checks recorded; final design review, product import and all real app states remain pending. No product is considered migrated."
     },
     {

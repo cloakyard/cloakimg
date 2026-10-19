@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import { ALL_TOOLS } from "../editor/tools";
 import { Landing } from "./Landing";
 
+// The production browser gate covers GPU lifecycle; jsdom has no WebGPU.
+vi.mock("../../docs/air/light-runtime.mjs", () => ({
+  mountAirLight: () => ({ destroy() {} }),
+}));
+
 describe("Landing", () => {
   it("renders the workbench identity, honest product facts, and the Cloakyard-family mark", () => {
     render(<Landing onStart={() => undefined} />);
