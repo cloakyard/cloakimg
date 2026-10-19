@@ -31,3 +31,5 @@ and command logs are in `/tmp/air-neutral-links-2026-10-19/`. This checkpoint re
 tags, installer assets, document/image output or link destinations changed.
 
 Local all-link checks pass: 68 layout/state cases and 22 keyboard focus checks. Desktop/laptop/phone light/dark captures were visually inspected, including header, content, compact navigation and footer.
+
+Checker hardening: use an OS-created unique temporary directory when no evidence directory is supplied. The default-directory browser run passes 60 layout/state and 18 keyboard checks; canonical formatting/lint and portable synchronization pass. This resolves the CodeQL temporary-file finding without changing shipped website assets.
