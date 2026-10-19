@@ -128,3 +128,8 @@ keyboard return; desktop/laptop/phone captures were visually inspected.
 Air 1.0.5 restores the approved angled hyperlink cue and neutral header/footer
 treatment. See [scope and evidence](hyperlinks-2026-10-19.md). Twenty-four local
 responsive/theme/text cases pass; desktop/laptop/phone captures were inspected.
+
+## Neutral hyperlink follow-up — 2026-10-19
+
+Air 1.0.6 removes blue hyperlink text, including hover, and specifies neutral
+inline/directional treatments. See [scope and evidence](neutral-links-2026-10-19.md).

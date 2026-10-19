@@ -20,7 +20,8 @@
     "generate-screenshots": "node scripts/generate-pwa-screenshots.mjs",
     "design:check": "node scripts/check-air-design.mjs",
     "design:inventory": "node scripts/air-inventory.mjs",
-    "design:portability": "node scripts/check-air-portability.mjs"
+    "design:portability": "node scripts/check-air-portability.mjs",
+    "test:air-links": "node scripts/test-air-links.mjs"
   },
   "dependencies": {
     "@fontsource/archivo": "^5.3.0",
