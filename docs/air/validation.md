@@ -102,3 +102,16 @@ reference. Product picker runtime adoption remains separate from this bundle syn
 Format/lint/types, 470 units, build/asset limits pass, as do design integrity and all 18 standalone portability assertions.
 No product UI source or dependency changed. The family evidence and PDF pilot are
 tracked in Cloakyard's UX_REFRESH_TODO.md; physical/assistive acceptance remains open.
+
+## 2026-10-19 — shared disabled icon-button correction
+
+Synchronized the canonical Air CSS and gallery hashes. Guarded `aria-disabled`
+icon buttons now use the same disabled appearance as text buttons and cannot
+show hover/press motion. No product component or native macOS source changed;
+this bundle update is not a completed app migration. Contract stays Air 1.0.2,
+`bb90f52e0b0a`; exact assets are pinned in bundle.json. Real behavior/visual evidence
+is recorded in CloakPDF's editor-wrappers-2026-10-19 audit and Cloakyard's matching
+validation checkpoint. Required local format/lint/types, 470 unit tests in 46 files, production build/asset limits, design integrity and all 18 portability checks pass.
+
+The final correction keeps the keyboard focus contour at full opacity while muting
+only the unavailable icon; the synchronized bundle was rebuilt and rechecked.
