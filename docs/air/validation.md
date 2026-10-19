@@ -115,3 +115,10 @@ validation checkpoint. Required local format/lint/types, 470 unit tests in 46 fi
 
 The final correction keeps the keyboard focus contour at full opacity while muting
 only the unavailable icon; the synchronized bundle was rebuilt and rechecked.
+
+## 2026-10-19 — consistent landing arrows
+
+Air 1.0.4 uses straight forward-navigation arrows. See
+[scope, validation and evidence](link-arrows-2026-10-19.md). Twenty-two responsive
+light/dark cases and two enlarged-text cases pass, including compact-menu
+keyboard return; desktop/laptop/phone captures were visually inspected.
