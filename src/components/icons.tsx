@@ -354,7 +354,7 @@ export const I = {
       <path d="m9 12 2 2 4-4" />
     </Icon>
   ),
-  ArrowUpRight: (p: P) => <Icon {...p} d="M7 17 17 7M8 7h9v9" />,
+  ArrowUpRight: (p: P) => <Icon {...p} d="M7 7h10v10M7 17 17 7" />,
   Scale: (p: P) => (
     <Icon {...p}>
       <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
