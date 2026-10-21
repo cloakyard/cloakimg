@@ -1,0 +1,27 @@
+  ✓ Move
+  ✓ Tap to fix
+  ✓ Crop
+  ✓ Perspective
+  ✓ Adjust
+  ✓ Time of day
+  ✓ Relight
+  ✓ Filters
+  ✓ Levels
+  ✓ Selective
+  ✓ Spot heal
+  ✓ Portrait blur
+  ✓ Remove BG
+  ✓ Redact
+  ✓ Text
+  ✓ Shapes
+  ✓ Draw
+  ✓ Emoji
+  ✓ Watermark
+  ✓ Pen
+  ✓ Place image
+  ✓ Color picker
+  ✓ Resize
+  ✓ ID photo sheet
+  ✓ Frame
+  ✓ Border
+PASS: all 26 tools click cleanly ✓

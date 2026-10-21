@@ -37,7 +37,7 @@ ExternalProject_Add(kvazaar
 
 ExternalProject_Add(libde265
   GIT_REPOSITORY https://github.com/strukturag/libde265.git
-  GIT_TAG v1.1.1
+  GIT_TAG v1.1.3
   GIT_SHALLOW TRUE
   UPDATE_DISCONNECTED TRUE
   SOURCE_DIR ${CMAKE_BINARY_DIR}/libde265-src
@@ -60,7 +60,7 @@ set(LIBHEIF_LIBRARY_DIR ${CMAKE_BINARY_DIR}/libheif-build/install/lib)
 
 ExternalProject_Add(libheif
   GIT_REPOSITORY https://github.com/strukturag/libheif.git
-  GIT_TAG v1.22.2
+  GIT_TAG v1.23.6
   GIT_SHALLOW TRUE
   UPDATE_DISCONNECTED TRUE
   SOURCE_DIR ${CMAKE_BINARY_DIR}/libheif-src

@@ -1,0 +1,13 @@
+→ Scenario 1: chained commits + undo back to base
+  after Adjust commit: depth=1
+  after Border commit: depth=2, dims=1320×750
+  after undo: depth=0, dims=1200×630
+  after redo: depth=2, dims=1320×750
+→ Scenario 2: Resize undo remains undone after tool switch
+  applied resize: dims=660×375
+  undo=1320×750, after leave=1320×750
+→ Scenario 3: Reset-to-original
+  after reset: dims=1200×630
+→ Scenario 4: Export modal
+  export modal rendered: true
+PASS: multi-step history + reset + export modal verified ✓

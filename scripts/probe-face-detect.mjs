@@ -26,12 +26,11 @@ if (!existsSync(chromePath)) {
   process.exit(1);
 }
 
-// Use the portrait fixture so the journey verifies both the detector
-// lifecycle and a positive face result instead of only the zero-result
-// path from an old product screenshot.
+// Use the actual portrait fixture for a positive detection. 00554.jpg is
+// a product graphic in the local fixture set, so it only exercises no-face recovery.
 const testImagePath = process.env.FACE_FIXTURE
   ? resolve(process.env.FACE_FIXTURE)
-  : resolve(ROOT, "test-fixtures/00554.jpg");
+  : resolve(ROOT, "test-fixtures/IMG_0002.JPG");
 if (!existsSync(testImagePath)) {
   console.error(`Test image not found at ${testImagePath}`);
   process.exit(1);

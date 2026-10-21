@@ -28,10 +28,10 @@
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@huggingface/transformers": "^4.3.1",
     "@jsquash/avif": "^2.1.1",
-    "@mediapipe/tasks-vision": "1.1.0",
+    "@mediapipe/tasks-vision": "1.1.1",
     "fabric": "^7.4.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "vite-plugin-pwa": "^2.0.0",
     "workbox-window": "^7.4.1"
   },
@@ -39,17 +39,17 @@
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.7",
-    "@types/node": "^26.6.4",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vite-pwa/assets-generator": "^2.0.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "puppeteer-core": "^25.12.0",
+    "puppeteer-core": "^25.15.0",
     "tailwindcss": "4.3.3",
     "typescript": "~7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   },
-  "packageManager": "pnpm@12.9.1"
+  "packageManager": "pnpm@12.14.0"
 }

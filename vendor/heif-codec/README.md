@@ -2,10 +2,10 @@
 
 This is a small Emscripten binding around actively maintained upstream codecs:
 
-- libheif `v1.22.2` (LGPL-3.0), HEIF container handling
-- libde265 `v1.1.1` (LGPL-3.0), HEVC decoding
+- libheif `v1.23.6` (LGPL-3.0), HEIF container handling
+- libde265 `v1.1.3` (LGPL-3.0), HEVC decoding
 - Kvazaar `v2.3.2` (BSD-3-Clause), HEVC encoding
-- Emscripten `6.0.8`, reproducible compiler image
+- Emscripten `6.0.13`, reproducible compiler image
 
 The corresponding LGPL and BSD license texts are distributed in `licenses/`.
 
