@@ -71,6 +71,8 @@ Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata stri
 
 ## 🚀 Getting Started
 
+[![Launch on PicoRunner](https://picorunner.com/badges/launch.svg)](https://picorunner.com/launch/?repository=https%3A%2F%2Fgithub.com%2Fcloakyard%2Fcloakimg)
+
 Requires **Node.js ≥ 24** and **Vite+** (`npm i -g vite-plus`).
 
 ```bash
