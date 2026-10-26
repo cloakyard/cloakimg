@@ -1,5 +1,15 @@
 # Air validation record
 
+## 2026-10-26 — Storyline and family chrome
+
+Portable Air 1.2.0 contract/CSS/artwork lifecycle maintenance only. The parked IMG
+redesign is excluded and all 15 draft-file hashes are unchanged. An isolated staged
+snapshot passes lint, 470 tests, build/asset limits and design integrity; the portable
+bundle passes 20 isolated checks. No IMG redesign or product conformance is claimed.
+No push/deploy. Keep IMG last.
+
+Evidence: `docs/air/evidence/storyline-family-2026-10-26/`.
+
 ## 2026-10-11 — portable contract and inventory
 
 `vp check`, 470/470 unit tests and production build/asset limits pass.
