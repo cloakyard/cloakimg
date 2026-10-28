@@ -5,6 +5,11 @@ packages:
 # `canvas` is an API-compatible alias used only by Node-side Fabric/jsdom code;
 # the browser application continues to use the native Canvas APIs.
 overrides:
+  # Workbox minifier dependency: GHSA-m5mm-p8h7-m29v.
+  serialize-javascript: ">=7.1.4"
+  # Pinned node-resolve patch clones its fixed defaults with Node structuredClone.
+  # Remove this override and patch when upstream drops deepmerge (GHSA-gcqx-w48m-w2h4).
+  "@rollup/plugin-node-resolve@16.0.3>deepmerge": "-"
   adm-zip: 0.6.1
   canvas: npm:@napi-rs/canvas@1.0.13
   glob: 13.0.6
@@ -23,6 +28,7 @@ peerDependencyRules:
     vite: "*"
 
 minimumReleaseAgeExclude:
+  - serialize-javascript@7.1.4
   - "@mediapipe/tasks-vision@1.1.1"
   - puppeteer-core@25.15.0
   - "@napi-rs/canvas-android-arm64@1.0.13"
@@ -47,3 +53,6 @@ allowBuilds:
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@1.3.0
   vite-plus: 1.3.0
+
+patchedDependencies:
+  "@rollup/plugin-node-resolve@16.0.3": patches/@rollup__plugin-node-resolve@16.0.3.patch
