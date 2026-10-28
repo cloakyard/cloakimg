@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.2.3",
+  "contractVersion": "1.2.4",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -220,7 +220,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -363,7 +363,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1032,7 +1032,10 @@
         "editor-unmount"
       ],
       "viewports": ["1440x900", "1280x720", "768x1024", "390x844", "320x568", "844x390"],
-      "evidence": ["docs/air/evidence/brand-horizons-2026-10-19/checks.json"],
+      "evidence": [
+        "docs/air/evidence/brand-horizons-2026-10-19/checks.json",
+        "docs/air/consistency-2026-10-28.md"
+      ],
       "notes": " 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
     },
     {
@@ -1043,7 +1046,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1054,7 +1057,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1065,7 +1068,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1076,7 +1079,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1087,7 +1090,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1098,7 +1101,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1109,7 +1112,7 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": [],
+      "evidence": ["docs/air/consistency-2026-10-28.md"],
       "notes": ""
     },
     {
@@ -1151,7 +1154,10 @@
         "editor-unmount"
       ],
       "viewports": ["1440x900", "1280x720", "768x1024", "390x844", "320x568", "844x390"],
-      "evidence": ["docs/air/evidence/brand-horizons-2026-10-19/checks.json"],
+      "evidence": [
+        "docs/air/evidence/brand-horizons-2026-10-19/checks.json",
+        "docs/air/consistency-2026-10-28.md"
+      ],
       "notes": " 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
     },
     {
