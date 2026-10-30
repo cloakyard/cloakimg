@@ -21,7 +21,6 @@ import type {
   AiProgress,
   AiProgressResponse,
   AiReadyResponse,
-  AiResponse,
   AiResultResponse,
   AiSelfErrorResponse,
 } from "../types";
@@ -63,7 +62,6 @@ export function buildSelfErrorMessage(message: string, filename?: string): strin
 }
 
 // Re-export AiResponse so handlers don't have to import from two paths.
-export type { AiResponse };
 
 // —————————————— Bitmap ↔ RawImage ——————————————
 
@@ -157,7 +155,7 @@ export async function deviceOrder(
  *  copy a user can act on. Identical to the segment-only version that
  *  used to live in worker.ts — kept handler-agnostic so any new
  *  capability gets the same friendly messages for free. */
-export function friendlyErrorMessage(raw: string): string {
+function friendlyErrorMessage(raw: string): string {
   const lower = raw.toLowerCase();
   if (
     lower.includes("quotaexceeded") ||

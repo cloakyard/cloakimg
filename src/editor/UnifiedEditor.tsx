@@ -205,9 +205,6 @@ function EditorShell() {
       className="editor-shell relative h-full w-full overflow-hidden font-sans text-text"
     >
       <KeyboardShortcuts />
-      {/* Editor backdrop is solid cream on every breakpoint. Animated
-          marketing chrome was removed so the photo owns the hierarchy
-          and the workbench reads as one continuous paper surface. */}
       <div className="relative flex h-full w-full flex-col">
         <TopBar onShowFileProps={() => setFilePropsOpen(true)} />
 
@@ -228,19 +225,7 @@ function EditorShell() {
             {mode === "batch" ? (
               <BatchCanvas isMobile={isMobile} />
             ) : isMobile ? (
-              // Mobile single-mode chrome (V3.3 "unified surface" redesign,
-              // May 2026):
-              //   ┌─ Canvas (StageHost + ToolStage) — fills the column;
-              //   │  shrinks to fit above the surface when expanded.
-              //   └─ MobileEditorSurface — single morphing shell that
-              //      progresses through collapsed → picker → tool with
-              //      content cross-fading inside the same card. In-flow
-              //      so the canvas reflows as it grows.
-              // The canvas matte now uses `--page-bg` across every
-              // breakpoint (May 2026 desktop redesign — unified with
-              // the original mobile treatment in tokens.css) so the
-              // photo floats in cream and the editor reads as one
-              // continuous airy surface.
+              // The compact controls share available height with the live canvas.
               <div className="flex min-h-0 flex-1 flex-col">
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   <StageHost />

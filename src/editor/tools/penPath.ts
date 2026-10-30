@@ -57,7 +57,7 @@ export function buildPenD(anchors: PenAnchor[]): string {
  *  carryover. Used by EditorContext.commit and ImageCanvas snapshot
  *  capture; keep it in one place so adding a new persisted prop is a
  *  single edit. */
-export const FABRIC_PERSISTED_PROPS = ["cloakKind", "cloakAnchors"] as const;
+const FABRIC_PERSISTED_PROPS = ["cloakKind", "cloakAnchors"] as const;
 
 /** cloakKind tags that should NOT cross a tool boundary — they're
  *  owned by a single tool's lifecycle. The Crop overlay rect, Pen's

@@ -234,17 +234,6 @@
       "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
-      "path": "src/editor/SelectControl.preview.tsx",
-      "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
-      "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
-    },
-    {
       "path": "src/editor/SelectControl.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
@@ -595,17 +584,6 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
       "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
-    },
-    {
-      "path": "src/editor/tools/DefaultPanel.tsx",
-      "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
-      "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
     },
     {
       "path": "src/editor/tools/DrawPanel.tsx",
@@ -1276,7 +1254,7 @@
         "1025x768"
       ],
       "evidence": [
-        "docs/air/validation.md \u2014 refinement 02 candidate",
+        "docs/air/validation.md — refinement 02 candidate",
         "docs/air/components.html",
         "docs/air/neutral-links-2026-10-19.md"
       ],

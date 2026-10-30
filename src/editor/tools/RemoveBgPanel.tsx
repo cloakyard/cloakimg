@@ -424,7 +424,7 @@ interface AutoProps {
    *  source — the Apply will be effectively instant (no detection,
    *  no download). Surfaces as a small green pill above Apply. */
   maskReady: boolean;
-  /** Mobile (V3.4+) hides the per-tool Apply button — the global ✓ in
+  /** Compact layout hides the per-tool Apply button — the global ✓ in
    *  MobileEditorSurface's footer is the universal commit, and the
    *  parent registers `applyAuto` via useApplyOnToolSwitch so ✓ runs
    *  it. Desktop / tablet still surface the visible button. */
@@ -673,7 +673,7 @@ interface ChromaProps {
   onClearSample: () => void;
   onAutoTune: () => void;
   onApply: () => void;
-  /** Mobile (V3.4+) hides the per-tool Apply button — see AutoProps. */
+  /** Compact layout hides the per-tool Apply button — see AutoProps. */
   showApplyButton: boolean;
 }
 

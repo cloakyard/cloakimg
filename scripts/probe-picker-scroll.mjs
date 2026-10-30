@@ -1,5 +1,5 @@
 // probe-picker-scroll.mjs — Verify the mobile tool-picker grid scrolls.
-// The picker shows 24 tools in a 4-col grid; on a 390×844 viewport
+// The compact picker displays the complete tool grid; on a 390×844 viewport
 // the grid is taller than the sheet's content area, so the inner
 // scroller must accept vertical pans.
 
@@ -71,7 +71,7 @@ await new Promise((r) => setTimeout(r, 700));
 // Also walk up the picker chain logging touch-action / overflow /
 // pointer-events so we can spot any ancestor blocking touch pans.
 const layout = await page.evaluate(() => {
-  const dialog = document.querySelector('[role="dialog"]');
+  const dialog = document.querySelector(".editor-mobile-surface");
   if (!dialog) return { error: "no-dialog" };
   const scroller = dialog.querySelector(".scroll-thin.overflow-y-auto");
   if (!scroller) return { error: "no-scroller" };
@@ -105,7 +105,7 @@ console.log(JSON.stringify(layout, null, 2));
 
 // Try to scroll the picker down by issuing a touch drag.
 const target = await page.evaluate(() => {
-  const dialog = document.querySelector('[role="dialog"]');
+  const dialog = document.querySelector(".editor-mobile-surface");
   const scroller = dialog?.querySelector(".scroll-thin.overflow-y-auto");
   if (!scroller) return null;
   const r = scroller.getBoundingClientRect();
@@ -133,7 +133,7 @@ if (target) {
 }
 
 const after = await page.evaluate(() => {
-  const dialog = document.querySelector('[role="dialog"]');
+  const dialog = document.querySelector(".editor-mobile-surface");
   const scroller = dialog?.querySelector(".scroll-thin.overflow-y-auto");
   return scroller ? { scrollTop: scroller.scrollTop } : null;
 });
@@ -143,6 +143,7 @@ await page.screenshot({ path: "/tmp/cloakimg-picker-scroll.png" });
 console.log("  screenshot: /tmp/cloakimg-picker-scroll.png");
 
 await browser.close();
-if (!layout.canScroll) console.log("⚠️  scroller content does not overflow");
-else if (!after || after.scrollTop < 20) console.log("FAIL: scroll did not move");
-else console.log(`PASS: scroller moved to ${after.scrollTop}`);
+if (!layout.canScroll || !after || after.scrollTop < 20) {
+  throw new Error(`Tool picker did not scroll: ${JSON.stringify({ layout, after })}`);
+}
+console.log(`PASS: scroller moved to ${after.scrollTop}`);

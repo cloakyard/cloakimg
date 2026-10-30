@@ -52,7 +52,7 @@ export interface DepthModelFamily {
 }
 
 /** Depth-Anything-V2-Small — general monocular depth. */
-export const DEPTH_ANYTHING_V2_SMALL: DepthModelFamily = {
+const DEPTH_ANYTHING_V2_SMALL: DepthModelFamily = {
   id: "depth-anything-v2-small",
   label: "Depth Anything V2 (Small)",
   inferenceLongEdge: 518,

@@ -33,10 +33,6 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // and gives every panel enough horizontal room to lay out cleanly
     // including the new subject scope row, the byte-readout progress
     // card, and the Selective-colour 8-band swatch grid.
-    // V5 (May 2026 minimalist desktop redesign) — like the ToolRail
-    // opposite, the panel no longer carries its own surface or
-    // backdrop blur. Controls sit directly on cream; only a soft
-    // left divider separates them from the canvas.
     <div
       className={`editor-properties flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface ${
         collapsed ? "w-72" : "w-82"

@@ -44,7 +44,7 @@ import { acquireCanvas, releaseCanvas } from "../doc";
  *  source unchanged); 1 = 40 px which reads as a very strong portrait
  *  background. The mapping is linear since the perceptual jump from
  *  4 → 8 px feels about the same as 32 → 40 px on a 1-MP preview. */
-export function blurAmountToPx(amount: number): number {
+function blurAmountToPx(amount: number): number {
   return Math.max(0, Math.min(1, amount)) * 40;
 }
 

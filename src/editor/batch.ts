@@ -54,7 +54,7 @@ export function newStepId(): string {
   return `step-${stepCounter}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export type BatchStatus = "queued" | "progress" | "done" | "error";
+type BatchStatus = "queued" | "progress" | "done" | "error";
 
 export interface BatchFile {
   id: string;

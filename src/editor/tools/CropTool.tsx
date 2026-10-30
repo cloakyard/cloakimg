@@ -303,7 +303,7 @@ export function CropTool() {
  *  then take the axis-aligned doc-space rect from the rotated image.
  *  The output is exactly `rect.w × rect.h` — matching what the user
  *  saw in the live preview drawn by paintOverlay. */
-export function applyCrop(
+function applyCrop(
   src: HTMLCanvasElement,
   rect: Rect,
   rotationDeg: number,

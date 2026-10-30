@@ -136,7 +136,7 @@ export function MaskDownloadModal({
   );
 }
 
-/** Two-block error body — the literal message in mono so it's
+/** Two-block error body — the original message so it's
  *  copy-pasteable, then a subtler suggestion paragraph. Mobile
  *  benefits from this split because the small chip we previously
  *  showed read as a generic "something broke" prompt; the title +

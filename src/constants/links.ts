@@ -2,16 +2,16 @@
 // links to (GitHub repo, issues, license, the Cloakyard family site,
 // the author's profile). Keeping these in one module means a rename
 // or move only touches this file instead of hunting through Header,
-// Footer, PrivacyModal, ErrorBoundary, etc.
+// Footer, PrivacyPage, ErrorBoundary, etc.
 
 /** GitHub `owner/repo` slug — useful where the API or a template
  *  string only wants the path-relative form. */
-export const GITHUB_REPO_SLUG = "cloakyard/cloakimg";
+const GITHUB_REPO_SLUG = "cloakyard/cloakimg";
 
 /** Canonical repo URL. All other GitHub links derive from this. */
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_REPO_SLUG}`;
 
-/** Issue list — surfaced from PrivacyModal as the support contact. */
+/** Issue list — surfaced from PrivacyPage as the support contact. */
 export const GITHUB_ISSUES_URL = `${GITHUB_REPO_URL}/issues`;
 
 /** New-issue URL. ErrorBoundary appends a query string to pre-fill

@@ -126,9 +126,12 @@ function renderTool(activeTool: ToolState["activeTool"]) {
       return <MoveTool />;
     case "tapfix":
       return <TapFixTool />;
-    default:
-      return <DefaultTool />;
+    case "resize":
+    case "mark":
+      return <PassiveTool />;
   }
+  const unreachable: never = activeTool;
+  return unreachable;
 }
 
 // Move = Fabric's selection / transform mode. The persistent stage
@@ -139,7 +142,7 @@ function MoveTool() {
   return null;
 }
 
-function DefaultTool() {
+function PassiveTool() {
   useStageProps({});
   return null;
 }

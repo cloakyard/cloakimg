@@ -87,8 +87,7 @@ src/editor/ai/
 │       └── ConsentHost.tsx              dialog mount under the editor shell
 ├── ui/
 │   ├── status/
-│   │   └── CapabilityStatusCards.tsx    CapabilityProgressCard / ReadyChip /
-│   │                                    ErrorCard / PausedChip / ConsentChip
+│   │   └── CapabilityStatusCards.tsx    CapabilityProgressCard / ErrorCard
 │   └── consent/
 │       └── CapabilityConsentDialog.tsx  generic tier picker + consent dialog
 └── (legacy mask flow files kept in place: subjectMask.ts, useSubjectMask.ts,
@@ -146,7 +145,7 @@ fail with "ModuleFactory not set." inside the worker. For those:
 7. **Wire the service into a hook + tool**. The capability owns its
    hook (the face surface has `useDetectFaces`); follow the same
    pattern. Wire `CapabilityConsentDialog` for tier selection and
-   `CapabilityProgressCard / ReadyChip / ErrorCard / PausedChip` for
+   `CapabilityProgressCard / CapabilityErrorCard` for
    inline status.
 
 The service primitive handles every state-machine concern that the

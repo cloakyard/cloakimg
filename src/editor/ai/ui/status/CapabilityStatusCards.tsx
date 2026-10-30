@@ -1,23 +1,4 @@
-// CapabilityStatusCards.tsx — Generic versions of the inline status
-// atoms (progress card, ready chip, error card, paused chip, awaiting-
-// consent chip) used across every AI-aware tool. Replaces the segment-
-// specific DetectionStatus.tsx for new capabilities; the legacy mask
-// surface keeps using DetectionStatus until that migration is done.
-//
-// The visual rhythm matches DetectionStatus 1:1 — same paddings,
-// type scales, icon sizes, palette — so all AI surfaces continue to
-// read as one coherent system regardless of capability.
-//
-// Type rhythm (kept aligned with the panel system):
-//   • Card label / strong text:  text-[0.8125rem]    font-medium
-//   • Mono % readout:            text-[0.8125rem]    tabular-nums
-//   • Card body footnote:        text-[0.8125rem] muted
-//   • Status chip body:          text-[0.8125rem]  font-medium
-//   • Inline error body:         text-[0.8125rem]
-//   • Icons pair 1:1 with the matching label size, with one extra
-//     pixel of stroke breathing room when the icon sits in a circular
-//     swatch.
-
+// Shared progress and retry surfaces for AI capabilities.
 import { I } from "../../../../components/icons";
 import type { CapabilityProgress, StatusCopy } from "../../capability/types";
 
@@ -54,7 +35,7 @@ interface ProgressProps {
  *
  *  Labels read from the family's status copy so the same card is
  *  honest whether triggered by Adjust scope, Portrait blur, Smart
- *  Crop, Auto-Anonymize, or Read text. */
+ *  Crop, or Auto-Anonymize. */
 export function CapabilityProgressCard({
   progress,
   warm,
@@ -144,23 +125,6 @@ export function CapabilityProgressCard({
   );
 }
 
-interface ReadyProps {
-  /** Override the chip text. Defaults to the family's `readyMessage`. */
-  message?: string;
-  copy: StatusCopy;
-}
-
-/** Subtle confirmation chip — emerald to read as success without
- *  dominating the panel. */
-export function CapabilityReadyChip({ message, copy }: ReadyProps) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-md border border-[var(--air-success)] bg-[var(--air-success-soft)] px-2.5 py-1.5 text-[0.8125rem] font-medium text-success">
-      <I.Sparkles size={12} stroke={2} className="shrink-0 text-success" />
-      <span className="min-w-0 flex-1">{message ?? copy.readyMessage}</span>
-    </div>
-  );
-}
-
 interface ErrorProps {
   msg: string | null;
   onRetry: () => void;
@@ -186,47 +150,6 @@ export function CapabilityErrorCard({ msg, onRetry, fallbackMsg }: ErrorProps) {
           Try again
         </button>
       </div>
-    </div>
-  );
-}
-
-interface PausedProps {
-  /** Tap handler — clears the deny latch and re-fires the operation
-   *  (which re-opens the consent modal via the central host). */
-  onResume: () => void;
-  copy: StatusCopy;
-}
-
-/** Inline affordance shown when the user previously dismissed the
- *  consent modal. Without this, denying leaves the panel in a stuck
- *  state — controls gated, no obvious way to opt back in. */
-export function CapabilityPausedChip({ onResume, copy }: PausedProps) {
-  return (
-    <div
-      role="status"
-      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[0.8125rem]"
-    >
-      <I.Sparkles size={12} className="shrink-0 text-text" />
-      <span className="min-w-0 flex-1 text-text-muted">{copy.pausedMessage}</span>
-      <button
-        type="button"
-        onClick={onResume}
-        className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[0.8125rem] font-medium text-text underline"
-      >
-        Enable AI
-      </button>
-    </div>
-  );
-}
-
-/** Sits in for the progress card while the user has the consent
- *  modal up. Reassures them the panel is waiting on their tap, not
- *  on a stuck download. */
-export function CapabilityConsentChip() {
-  return (
-    <div className="flex items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[0.8125rem] font-medium text-text-muted">
-      <I.Sparkles size={12} className="shrink-0 text-text" />
-      <span className="min-w-0 flex-1">Approve the on-device model to continue.</span>
     </div>
   );
 }

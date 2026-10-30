@@ -12,7 +12,7 @@
 
 import { createCanvas } from "../doc";
 
-export type BorderMode = 0 | 1; // 0 = Solid, 1 = Aspect
+type BorderMode = 0 | 1; // 0 = Solid, 1 = Aspect
 
 export interface BorderParams {
   mode: BorderMode;

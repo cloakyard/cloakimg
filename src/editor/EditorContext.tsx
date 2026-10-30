@@ -37,7 +37,7 @@ import { saveDraft } from "../landing/draft";
 import type { StartChoice } from "../landing/StartModal";
 import { type BatchFile, buildThumb, DEFAULT_RECIPE, type RecipeStep, runRecipe } from "./batch";
 import { MOBILE_MAX_PX, TABLET_MAX_PX } from "./breakpoints";
-import { createDoc, type EditorDoc, type Layer, snapshot } from "./doc";
+import { createDoc, type EditorDoc, type Layer } from "./doc";
 import { History, type HistoryEntrySnapshot, restoreCanvas } from "./history";
 import { aiLog } from "./ai/log";
 import { indexFor, resolvePreferredQuality } from "./ai/runtime/preferredQuality";
@@ -1152,11 +1152,6 @@ export function useEditorReadOnly(): EditorReadValue {
   const v = useContext(EditorReadCtx);
   if (!v) throw new Error("useEditorReadOnly must be used inside an <EditorProvider />");
   return v;
-}
-
-/** Util — produce a fresh snapshot of the working canvas. */
-export function snapshotWorking(doc: EditorDoc): HTMLCanvasElement {
-  return snapshot(doc.working);
 }
 
 /** Reload a Fabric scene from the JSON captured at commit time. Empty

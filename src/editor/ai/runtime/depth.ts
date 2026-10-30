@@ -143,5 +143,3 @@ export async function estimateDepth(
 export async function isDepthModelCached(tier: DepthModelTier): Promise<boolean> {
   return isHfModelCached(tier.repo, tier.dtype);
 }
-
-export { AiAbortError } from "./types";

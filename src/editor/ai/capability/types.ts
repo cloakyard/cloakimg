@@ -29,7 +29,7 @@ import type { Layout } from "../../types";
  *  CloakIMG is positioned as a Photoshop / Lightroom alternative for
  *  photo work; document text flows live in the sibling product CloakPDF.
  *  Don't add an OCR kind here without a deliberate scope reset. */
-export type CapabilityKind =
+type CapabilityKind =
   // Segmentation — subject vs background. Drives Adjust scope, Filter
   // scope, Levels scope, HSL scope, Portrait blur, Remove BG, Smart
   // Crop / Anonymize / Watermark.
@@ -54,7 +54,7 @@ export type CapabilityKind =
 
 /** State-machine status. Identical surface to the legacy MaskStatus
  *  so existing consent UI can render either flavor. */
-export type CapabilityStatus = "idle" | "loading" | "ready" | "error" | "needs-consent";
+type CapabilityStatus = "idle" | "loading" | "ready" | "error" | "needs-consent";
 
 export interface CapabilityProgress {
   /** Phases the UI distinguishes:
@@ -183,7 +183,7 @@ export interface CapabilityFamily<TRuntimeRef = unknown> {
   status: StatusCopy;
 }
 
-export interface ConsentCopy {
+interface ConsentCopy {
   /** Title shown in the consent modal header (first download). */
   title: string;
   /** Title shown when the user re-opens the picker to switch tiers. */

@@ -51,11 +51,7 @@ export function PerspectiveTool() {
         number,
         number,
       ][];
-      // No "dim outside" wash — the canvas matte is cream `--page-bg`
-      // (May 2026 minimalist redesign) and tinting it grey breaks the
-      // continuous photo-floats-on-cream surface. The coral quad
-      // outline + handles below carry enough signal for the user to
-      // see which region will be rectified.
+      // The selection outline and handles identify the region being rectified.
       ctx.save();
 
       // Quad outline.

@@ -24,7 +24,7 @@
 let supportsP3: boolean | null = null;
 
 /** True iff the current browser exposes `colorSpace: "display-p3"`. */
-export function isDisplayP3Supported(): boolean {
+function isDisplayP3Supported(): boolean {
   if (supportsP3 !== null) return supportsP3;
   try {
     const probe = document.createElement("canvas");
@@ -46,9 +46,7 @@ export function isDisplayP3Supported(): boolean {
  * where supported, `srgb` everywhere else. Bound at module load to
  * keep render paths consistent throughout the session.
  */
-export const PREFERRED_COLOR_SPACE: PredefinedColorSpace = isDisplayP3Supported()
-  ? "display-p3"
-  : "srgb";
+const PREFERRED_COLOR_SPACE: PredefinedColorSpace = isDisplayP3Supported() ? "display-p3" : "srgb";
 
 interface Get2DOptions {
   /** Hint that this canvas will be a heavy `getImageData` consumer

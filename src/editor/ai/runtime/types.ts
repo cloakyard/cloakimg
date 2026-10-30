@@ -1,15 +1,6 @@
 // types.ts — Shared types for the on-device AI runtime.
 //
-// One enum + one progress shape covers every pipeline (segmentation
-// today, detection / OCR / depth tomorrow). Pipeline-specific facades
-// import these and add their own domain types alongside.
-
-/** Quality / size trade-off shared across pipelines. Each pipeline
- *  maps these to its own model registry — e.g. segmentation uses three
- *  dtypes of the same model, a future detector might pick between
- *  YOLO-n / -s / -m. The user-facing copy stays consistent: small =
- *  fast download / fast inference, large = highest fidelity. */
-export type AiQuality = "small" | "medium" | "large";
+// Segmentation and depth share progress and worker message primitives.
 
 export interface AiProgress {
   /** Phases the UI distinguishes:
@@ -147,7 +138,7 @@ export interface AiProgressResponse {
 }
 
 /** Segmentation result — alpha-keyed bitmap at source resolution. */
-export interface AiSegmentResultResponse {
+interface AiSegmentResultResponse {
   id: string;
   type: "result";
   resultKind: "segment";
@@ -171,7 +162,7 @@ export interface AiSegmentResultResponse {
  *  resolution. The worker emits RGBA with R=G=B=depth (near = bright
  *  for Depth-Anything) and full alpha, so consumers read any colour
  *  channel as the depth value without a 1-channel special case. */
-export interface AiDepthResultResponse {
+interface AiDepthResultResponse {
   id: string;
   type: "result";
   resultKind: "depth";

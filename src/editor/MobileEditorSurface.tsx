@@ -1,26 +1,5 @@
-// MobileEditorSurface.tsx — One bottom surface, three states. A single
-// morphing shell that progresses through:
-//
-//   collapsed  →  picker  →  tool  →  collapsed
-//        \                              /
-//         \________ X / ✓ / drag-down _/
-//
-// V3.4 design goals (Braun + fluid, peeled further back):
-//   • Idle is just text. The collapsed state has NO container — no
-//     background, border, shape, or shadow. Just "Tools" + Grid icon
-//     floating on the cream page. Tap target is 44 × 140 invisibly.
-//   • One surface. The shell stays open across the picker → tool
-//     transition; only the inner content cross-fades.
-//   • Hairline edges only when expanded. The implicit container
-//     materialises (background fades to white, top corners round to
-//     16 px, hairline inset) as the shell grows from icon-sized to
-//     full-sheet.
-//   • In-flow geometry. Wrapper height updates immediately so the
-//     canvas reflows once; the photo stays visible during a tool session.
-//   • Pinned tool header. Like CloakPDF, ✕ and ✓ stay together at the
-//     top-right while only the controls body scrolls. This keeps the
-//     session actions reachable without stealing a second row below
-//     the controls.
+// MobileEditorSurface.tsx — Compact Air tool picker and controls.
+// The canvas stays visible above the measured in-flow surface.
 //
 // History semantics:
 //   • ✓ — keep changes, reset tool to Move, collapse the surface.
@@ -50,11 +29,7 @@ import { findTool, toolsForTab, type Tool, type ToolId } from "./tools";
 
 type Mode = "collapsed" | "picker" | "tool";
 
-// Geometry — V3.4 strips the container in collapsed state. The
-// collapsed footprint is just the size needed for icon + label; no
-// background, no border, no shape. Tap target stays comfortably 44 px
-// (icon row + padding) while the visual is just text + glyph floating
-// on the cream page.
+// Collapsed Tools affordance retains a 44 px touch target.
 const COLLAPSED_W = 140;
 const COLLAPSED_H = 44;
 const EXPANDED_R = 18;
@@ -67,23 +42,13 @@ const TOOL_HEADER_H = 56;
 
 // Tool selection is immediate. Only a dismissed drag settles back into place.
 const EASING = "var(--air-ease-out)";
-const SHEET_TRANSITION = "none";
 
 const DRAG_DISMISS_PX = 100;
 const DRAG_DISMISS_VELOCITY = 0.11;
 const DRAG_SETTLE_MS = 220;
 const MOBILE_TOOLS = toolsForTab(null);
 
-interface SurfaceProps {
-  /** Notify parent when the surface enters / leaves an expanded state.
-   *  The parent doesn't strictly need this today (the in-flow height
-   *  drives canvas reflow on its own), but exposing it keeps the
-   *  shape compatible with future "mute background while sheet is
-   *  open" needs. */
-  onExpandedChange?: (expanded: boolean) => void;
-}
-
-export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
+export function MobileEditorSurface() {
   const {
     toolState,
     setActiveTool,
@@ -130,7 +95,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     return () => ro.disconnect();
   }, []);
 
-  // V3.5: measured natural height of whatever's currently rendered
+  // Measured natural height of whatever's currently rendered
   // inside the sheet. Drives the sheet's actual height so a short tool
   // (Perspective, Color picker) doesn't waste vertical real estate by
   // sitting in a half-height shell. Capped by maxPx so a tall picker
@@ -163,11 +128,6 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
   }, []);
 
   const expanded = mode !== "collapsed";
-
-  // Notify parent on expanded transitions.
-  useEffect(() => {
-    onExpandedChange?.(expanded);
-  }, [expanded, onExpandedChange]);
 
   // Sync external activeTool changes with the surface mode.
   //   • activeTool flips to a real tool while collapsed/picker → tool mode
@@ -326,10 +286,10 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       if (!dismiss) {
         sheet.style.transform = "";
         dragDeltaRef.current = 0;
-        if (reduceMotion) sheet.style.transition = SHEET_TRANSITION;
+        if (reduceMotion) sheet.style.transition = "none";
         else {
           dragSettleTimerRef.current = window.setTimeout(() => {
-            sheet.style.transition = SHEET_TRANSITION;
+            sheet.style.transition = "none";
             dragSettleTimerRef.current = null;
           }, DRAG_SETTLE_MS);
         }
@@ -337,7 +297,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       }
       sheet.style.transform = reduceMotion ? "" : "translateY(100%)";
       const settle = () => {
-        sheet.style.transition = SHEET_TRANSITION;
+        sheet.style.transition = "none";
         sheet.style.transform = "";
         dragDeltaRef.current = 0;
         dragSettleTimerRef.current = null;
@@ -410,7 +370,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     borderTopRightRadius: expanded ? `${EXPANDED_R}px` : 0,
     backgroundColor: expanded ? "var(--air-surface)" : "transparent",
     boxShadow: expanded ? "inset 0 1px 0 0 var(--air-line)" : "none",
-    transition: SHEET_TRANSITION,
+    transition: "none",
   };
 
   return (

@@ -12,15 +12,7 @@ interface IconProps extends Omit<SVGProps<SVGSVGElement>, "stroke"> {
   style?: CSSProperties;
 }
 
-export function Icon({
-  d,
-  size = 20,
-  stroke = 2,
-  fill = "none",
-  children,
-  style,
-  ...rest
-}: IconProps) {
+function Icon({ d, size = 20, stroke = 2, fill = "none", children, style, ...rest }: IconProps) {
   return (
     <svg
       width={size}

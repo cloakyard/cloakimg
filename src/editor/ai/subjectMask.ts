@@ -29,7 +29,7 @@ import {
   type SmartRemoveProgress,
 } from "./runtime/segment";
 
-export type MaskStatus = "idle" | "loading" | "ready" | "error" | "needs-consent";
+type MaskStatus = "idle" | "loading" | "ready" | "error" | "needs-consent";
 
 export interface MaskState {
   status: MaskStatus;

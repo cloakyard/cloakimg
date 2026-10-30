@@ -21,14 +21,14 @@ import {
 
 type Tab = "upload" | "blank";
 
-export interface CanvasPreset {
+interface CanvasPreset {
   name: string;
   w: number;
   h: number;
   hint: string;
 }
 
-export const PRESETS: CanvasPreset[] = [
+const PRESETS: CanvasPreset[] = [
   { name: "Square", w: 1080, h: 1080, hint: "Instagram post" },
   { name: "Portrait", w: 1080, h: 1350, hint: "IG portrait" },
   { name: "Story", w: 1080, h: 1920, hint: "9:16 vertical" },

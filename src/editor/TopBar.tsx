@@ -51,12 +51,6 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   return (
     <>
       <header
-        // V5 (May 2026 desktop minimalist redesign) — desktop drops the
-        // glass surface and backdrop blur and sits directly on cream,
-        // but keeps a hairline soft bottom divider so the toolbar still
-        // reads as its own band above the canvas. Mobile is fully
-        // chrome-free — no divider — so the brand mark, canvas, and
-        // collapsed Tools pill flow as one continuous plane.
         className={
           isMobile
             ? "editor-topbar flex h-16 shrink-0 items-center gap-1.5 border-b border-border px-3 py-3"
@@ -70,11 +64,6 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           className="editor-topbar__brand flex cursor-pointer items-center gap-2 rounded-md border-none bg-transparent p-0 font-[inherit] text-inherit pointer-coarse:min-h-11"
         >
           <BrandMark size={36} />
-          {/* Brand mark + wordmark sized identically across breakpoints
-              in V3 — the prior mobile-shrunk treatment made the editor
-              feel apologetic at the top of the screen. With the TopBar
-              chrome stripped on mobile, full-size branding sits cleanly
-              on the cream page. */}
           <div className="logo-wordmark">
             Cloak<span>IMG</span>
           </div>

@@ -16,9 +16,9 @@ import { get2DContext } from "./colorSpace";
 import { decodeHeic, isHeicFile } from "./heicDecoder";
 import { type ExifData, readExif } from "./tools/exif";
 
-export type LayerKind = "text" | "watermark" | "watermarkImage" | "draw";
+type LayerKind = "text" | "watermark" | "watermarkImage" | "draw";
 
-export interface BaseLayer {
+interface BaseLayer {
   id: string;
   kind: LayerKind;
   visible: boolean;
@@ -26,7 +26,7 @@ export interface BaseLayer {
   name?: string;
 }
 
-export interface TextLayer extends BaseLayer {
+interface TextLayer extends BaseLayer {
   kind: "text";
   text: string;
   x: number; // 0..1
@@ -41,7 +41,7 @@ export interface TextLayer extends BaseLayer {
 
 export type WatermarkAnchor = "tl" | "tc" | "tr" | "bl" | "bc" | "br";
 
-export interface WatermarkLayer extends BaseLayer {
+interface WatermarkLayer extends BaseLayer {
   kind: "watermark";
   text: string;
   position: WatermarkAnchor;
@@ -50,7 +50,7 @@ export interface WatermarkLayer extends BaseLayer {
   opacity: number;
 }
 
-export interface WatermarkImageLayer extends BaseLayer {
+interface WatermarkImageLayer extends BaseLayer {
   kind: "watermarkImage";
   /** Inlined data URL so the layer survives reloads from history. */
   src: string;
@@ -60,13 +60,13 @@ export interface WatermarkImageLayer extends BaseLayer {
   opacity: number;
 }
 
-export interface DrawStroke {
+interface DrawStroke {
   color: string;
   size: number;
   points: [number, number][]; // image-space coords
 }
 
-export interface DrawLayer extends BaseLayer {
+interface DrawLayer extends BaseLayer {
   kind: "draw";
   strokes: DrawStroke[];
 }

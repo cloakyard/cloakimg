@@ -1,9 +1,4 @@
 import { NumberField } from "../NumberField";
-/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4
- * component: editor tool · genre: modern-minimal · theme: DESIGN.md
- * states: default · hover · focus · active · disabled · loading · error · success
- * contrast: pass (40–41) · slop: pass (58/58) · mobile: pass (34, 49–57)
- */
 // IdPhotoTool.tsx — Non-destructive ID/passport/visa crop guide and
 // exact-size print-sheet output. Selecting this tool never mutates the
 // working image or history; it only creates a PDF/print product.

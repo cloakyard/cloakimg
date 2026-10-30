@@ -203,8 +203,6 @@ export interface ToolState {
 
   // Default (for any tool without bespoke controls)
   genericStrength: number;
-  genericSize: number;
-  genericMode: number;
 
   // Remove BG — explicit chroma sample. When set, takes priority over
   // the perimeter auto-sampling. Captured by clicking the canvas while
@@ -440,8 +438,6 @@ export const DEFAULT_TOOL_STATE: ToolState = {
   selectedLayerId: null,
 
   genericStrength: 0.5,
-  genericSize: 0.24,
-  genericMode: 0,
 
   bgSample: null,
   bgPickActive: false,
