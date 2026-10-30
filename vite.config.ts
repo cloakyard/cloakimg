@@ -54,9 +54,9 @@ export default defineConfig({
         name: "CloakIMG",
         short_name: "CloakIMG",
         description:
-          "A private browser photo workbench for editing, background replacement, and exact passport or visa photo print sheets.",
-        theme_color: "#faf8f5",
-        background_color: "#faf8f5",
+          "A private photo editor. Edit, compose and export on your device, including exact passport and visa photo sheets.",
+        theme_color: "#fafbfc",
+        background_color: "#fafbfc",
         display: "standalone",
         orientation: "any",
         scope: process.env.VITE_APP_BASE_PATH || "/",
@@ -85,8 +85,7 @@ export default defineConfig({
           },
         ],
         screenshots: [
-          // Deterministic captures from the live app using the privacy-safe
-          // generated demo image in scripts/generate-pwa-screenshots.mjs.
+          // Actual editor captures using the local landing photograph.
           {
             src: "screenshots/iPhone.png",
             sizes: "1290x2796",
