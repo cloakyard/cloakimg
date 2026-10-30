@@ -469,12 +469,7 @@ function SmartAnonymizeButton({
           {busy ? (
             <InlineSpinner size={12} />
           ) : (
-            <I.Sparkles
-              size={12}
-              className={
-                active ? "fill-accent text-text fill-accent text-text" : "text-text text-text"
-              }
-            />
+            <I.Sparkles size={12} className={active ? "fill-accent text-text" : "text-text"} />
           )}
           {busy ? "Working…" : label}
         </span>

@@ -106,7 +106,7 @@ export function PerspectivePanel() {
       <div className="flex gap-2">
         <button
           type="button"
-          className={`btn btn-ghost btn-xs justify-center text-text text-text ${
+          className={`btn btn-ghost btn-xs justify-center text-text ${
             isMobile ? "w-full" : "flex-1"
           }`}
           onClick={reset}

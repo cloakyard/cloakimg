@@ -174,11 +174,7 @@ interface FindingProps {
  *  vertically and pick up which lines need their attention. */
 function Finding({ icon, tone, children }: FindingProps) {
   const toneClass =
-    tone === "ok"
-      ? "text-success text-success"
-      : tone === "warn"
-        ? "text-text text-text"
-        : "text-text-muted";
+    tone === "ok" ? "text-success text-success" : tone === "warn" ? "text-text" : "text-text-muted";
   return (
     <div className="flex items-center gap-2 text-[0.8125rem] leading-snug text-text">
       <span className={`shrink-0 ${toneClass}`}>{icon}</span>

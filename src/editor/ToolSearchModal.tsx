@@ -228,10 +228,7 @@ function ToolSearchBody({
                 <span className="tabular-nums text-[0.8125rem] text-text-muted">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span
-                  aria-hidden="true"
-                  className={active ? "text-text text-text" : "text-text-muted"}
-                >
+                <span aria-hidden="true" className={active ? "text-text" : "text-text-muted"}>
                   <Icon size={16} />
                 </span>
                 <span className="min-w-0 truncate text-sm font-medium text-text">{tool.name}</span>

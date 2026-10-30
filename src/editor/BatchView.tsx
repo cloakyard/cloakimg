@@ -1,3 +1,4 @@
+import { Menu } from "@base-ui/react/menu";
 import { NumberField } from "./NumberField";
 // BatchView.tsx — When the user toggles into batch mode, the canvas
 // swaps for a thumbnail grid (drag/drop to add files) and the right
@@ -17,7 +18,7 @@ interface CanvasProps {
 }
 
 export function BatchCanvas({ isMobile }: CanvasProps) {
-  const { batchFiles, batchAddFiles, batchClear } = useEditor();
+  const { batchFiles, batchAddFiles, batchClear, setMode } = useEditor();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const counts = useMemo(() => countByStatus(batchFiles), [batchFiles]);
@@ -41,9 +42,18 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
       aria-label="Batch drop zone"
       onDragOver={(e) => e.preventDefault()}
       onDrop={onDrop}
-      className={`flex-1 overflow-y-auto bg-page-bg ${isMobile ? "p-3.5" : "p-6"}`}
+      className={`min-h-0 flex-1 overflow-y-auto bg-page-bg ${isMobile ? "p-3.5" : "p-6"}`}
     >
-      <div className="mb-3.5 flex items-center justify-between">
+      {isMobile && (
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm mb-3"
+          onClick={() => setMode("single")}
+        >
+          <I.ArrowRight size={16} className="rotate-180" /> Back to photo
+        </button>
+      )}
+      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-sm font-medium">
             {batchFiles.length === 0
@@ -147,7 +157,7 @@ function BatchThumb({ f }: { f: ReturnType<typeof useEditor>["batchFiles"][numbe
         <a
           href={f.resultBlobUrl}
           download={f.resultName ?? f.name}
-          className="absolute top-1.5 right-1.5 inline-flex h-5.5 w-5.5 items-center justify-center rounded-full bg-success text-white no-underline"
+          className="absolute top-1.5 right-1.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface text-text no-underline pointer-coarse:h-11 pointer-coarse:w-11"
           aria-label={`Download ${f.resultName ?? f.name}`}
           title="Download"
         >
@@ -230,10 +240,15 @@ function describeStep(step: RecipeStep): string {
   }
 }
 
-export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
+export function BatchPanel({
+  collapsed = false,
+  compact = false,
+}: {
+  collapsed?: boolean;
+  compact?: boolean;
+}) {
   const { batchFiles, recipe, setRecipe, runBatch, batchRunning } = useEditor();
-  const [addingOpen, setAddingOpen] = useState(false);
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   const onDragStart = useCallback((e: ReactDragEvent<HTMLElement>, idx: number) => {
@@ -284,8 +299,9 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
 
   return (
     <div
-      className={`scroll-thin flex shrink-0 flex-col overflow-y-auto border-l border-border-soft ${
-        collapsed ? "w-72" : "w-82"
+      aria-label="Batch recipe"
+      className={`scroll-thin min-h-0 flex shrink-0 flex-col overflow-y-auto border-l border-border-soft ${
+        compact ? "w-full max-h-[50%] border-t" : collapsed ? "w-72" : "w-82"
       }`}
     >
       <div className="border-b border-border-soft px-4 py-3.5">
@@ -294,18 +310,19 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
           Apply to {batchFiles.length === 0 ? "…" : `${batchFiles.length} files`}
         </div>
         <div className="mt-0.75 text-[0.8125rem] text-text-muted">
-          Drag steps to reorder · click to expand parameters.
+          Expand a step to edit or reorder. Drag also works.
         </div>
       </div>
       <ul className="m-0 flex list-none flex-col gap-1.5 px-4 py-3.5">
         {recipe.map((step, i) => {
           const meta = STEP_KIND_META[step.kind];
-          const expanded = expandedIdx === i;
+          const expanded = expandedId === step.id;
           return (
             <li
               key={step.id}
               draggable
               onDragStart={(e) => onDragStart(e, i)}
+              onDragEnd={() => setDragIdx(null)}
               onDragOver={onDragOver}
               onDrop={(e) => onDropStep(e, i)}
               className="flex flex-col rounded-lg border border-border-soft bg-page-bg"
@@ -314,7 +331,8 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
               <div className="flex items-stretch">
                 <button
                   type="button"
-                  onClick={() => setExpandedIdx(expanded ? null : i)}
+                  aria-expanded={expanded}
+                  onClick={() => setExpandedId(expanded ? null : step.id)}
                   className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 border-none bg-transparent px-3 py-2.5 text-left font-[inherit] text-inherit"
                 >
                   <span className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-md bg-surface-soft text-text">
@@ -331,16 +349,46 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
                   type="button"
                   onClick={() => {
                     setRecipe((prev) => prev.filter((s) => s.id !== step.id));
-                    if (expandedIdx === i) setExpandedIdx(null);
+                    if (expandedId === step.id) setExpandedId(null);
                   }}
-                  aria-label="Remove step"
-                  className="cursor-pointer border-none bg-transparent px-2.5 py-0 text-text-muted"
+                  aria-label={`Remove ${meta.title} step`}
+                  className="min-w-8 cursor-pointer border-none bg-transparent px-2.5 py-0 text-text-muted pointer-coarse:min-w-11"
                 >
                   <I.X size={12} />
                 </button>
               </div>
               {expanded && (
                 <div className="border-t border-border-soft px-3 pb-3">
+                  <div className="flex flex-wrap gap-2 py-2">
+                    {([-1, 1] as const).map((direction) => (
+                      <button
+                        key={direction}
+                        type="button"
+                        className="btn btn-ghost btn-xs"
+                        disabled={
+                          batchRunning || (direction === -1 ? i === 0 : i === recipe.length - 1)
+                        }
+                        aria-label={`Move ${meta.title} ${direction === -1 ? "earlier" : "later"}`}
+                        onClick={() =>
+                          setRecipe((prev) => {
+                            const index = prev.findIndex((item) => item.id === step.id),
+                              target = index + direction;
+                            if (index < 0 || target < 0 || target >= prev.length) return prev;
+                            const next = [...prev];
+                            [next[index], next[target]] = [next[target]!, next[index]!];
+                            return next;
+                          })
+                        }
+                      >
+                        {direction === -1 ? (
+                          <I.ChevronDown size={14} className="rotate-180" />
+                        ) : (
+                          <I.ChevronDown size={14} />
+                        )}{" "}
+                        {direction === -1 ? "Earlier" : "Later"}
+                      </button>
+                    ))}
+                  </div>
                   <StepEditor
                     step={step}
                     onChange={(next) =>
@@ -353,43 +401,45 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
           );
         })}
 
-        <li className="relative list-none">
-          <button
-            type="button"
-            className="btn btn-secondary btn-xs w-full justify-center"
-            onClick={() => setAddingOpen((o) => !o)}
-          >
-            <I.Plus size={12} /> Add step
-          </button>
-          {addingOpen && (
-            <div
-              role="menu"
-              className="absolute right-0 left-0 z-20 overflow-hidden rounded-lg border border-border bg-surface"
-              style={{ top: "calc(100% + 4px)", boxShadow: "var(--air-shadow-menu)" }}
-            >
-              {(["resize", "adjust", "filter", "strip-metadata", "convert"] as StepKind[]).map(
-                (k) => {
-                  const m = STEP_KIND_META[k];
-                  return (
-                    <button
-                      key={k}
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setRecipe((prev) => [...prev, defaultStep(k)]);
-                        setAddingOpen(false);
-                        setExpandedIdx(recipe.length);
-                      }}
-                      className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2.5 font-[inherit] text-xs text-inherit"
-                    >
-                      <m.Icon size={13} />
-                      {m.title}
-                    </button>
-                  );
-                },
-              )}
-            </div>
-          )}
+        <li className="list-none">
+          <Menu.Root>
+            <Menu.Trigger className="btn btn-secondary btn-xs w-full justify-center">
+              <I.Plus size={12} /> Add step
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner
+                className="air-floating-positioner"
+                sideOffset={8}
+                collisionPadding={16}
+                positionMethod="fixed"
+                align="start"
+              >
+                <Menu.Popup className="air-menu" aria-label="Add recipe step">
+                  {(["resize", "adjust", "filter", "strip-metadata", "convert"] as StepKind[]).map(
+                    (kind) => {
+                      const meta = STEP_KIND_META[kind];
+                      return (
+                        <Menu.Item
+                          key={kind}
+                          className="air-menu-item"
+                          onClick={() => {
+                            const step = defaultStep(kind);
+                            setRecipe((prev) => [...prev, step]);
+                            setExpandedId(step.id);
+                          }}
+                        >
+                          <span className="flex items-center gap-2.5">
+                            <meta.Icon size={16} />
+                            {meta.title}
+                          </span>
+                        </Menu.Item>
+                      );
+                    },
+                  )}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
         </li>
       </ul>
       <div className="flex-1" />

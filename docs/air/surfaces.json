@@ -6,13 +6,16 @@
     {
       "path": "src/App.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-public-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/components/DropZone.tsx",
@@ -29,22 +32,30 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/components/ErrorBoundary.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/components/ModalFrame.tsx",
@@ -52,32 +63,54 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/components/icons.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/hyperlinks-2026-10-19.md"],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/hyperlinks-2026-10-19.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/BatchView.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ColorPicker.tsx",
@@ -85,65 +118,97 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ConfirmModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/EditorContext.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ExportModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/FilePropertiesModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/HistoryScrubber.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ImageCanvas.tsx",
@@ -151,21 +216,38 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/LayerFilters.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/LayersList.tsx",
@@ -173,10 +255,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/MobileEditorSurface.tsx",
@@ -184,21 +279,38 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/MobileMoreMenu.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/NumberField.tsx",
@@ -206,32 +318,55 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/PrivacyAuditCard.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/consistency-2026-10-28.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/PropertiesPanel.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/SelectControl.tsx",
@@ -239,10 +374,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/StageHost.tsx",
@@ -250,21 +398,39 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ToolControls.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ToolRail.tsx",
@@ -272,32 +438,53 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ToolSearchModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ToolStage.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/TopBar.tsx",
@@ -305,10 +492,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/UnifiedEditor.tsx",
@@ -316,153 +516,206 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/capabilities/depth/ConsentHost.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/capabilities/detect-face/ConsentHost.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/AiSectionHeader.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/consistency-2026-10-28.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/DetectionStatus.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/MaskConsentHost.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/MaskConsentModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/MaskDownloadModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/MaskReadyPill.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/MaskScopeRow.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/ScopeGate.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/SmartActionError.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/consent/CapabilityConsentModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/ai/ui/status/CapabilityStatusCards.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-runtime-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/atoms.tsx",
@@ -470,109 +723,163 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/AdjustPanel.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/AdjustTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/BgBlurPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/BgBlurTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/BorderPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/BorderTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/ColorPickerPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/ColorPickerTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/CropTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/CurveEditor.tsx",
@@ -580,417 +887,600 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/DrawPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/DrawTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/EmojiPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/EmojiTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/FilterPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/FilterTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/FrameTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/HslPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/HslTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/IdPhotoTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/ImagePanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/ImageTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/LevelsPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/LevelsTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/MovePanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/PenPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/PenTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/PerspectivePanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/PerspectiveTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/RedactPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/RedactTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/RelightPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/RelightTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/RemoveBgPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/RemoveBgTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/ResizePanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/ShapesPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/ShapesTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/SpotHealPanel.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/SpotHealTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/TapFixPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/TapFixTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/TextPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/TextTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/TimeOfDayPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/TimeOfDayTool.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/editor/tools/WatermarkPanel.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/editor-audit.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-precision-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/Features.tsx",
@@ -1007,11 +1497,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/Footer.tsx",
@@ -1028,11 +1522,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/Header.tsx",
@@ -1049,11 +1547,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/Landing.tsx",
@@ -1070,11 +1572,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/PhotoFrame.tsx",
@@ -1091,11 +1597,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/PrivacyPage.tsx",
@@ -1112,11 +1622,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/ReloadPrompt.tsx",
@@ -1133,11 +1647,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/landing/StartModal.tsx",
@@ -1145,21 +1663,38 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "invalid",
+        "selected",
+        "disabled",
+        "emulated-touch"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
-      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
+      "evidence": [
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-public-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/main.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/privacy.tsx",
@@ -1176,22 +1711,30 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/style.css",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/styles/air-entry.css",
@@ -1208,11 +1751,15 @@
         "invalid-file",
         "clipboard-failure",
         "worker-offline",
-        "worker-update"
+        "worker-update",
+        "emulated-touch"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
-      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+      "evidence": [
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/styles/air.css",
@@ -1234,42 +1781,37 @@
         "narrow sheet",
         "light/dark",
         "reduced motion",
-        "coarse/fine pointer"
+        "coarse/fine pointer",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch"
       ],
-      "viewports": [
-        "320x568",
-        "375x812",
-        "390x844",
-        "430x932",
-        "844x390",
-        "768x1024",
-        "1024x768",
-        "1280x720",
-        "1366x768",
-        "1440x900",
-        "1920x1080",
-        "639x800",
-        "641x800",
-        "1023x768",
-        "1025x768"
-      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
-        "docs/air/validation.md — refinement 02 candidate",
+        "docs/air/validation.md \u2014 refinement 02 candidate",
         "docs/air/components.html",
-        "docs/air/neutral-links-2026-10-19.md"
+        "docs/air/neutral-links-2026-10-19.md",
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
       ],
-      "notes": "Refinement 02 design candidate. Reference checks recorded; final design review, product import and all real app states remain pending. No product is considered migrated."
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
       "path": "src/tokens.css",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": [
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/cloakimg-editor-2026-10-30.md",
+        "docs/air/cloakimg-cleanup-2026-10-30.md"
+      ],
+      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     }
   ]
 }

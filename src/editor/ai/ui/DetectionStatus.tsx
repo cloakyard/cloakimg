@@ -173,13 +173,12 @@ interface ErrorProps {
   onRetry: () => void;
 }
 
-/** Inline error with a Try Again affordance. Coral palette to mirror
- *  the editor's existing alert styling. */
+/** Inline error with a Try Again affordance and Air error tokens. */
 export function DetectionErrorCard({ msg, onRetry }: ErrorProps) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded-lg border border-accent bg-surface-soft px-2.5 py-2 text-[0.8125rem] text-text"
+      className="flex items-start gap-2 rounded-lg border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] text-text"
     >
       <I.ShieldCheck size={13} className="mt-px shrink-0" />
       <div className="min-w-0 flex-1">

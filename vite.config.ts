@@ -25,7 +25,12 @@ export default defineConfig({
   // Discover lazy model/codec dependencies before an editing session starts.
   // A new dependency optimized mid-session reloads the page and loses its image.
   optimizeDeps: {
-    include: ["@huggingface/transformers", "@mediapipe/tasks-vision", "@jsquash/avif/encode.js"],
+    include: [
+      "@huggingface/transformers",
+      "@mediapipe/tasks-vision",
+      "@jsquash/avif/encode.js",
+      "@base-ui/react/menu",
+    ],
   },
   plugins: [
     react(),

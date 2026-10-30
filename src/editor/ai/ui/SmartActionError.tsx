@@ -31,7 +31,7 @@ export function SmartActionError({ message, onDismiss }: Props) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded-md border border-accent bg-surface-soft px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text"
+      className="flex items-start gap-2 rounded-md border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text"
     >
       <I.Triangle size={12} stroke={2.25} className="mt-0.5 shrink-0" />
       <span className="min-w-0 flex-1 wrap-break-word">{message}</span>

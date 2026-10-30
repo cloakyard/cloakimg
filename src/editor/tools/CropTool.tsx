@@ -625,7 +625,7 @@ export function CropPanel() {
           <button
             type="button"
             className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]! ${
-              toolState.flipH ? "border-accent text-text text-text" : ""
+              toolState.flipH ? "border-accent text-text" : ""
             }`}
             onClick={() => patchTool("flipH", !toolState.flipH)}
             aria-pressed={toolState.flipH}
@@ -635,7 +635,7 @@ export function CropPanel() {
           <button
             type="button"
             className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]! ${
-              toolState.flipV ? "border-accent text-text text-text" : ""
+              toolState.flipV ? "border-accent text-text" : ""
             }`}
             onClick={() => patchTool("flipV", !toolState.flipV)}
             aria-pressed={toolState.flipV}

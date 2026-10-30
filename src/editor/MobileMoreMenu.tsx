@@ -113,14 +113,12 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
       onClick={onClick}
       disabled={disabled}
       className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-lg border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-        active
-          ? "bg-surface-soft bg-surface-soft"
-          : "hover:bg-page-bg active:bg-surface-soft dark:hover:bg-white/5"
+        active ? "bg-surface-soft" : "hover:bg-page-bg active:bg-surface-soft dark:hover:bg-white/5"
       }`}
     >
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-          active ? "text-text text-text" : "text-text-muted"
+          active ? "text-text" : "text-text-muted"
         }`}
       >
         <Icon size={17} stroke={2.1} />

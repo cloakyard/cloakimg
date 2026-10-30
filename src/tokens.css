@@ -151,7 +151,7 @@ label[for] {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--air-line);
-  border-radius: 4px;
+  border-radius: var(--air-radius-check);
   padding: 2px 4px;
   background: var(--air-surface);
   color: var(--air-ink-muted);

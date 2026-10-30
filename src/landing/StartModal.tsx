@@ -419,7 +419,7 @@ function BlankTab({
               aria-pressed={active}
               className={`relative flex cursor-pointer flex-col gap-2 rounded-lg p-3 text-left font-[inherit] transition-[border-color,background-color] duration-150 ${
                 active
-                  ? "border-2 border-accent bg-surface-soft bg-surface-soft"
+                  ? "border-2 border-accent bg-surface-soft"
                   : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-accent"
               }`}
             >

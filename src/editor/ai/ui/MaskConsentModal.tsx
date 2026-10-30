@@ -161,7 +161,7 @@ export function MaskConsentModal({
                       ~{tier.mb} MB
                     </span>
                     {tier.recommended && !cached && (
-                      <span className="rounded-full border border-accent bg-surface-soft px-1.5 py-px text-[0.8125rem] font-medium text-text">
+                      <span className="rounded-full border border-border bg-surface-soft px-1.5 py-px text-[0.8125rem] font-medium text-text">
                         Recommended
                       </span>
                     )}

@@ -1,5 +1,9 @@
 # Air validation record
 
+## 2026-10-30 — CloakIMG Air implementation and automated acceptance
+
+The public entry, privacy/PWA, all editor tools, shared controls, batch/recovery and assets now use Air 1.3.1. See [current acceptance](cloakimg-acceptance-2026-10-30.md) and its six linked checkpoints. 483 tests, both-engine tool/layout/feature/output verification, current runtimes and dead-code checks pass. Physical input/assistive acceptance remains explicitly open in the per-source inventory. Authorized dev → main release verification is recorded separately.
+
 ## 2026-10-26 — Storyline and family chrome
 
 Portable Air 1.2.0 contract/CSS/artwork lifecycle maintenance only. The parked IMG

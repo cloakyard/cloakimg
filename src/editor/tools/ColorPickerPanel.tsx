@@ -66,7 +66,7 @@ export function ColorPickerPanel() {
               aria-label={pickerCopied ? "Copied" : "Copy hex code"}
               title={pickerCopied ? "Copied" : "Copy hex code"}
               className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-11 pointer-coarse:w-11 ${
-                pickerCopied ? "text-text text-text" : "text-text-muted hover:text-text"
+                pickerCopied ? "text-text" : "text-text-muted hover:text-text"
               }`}
             >
               {pickerCopied ? <I.Check size={13} stroke={2.5} /> : <I.Copy size={12} />}

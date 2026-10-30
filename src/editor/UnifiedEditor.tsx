@@ -212,7 +212,7 @@ function EditorShell() {
         {loading && <LoadingBanner />}
         {busyLabel && <BusyOverlay label={busyLabel} />}
 
-        <div className="flex min-h-0 flex-1">
+        <div className={`flex min-h-0 flex-1 ${isMobile && mode === "batch" ? "flex-col" : ""}`}>
           {!isMobile && mode === "single" && (
             <ToolRail
               activeTool={activeTool}
@@ -256,7 +256,7 @@ function EditorShell() {
           </div>
 
           {!isMobile && mode === "single" && <PropertiesPanel collapsed={isTablet} />}
-          {!isMobile && mode === "batch" && <BatchPanel collapsed={isTablet} />}
+          {mode === "batch" && <BatchPanel collapsed={isTablet} compact={isMobile} />}
         </div>
       </div>
 

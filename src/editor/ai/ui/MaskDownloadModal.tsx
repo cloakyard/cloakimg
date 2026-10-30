@@ -147,7 +147,7 @@ function ErrorBody({ message, suggestion }: { message: string; suggestion: strin
     <div className="flex flex-col gap-2">
       <div
         role="alert"
-        className="flex items-start gap-2 rounded-lg border border-accent bg-surface-soft px-3 py-2.5 text-[0.8125rem] leading-relaxed text-text"
+        className="flex items-start gap-2 rounded-lg border border-danger bg-[var(--air-danger-soft)] px-3 py-2.5 text-[0.8125rem] leading-relaxed text-text"
       >
         <I.Triangle size={13} stroke={2.25} className="mt-px shrink-0" />
         <span className="min-w-0 flex-1 wrap-break-word">{message}</span>

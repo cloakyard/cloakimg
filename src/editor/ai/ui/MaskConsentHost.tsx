@@ -164,6 +164,9 @@ export function MaskConsentHost() {
     // The bytes already in CacheStorage stick around so a follow-up
     // tap doesn't re-download from scratch.
     aiLog.info("consent", "user cancelled download/detection");
+    // Keep scoped tools paused when cancel resets the service to idle.
+    // Otherwise their passive scope effect immediately starts another worker.
+    denyMaskConsent();
     cancelMaskDetection();
     setShowDownload(false);
   }, []);
