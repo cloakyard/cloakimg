@@ -1,7 +1,7 @@
 // Shared precision and choice control behavior.
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { NumericReadout, PropRow, Segment, Slider, ToggleSwitch } from "./atoms";
+import { NumericReadout, PropRow, Segment, Slider, SliderField, ToggleSwitch } from "./atoms";
 
 describe("Segment", () => {
   it("exposes one native radio group and reports the selected value", () => {
@@ -104,5 +104,39 @@ describe("PropRow accessibility", () => {
   it("disables a read-only toggle instead of leaving a no-op button", () => {
     render(<ToggleSwitch ariaLabel="Read only" on={false} />);
     expect(screen.getByRole("switch", { name: "Read only" })).toBeDisabled();
+  });
+});
+
+describe("SliderField", () => {
+  it("commits a signed domain value once and retains an out-of-range draft", () => {
+    const onChange = vi.fn(),
+      onValueCommit = vi.fn();
+    render(
+      <SliderField
+        label="Fine rotation"
+        domain={[-45, 45]}
+        unit="°"
+        value={0.5}
+        onChange={onChange}
+        onValueCommit={onValueCommit}
+      />,
+    );
+    const input = screen.getByRole("textbox", { name: "Fine rotation" });
+    fireEvent.change(input, { target: { value: "60" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(input).toHaveValue("60");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.change(input, { target: { value: "-22" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(23 / 90);
+    expect(onValueCommit).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("slider")).toHaveAttribute("aria-valuetext", "0 °");
+  });
+  it("keeps lossless output quality non-editable", () => {
+    render(<SliderField label="Quality" value={0.92} readOnlyValue="Lossless" />);
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.getByText("Lossless")).toBeInTheDocument();
+    expect(screen.getByRole("slider")).toHaveAttribute("aria-disabled", "true");
   });
 });

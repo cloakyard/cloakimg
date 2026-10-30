@@ -141,6 +141,7 @@ export function HslPanel() {
           valueInput={
             <NumericReadout
               display={fmtSigned((hueVal - 0.5) * 120, 0)}
+              unit="°"
               normalized={hueVal}
               fromNormalized={(n) => (n - 0.5) * 120}
               toNormalized={(real) => real / 120 + 0.5}
@@ -161,6 +162,7 @@ export function HslPanel() {
           valueInput={
             <NumericReadout
               display={fmtSigned((satVal - 0.5) * 200, 0)}
+              unit="%"
               normalized={satVal}
               fromNormalized={(n) => (n - 0.5) * 200}
               toNormalized={(real) => real / 200 + 0.5}
@@ -181,6 +183,7 @@ export function HslPanel() {
           valueInput={
             <NumericReadout
               display={fmtSigned((lumVal - 0.5) * 100, 0)}
+              unit="%"
               normalized={lumVal}
               fromNormalized={(n) => (n - 0.5) * 100}
               toNormalized={(real) => real / 100 + 0.5}

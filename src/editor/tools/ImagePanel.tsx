@@ -7,7 +7,7 @@
 import { type FabricObject, FabricImage } from "fabric";
 import { useCallback, useEffect, useState } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Slider } from "../atoms";
+import { PropRow, SliderField } from "../atoms";
 import { useEditor } from "../EditorContext";
 
 const IMAGE_TAG = "cloak:image";
@@ -199,11 +199,34 @@ export function ImagePanel() {
 
       {activeImage && (
         <>
-          <PropRow label="Opacity" value={`${Math.round(opacity * 100)}%`}>
-            <div onPointerUp={commitOpacity}>
-              <Slider value={opacity} accent onChange={onOpacity} />
-            </div>
-          </PropRow>
+          <div
+            onPointerUp={commitOpacity}
+            onKeyUp={(event) => {
+              if (
+                [
+                  "ArrowLeft",
+                  "ArrowRight",
+                  "ArrowUp",
+                  "ArrowDown",
+                  "Home",
+                  "End",
+                  "PageUp",
+                  "PageDown",
+                ].includes(event.key) &&
+                event.target instanceof HTMLElement &&
+                event.target.getAttribute("role") === "slider"
+              )
+                commitOpacity();
+            }}
+          >
+            <SliderField
+              label="Opacity"
+              value={opacity}
+              accent
+              onChange={onOpacity}
+              onValueCommit={commitOpacity}
+            />
+          </div>
           <div className="mt-1.5">
             <div className="mb-1.5 text-[0.8125rem] font-medium text-text-muted">Align</div>
             <div className="grid grid-cols-3 gap-1.5">

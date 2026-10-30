@@ -17,7 +17,7 @@ import { useSubjectMask } from "../ai/useSubjectMask";
 import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 import { CapabilityErrorCard, CapabilityProgressCard } from "../ai/ui/status/CapabilityStatusCards";
-import { PropRow, Slider } from "../atoms";
+import { SliderField } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -129,28 +129,27 @@ export function RelightPanel() {
           )}
         </div>
 
-        <PropRow label="Intensity" value={`${Math.round(toolState.relightIntensity * 100)}%`}>
-          <Slider
-            value={toolState.relightIntensity}
-            accent
-            defaultValue={0}
-            onChange={(v) => patchTool("relightIntensity", v)}
-          />
-        </PropRow>
-        <PropRow label="Light height" value={`${Math.round(toolState.relightElevation * 100)}%`}>
-          <Slider
-            value={toolState.relightElevation}
-            defaultValue={0.6}
-            onChange={(v) => patchTool("relightElevation", v)}
-          />
-        </PropRow>
-        <PropRow label="Warmth" value={warmthLabel(toolState.relightWarmth)}>
-          <Slider
-            value={toolState.relightWarmth}
-            defaultValue={0.5}
-            onChange={(v) => patchTool("relightWarmth", v)}
-          />
-        </PropRow>
+        <SliderField
+          label="Intensity"
+          value={toolState.relightIntensity}
+          accent
+          defaultValue={0}
+          onChange={(v) => patchTool("relightIntensity", v)}
+        />
+        <SliderField
+          label="Light height"
+          value={toolState.relightElevation}
+          defaultValue={0.6}
+          onChange={(v) => patchTool("relightElevation", v)}
+        />
+        <SliderField
+          label="Warmth"
+          domain={[-100, 100]}
+          unit=""
+          value={toolState.relightWarmth}
+          defaultValue={0.5}
+          onChange={(v) => patchTool("relightWarmth", v)}
+        />
 
         <MaskScopeRow
           scope={toolState.relightScope}
@@ -159,12 +158,4 @@ export function RelightPanel() {
       </ScopeGate>
     </>
   );
-}
-
-/** Warmth read-out: a signed "cool ← neutral → warm" hint rather than a
- *  bare percentage, so the slider's centre reads as neutral. */
-function warmthLabel(v: number): string {
-  const d = Math.round((v - 0.5) * 200);
-  if (d === 0) return "Neutral";
-  return d > 0 ? `Warm +${d}` : `Cool ${d}`;
 }

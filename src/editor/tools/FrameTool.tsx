@@ -8,7 +8,7 @@
 // no explicit Apply button.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PropRow, Slider } from "../atoms";
+import { PropRow, SliderField } from "../atoms";
 import { ColorPicker } from "../ColorPicker";
 import { copyInto, createCanvas, snapshot } from "../doc";
 import { useEditor } from "../EditorContext";
@@ -252,14 +252,15 @@ export function FramePanel() {
           })}
         </div>
       </PropRow>
-      <PropRow label="Width" value={`${w} px`}>
-        <Slider
-          value={maxFramePx > 0 ? Math.min(1, w / maxFramePx) : 0}
-          accent={w > 0}
-          defaultValue={0}
-          onChange={(v) => patchTool("frameWidth", Math.round(v * maxFramePx))}
-        />
-      </PropRow>
+      <SliderField
+        label="Width"
+        domain={[0, maxFramePx]}
+        unit="px"
+        value={maxFramePx > 0 ? Math.min(1, w / maxFramePx) : 0}
+        accent={w > 0}
+        defaultValue={0}
+        onChange={(v) => patchTool("frameWidth", Math.round(v * maxFramePx))}
+      />
       <PropRow label="Color">
         <ColorPicker value={toolState.frameColor} onChange={(c) => patchTool("frameColor", c)} />
       </PropRow>

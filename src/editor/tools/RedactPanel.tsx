@@ -17,7 +17,7 @@
 
 import { useCallback, useState } from "react";
 import { I } from "../../components/icons";
-import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, MaskConsentError } from "../ai/subjectMask";
@@ -325,14 +325,13 @@ export function RedactPanel() {
           Inspector overlay. The value is also the inspector's
           "below-floor" line: faces with a score below it render dimmed
           so the user can see exactly what they'd be excluding. */}
-      <PropRow label="Face confidence" value={`${Math.round(toolState.faceConfidence * 100)}%`}>
-        <Slider
-          value={toolState.faceConfidence}
-          accent
-          defaultValue={0.3}
-          onChange={(v) => patchTool("faceConfidence", v)}
-        />
-      </PropRow>
+      <SliderField
+        label="Face confidence"
+        value={toolState.faceConfidence}
+        accent
+        defaultValue={0.3}
+        onChange={(v) => patchTool("faceConfidence", v)}
+      />
 
       {/* AI Inspector — a single toggle that overlays the detected
           face boxes + scores on the canvas. Sits below the dial so
@@ -394,28 +393,31 @@ export function RedactPanel() {
           onChange={(i) => patchTool("redactStyle", i)}
         />
       </PropRow>
-      <PropRow label="Strength" value={`${Math.round(toolState.redactStrength * 30)} px`}>
-        <Slider
-          value={toolState.redactStrength}
-          accent
-          defaultValue={0.5}
-          onChange={(v) => patchTool("redactStrength", v)}
-        />
-      </PropRow>
-      <PropRow label="Brush size" value={`${Math.round(toolState.brushSize * 100)} px`}>
-        <Slider
-          value={toolState.brushSize}
-          defaultValue={0.32}
-          onChange={(v) => patchTool("brushSize", v)}
-        />
-      </PropRow>
-      <PropRow label="Edge feather" value={`${Math.round(toolState.feather * 30)} px`}>
-        <Slider
-          value={toolState.feather}
-          defaultValue={0.2}
-          onChange={(v) => patchTool("feather", v)}
-        />
-      </PropRow>
+      <SliderField
+        label="Strength"
+        domain={[0, 30]}
+        unit="px"
+        value={toolState.redactStrength}
+        accent
+        defaultValue={0.5}
+        onChange={(v) => patchTool("redactStrength", v)}
+      />
+      <SliderField
+        label="Brush size"
+        domain={[0, 100]}
+        unit="px"
+        value={toolState.brushSize}
+        defaultValue={0.32}
+        onChange={(v) => patchTool("brushSize", v)}
+      />
+      <SliderField
+        label="Edge feather"
+        domain={[0, 30]}
+        unit="px"
+        value={toolState.feather}
+        defaultValue={0.2}
+        onChange={(v) => patchTool("feather", v)}
+      />
       <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {isBrush
           ? `Drag along the canvas to paint ${styleLabel.toLowerCase()} redactions.`

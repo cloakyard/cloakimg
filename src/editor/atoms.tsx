@@ -30,11 +30,6 @@ interface PropRowProps {
 
 export function PropRow({ label, value, valueInput, children }: PropRowProps) {
   const labelId = useId();
-  // Typography hierarchy: label sits as semibold body-muted, value
-  // pairs with it in mono so the eye latches on to the number first.
-  // The `tracking-normal` mirrors the rest of the editor's
-  // labels; without it, semibold at 12 px looks ever-so-slightly
-  // wider than the surrounding chrome.
   return (
     <PropRowLabelContext.Provider value={labelId}>
       <div className="img-prop-row">
@@ -76,9 +71,7 @@ interface NumericReadoutProps {
   onCommit: (next: number) => void;
 }
 
-/** Click the value chip to edit it directly. Esc reverts; Enter or
- *  blur commits. The readout uses each panel's own formatting when
- *  not focused — only switches to a raw number while typing. */
+/** Precise domain-value adapter for controls with nonlinear mappings. */
 export function NumericReadout({
   display,
   unit,
@@ -102,6 +95,60 @@ export function NumericReadout({
       label={propRowLabelId ? undefined : "Edit value"}
       onCommit={(n) => onCommit(toNormalized(n))}
     />
+  );
+}
+
+/** A normalized slider paired with an editable value in its actual domain.
+ * Pointer behavior stays in Slider; only numeric commits convert units. */
+export function SliderField({
+  label,
+  domain = [0, 100],
+  unit = "%",
+  inputMin,
+  inputStep = 1,
+  readOnlyValue,
+  onValueCommit,
+  ...slider
+}: SliderProps & {
+  label: string;
+  domain?: readonly [number, number];
+  unit?: string;
+  inputMin?: number;
+  inputStep?: number;
+  readOnlyValue?: string;
+  onValueCommit?: () => void;
+}) {
+  const [min, max] = domain;
+  const value = min + slider.value * (max - min);
+  return (
+    <PropRow
+      label={label}
+      value={readOnlyValue}
+      valueInput={
+        readOnlyValue ? undefined : (
+          <NumberField
+            label={label}
+            value={value}
+            min={inputMin ?? min}
+            max={max}
+            step={inputStep}
+            unit={unit}
+            disabled={!slider.onChange || max === min}
+            onCommit={(next) => {
+              slider.onChange?.((next - min) / (max - min));
+              onValueCommit?.();
+            }}
+          />
+        )
+      }
+    >
+      <Slider
+        {...slider}
+        ariaValueText={
+          slider.ariaValueText ?? `${Number(value.toFixed(3))}${unit ? ` ${unit}` : ""}`
+        }
+      />
+    </PropRow>
   );
 }
 

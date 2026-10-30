@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
 import { acquireCanvas, releaseCanvas, type WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
-import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
 import { I } from "../../components/icons";
 import { MaskConsentError, regionCoverage } from "../ai/subjectMask";
 import { MaskReadyPill } from "../ai/ui/MaskReadyPill";
@@ -349,29 +349,24 @@ export function WatermarkPanel() {
           })}
         </div>
       </PropRow>
-      <PropRow
+      <SliderField
         label={isImage ? "Scale" : "Size"}
-        value={
-          isImage
-            ? `${Math.round((toolState.watermarkSize / 240) * 100)}%`
-            : `${toolState.watermarkSize.toFixed(0)} px`
-        }
-      >
-        <Slider
-          value={Math.min(1, toolState.watermarkSize / 120)}
-          accent
-          defaultValue={24 / 120}
-          onChange={(v) => patchTool("watermarkSize", Math.max(8, v * 120))}
-        />
-      </PropRow>
-      <PropRow label="Opacity" value={`${Math.round(toolState.watermarkOpacity * 100)}%`}>
-        <Slider
-          value={toolState.watermarkOpacity}
-          accent
-          defaultValue={0.55}
-          onChange={(v) => patchTool("watermarkOpacity", v)}
-        />
-      </PropRow>
+        domain={[0, isImage ? 50 : 120]}
+        inputMin={isImage ? (8 / 240) * 100 : 8}
+        inputStep={isImage ? 0.1 : 1}
+        unit={isImage ? "%" : "px"}
+        value={Math.min(1, toolState.watermarkSize / 120)}
+        accent
+        defaultValue={24 / 120}
+        onChange={(v) => patchTool("watermarkSize", Math.max(8, v * 120))}
+      />
+      <SliderField
+        label="Opacity"
+        value={toolState.watermarkOpacity}
+        accent
+        defaultValue={0.55}
+        onChange={(v) => patchTool("watermarkOpacity", v)}
+      />
       <button
         type="button"
         className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"

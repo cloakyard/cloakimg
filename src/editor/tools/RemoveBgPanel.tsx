@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
 import { ColorPicker } from "../ColorPicker";
-import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -503,9 +503,13 @@ function AutoPanel({
           Disabled while the model is mid-detection because changing
           it mid-flight would do nothing useful (the threshold is
           applied at compositing time, not during inference). */}
-      <PropRow label="Confidence" value={`${Math.round(bgConfidence * 100)}%`}>
-        <Slider value={bgConfidence} accent defaultValue={0.5} onChange={onPatchConfidence} />
-      </PropRow>
+      <SliderField
+        label="Confidence"
+        value={bgConfidence}
+        accent
+        defaultValue={0.5}
+        onChange={onPatchConfidence}
+      />
 
       {/* AI Inspector toggle — a row button that flips the overlay
           on/off and surfaces a one-liner explanation when active so
@@ -694,12 +698,22 @@ function ChromaPanel({
 }: ChromaProps) {
   return (
     <>
-      <PropRow label="Edge feather" value={`${Math.round(feather * 30)} px`}>
-        <Slider value={feather} accent defaultValue={0.2} onChange={onPatchFeather} />
-      </PropRow>
-      <PropRow label="Threshold" value={`${Math.round(threshold * 100)}%`}>
-        <Slider value={threshold} accent defaultValue={0.5} onChange={onPatchThreshold} />
-      </PropRow>
+      <SliderField
+        label="Edge feather"
+        domain={[0, 30]}
+        unit="px"
+        value={feather}
+        accent
+        defaultValue={0.2}
+        onChange={onPatchFeather}
+      />
+      <SliderField
+        label="Threshold"
+        value={threshold}
+        accent
+        defaultValue={0.5}
+        onChange={onPatchThreshold}
+      />
       <PropRow label="Sample">
         <div className="flex items-center gap-1.5">
           <button

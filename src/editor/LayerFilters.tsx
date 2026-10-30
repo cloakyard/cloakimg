@@ -8,7 +8,7 @@ import { type FabricImage, filters as FabricFilters } from "fabric";
 type FabricFilter = FabricImage["filters"][number];
 import { useCallback, useEffect, useState } from "react";
 import { useEditor } from "./EditorContext";
-import { PropRow, Slider, ToggleSwitch } from "./atoms";
+import { ToggleSwitch, SliderField } from "./atoms";
 
 interface ImageFilterState {
   brightness: number; // -1..+1
@@ -82,58 +82,43 @@ export function LayerFilters({ image }: Props) {
 
   return (
     <div className="mt-1 flex flex-col gap-2 rounded-md border border-border-soft bg-page-bg px-1.5 py-2">
-      <PropRow
+      <SliderField
         label="Brightness"
-        value={
-          state.brightness === 0
-            ? "0"
-            : `${state.brightness > 0 ? "+" : ""}${(state.brightness * 100).toFixed(0)}%`
-        }
-      >
-        <Slider
-          value={(state.brightness + 1) / 2}
-          accent
-          onChange={(v) => apply({ ...state, brightness: v * 2 - 1 })}
-        />
-      </PropRow>
-      <PropRow
+        domain={[-100, 100]}
+        unit=""
+        value={(state.brightness + 1) / 2}
+        accent
+        onChange={(v) => apply({ ...state, brightness: v * 2 - 1 })}
+      />
+      <SliderField
         label="Contrast"
-        value={
-          state.contrast === 0
-            ? "0"
-            : `${state.contrast > 0 ? "+" : ""}${(state.contrast * 100).toFixed(0)}%`
-        }
-      >
-        <Slider
-          value={(state.contrast + 1) / 2}
-          accent
-          onChange={(v) => apply({ ...state, contrast: v * 2 - 1 })}
-        />
-      </PropRow>
-      <PropRow
+        domain={[-100, 100]}
+        unit=""
+        value={(state.contrast + 1) / 2}
+        accent
+        onChange={(v) => apply({ ...state, contrast: v * 2 - 1 })}
+      />
+      <SliderField
         label="Saturation"
-        value={
-          state.saturation === 0
-            ? "0"
-            : `${state.saturation > 0 ? "+" : ""}${(state.saturation * 100).toFixed(0)}%`
-        }
-      >
-        <Slider
-          value={(state.saturation + 1) / 2}
-          accent
-          onChange={(v) => apply({ ...state, saturation: v * 2 - 1 })}
-        />
-      </PropRow>
-      <PropRow label="Blur" value={`${(state.blur * 100).toFixed(0)}%`}>
-        <Slider value={state.blur} accent onChange={(v) => apply({ ...state, blur: v })} />
-      </PropRow>
-      <PropRow label="Hue" value={`${state.hue === 0 ? 0 : Math.round(state.hue * 180)}°`}>
-        <Slider
-          value={(state.hue + 1) / 2}
-          accent
-          onChange={(v) => apply({ ...state, hue: v * 2 - 1 })}
-        />
-      </PropRow>
+        domain={[-100, 100]}
+        value={(state.saturation + 1) / 2}
+        accent
+        onChange={(v) => apply({ ...state, saturation: v * 2 - 1 })}
+      />
+      <SliderField
+        label="Blur"
+        value={state.blur}
+        accent
+        onChange={(v) => apply({ ...state, blur: v })}
+      />
+      <SliderField
+        label="Hue"
+        domain={[-180, 180]}
+        unit="°"
+        value={(state.hue + 1) / 2}
+        accent
+        onChange={(v) => apply({ ...state, hue: v * 2 - 1 })}
+      />
       <div className="flex items-center justify-between">
         <span className="text-[0.8125rem] text-text-muted">Grayscale</span>
         <ToggleSwitch

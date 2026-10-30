@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clearDraft } from "../landing/draft";
 import { I } from "../components/icons";
 import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
-import { PropRow, Segment, Slider, Spinner, ToggleSwitch } from "./atoms";
+import { PropRow, Segment, Spinner, ToggleSwitch, SliderField } from "./atoms";
 import { startBlobDownload } from "./download";
 import { useEditor } from "./EditorContext";
 import { PrivacyAuditCard } from "./PrivacyAuditCard";
@@ -317,27 +317,24 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             </p>
           )}
 
-          <PropRow
+          <SliderField
             label="Quality"
-            value={
+            readOnlyValue={
               !formatSupportsQuality(settingsToFormat(settings))
                 ? settingsToFormat(settings) === "png"
-                  ? "lossless"
-                  : "optimized"
-                : `${Math.round(settings.quality * 100)}%`
+                  ? "Lossless"
+                  : "Optimized"
+                : undefined
             }
-          >
-            <Slider
-              value={settings.quality}
-              accent
-              defaultValue={0.92}
-              onChange={
-                formatSupportsQuality(settingsToFormat(settings))
-                  ? (v) => onPatch({ quality: v })
-                  : undefined
-              }
-            />
-          </PropRow>
+            value={settings.quality}
+            accent
+            defaultValue={0.92}
+            onChange={
+              formatSupportsQuality(settingsToFormat(settings))
+                ? (v) => onPatch({ quality: v })
+                : undefined
+            }
+          />
           <PropRow label="Size">
             <Segment
               options={["Original", "@2x", "@1x"]}

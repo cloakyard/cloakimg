@@ -8,7 +8,7 @@
 // will do to *this* image rather than a canned sample.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { PropRow, Slider } from "../atoms";
+import { SliderField } from "../atoms";
 import { copyInto, createCanvas, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -197,21 +197,19 @@ export function FilterPanel() {
             </div>
           ))}
         </div>
-        <PropRow label="Intensity" value={`${Math.round(toolState.filterIntensity * 100)}%`}>
-          <Slider
-            value={toolState.filterIntensity}
-            accent
-            defaultValue={0.65}
-            onChange={(v) => patchTool("filterIntensity", v)}
-          />
-        </PropRow>
-        <PropRow label="Grain" value={`${Math.round(toolState.grain * 100)}%`}>
-          <Slider
-            value={toolState.grain}
-            defaultValue={0}
-            onChange={(v) => patchTool("grain", v)}
-          />
-        </PropRow>
+        <SliderField
+          label="Intensity"
+          value={toolState.filterIntensity}
+          accent
+          defaultValue={0.65}
+          onChange={(v) => patchTool("filterIntensity", v)}
+        />
+        <SliderField
+          label="Grain"
+          value={toolState.grain}
+          defaultValue={0}
+          onChange={(v) => patchTool("grain", v)}
+        />
       </ScopeGate>
     </>
   );

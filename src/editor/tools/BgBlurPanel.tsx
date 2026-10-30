@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Segment, Slider, ToggleSwitch } from "../atoms";
+import { PropRow, Segment, ToggleSwitch, SliderField } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -24,7 +24,6 @@ import type { MaskScope } from "../ai/subjectMask";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import {
   bakeBgBlur,
-  blurAmountToPx,
   isBgBlurIdentity,
   LENS_KIND_HINTS,
   LENS_KIND_LABELS,
@@ -113,7 +112,6 @@ export function BgBlurPanel() {
     void subjectMask.request().catch(() => undefined);
   }, [scope, subjectMask]);
 
-  const radiusPx = Math.round(blurAmountToPx(amount));
   // Gate the blur strength slider while a non-Whole scope is picked
   // and the mask isn't ready. Without this, dragging during detection
   // would show whole-image blur (the bake's mask=null fallback) and
@@ -183,19 +181,15 @@ export function BgBlurPanel() {
         </PropRow>
         <div className="text-[0.8125rem] leading-snug text-text-muted">{LENS_KIND_HINTS[lens]}</div>
 
-        <PropRow label="Strength" value={`${radiusPx} px`}>
-          {/* defaultValue=0.4 keeps the dblclick "snap to a sensible
-              portrait blur" affordance even though the panel itself
-              opens at 0 — gives users a one-tap path to "phone
-              portrait look" without committing them to it on tool
-              entry. */}
-          <Slider
-            value={amount}
-            accent={amount > 0.001}
-            defaultValue={0.4}
-            onChange={(v) => patchTool("bgBlurAmount", v)}
-          />
-        </PropRow>
+        <SliderField
+          label="Strength"
+          domain={[0, 40]}
+          unit="px"
+          value={amount}
+          accent={amount > 0.001}
+          defaultValue={0.4}
+          onChange={(v) => patchTool("bgBlurAmount", v)}
+        />
 
         {/* Progressive falloff is meaningless on whole-image and on
             tilt-shift (which has its own falloff geometry). Hide it

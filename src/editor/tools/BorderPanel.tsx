@@ -96,6 +96,7 @@ export function BorderPanel() {
           valueInput={
             <NumericReadout
               display={`${toolState.borderThickness}`}
+              unit="px"
               normalized={maxSolid > 0 ? Math.min(1, toolState.borderThickness / maxSolid) : 0}
               fromNormalized={(n) => Math.round(n * maxSolid)}
               toNormalized={(real) => (maxSolid > 0 ? real / maxSolid : 0)}

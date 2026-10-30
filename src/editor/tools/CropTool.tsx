@@ -15,7 +15,7 @@ import { NumberField } from "../NumberField";
 import { type FabricObject, Rect as FabricRect } from "fabric";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
-import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import type { Transform } from "../ImageCanvas";
@@ -610,9 +610,16 @@ export function CropPanel() {
       </button>
       <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
       <CropDimensions />
-      <PropRow label="Rotation" value={rotationLabel}>
-        <Slider value={rotationSlider} accent defaultValue={0.5} onChange={setRotation} />
-      </PropRow>
+      <SliderField
+        label="Fine rotation"
+        domain={[-45, 45]}
+        unit="°"
+        value={rotationSlider}
+        accent
+        defaultValue={0.5}
+        onChange={setRotation}
+      />
+      <p className="text-[0.8125rem] text-text-muted">Total rotation: {rotationLabel}</p>
       <PropRow label="Flip / rotate 90°">
         <div className="flex flex-wrap gap-1.5">
           <button

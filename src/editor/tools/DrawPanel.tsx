@@ -2,7 +2,7 @@
 // tool. The actual stroke painting lives in DrawTool.tsx.
 
 import { ColorPicker } from "../ColorPicker";
-import { PropRow, Segment, Slider } from "../atoms";
+import { PropRow, Segment, SliderField } from "../atoms";
 import { useEditorActions, useToolState } from "../EditorContext";
 
 export function DrawPanel() {
@@ -24,14 +24,16 @@ export function DrawPanel() {
           label="Stroke colour"
         />
       </PropRow>
-      <PropRow label="Size" value={`${toolState.drawSize.toFixed(0)} px`}>
-        <Slider
-          value={Math.min(1, toolState.drawSize / 64)}
-          accent
-          defaultValue={8 / 64}
-          onChange={(v) => patchTool("drawSize", Math.max(1, v * 64))}
-        />
-      </PropRow>
+      <SliderField
+        label="Size"
+        domain={[0, 64]}
+        inputMin={1}
+        unit="px"
+        value={Math.min(1, toolState.drawSize / 64)}
+        accent
+        defaultValue={8 / 64}
+        onChange={(v) => patchTool("drawSize", Math.max(1, v * 64))}
+      />
       <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Drag on the canvas to paint a freehand stroke. In Eraser mode, drag over existing strokes to
         wipe them.

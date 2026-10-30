@@ -10,7 +10,7 @@ import { type IText, Path } from "fabric";
 import { useCallback, useEffect, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
 import { useEditor } from "../EditorContext";
-import { PropRow, Segment, Slider } from "../atoms";
+import { PropRow, Segment, SliderField } from "../atoms";
 import { TEXT_TAG } from "./TextTool";
 
 export const FONT_OPTIONS = [
@@ -177,18 +177,20 @@ export function TextPanel() {
           }}
         />
       </PropRow>
-      <PropRow label="Size" value={`${(selected?.fontSize ?? toolState.textSize).toFixed(0)} px`}>
-        <Slider
-          value={Math.min(1, (selected?.fontSize ?? toolState.textSize) / 256)}
-          accent
-          defaultValue={64 / 256}
-          onChange={(v) => {
-            const next = Math.max(8, v * 256);
-            if (selected) setOnSelected("fontSize", next);
-            else patchTool("textSize", next);
-          }}
-        />
-      </PropRow>
+      <SliderField
+        label="Size"
+        domain={[0, 256]}
+        inputMin={8}
+        unit="px"
+        value={Math.min(1, (selected?.fontSize ?? toolState.textSize) / 256)}
+        accent
+        defaultValue={64 / 256}
+        onChange={(v) => {
+          const next = Math.max(8, v * 256);
+          if (selected) setOnSelected("fontSize", next);
+          else patchTool("textSize", next);
+        }}
+      />
       <PropRow label="Color">
         <ColorPicker
           value={typeof selected?.fill === "string" ? selected.fill : toolState.textColor}
@@ -220,51 +222,46 @@ export function TextPanel() {
           />
         </div>
       </PropRow>
-      <PropRow
+      <SliderField
         label="Letter spacing"
-        value={`${Math.round((selected?.charSpacing ?? toolState.textCharSpacing) / 10)}`}
-      >
-        <Slider
-          value={Math.min(1, ((selected?.charSpacing ?? toolState.textCharSpacing) + 200) / 1200)}
-          accent={(selected?.charSpacing ?? toolState.textCharSpacing) !== 0}
-          defaultValue={200 / 1200}
-          onChange={(v) => {
-            const next = Math.round(v * 1200 - 200);
-            if (selected) setOnSelected("charSpacing", next);
-            else patchTool("textCharSpacing", next);
-          }}
-        />
-      </PropRow>
-      <PropRow
+        domain={[-20, 100]}
+        unit="%"
+        inputStep={0.1}
+        value={Math.min(1, ((selected?.charSpacing ?? toolState.textCharSpacing) + 200) / 1200)}
+        accent={(selected?.charSpacing ?? toolState.textCharSpacing) !== 0}
+        defaultValue={200 / 1200}
+        onChange={(v) => {
+          const next = Math.round(v * 1200 - 200);
+          if (selected) setOnSelected("charSpacing", next);
+          else patchTool("textCharSpacing", next);
+        }}
+      />
+      <SliderField
         label="Curve"
-        value={curveLabel(selected ? readCurveAmount(selected) : toolState.textCurve)}
-      >
-        <Slider
-          value={((selected ? readCurveAmount(selected) : toolState.textCurve) + 1) / 2}
-          accent={Math.abs(selected ? readCurveAmount(selected) : toolState.textCurve) > 0.02}
-          defaultValue={0.5}
-          onChange={(v) => {
-            const next = Math.round((v * 2 - 1) * 100) / 100;
-            patchTool("textCurve", next);
-            if (selected) applyCurve(selected, next);
-          }}
-        />
-      </PropRow>
-      <PropRow
+        domain={[-100, 100]}
+        value={((selected ? readCurveAmount(selected) : toolState.textCurve) + 1) / 2}
+        accent={Math.abs(selected ? readCurveAmount(selected) : toolState.textCurve) > 0.02}
+        defaultValue={0.5}
+        onChange={(v) => {
+          const next = Math.round((v * 2 - 1) * 100) / 100;
+          patchTool("textCurve", next);
+          if (selected) applyCurve(selected, next);
+        }}
+      />
+      <SliderField
         label="Outline"
-        value={`${(selected?.strokeWidth ?? toolState.textStrokeWidth).toFixed(1)} px`}
-      >
-        <Slider
-          value={Math.min(1, (selected?.strokeWidth ?? toolState.textStrokeWidth) / 12)}
-          accent={(selected?.strokeWidth ?? toolState.textStrokeWidth) > 0}
-          defaultValue={0}
-          onChange={(v) => {
-            const next = Math.round(v * 12 * 10) / 10;
-            if (selected) setOnSelected("strokeWidth", next);
-            else patchTool("textStrokeWidth", next);
-          }}
-        />
-      </PropRow>
+        domain={[0, 12]}
+        inputStep={0.1}
+        unit="px"
+        value={Math.min(1, (selected?.strokeWidth ?? toolState.textStrokeWidth) / 12)}
+        accent={(selected?.strokeWidth ?? toolState.textStrokeWidth) > 0}
+        defaultValue={0}
+        onChange={(v) => {
+          const next = Math.round(v * 12 * 10) / 10;
+          if (selected) setOnSelected("strokeWidth", next);
+          else patchTool("textStrokeWidth", next);
+        }}
+      />
       {(selected?.strokeWidth ?? toolState.textStrokeWidth) > 0 && (
         <PropRow label="Outline color">
           <ColorPicker
@@ -369,12 +366,6 @@ function PresetButton({ label, active, onClick }: PresetButtonProps) {
       {label}
     </button>
   );
-}
-
-function curveLabel(amount: number): string {
-  if (Math.abs(amount) < 0.02) return "none";
-  const pct = Math.round(Math.abs(amount) * 100);
-  return amount < 0 ? `up ${pct}%` : `down ${pct}%`;
 }
 
 /** Read the current curve amount back out of the IText's attached path
