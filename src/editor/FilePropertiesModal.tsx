@@ -10,7 +10,6 @@ import { ModalCloseButton, ModalFrame, useModalClose } from "../components/Modal
 import { useEditor } from "./EditorContext";
 import { exifToFields } from "./tools/exif";
 import type { Layout } from "./types";
-import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 import { formatBytes } from "../utils/formatBytes";
 
 interface Props {
@@ -25,8 +24,6 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
   const { doc, layers, getFabricCanvas } = useEditor();
   const isMobile = layout === "mobile";
   const modalRef = useRef<HTMLDivElement>(null);
-  useFocusReturn(true);
-  useFocusTrap(modalRef, true);
 
   if (!doc) return null;
 
@@ -58,14 +55,7 @@ export function FilePropertiesModal({ layout, onClose }: Props) {
   const exifRows: Row[] = exifFields.map(([k, v]) => [iconForExifField(k), k, v]);
 
   return (
-    <ModalFrame
-      onClose={onClose}
-      bottomSheet={isMobile}
-      position="absolute"
-      maxWidth="max-w-130"
-      labelledBy="file-properties-title"
-      modalRef={modalRef}
-    >
+    <ModalFrame onClose={onClose} labelledBy="file-properties-title" modalRef={modalRef}>
       <FilePropertiesBody rows={rows} exifRows={exifRows} isMobile={isMobile} onClose={onClose} />
     </ModalFrame>
   );
@@ -97,7 +87,7 @@ function FilePropertiesBody({
             <I.FileImage size={16} />
           </div>
           <div>
-            <div className="t-eyebrow text-[10px]">File</div>
+            <div className="t-eyebrow text-[0.8125rem]">File</div>
             <div id="file-properties-title" className="t-headline text-base">
               Properties
             </div>
@@ -107,7 +97,7 @@ function FilePropertiesBody({
       </div>
 
       <div className="cloak-dialog__body flex flex-col gap-3 px-5 py-4">
-        <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[12px]">
+        <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[0.8125rem]">
           {rows.map((row) => (
             <PropRow key={row[1]} row={row} />
           ))}
@@ -116,14 +106,14 @@ function FilePropertiesBody({
         {exifRows.length > 0 ? (
           <div>
             <div className="t-section-label mb-1.5">EXIF metadata</div>
-            <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[12px]">
+            <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[0.8125rem]">
               {exifRows.map((row) => (
                 <PropRow key={row[1]} row={row} />
               ))}
             </div>
           </div>
         ) : (
-          <div className="text-[11.5px] leading-relaxed text-text-muted">
+          <div className="text-[0.8125rem] leading-relaxed text-text-muted">
             No EXIF metadata found. Screenshots, edited exports, and images stripped of metadata
             won't have any to read.
           </div>
@@ -151,7 +141,7 @@ function PropRow({ row }: { row: Row }) {
         <Ic size={12} className="shrink-0 self-center text-text-muted" />
         {k}
       </span>
-      <span className="t-mono max-w-2/3 truncate text-right text-text" title={v}>
+      <span className="tabular-nums max-w-2/3 truncate text-right text-text" title={v}>
         {v}
       </span>
     </div>

@@ -20,7 +20,6 @@ import {
   type ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useLayoutEffect,
   useState,
 } from "react";
@@ -81,9 +80,10 @@ export function useStageProps(props: StageProps) {
   useLayoutEffect(() => {
     set(props);
   });
-  // Clear on unmount so a stale paintOverlay / cursor doesn't bleed
-  // into the next tool before its first render commits.
-  useEffect(() => {
+  // Clear in the layout phase, before the incoming tool registers.
+  // A passive cleanup runs after its layout effect and erases the new
+  // pointer handlers/preview until another tool state change occurs.
+  useLayoutEffect(() => {
     return () => set(EMPTY);
   }, [set]);
 }

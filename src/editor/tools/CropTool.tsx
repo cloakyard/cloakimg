@@ -1,3 +1,4 @@
+import { NumberField } from "../NumberField";
 // CropTool.tsx — Phase F3. Fabric `Rect`-based crop overlay.
 //
 // While the Crop tool is active, a single Fabric `Rect` (tagged
@@ -601,14 +602,10 @@ export function CropPanel() {
         type="button"
         onClick={() => void smartCrop()}
         disabled={smartBusy}
-        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px]"
+        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium text-text pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem]"
         style={{ opacity: smartBusy ? 0.7 : 1 }}
       >
-        {smartBusy ? (
-          <InlineSpinner size={12} />
-        ) : (
-          <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
-        )}
+        {smartBusy ? <InlineSpinner size={12} /> : <I.Sparkles size={12} className="text-text" />}
         {smartLabel}
       </button>
       <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
@@ -620,8 +617,8 @@ export function CropPanel() {
         <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
-            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]! ${
-              toolState.flipH ? "border-coral-500 text-coral-700 dark:text-coral-300" : ""
+            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]! ${
+              toolState.flipH ? "border-accent text-text text-text" : ""
             }`}
             onClick={() => patchTool("flipH", !toolState.flipH)}
             aria-pressed={toolState.flipH}
@@ -630,8 +627,8 @@ export function CropPanel() {
           </button>
           <button
             type="button"
-            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]! ${
-              toolState.flipV ? "border-coral-500 text-coral-700 dark:text-coral-300" : ""
+            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]! ${
+              toolState.flipV ? "border-accent text-text text-text" : ""
             }`}
             onClick={() => patchTool("flipV", !toolState.flipV)}
             aria-pressed={toolState.flipV}
@@ -640,7 +637,7 @@ export function CropPanel() {
           </button>
           <button
             type="button"
-            className="btn btn-secondary flex-1 px-2.5! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]!"
+            className="btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]!"
             onClick={() => patchTool("cropQuarterTurns", (toolState.cropQuarterTurns + 1) % 4)}
           >
             <I.Rotate size={12} /> 90°
@@ -649,7 +646,7 @@ export function CropPanel() {
       </PropRow>
       <button
         type="button"
-        className="btn btn-ghost btn-xs mt-1 w-full justify-center text-coral-700 dark:text-coral-300"
+        className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
         onClick={reset}
       >
         <I.Refresh size={12} />
@@ -668,7 +665,7 @@ export function CropPanel() {
         <>
           <button
             type="button"
-            className="btn btn-primary mt-1 w-full justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+            className="btn btn-primary mt-1 w-full justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
             onClick={() => void apply()}
             disabled={applying}
             style={{ opacity: applying ? 0.7 : 1 }}
@@ -683,7 +680,7 @@ export function CropPanel() {
               </>
             )}
           </button>
-          <p className="text-[11px] leading-[1.45] text-text-muted">
+          <p className="text-[0.8125rem] leading-[1.45] text-text-muted">
             Or press Enter / switch tools. R resets the rect. Undo/Redo recover.
           </p>
         </>
@@ -778,55 +775,62 @@ function CropDimensions() {
   return (
     <PropRow label="Dimensions">
       <div className="grid grid-cols-2 gap-1.5">
-        <NumInput label="W" value={box.w} onCommit={(n) => writeBox({ w: n })} />
-        <NumInput label="H" value={box.h} onCommit={(n) => writeBox({ h: n })} />
-        <NumInput label="X" value={box.x} onCommit={(n) => writeBox({ x: n })} />
-        <NumInput label="Y" value={box.y} onCommit={(n) => writeBox({ y: n })} />
+        <NumInput
+          label="W"
+          min={8}
+          max={doc?.width ?? 20000}
+          value={box.w}
+          onCommit={(n) => writeBox({ w: n })}
+        />
+        <NumInput
+          label="H"
+          min={8}
+          max={doc?.height ?? 20000}
+          value={box.h}
+          onCommit={(n) => writeBox({ h: n })}
+        />
+        <NumInput
+          label="X"
+          min={0}
+          max={(doc?.width ?? 20000) - box.w}
+          value={box.x}
+          onCommit={(n) => writeBox({ x: n })}
+        />
+        <NumInput
+          label="Y"
+          min={0}
+          max={(doc?.height ?? 20000) - box.h}
+          value={box.y}
+          onCommit={(n) => writeBox({ y: n })}
+        />
       </div>
     </PropRow>
   );
 }
 
-/** Numeric input that commits on Enter / blur (not on each keystroke,
- *  so typing "100" through "1" → "10" → "100" doesn't keep snapping
- *  the rect to mid-typed values). */
 function NumInput({
   label,
   value,
+  min,
+  max,
   onCommit,
 }: {
   label: string;
   value: number;
+  min: number;
+  max: number;
   onCommit: (next: number) => void;
 }) {
-  const [draft, setDraft] = useState(String(value));
-  // Reset the draft whenever the canonical value changes via dragging
-  // the overlay or aspect-lock recompute.
-  useEffect(() => {
-    setDraft(String(value));
-  }, [value]);
-  const commit = () => {
-    const n = parseInt(draft, 10);
-    if (Number.isFinite(n)) onCommit(n);
-    else setDraft(String(value));
-  };
   return (
-    <label className="flex items-center gap-1.5 rounded-md border border-border bg-page-bg px-2 py-1 text-[12px]">
-      <span className="text-text-muted">{label}</span>
-      <input
-        name={`crop-${label.toLowerCase()}`}
-        type="number"
-        inputMode="numeric"
-        autoComplete="off"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            (e.currentTarget as HTMLInputElement).blur();
-          }
-        }}
-        className="t-mono w-full min-w-0 border-none bg-transparent p-0 font-[inherit] text-[12px] font-semibold text-text outline-none"
+    <label className="img-dimension">
+      <span>{label}</span>
+      <NumberField
+        value={value}
+        min={min}
+        max={max}
+        unit="px"
+        label={{ W: "Crop width", H: "Crop height", X: "Crop X", Y: "Crop Y" }[label]}
+        onCommit={onCommit}
       />
     </label>
   );

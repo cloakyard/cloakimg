@@ -1,99 +1,22 @@
-// Tests for the shared property atoms.
-//
-// Segment ships in 14 places (Adjust, BgBlur, Border, Crop, Default,
-// Draw, Redact, RemoveBg, Resize, Text, Watermark, …) so a regression
-// in the sliding-pill geometry leaks into every panel.
-//
-// The bug we hit before this fix: the pill's width subtracted a
-// hard-coded `4px` and its translate added `4px` per slot, but the
-// parent's padding scaled from `p-0.5` (2 px) on mouse to `p-1`
-// (4 px) on coarse pointers. On touch, the rightmost pill ate its
-// right margin and visually touched the outer border.
-//
-// The fix sources the inset from a `--seg-inset` CSS variable that
-// flips with the parent's pointer-coarse padding, so the pill
-// geometry tracks the real padding regardless of input device.
-//
-// These tests pin the contract:
-//   • renders nothing-ish (just the chrome) when options=[]
-//   • renders one button per option, with aria-pressed mirroring
-//   • the sliding pill exists and uses var(--seg-inset) — not
-//     a literal `4px` — for both width and translate
-//   • clicking forwards the index to onChange
-
+// Shared precision and choice control behavior.
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { NumericReadout, PropRow, Segment, Slider, ToggleSwitch } from "./atoms";
 
 describe("Segment", () => {
-  it("renders one <button> per option", () => {
-    render(<Segment options={["A", "B", "C"]} active={0} onChange={() => undefined} />);
-    expect(screen.getByRole("button", { name: "A" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "B" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "C" })).toBeInTheDocument();
-  });
-
-  it("emits onChange with the clicked index", () => {
+  it("exposes one native radio group and reports the selected value", () => {
     const onChange = vi.fn();
-    render(<Segment options={["A", "B", "C"]} active={0} onChange={onChange} />);
-    fireEvent.click(screen.getByRole("button", { name: "C" }));
+    render(<Segment options={["A", "B", "C"]} active={1} onChange={onChange} />);
+    expect(screen.getAllByRole("radio")).toHaveLength(3);
+    expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: "C" }));
     expect(onChange).toHaveBeenCalledWith(2);
   });
-
-  it("renders the sliding pill alongside the buttons (aria-hidden span)", () => {
-    const { container } = render(
-      <Segment options={["A", "B"]} active={0} onChange={() => undefined} />,
-    );
-    const pill = container.querySelector('span[aria-hidden="true"]');
-    expect(pill).not.toBeNull();
-  });
-
-  it("pill width and transform reference --seg-inset (not a hard-coded 4px)", () => {
-    const { container } = render(
-      <Segment options={["A", "B", "C", "D"]} active={3} onChange={() => undefined} />,
-    );
-    const pill = container.querySelector('span[aria-hidden="true"]') as HTMLElement;
-    expect(pill).not.toBeNull();
-    // width must reference the CSS variable so it tracks the parent's
-    // padding on both mouse (2 px) and coarse pointers (4 px). A
-    // hard-coded `4px` was the source of the rightmost-touches-edge
-    // bug on touch.
-    expect(pill.style.width).toContain("--seg-inset");
-    expect(pill.style.width).not.toMatch(/-\s*4px\s*\)/);
-    expect(pill.style.transform).toContain("--seg-inset");
-    expect(pill.style.transform).not.toMatch(/\+\s*\d+\s*\*\s*4px/);
-  });
-
-  it("parent container declares the --seg-inset variable for both pointer densities", () => {
-    const { container } = render(
-      <Segment options={["A", "B"]} active={0} onChange={() => undefined} />,
-    );
-    const root = container.firstChild as HTMLElement;
-    // 2 px on regular pointers (matches `p-0.5`), 4 px on coarse
-    // (matches `p-1`). The Tailwind variants compile to the
-    // utilities below.
-    expect(root.className).toContain("[--seg-inset:2px]");
-    expect(root.className).toContain("pointer-coarse:[--seg-inset:4px]");
-  });
-
-  it("exposes the active option with aria-pressed", () => {
-    render(<Segment options={["A", "B", "C"]} active={1} onChange={() => undefined} />);
-    expect(screen.getByRole("button", { name: "A" })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: "B" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "C" })).toHaveAttribute("aria-pressed", "false");
-  });
-
-  it("disables every option when no change handler is provided", () => {
-    render(<Segment options={["A", "B"]} active={0} />);
-    expect(screen.getByRole("button", { name: "A" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "B" })).toBeDisabled();
-  });
-
-  it("renders no buttons when options=[] (graceful empty state)", () => {
-    const { container } = render(<Segment options={[]} active={0} onChange={() => undefined} />);
-    expect(container.querySelectorAll("button")).toHaveLength(0);
-    // No pill rendered when there are no slots to highlight.
-    expect(container.querySelector('span[aria-hidden="true"]')).toBeNull();
+  it("keeps empty and read-only groups non-interactive", () => {
+    const view = render(<Segment options={[]} active={0} />);
+    expect(screen.queryByRole("radio")).toBeNull();
+    view.rerender(<Segment options={["A", "B"]} active={0} />);
+    for (const radio of screen.getAllByRole("radio")) expect(radio).toBeDisabled();
   });
 });
 

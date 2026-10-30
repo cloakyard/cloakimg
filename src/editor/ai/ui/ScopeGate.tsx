@@ -31,7 +31,7 @@ export function ScopeGate({ disabled, children }: Props) {
       // we target (Chrome 102+, Safari 15.5+, Firefox 112+).
       inert={disabled}
       aria-hidden={disabled || undefined}
-      style={{ transition: "opacity var(--dur-fast) var(--ease-standard)" }}
+      style={{ transition: "opacity var(--air-motion-hover) var(--air-ease-out)" }}
       className={disabled ? "flex flex-col gap-3 opacity-50" : "flex flex-col gap-3"}
     >
       {children}

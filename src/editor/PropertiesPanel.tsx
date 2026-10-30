@@ -44,16 +44,14 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     >
       {/* Header — V4 (May 2026): single-line rhythm. The prior layout
           painted three echoes of the same fact — coral icon chip + tool
-          name + uppercase group caption — even though the active tool
+          name +  group caption — even though the active tool
           rail button already tells the user which tool is selected.
           Stripping the chip and stacking name + group inline gives the
           panel a quieter chrome that defers to the controls below. */}
       <div className="flex shrink-0 items-baseline gap-2 border-b border-border px-4 py-3.5">
         <div className="min-w-0 flex-1 truncate">
-          <span className="text-[14px] font-semibold tracking-[-0.01em] text-text">
-            {tool.name}
-          </span>
-          <span className="t-mono ml-2 text-[10px] font-semibold tracking-[0.06em] text-text-muted uppercase">
+          <span className="text-[14px] font-medium tracking-normal text-text">{tool.name}</span>
+          <span className="tabular-nums ml-2 text-[0.8125rem] font-medium tracking-normal text-text-muted">
             {tool.group}
           </span>
         </div>

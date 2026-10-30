@@ -66,7 +66,7 @@ export function ShapesPanel() {
                 aria-pressed={active}
                 className={`flex h-8 cursor-pointer items-center justify-center rounded border-none p-0 sm:h-7 pointer-coarse:h-11 ${
                   active
-                    ? "bg-surface text-coral-600 shadow-[var(--shadow-control)] dark:text-coral-400"
+                    ? "bg-surface text-text shadow-[none] text-text"
                     : "bg-transparent text-text-muted"
                 }`}
               >
@@ -99,7 +99,7 @@ export function ShapesPanel() {
         />
       </PropRow>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11.5px] font-medium text-text-muted">Lock aspect</span>
+        <span className="text-[0.8125rem] font-medium text-text-muted">Lock aspect</span>
         <ToggleSwitch
           ariaLabel="Lock aspect"
           on={toolState.shapeLockAspect}
@@ -144,7 +144,7 @@ export function ShapesPanel() {
         </PropRow>
       )}
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Drag on the canvas to create. Click a shape to select; corners scale, the rotation handle
         rotates.
       </div>

@@ -1,3 +1,4 @@
+import { NumberField } from "../NumberField";
 /* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4
  * component: editor tool · genre: modern-minimal · theme: DESIGN.md
  * states: default · hover · focus · active · disabled · loading · error · success
@@ -590,7 +591,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
                 patchTool("idPhotoCrop", null);
               }}
             />
-            <span className="t-mono text-[11px] text-text-muted">×</span>
+            <span className="tabular-nums text-[0.8125rem] text-text-muted">×</span>
             <DimensionInput
               label="Height in millimetres"
               value={toolState.idPhotoCustomH}
@@ -603,7 +604,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
         </PropRow>
       ) : null}
 
-      <div className="rounded-md border border-border-soft bg-page-bg px-2.5 py-2 text-[11px] leading-relaxed text-text-muted">
+      <div className="rounded-md border border-border-soft bg-page-bg px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text-muted">
         {preset.note ??
           "The frame sets physical size only. Background, expression, recency, and biometric acceptance still depend on the issuing authority."}
         {preset.sourceUrl ? (
@@ -611,7 +612,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
             href={preset.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-1 flex min-h-7 w-fit items-center gap-1 whitespace-nowrap rounded-sm font-semibold text-coral-700 underline decoration-coral-300 underline-offset-2 outline-2 outline-transparent hover:text-coral-800 focus-visible:outline-coral-500 active:text-coral-900 pointer-coarse:min-h-11 dark:text-coral-300 dark:hover:text-coral-200"
+            className="mt-1 flex min-h-7 w-fit items-center gap-1 whitespace-nowrap rounded-sm font-medium text-text underline decoration-current underline-offset-2 outline-2 outline-transparent hover:text-text focus-visible:outline-accent active:text-text pointer-coarse:min-h-11 dark:hover:text-text"
           >
             Check {preset.sourceLabel ?? "authority guidance"}{" "}
             <I.ArrowUpRight size={11} aria-hidden="true" />
@@ -622,16 +623,16 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       <button
         type="button"
         onClick={() => patchTool("activeTool", "bgrm")}
-        className={`group flex w-full cursor-pointer items-center gap-2.5 rounded-md border px-2.5 py-2 text-left outline-2 outline-transparent transition-colors focus-visible:outline-coral-500 pointer-coarse:min-h-12 ${
+        className={`group flex w-full cursor-pointer items-center gap-2.5 rounded-md border px-2.5 py-2 text-left outline-2 outline-transparent transition-colors focus-visible:outline-accent pointer-coarse:min-h-12 ${
           backgroundPrepared
-            ? "border-emerald-300/60 bg-emerald-50/70 hover:bg-emerald-50 active:bg-emerald-100 dark:border-emerald-500/25 dark:bg-emerald-900/15 dark:hover:bg-emerald-900/25 dark:active:bg-emerald-900/35"
+            ? "border-[var(--air-success)] bg-[var(--air-success-soft)] hover:bg-[var(--air-success-soft)] active:bg-[var(--air-success-soft)] border-[var(--air-success)] bg-[var(--air-success-soft)] dark:hover:bg-[var(--air-success-soft)] dark:active:bg-[var(--air-success-soft)]"
             : "border-border-soft bg-page-bg hover:border-border hover:bg-surface active:bg-page-bg"
         }`}
       >
         <span
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
             backgroundPrepared
-              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+              ? "bg-[var(--air-success-soft)] text-success bg-[var(--air-success-soft)] text-success"
               : "bg-surface text-text-muted"
           }`}
         >
@@ -642,14 +643,14 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
           )}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[11.5px] font-semibold text-text">
+          <span className="block text-[0.8125rem] font-medium text-text">
             {backgroundCleared
               ? "Cutout ready"
               : preparedBackgroundLabel
                 ? `${preparedBackgroundLabel} background ready`
                 : "Need a plain background?"}
           </span>
-          <span className="block text-[10.5px] leading-snug text-text-muted">
+          <span className="block text-[0.8125rem] leading-snug text-text-muted">
             {backgroundCleared
               ? "Transparent areas will print on white paper."
               : preparedBackgroundLabel
@@ -657,7 +658,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
                 : "Remove it first, then return here to finish framing."}
           </span>
         </span>
-        <span className="shrink-0 text-[10.5px] font-semibold text-coral-700 dark:text-coral-300">
+        <span className="shrink-0 text-[0.8125rem] font-medium text-text">
           {backgroundPrepared ? "Review" : "Open"}
         </span>
       </button>
@@ -665,19 +666,19 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       {doc && crop ? (
         <>
           <PropRow label="Framing" value={`${Math.round(zoom * 200 + 100)}%`}>
-            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1.5 text-[11px] leading-snug text-text-muted">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1.5 text-[0.8125rem] leading-snug text-text-muted">
               <I.Move size={14} aria-hidden="true" />
               <span>
-                <strong className="font-semibold text-text">Position</strong> — drag inside the
-                frame.
+                <strong className="font-medium text-text">Position</strong> — drag inside the frame.
               </span>
               <I.Resize size={14} aria-hidden="true" />
               <span>
-                <strong className="font-semibold text-text">Resize</strong> — drag any edge or
-                corner.
+                <strong className="font-medium text-text">Resize</strong> — drag any edge or corner.
               </span>
               <span aria-hidden="true" />
-              <span className="t-mono text-[10px]">Keys: arrows move · + / − resize</span>
+              <span className="tabular-nums text-[0.8125rem]">
+                Keys: arrows move · + / − resize
+              </span>
             </div>
           </PropRow>
           <button type="button" className="btn btn-secondary btn-sm w-full" onClick={resetCrop}>
@@ -719,7 +720,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
         value={layout.copies > 0 ? `${layout.copies} copies` : "Does not fit"}
       >
         <SheetPreview layout={layout} thumbUrl={thumbUrl} cutLines={toolState.idPhotoCutLines} />
-        <div className="t-mono mt-1.5 flex flex-wrap justify-between gap-1 text-[10px] text-text-muted">
+        <div className="tabular-nums mt-1.5 flex flex-wrap justify-between gap-1 text-[0.8125rem] text-text-muted">
           <span>{ID_PHOTO_DPI} DPI</span>
           <span>{layout.rotated ? "Rotated to fit" : "Upright"}</span>
           <span>
@@ -731,7 +732,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       {error ? (
         <div
           role="alert"
-          className="flex gap-2 rounded-md border border-danger/35 bg-danger/8 px-2.5 py-2 text-[11px] leading-relaxed text-danger"
+          className="flex gap-2 rounded-md border border-danger/35 bg-danger/8 px-2.5 py-2 text-[0.8125rem] leading-relaxed text-danger"
         >
           <I.AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
@@ -758,10 +759,10 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
           {busy === "pdf" ? "Building…" : "Save PDF"}
         </button>
       </div>
-      <div className="text-[11px] leading-relaxed text-text-muted">
-        Print at <strong className="font-semibold text-text">100% / Actual size</strong> and turn
-        off “Fit to page.” Use photo-quality paper required by the authority. The face oval is a
-        framing guide, not automatic biometric validation.
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
+        Print at <strong className="font-medium text-text">100% / Actual size</strong> and turn off
+        “Fit to page.” Use photo-quality paper required by the authority. The face oval is a framing
+        guide, not automatic biometric validation.
       </div>
     </>
   );
@@ -774,44 +775,20 @@ function DimensionInput({
 }: {
   label: string;
   value: number;
-  onChange: (value: number) => void;
+  onChange: (n: number) => void;
 }) {
-  const [draft, setDraft] = useState(formatMm(value));
-  useEffect(() => setDraft(formatMm(value)), [value]);
-
-  const commit = () => {
-    const parsed = Number.parseFloat(draft);
-    const next = clampMm(Number.isFinite(parsed) ? parsed : value);
-    setDraft(formatMm(next));
-    onChange(next);
-  };
-
   return (
-    <label className="relative min-w-0">
-      <span className="sr-only">{label}</span>
-      <input
-        name={label.toLowerCase().replaceAll(" ", "-")}
-        autoComplete="off"
-        type="number"
+    <label className="img-dimension">
+      <span>{label}</span>
+      <NumberField
+        value={value}
         min={20}
         max={100}
         step={0.1}
-        inputMode="decimal"
-        value={draft}
-        onChange={(event) => setDraft(event.currentTarget.value)}
-        onBlur={commit}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") event.currentTarget.blur();
-          if (event.key === "Escape") {
-            event.preventDefault();
-            setDraft(formatMm(value));
-          }
-        }}
-        className="t-mono h-10 w-full rounded-md border border-border bg-surface pr-7 pl-2 text-right text-[12px] font-semibold text-text outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-coral-500 pointer-coarse:h-11"
+        unit="mm"
+        label={label === "W" ? "Width" : label === "H" ? "Height" : label}
+        onCommit={onChange}
       />
-      <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] text-text-muted">
-        mm
-      </span>
     </label>
   );
 }

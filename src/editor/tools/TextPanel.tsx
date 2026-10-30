@@ -305,13 +305,13 @@ export function TextPanel() {
         />
       </div>
       {!selected && (
-        <div className="text-[11px] leading-relaxed text-text-muted">
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">
           Click on the canvas to drop a text layer — it lands selected so you can drag immediately.
           Double-click to edit inline.
         </div>
       )}
       {selected && (
-        <div className="text-[11px] leading-relaxed text-text-muted">
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">
           Editing the selected text. Esc exits inline edit; Delete removes the layer (via the Layers
           panel).
         </div>
@@ -335,10 +335,8 @@ function StyleToggle({ label, on, italic, underline, onChange }: StyleToggleProp
       aria-label={label}
       aria-pressed={on}
       onClick={() => onChange(!on)}
-      className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded border-none font-[inherit] text-[12px] font-semibold pointer-coarse:h-11 pointer-coarse:w-11 ${
-        on
-          ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-          : "bg-page-bg text-text-muted"
+      className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded border-none font-[inherit] text-[0.8125rem] font-medium pointer-coarse:h-11 pointer-coarse:w-11 ${
+        on ? "bg-surface-soft text-text bg-surface-soft text-text" : "bg-page-bg text-text-muted"
       }`}
       style={{
         fontStyle: italic ? "italic" : "normal",
@@ -362,9 +360,9 @@ function PresetButton({ label, active, onClick }: PresetButtonProps) {
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`cursor-pointer rounded-md border-none px-2 py-1.5 font-[inherit] text-[11px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+      className={`cursor-pointer rounded-md border-none px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
         active
-          ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+          ? "bg-surface-soft text-text bg-surface-soft text-text"
           : "bg-page-bg text-text-muted"
       }`}
     >

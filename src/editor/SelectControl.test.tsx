@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vite-plus/test";
@@ -69,8 +69,8 @@ describe("SelectControl", () => {
     const trigger = screen.getByRole("combobox", { name: "Photo standard" });
     await user.click(trigger);
 
-    const listbox = screen.getByRole("listbox", { name: "Photo standard options" });
-    expect(listbox).toHaveAttribute("data-animate", "true");
+    const listbox = await screen.findByRole("listbox", { name: "Photo standard options" });
+
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(within(listbox).getAllByRole("group")).toHaveLength(2);
     expect(within(listbox).getAllByRole("option")).toHaveLength(3);
@@ -98,7 +98,7 @@ describe("SelectControl", () => {
     );
 
     await user.click(screen.getByRole("combobox", { name: "Paper size" }));
-    expect(screen.getAllByRole("option")).toHaveLength(2);
+    expect(await screen.findAllByRole("option")).toHaveLength(2);
   });
 
   it("supports arrow, Home, End, Enter, Escape, and typeahead keyboard behavior", async () => {
@@ -106,26 +106,34 @@ describe("SelectControl", () => {
     render(<ControlledSelect />);
 
     const trigger = screen.getByRole("combobox", { name: "Photo standard" });
-    trigger.focus();
-    await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
-    expect(trigger).toHaveTextContent("United States · Visa");
-
-    await user.keyboard("{Home}{Enter}");
-    expect(trigger).toHaveTextContent("United Kingdom · Passport");
-
-    await user.keyboard("i");
-    expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("listbox", { name: "Photo standard options" })).toHaveAttribute(
-      "data-animate",
-      "false",
+    await user.click(trigger);
+    await screen.findByRole("listbox", { name: "Photo standard options" });
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: /India · Visa ·/ })).toHaveFocus(),
     );
-    expect(trigger.getAttribute("aria-activedescendant")).toContain("option-1");
-    await user.keyboard("{Escape}");
-    expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(trigger).toHaveFocus();
-
+    await user.keyboard("{ArrowDown}{Enter}");
+    await waitFor(() => expect(trigger).toHaveTextContent("United States · Visa"));
+    await user.click(trigger);
+    await screen.findByRole("listbox");
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: /United States · Visa ·/ })).toHaveFocus(),
+    );
+    await user.keyboard("{Home}{Enter}");
+    await waitFor(() => expect(trigger).toHaveTextContent("United Kingdom · Passport"));
+    await user.click(trigger);
+    await screen.findByRole("listbox");
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: /United Kingdom · Passport ·/ })).toHaveFocus(),
+    );
+    await user.keyboard("i{Enter}");
+    await waitFor(() => expect(trigger).toHaveTextContent("India · Visa"));
+    await user.click(trigger);
+    await screen.findByRole("listbox");
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: /India · Visa ·/ })).toHaveFocus(),
+    );
     await user.keyboard("{End}{Enter}");
-    expect(trigger).toHaveTextContent("United States · Visa");
+    await waitFor(() => expect(trigger).toHaveTextContent("United States · Visa"));
   });
 
   it("light-dismisses without changing the current value", async () => {
@@ -139,6 +147,10 @@ describe("SelectControl", () => {
 
     const trigger = screen.getByRole("combobox", { name: "Photo standard" });
     await user.click(trigger);
+    await screen.findByRole("listbox");
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: /India · Visa ·/ })).toHaveFocus(),
+    );
     await user.click(screen.getByRole("button", { name: "Outside" }));
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(trigger).toHaveTextContent("India · Visa");
@@ -159,6 +171,10 @@ describe("SelectControl", () => {
 
     const trigger = screen.getByRole("combobox", { name: "Photo standard" });
     await user.click(trigger);
+    await screen.findByRole("listbox");
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: /India · Visa ·/ })).toHaveFocus(),
+    );
     await user.keyboard("{Escape}");
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(onParentEscape).not.toHaveBeenCalled();

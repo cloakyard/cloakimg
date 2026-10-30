@@ -97,7 +97,7 @@ async function pickTool(toolName) {
   });
   await new Promise((r) => setTimeout(r, 600));
   await page.evaluate((name) => {
-    const dialog = document.querySelector('[role="dialog"][aria-label="Tools"]');
+    const dialog = document.querySelector('[role="region"][aria-label="Tools"]');
     if (!dialog) return;
     Array.from(dialog.querySelectorAll("button"))
       .find((b) => (b.getAttribute("aria-label") ?? "").trim() === name)
@@ -198,8 +198,8 @@ await pickTool("Crop & rotate");
 // `applyCrop` handles by rotating *within* the rect's box (so dims
 // don't swap).
 const aspected = await page.evaluate(() => {
-  const btn = Array.from(document.querySelectorAll("button")).find(
-    (b) => (b.textContent ?? "").trim() === "1:1",
+  const btn = Array.from(document.querySelectorAll('input[type="radio"]')).find(
+    (b) => b.labels?.[0]?.textContent.trim() === "1:1",
   );
   if (!btn) {
     const labels = Array.from(document.querySelectorAll("button"))
@@ -247,45 +247,11 @@ const beforeResize = await readDocDims();
 const targetW = Math.round((beforeResize?.w ?? 0) / 2);
 console.log(`Setting resize W to ${targetW}`);
 
-const resizeSet = await page.evaluate((w) => {
-  // The resize panel renders a numeric input labelled W. Find it via
-  // its input role and set the value.
-  const inputs = Array.from(document.querySelectorAll('input[type="number"], input[inputmode]'));
-  // Heuristic: the W input has aria-label "Width" or sibling "W"
-  // label. Just set the first input that's near the word "W".
-  for (const inp of inputs) {
-    const label = inp.closest("label")?.textContent ?? inp.getAttribute("aria-label") ?? "";
-    if (/^\s*W\b|width/i.test(label)) {
-      // React patches HTMLInputElement.prototype's `value` setter so it
-      // can intercept changes from JS. To make React treat this as a
-      // user-driven change (and re-run controlled-input bookkeeping)
-      // we have to dispatch through the ORIGINAL prototype setter, not
-      // the patched one. Call it directly off the descriptor so the
-      // unbound-method reference never escapes into a variable.
-      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set?.call(
-        inp,
-        String(w),
-      );
-      inp.dispatchEvent(new Event("input", { bubbles: true }));
-      inp.dispatchEvent(new Event("change", { bubbles: true }));
-      inp.dispatchEvent(new Event("blur", { bubbles: true }));
-      return true;
-    }
-  }
-  return false;
-}, targetW);
-
-if (!resizeSet) {
-  // Fallback — use the Long edge preset "1080" which is much smaller
-  // than the 4284 default.
-  console.log("→ W input not found, using 1080 long-edge preset");
-  await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll("button")).find(
-      (b) => (b.textContent ?? "").trim() === "1080",
-    );
-    btn?.click();
-  });
-}
+const widthInput = await page.waitForSelector('input[aria-label="Width"]');
+await widthInput.click({ clickCount: 3 });
+await page.keyboard.press("Backspace");
+await widthInput.type(String(targetW));
+await page.keyboard.press("Enter");
 await new Promise((r) => setTimeout(r, 600));
 
 console.log("→ Tap ✓");
@@ -308,8 +274,8 @@ console.log("\n─── Test 3: Crop ✕ does not commit ───");
 const beforeCancel = await readDocDims();
 await pickTool("Crop & rotate");
 await page.evaluate(() => {
-  const btn = Array.from(document.querySelectorAll("button")).find(
-    (b) => (b.textContent ?? "").trim() === "4:5",
+  const btn = Array.from(document.querySelectorAll('input[type="radio"]')).find(
+    (b) => b.labels?.[0]?.textContent.trim() === "4:5",
   );
   btn?.click();
 });

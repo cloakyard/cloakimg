@@ -88,13 +88,7 @@ export function CapabilityConsentModal({
   const pickedCached = cachedTiers.has(picked);
 
   return (
-    <ModalFrame
-      onClose={onDismiss}
-      bottomSheet={isMobile}
-      position="absolute"
-      maxWidth="max-w-130"
-      labelledBy="cloak-capability-consent-title"
-    >
+    <ModalFrame onClose={onDismiss} labelledBy="cloak-capability-consent-title">
       <div className="cloak-dialog__header">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="cloak-dialog__icon">
@@ -113,7 +107,7 @@ export function CapabilityConsentModal({
         </p>
 
         <div className="flex flex-col gap-1.5">
-          <div className="text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+          <div className="text-[0.8125rem] font-medium tracking-normal text-text-muted">
             Pick a model size
           </div>
           {visibleTiers.map((tier) => {
@@ -126,36 +120,38 @@ export function CapabilityConsentModal({
                 onClick={() => setPicked(tier.id)}
                 aria-pressed={active}
                 className={`flex w-full cursor-pointer items-start gap-3 rounded-xl border bg-page-bg px-3 py-2.5 text-left ${
-                  active ? "border-coral-500 ring-2 ring-coral-500/30" : "border-border-soft"
+                  active ? "border-accent ring-2 ring-accent" : "border-border-soft"
                 }`}
               >
                 <span
                   aria-hidden
                   className={`mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                    active ? "border-coral-500 bg-coral-500" : "border-border"
+                    active ? "border-accent bg-accent" : "border-border"
                   }`}
                 >
                   {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="text-[12.5px] font-semibold text-text">{tier.label}</span>
-                    <span className="t-mono text-[11px] text-text-muted">~{tier.mb} MB</span>
+                    <span className="text-[0.8125rem] font-medium text-text">{tier.label}</span>
+                    <span className="tabular-nums text-[0.8125rem] text-text-muted">
+                      ~{tier.mb} MB
+                    </span>
                     {tier.recommended && !cached && (
-                      <span className="rounded-full border border-coral-300/70 bg-coral-50 px-1.5 py-px text-[10px] font-semibold text-coral-700 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200">
+                      <span className="rounded-full border border-accent bg-surface-soft px-1.5 py-px text-[0.8125rem] font-medium text-text">
                         Recommended
                       </span>
                     )}
                     {cached && (
-                      <span className="rounded-full border border-emerald-300/70 bg-emerald-50 px-1.5 py-px text-[10px] font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
+                      <span className="rounded-full border border-[var(--air-success)] bg-[var(--air-success-soft)] px-1.5 py-px text-[0.8125rem] font-medium text-success">
                         Already downloaded
                       </span>
                     )}
                   </span>
-                  <span className="mt-1 block text-[11.5px] leading-snug text-text">
+                  <span className="mt-1 block text-[0.8125rem] leading-snug text-text">
                     {tier.strength}
                   </span>
-                  <span className="mt-0.5 block text-[11px] leading-snug text-text-muted">
+                  <span className="mt-0.5 block text-[0.8125rem] leading-snug text-text-muted">
                     {tier.tradeoff}
                   </span>
                 </span>
@@ -165,10 +161,10 @@ export function CapabilityConsentModal({
         </div>
 
         <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2">
-          <div className="mb-1 flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+          <div className="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-medium tracking-normal text-text-muted">
             <I.ShieldCheck size={11} /> Privacy
           </div>
-          <ul className="m-0 list-none space-y-0.5 p-0 text-[11.5px] leading-relaxed text-text-muted">
+          <ul className="m-0 list-none space-y-0.5 p-0 text-[0.8125rem] leading-relaxed text-text-muted">
             {family.consent.privacy.map((line, i) => (
               <li key={i}>· {line}</li>
             ))}

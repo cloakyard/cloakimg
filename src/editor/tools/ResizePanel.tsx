@@ -1,3 +1,4 @@
+import { NumberField } from "../NumberField";
 // ResizePanel.tsx — Numeric W/H resize with optional aspect lock and a
 // few quick presets ("long edge → 1080/2400/4096"). Bakes a resampled
 // version of the working canvas into history on Apply.
@@ -188,12 +189,12 @@ export function ResizePanel() {
           </div>
           <div className="flex flex-col items-center text-text-muted">
             <I.ArrowRight size={14} />
-            <span className="t-mono text-[10.5px] font-semibold">{pct}%</span>
+            <span className="tabular-nums text-[0.8125rem] font-medium">{pct}%</span>
           </div>
           <div
             role="img"
             aria-label="Target size"
-            className="checker relative shrink-0 overflow-hidden rounded-sm border border-coral-500"
+            className="checker relative shrink-0 overflow-hidden rounded-sm border border-accent"
             style={{ width: targetBox.w, height: targetBox.h }}
           >
             {sourceThumbUrl && (
@@ -208,7 +209,7 @@ export function ResizePanel() {
           </div>
         </div>
         {doc && (
-          <div className="t-mono mt-1 text-center text-[10.5px] text-text-muted">
+          <div className="tabular-nums mt-1 text-center text-[0.8125rem] text-text-muted">
             {doc.width} × {doc.height} → {targetW} × {targetH} px
           </div>
         )}
@@ -222,9 +223,9 @@ export function ResizePanel() {
             aria-pressed={toolState.resizeAspectLock}
             aria-label={toolState.resizeAspectLock ? "Unlock aspect ratio" : "Lock aspect ratio"}
             title={toolState.resizeAspectLock ? "Aspect locked" : "Aspect unlocked"}
-            className={`inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-md border p-0 pointer-coarse:h-11 pointer-coarse:w-11 ${
+            className={`inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border p-0 pointer-coarse:h-11 pointer-coarse:w-11 ${
               toolState.resizeAspectLock
-                ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+                ? "border-accent bg-surface-soft text-text"
                 : "border-border bg-surface text-text-muted"
             }`}
           >
@@ -239,7 +240,7 @@ export function ResizePanel() {
             <button
               key={p.value}
               type="button"
-              className="btn btn-secondary flex-1 px-2! py-1.5! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]!"
+              className="btn btn-secondary flex-1 px-2! py-1.5! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]!"
               onClick={() => setLongEdge(p.value)}
             >
               {p.label}
@@ -258,7 +259,7 @@ export function ResizePanel() {
         />
       </PropRow>
       {toolState.resizeQuality === 1 && (
-        <div className="text-[11px] leading-relaxed text-text-muted">
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">
           High runs a Lanczos-3 pass — sharper at moderate downscales, slower than Fast. Falls back
           to Fast automatically when the change is too small to benefit.
         </div>
@@ -270,7 +271,7 @@ export function ResizePanel() {
       {!isMobile && (
         <button
           type="button"
-          className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
           onClick={() => void apply()}
           disabled={resizing}
           aria-busy={resizing}
@@ -320,26 +321,26 @@ function makeFitThumb(src: HTMLCanvasElement, cap: number): HTMLCanvasElement {
 }
 
 function DimInput({
+  label,
   value,
   onChange,
-  label,
 }: {
+  label: string;
   value: number;
   onChange: (n: number) => void;
-  label: string;
 }) {
   return (
-    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 text-[12.5px] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500">
-      <span className="text-[10.5px] text-text-muted">{label}</span>
-      <input
-        name={`resize-${label.toLowerCase()}`}
-        type="number"
-        aria-label={label}
-        autoComplete="off"
+    <label className="img-dimension">
+      <span>{label}</span>
+      <NumberField
         value={value}
-        onChange={(e) => onChange(+e.target.value || 0)}
-        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none"
+        min={1}
+        max={Number.MAX_SAFE_INTEGER}
+        step={1}
+        unit="px"
+        label={label === "W" ? "Width" : label === "H" ? "Height" : label}
+        onCommit={onChange}
       />
-    </div>
+    </label>
   );
 }

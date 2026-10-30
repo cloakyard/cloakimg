@@ -313,7 +313,7 @@ export function WatermarkPanel() {
           type="button"
           onClick={() => void smartPlace()}
           disabled={smartBusy}
-          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold text-text pointer-coarse:py-2.5 pointer-coarse:text-[12.5px]"
+          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium text-text pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem]"
           style={{ opacity: smartBusy ? 0.7 : 1 }}
         >
           {smartBusy ? (
@@ -322,8 +322,7 @@ export function WatermarkPanel() {
             </>
           ) : (
             <>
-              <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" /> Place away
-              from subject
+              <I.Sparkles size={12} className="text-text" /> Place away from subject
             </>
           )}
         </button>
@@ -338,9 +337,9 @@ export function WatermarkPanel() {
                 key={p.id}
                 type="button"
                 onClick={() => patchTool("watermarkPosition", i)}
-                className={`cursor-pointer rounded-md border px-1 py-2 font-[inherit] text-[11px] font-semibold ${
+                className={`cursor-pointer rounded-md border px-1 py-2 font-[inherit] text-[0.8125rem] font-medium ${
                   active
-                    ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+                    ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
                     : "border-border bg-surface text-text-muted"
                 }`}
               >
@@ -375,7 +374,7 @@ export function WatermarkPanel() {
       </PropRow>
       <button
         type="button"
-        className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+        className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
         onClick={isImage ? applyImage : applyText}
         disabled={isImage && !toolState.watermarkImageDataUrl}
         style={{ opacity: isImage && !toolState.watermarkImageDataUrl ? 0.5 : 1 }}

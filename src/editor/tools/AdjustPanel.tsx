@@ -158,6 +158,7 @@ export function AdjustPanel() {
                   <NumericReadout
                     key={key}
                     display={fmt(key, v)}
+                    unit={key === "exposure" ? "EV" : ""}
                     normalized={v}
                     step={key === "exposure" ? 0.1 : 1}
                     fromNormalized={(n) => (n - 0.5) * 2 * RANGES[key]}
@@ -168,6 +169,8 @@ export function AdjustPanel() {
               >
                 <Slider
                   value={v}
+                  ariaValueText={`${fmt(key, v)}${key === "exposure" ? " EV" : ""}`}
+                  step={key === "exposure" ? 0.025 : 0.005}
                   accent={Math.abs(v - 0.5) > 0.001}
                   defaultValue={0.5}
                   onChange={(next) => setAt(i, next)}
@@ -182,7 +185,7 @@ export function AdjustPanel() {
         {showSliders && dirty && (
           <button
             type="button"
-            className="btn btn-ghost btn-xs mt-1 w-full justify-center text-coral-700 dark:text-coral-300"
+            className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
             onClick={reset}
           >
             <I.Refresh size={12} />

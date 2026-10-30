@@ -28,10 +28,8 @@
 // transform handles when the Move tool is active.
 
 import { Canvas, type FabricObject, FabricImage, Point } from "fabric";
-import { MOBILE_MAX_PX } from "./breakpoints";
 import { get2DContext } from "./colorSpace";
 import { FABRIC_CANVAS_SELECTION } from "./fabricDefaults";
-import { MobileCompareButton } from "./MobileCompareButton";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import {
   type CSSProperties,
@@ -121,7 +119,7 @@ export function ImageCanvas({
   // `paintOverlay`), so it re-renders per slider tick by design — but
   // consuming the focused slices drops the extra omnibus-recomputation
   // layer the old `useEditor()` added.
-  const { doc, view, layers, compareActive } = useEditorReadOnly();
+  const { doc, view, layers, compareActive, layout } = useEditorReadOnly();
   const toolState = useToolState();
   const {
     setView,
@@ -186,7 +184,7 @@ export function ImageCanvas({
   // Two-finger long-press → compare. Mobile-only gesture: rest two
   // fingers on the canvas, stay still for TWO_FINGER_HOLD_MS, and the
   // editor flips to the original-photo view (same `compareActive` flag
-  // the pill at top-left uses). Lifting either finger or moving by more
+  // the top-bar Compare action uses). Lifting either finger or moving by more
   // than HOLD_MOVE_PX releases the compare. Threshold is comfortably
   // longer than the two-finger-tap window (280 ms) so the two gestures
   // never collide: a quick lift fires undo, a sustained hold reveals
@@ -908,7 +906,7 @@ export function ImageCanvas({
     }
   }, []);
 
-  const isMobile = size.w > 0 && size.w < MOBILE_MAX_PX;
+  const isMobile = layout === "mobile";
   const cursorStyle = cursor ?? (spaceDown ? (panRef.current ? "grabbing" : "grab") : "crosshair");
 
   return (
@@ -922,7 +920,7 @@ export function ImageCanvas({
       style={{
         flex: 1,
         position: "relative",
-        background: "var(--canvas-bg)",
+        background: "var(--air-surface-soft)",
         overflow: "hidden",
         minHeight: 0,
         cursor: cursorStyle,
@@ -965,193 +963,9 @@ export function ImageCanvas({
           pointerEvents: fabricInteractive ? "auto" : "none",
         }}
       />
-      {!hideHints && size.w > 0 && (
-        <CanvasHints
-          isMobile={isMobile}
-          zoom={view.zoom}
-          fitScale={transform.scale / Math.max(view.zoom, 0.0001)}
-          onZoomChange={(next) =>
-            setView((prev) => ({
-              ...prev,
-              zoom: next,
-              // Snap pan back to centre when the user picks Fit, so a
-              // previously panned canvas re-centres rather than
-              // zooming around an off-screen pivot. Other zoom paths
-              // keep the existing pan.
-              ...(next === 1 ? { panX: 0, panY: 0 } : {}),
-            }))
-          }
-          hasDoc={!!doc}
-          compareActive={compareActive}
-          setCompareActive={setCompareActive}
-        />
-      )}
-    </div>
-  );
-}
-
-function CanvasHints({
-  isMobile,
-  zoom,
-  fitScale,
-  onZoomChange,
-  hasDoc,
-  compareActive,
-  setCompareActive,
-}: {
-  isMobile: boolean;
-  zoom: number;
-  fitScale: number;
-  onZoomChange: (next: number) => void;
-  hasDoc: boolean;
-  compareActive: boolean;
-  setCompareActive: (active: boolean) => void;
-}) {
-  const displayZoom = Math.round(zoom * fitScale * 100);
-  // Mobile canvas overlays (the "Hold to compare" pill + the zoom-%
-  // badge) are intentionally suppressed in the V2 redesign — they
-  // floated ON the photo and pulled the eye away from the image,
-  // breaking the "expansive cream canvas" aesthetic the redesign is
-  // built around. Compare lives in the More menu; zoom uses pinch
-  // gestures (the badge was redundant with the visible zoom level).
-  // Desktop keeps both because the larger viewport absorbs the chrome
-  // without crowding the photo work area.
-  const showMobileCanvasOverlays = false;
-  return (
-    <>
-      {isMobile && hasDoc && showMobileCanvasOverlays && (
-        <MobileCompareButton compareActive={compareActive} setCompareActive={setCompareActive} />
-      )}
-      {isMobile && showMobileCanvasOverlays && (
-        <MobileZoomControl displayZoom={displayZoom} onZoomChange={onZoomChange} />
-      )}
-      {!isMobile && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 12,
-            left: 12,
-            display: "flex",
-            gap: 6,
-            alignItems: "center",
-            fontSize: 11,
-            color: "rgba(255,255,255,0.5)",
-            pointerEvents: "none",
-          }}
-        >
-          <span
-            className="kbd"
-            style={{
-              background: "rgba(255,255,255,0.10)",
-              borderColor: "rgba(255,255,255,0.15)",
-              color: "rgba(255,255,255,0.7)",
-            }}
-          >
-            Space
-          </span>
-          to pan · Cmd+scroll to zoom
-        </div>
-      )}
-    </>
-  );
-}
-
-/** Tappable zoom pill for mobile. Tap opens a compact popover with
- *  −/+ steppers, the live percentage, and a "Fit" preset that
- *  re-centres. Replaces the previous read-only `t-mono` badge — the
- *  user gets a real zoom control without us having to add another
- *  fixed UI affordance. */
-function MobileZoomControl({
-  displayZoom,
-  onZoomChange,
-}: {
-  displayZoom: number;
-  onZoomChange: (next: number) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [animateOpen, setAnimateOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  // Auto-dismiss on outside tap. We listen on `pointerdown` rather
-  // than click because the canvas swallows pointer events for
-  // pan/pinch and would otherwise prevent the popover from closing
-  // when the user goes back to editing.
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: PointerEvent) => {
-      const wrap = wrapRef.current;
-      if (wrap && e.target instanceof Node && wrap.contains(e.target)) return;
-      setOpen(false);
-    };
-    window.addEventListener("pointerdown", onDown, true);
-    return () => window.removeEventListener("pointerdown", onDown, true);
-  }, [open]);
-
-  const stepOut = () => onZoomChange(Math.max(0.05, (displayZoom / 100) * (1 / 1.25)));
-  const stepIn = () => onZoomChange(Math.min(8, (displayZoom / 100) * 1.25));
-  const fit = () => {
-    onZoomChange(1);
-    setOpen(false);
-  };
-
-  return (
-    <div
-      ref={wrapRef}
-      style={{ position: "absolute", top: 12, right: 12, zIndex: 5 }}
-      className="t-mono"
-    >
-      <button
-        type="button"
-        onClick={(event) => {
-          if (!open) setAnimateOpen(event.detail > 0);
-          setOpen((current) => !current);
-        }}
-        aria-label={`Zoom ${displayZoom}% · tap for controls`}
-        aria-expanded={open}
-        className="ci-pressable cursor-pointer rounded-full border-none px-3 py-1 text-[11px] font-semibold text-white"
-        style={{
-          background: open ? "var(--color-night)" : "var(--color-editor-overlay-control)",
-          transition: "background-color var(--dur-fast) var(--ease-standard)",
-        }}
-      >
-        {displayZoom}%
-      </button>
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Zoom controls"
-          className="ci-popover-surface absolute right-0 mt-1.5 flex items-center gap-0.5 rounded-full border border-white/10 p-0.5"
-          data-animate={animateOpen}
-          data-placement="below"
-          style={{
-            background: "var(--color-night)",
-            transformOrigin: "calc(100% - 1.5rem) top",
-          }}
-        >
-          <button
-            type="button"
-            onClick={stepOut}
-            aria-label="Zoom out"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-white active:bg-white/15"
-          >
-            −
-          </button>
-          <button
-            type="button"
-            onClick={fit}
-            aria-label="Fit to screen"
-            className="cursor-pointer rounded-full border-none bg-transparent px-2 py-0.5 text-[11px] font-semibold text-white active:bg-white/15"
-          >
-            Fit
-          </button>
-          <button
-            type="button"
-            onClick={stepIn}
-            aria-label="Zoom in"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-white active:bg-white/15"
-          >
-            +
-          </button>
+      {!hideHints && !isMobile && size.w > 0 && (
+        <div className="img-canvas-hint">
+          <span className="kbd">Space</span> to pan · Cmd+scroll to zoom
         </div>
       )}
     </div>

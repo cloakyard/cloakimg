@@ -1,3 +1,4 @@
+import { NumberField } from "./NumberField";
 // ExportModal.tsx — Format · quality · size with a live preview and
 // real-bytes estimated size. On Download we run the export pipeline,
 // build an object URL, and click an anchor for the user.
@@ -10,7 +11,6 @@ import { PropRow, Segment, Slider, Spinner, ToggleSwitch } from "./atoms";
 import { startBlobDownload } from "./download";
 import { useEditor } from "./EditorContext";
 import { PrivacyAuditCard } from "./PrivacyAuditCard";
-import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 import {
   estimateBytes,
   estimateBytesByEncode,
@@ -68,8 +68,6 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   const [prepared, setPrepared] = useState(false);
   const metaFields = useMemo(() => exifToFields(doc?.exif ?? null), [doc?.exif]);
   const modalRef = useRef<HTMLDivElement>(null);
-  useFocusReturn(true);
-  useFocusTrap(modalRef, true);
   // Esc handling lives in ModalFrame so it routes through the animated
   // close lifecycle — removing the duplicate here lets the sheet slide
   // down on Esc instead of vanishing instantly.
@@ -224,9 +222,6 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   return (
     <ModalFrame
       onClose={onClose}
-      bottomSheet={isMobile}
-      position="absolute"
-      maxWidth="max-w-200"
       labelledBy="export-title"
       modalRef={modalRef}
       modalClassName={isMobile ? "flex-col" : "flex-row"}
@@ -242,7 +237,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
               <I.Download size={15} />
             </div>
             <div>
-              <div className="t-eyebrow text-[10px]">Export</div>
+              <div className="t-eyebrow text-[0.8125rem]">Export</div>
               <div id="export-title" className="t-headline text-base">
                 Save your image
               </div>
@@ -265,7 +260,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             className={`h-auto w-auto max-w-full rounded-xs object-contain ${
               isMobile ? "max-h-full" : "max-h-90"
             }`}
-            style={{ boxShadow: "var(--shadow-popover)" }}
+            style={{ boxShadow: "var(--air-shadow-menu)" }}
           />
         ) : (
           <Spinner label="Preparing preview…" />
@@ -281,7 +276,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           {!isMobile && (
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="t-eyebrow mb-1 text-[10px]">Export</div>
+                <div className="t-eyebrow mb-1 text-[0.8125rem]">Export</div>
                 <div id="export-title" className="t-headline text-lg">
                   Save your image
                 </div>
@@ -316,7 +311,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             />
           </PropRow>
           {settings.format === 4 && (
-            <p className="-mt-2 text-[11px] leading-[1.45] text-text-muted">
+            <p className="-mt-2 text-[0.8125rem] leading-[1.45] text-text-muted">
               HEIC is encoded locally as a HEIF/HEVC file. The first export may take a little longer
               while the private on-device codec loads.
             </p>
@@ -352,7 +347,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           </PropRow>
 
           <PropRow label="Resize to" value="ratio locked">
-            <div className="flex items-center gap-1.5 text-[12.5px]" title="Aspect ratio locked">
+            <div className="flex items-center gap-1.5 text-[0.8125rem]" title="Aspect ratio locked">
               <DimInput
                 label="W"
                 value={targetW}
@@ -367,9 +362,9 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
             </div>
           </PropRow>
 
-          <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[11.5px]">
+          <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[0.8125rem]">
             <span className="text-text-muted">Estimated size</span>
-            <span className="t-mono font-semibold">{formatBytesRough(estimate)}</span>
+            <span className="tabular-nums font-medium">{formatBytesRough(estimate)}</span>
           </div>
 
           <MetadataSection
@@ -385,11 +380,11 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           {exportError && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-lg border border-coral-300 bg-coral-50 px-3 py-2 text-[12px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200"
+              className="flex items-start gap-2 rounded-lg border border-accent bg-surface-soft px-3 py-2 text-[0.8125rem] text-text"
             >
               <I.ShieldCheck size={13} className="mt-0.5 shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="font-semibold">Export failed</div>
+                <div className="font-medium">Export failed</div>
                 <div className="wrap-break-word opacity-80">{exportError}</div>
               </div>
               <button
@@ -463,7 +458,7 @@ function MetadataSection({
   const body = (
     <div className="flex flex-col gap-2.5">
       {metaFields.length > 0 && (
-        <div className="t-mono rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[11px] leading-7">
+        <div className="tabular-nums rounded-md border border-border-soft bg-surface px-2.5 py-2 text-[0.8125rem] leading-7">
           {metaFields.map(([k, v]) => (
             <div key={k} className="flex justify-between gap-2">
               <span className="text-text-muted">{k}</span>
@@ -490,9 +485,9 @@ function MetadataSection({
   if (isMobile) {
     return (
       <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-2.5 py-2.5">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-text">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-text">
           <I.Tag size={12} /> Metadata
-          <span className="text-[10.5px] font-normal text-text-muted">
+          <span className="text-[0.8125rem] font-normal text-text-muted">
             {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
           </span>
         </div>
@@ -507,13 +502,13 @@ function MetadataSection({
         type="button"
         onClick={() => setMetaOpen((o) => !o)}
         aria-expanded={metaOpen}
-        className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-semibold text-text ${
+        className={`flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 py-2 font-[inherit] text-xs font-medium text-text ${
           metaOpen ? "border-b border-border-soft" : ""
         }`}
       >
         <span className="inline-flex items-center gap-1.5">
           <I.Tag size={12} /> Metadata
-          <span className="text-[10.5px] font-normal text-text-muted">
+          <span className="text-[0.8125rem] font-normal text-text-muted">
             {metaFields.length > 0 ? `${metaFields.length} fields` : "none"}
           </span>
         </span>
@@ -523,7 +518,7 @@ function MetadataSection({
           className="text-text-muted"
           style={{
             transform: metaOpen ? "rotate(180deg)" : "none",
-            transition: "transform var(--dur-instant) var(--ease-out)",
+            transition: "transform var(--air-motion-press) var(--air-ease-out)",
           }}
         />
       </button>
@@ -542,17 +537,17 @@ function DimInput({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="t-mono flex flex-1 items-center gap-1.5 rounded-md border border-border bg-page-bg px-2.5 py-1.5 focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500">
-      <span className="text-[10.5px] text-text-muted">{label}</span>
-      <input
-        name={`export-${label.toLowerCase()}`}
-        type="number"
-        aria-label={label}
-        autoComplete="off"
-        value={value || ""}
-        onChange={(e) => onChange(Math.max(1, +e.target.value || 0))}
-        className="w-full min-w-0 border-none bg-transparent font-[inherit] text-[12.5px] text-text outline-none"
+    <label className="img-dimension">
+      <span>{label}</span>
+      <NumberField
+        value={value}
+        min={1}
+        max={Number.MAX_SAFE_INTEGER}
+        step={1}
+        unit="px"
+        label={label === "W" ? "Width" : label === "H" ? "Height" : label}
+        onCommit={onChange}
       />
-    </div>
+    </label>
   );
 }

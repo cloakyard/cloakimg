@@ -168,7 +168,7 @@ export function FilterPanel() {
                       aria-pressed={active}
                       className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 ${
                         isMobile ? "w-18 shrink-0" : ""
-                      } ${active ? "border-2 border-coral-500" : "border border-border"}`}
+                      } ${active ? "border-2 border-accent" : "border border-border"}`}
                     >
                       {thumbUrl ? (
                         <img
@@ -183,11 +183,11 @@ export function FilterPanel() {
                           className="aspect-square w-full"
                           style={{
                             background:
-                              "linear-gradient(135deg, var(--page-bg) 0%, var(--surface) 100%)",
+                              "linear-gradient(135deg, var(--air-page) 0%, var(--air-surface) 100%)",
                           }}
                         />
                       )}
-                      <div className="px-1 py-0.75 text-center text-[10px] font-semibold">
+                      <div className="px-1 py-0.75 text-center text-[0.8125rem] font-medium">
                         {recipe.name}
                       </div>
                     </button>

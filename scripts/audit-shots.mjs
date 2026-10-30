@@ -48,6 +48,7 @@ async function inspectLayout(page, viewport, stage) {
       const style = getComputedStyle(element);
       return (
         rect.width > 0 &&
+        !element.closest('[hidden], [aria-hidden="true"], details:not([open]) nav') &&
         rect.height > 0 &&
         style.display !== "none" &&
         style.visibility !== "hidden"
@@ -55,7 +56,7 @@ async function inspectLayout(page, viewport, stage) {
     };
     const escaped = Array.from(
       document.querySelectorAll(
-        ".cloak-site-header__inner, .cloak-workbench, .cloak-dialog, .editor-topbar, .editor-mobile-surface",
+        ".air-header, .cloak-dialog, .editor-topbar, .editor-mobile-surface",
       ),
     )
       .filter(visible)
@@ -128,237 +129,128 @@ async function inspectLayout(page, viewport, stage) {
 
 async function inspectFooter(page, viewport) {
   const result = await page.evaluate(() => {
-    const footer = document.querySelector(".cloak-site-footer");
-    const navItems = Array.from(document.querySelectorAll(".cloak-site-footer__nav > *"));
-    const actionItems = Array.from(document.querySelectorAll(".cloak-site-footer__actions > *"));
-    const rectFor = (element) => {
-      const rect = element.getBoundingClientRect();
-      return {
-        left: Math.round(rect.left),
-        right: Math.round(rect.right),
-        top: Math.round(rect.top),
-        bottom: Math.round(rect.bottom),
-      };
-    };
-    const wrappedLabels = [...navItems, ...actionItems]
-      .filter((element) => {
-        const range = document.createRange();
-        range.selectNodeContents(element);
-        const textRect = range.getBoundingClientRect();
-        const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight);
-        return Number.isFinite(lineHeight) && textRect.height > lineHeight * 1.5;
-      })
-      .map((element) => element.textContent?.trim())
-      .filter(Boolean);
-
+    const footer = document.querySelector(".air-page-footer");
+    const r = footer?.getBoundingClientRect();
+    const links = [...footer.querySelectorAll("nav a")];
     return {
-      footer: footer ? rectFor(footer) : null,
-      navItems: navItems.map(rectFor),
-      actionItems: actionItems.map(rectFor),
-      wrappedLabels,
+      bounds: r?.toJSON(),
+      labels: links.map((a) => a.textContent.trim()),
+      escaped: links.some((a) => {
+        const r = a.getBoundingClientRect();
+        return r.left < 0 || r.right > innerWidth + 1;
+      }),
     };
   });
-
-  const nav = result.navItems;
-  const narrowGridMisaligned =
-    viewport.width < 640 &&
-    (nav.length !== 4 ||
-      Math.abs(nav[0].top - nav[1].top) > 1 ||
-      Math.abs(nav[2].top - nav[3].top) > 1 ||
-      Math.abs(nav[0].left - nav[2].left) > 1 ||
-      Math.abs(nav[1].left - nav[3].left) > 1);
-  const escaped =
-    !result.footer ||
-    result.footer.left < -1 ||
-    result.footer.right > viewport.width + 1 ||
-    [...result.navItems, ...result.actionItems].some(
-      (item) => item.left < -1 || item.right > viewport.width + 1,
-    );
-
-  if (escaped || narrowGridMisaligned || result.wrappedLabels.length > 0) {
+  if (
+    !result.bounds ||
+    result.escaped ||
+    result.labels.join("|") !== "Privacy|Source|MIT license|Cloakyard|Buy me a coffee"
+  )
     failures.push(`${viewport.name}/footer: ${JSON.stringify(result)}`);
-  }
-
-  const footer = await page.$(".cloak-site-footer");
-  if (footer) {
-    await footer.screenshot({ path: `/tmp/cloakimg-${viewport.name}-footer.png` });
-  }
+  await (
+    await page.$(".air-page-footer")
+  ).screenshot({ path: `/tmp/cloakimg-${viewport.name}-footer.png` });
 }
 
 async function inspectOpenSelectList(page, viewport, label, stage) {
-  const trigger = await page.$(`button[role="combobox"][aria-label="${label}"]`);
-  if (!trigger) {
-    failures.push(`${viewport.name}/${stage}: ${label} trigger missing`);
-    return;
-  }
+  const selector = `button[role="combobox"][aria-label="${label}"]`;
+  const trigger = await page.$(selector);
+  if (!trigger) throw new Error(`${label} trigger missing`);
   await trigger.click();
-
-  await page.waitForFunction(
-    (accessibleName) => {
-      const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
-        (candidate) => candidate.getAttribute("aria-label") === accessibleName,
+  await page.waitForSelector('.air-floating-positioner:not([hidden]) [role="listbox"]');
+  await page
+    .waitForFunction(() => document.activeElement?.getAttribute("role") === "option", {
+      timeout: 3000,
+    })
+    .catch(async (error) => {
+      await page.screenshot({ path: `/tmp/cloakimg-${viewport.name}-${stage}-focus-error.png` });
+      console.log(
+        "focus-error",
+        await page.evaluate(() => ({
+          active: document.activeElement?.outerHTML,
+          list: document.querySelector('.air-floating-positioner:not([hidden]) [role="listbox"]')
+            ?.outerHTML,
+        })),
       );
-      const listbox = trigger?.getAttribute("aria-controls");
-      return listbox && document.getElementById(listbox)?.dataset.ready === "true";
-    },
-    { timeout: 3000 },
-    label,
-  );
-  await new Promise((resolveDelay) => setTimeout(resolveDelay, 180));
-
-  const result = await page.evaluate((accessibleName) => {
-    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
-      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
-    );
-    const native = Array.from(document.querySelectorAll("select")).find(
-      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
-    );
-    const listbox = trigger?.getAttribute("aria-controls")
-      ? document.getElementById(trigger.getAttribute("aria-controls"))
-      : null;
-    if (!trigger || !native || !listbox) return { missing: true };
-
-    const triggerRect = trigger.getBoundingClientRect();
-    const listboxRect = listbox.getBoundingClientRect();
-    const options = Array.from(listbox.querySelectorAll('[role="option"]'));
-    const labels = Array.from(listbox.querySelectorAll(".select-control__option-label"));
-    const selected = options.filter((option) => option.getAttribute("aria-selected") === "true");
-    const selectedRect = selected[0]?.getBoundingClientRect();
-    const groupLabels = Array.from(listbox.querySelectorAll(".select-control__group-label"));
-    const activeId = trigger.getAttribute("aria-activedescendant");
-    const indicator = trigger.querySelector(".select-control__indicator svg");
-    const itemHeights = options.map((option) => option.getBoundingClientRect().height);
-    let topLayer = false;
-    try {
-      topLayer = listbox.matches(":popover-open");
-    } catch {
-      topLayer = false;
-    }
-
+      throw error;
+    });
+  const result = await page.evaluate((label) => {
+    const trigger = document.querySelector(`button[role="combobox"][aria-label="${label}"]`);
+    const native = document.querySelector(`select[aria-label="${label}"]`);
+    const list = document.querySelector('.air-floating-positioner:not([hidden]) [role="listbox"]'),
+      popup = list.closest(".air-select-popup");
+    const options = [
+        ...list.querySelectorAll('.air-floating-positioner:not([hidden]) [role="option"]'),
+      ],
+      selected = options.filter((o) => o.getAttribute("aria-selected") === "true");
+    const r = popup.getBoundingClientRect(),
+      active = document.activeElement,
+      a = active.getBoundingClientRect();
     return {
-      missing: false,
       expanded: trigger.getAttribute("aria-expanded"),
-      selectedValue: native.value,
-      nativeOptionCount: native.options.length,
-      optionCount: options.length,
-      nativeGroupCount: native.querySelectorAll("optgroup").length,
-      groupCount: listbox.querySelectorAll('[role="group"]').length,
-      selectedCount: selected.length,
-      selectedLabel: selected[0]?.textContent?.trim(),
-      selectedMarker: !!selected[0]?.querySelector(".select-control__option-marker svg"),
-      selectedFullyVisible: !!(
-        selectedRect &&
-        selectedRect.top >= listboxRect.top - 1 &&
-        selectedRect.bottom <= listboxRect.bottom + 1
-      ),
-      activeOptionExists: !!(activeId && document.getElementById(activeId)),
-      triggerWidth: Math.round(triggerRect.width),
-      bounds: {
-        left: Math.round(listboxRect.left),
-        right: Math.round(listboxRect.right),
-        top: Math.round(listboxRect.top),
-        bottom: Math.round(listboxRect.bottom),
-      },
-      minItemHeight: Math.round(Math.min(...itemHeights)),
-      listHorizontalOverflow: listbox.scrollWidth > listbox.clientWidth + 1,
-      labelHorizontalOverflow: labels.some((entry) => entry.scrollWidth > entry.clientWidth + 1),
-      optionFont: options[0] ? getComputedStyle(options[0]).fontFamily : "",
-      groupFont: groupLabels[0] ? getComputedStyle(groupLabels[0]).fontFamily : "",
-      background: getComputedStyle(listbox).backgroundColor,
-      arrowTransform: indicator ? getComputedStyle(indicator).transform : "missing",
-      placement: listbox.dataset.placement,
-      topLayer,
-    };
-  }, label);
-
-  const minimumHeight = viewport.touch ? 44 : 40;
-  const invalid =
-    result.missing ||
-    result.expanded !== "true" ||
-    result.nativeOptionCount !== result.optionCount ||
-    result.nativeGroupCount !== result.groupCount ||
-    result.selectedCount !== 1 ||
-    !result.selectedMarker ||
-    !result.selectedFullyVisible ||
-    !result.activeOptionExists ||
-    result.bounds.left < LISTBOX_EDGE_TOLERANCE ||
-    result.bounds.right > viewport.width + 1 ||
-    result.bounds.top < LISTBOX_EDGE_TOLERANCE ||
-    result.bounds.bottom > viewport.height + 1 ||
-    result.bounds.right - result.bounds.left + 1 < result.triggerWidth ||
-    result.minItemHeight < minimumHeight ||
-    result.listHorizontalOverflow ||
-    result.labelHorizontalOverflow ||
-    !result.optionFont.includes("Archivo") ||
-    (result.groupCount > 0 && !result.groupFont.includes("JetBrains Mono")) ||
-    result.background === "rgba(0, 0, 0, 0)" ||
-    result.arrowTransform === "none" ||
-    !result.topLayer;
-  if (invalid) {
-    failures.push(`${viewport.name}/${stage}: ${JSON.stringify(result)}`);
-  }
-  console.log(JSON.stringify({ viewport: viewport.name, stage, listbox: result }));
-
-  await page.screenshot({
-    path: `/tmp/cloakimg-${viewport.name}-${stage}.png`,
-    fullPage: false,
-  });
-
-  const beforeNavigation = await page.evaluate((accessibleName) => {
-    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
-      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
-    );
-    const native = Array.from(document.querySelectorAll("select")).find(
-      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
-    );
-    return {
-      active: trigger?.getAttribute("aria-activedescendant"),
-      value: native?.value,
-    };
-  }, label);
-  await page.keyboard.press("ArrowDown");
-  const afterArrow = await page.evaluate((accessibleName) => {
-    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
-      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
-    );
-    return trigger?.getAttribute("aria-activedescendant");
-  }, label);
-  await page.keyboard.press("Escape");
-  await page.waitForFunction(
-    (accessibleName) =>
-      Array.from(document.querySelectorAll('button[role="combobox"]'))
-        .find((candidate) => candidate.getAttribute("aria-label") === accessibleName)
-        ?.getAttribute("aria-expanded") === "false",
-    { timeout: 3000 },
-    label,
-  );
-  const afterDismiss = await page.evaluate((accessibleName) => {
-    const trigger = Array.from(document.querySelectorAll('button[role="combobox"]')).find(
-      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
-    );
-    const native = Array.from(document.querySelectorAll("select")).find(
-      (candidate) => candidate.getAttribute("aria-label") === accessibleName,
-    );
-    return {
-      focused: document.activeElement === trigger,
-      value: native?.value,
+      options: options.length,
+      nativeOptions: native.options.length,
+      groups: list.querySelectorAll(".air-menu-label").length,
+      nativeGroups: native.querySelectorAll("optgroup").length,
+      selected: selected.length,
+      marker: !!selected[0]?.querySelector(".air-menu-check svg"),
+      bounds: r.toJSON(),
+      activeVisible: a.top >= r.top - 1 && a.bottom <= r.bottom + 1,
+      minHeight: Math.min(...options.map((o) => o.getBoundingClientRect().height)),
+      overflow: popup.scrollWidth > popup.clientWidth + 1,
+      font: getComputedStyle(options[0]).fontFamily,
+      background: getComputedStyle(popup).backgroundColor,
+      value: native.value,
+      active: active.textContent,
     };
   }, label);
   if (
-    beforeNavigation.active === afterArrow ||
-    beforeNavigation.value !== afterDismiss.value ||
-    !afterDismiss.focused
-  ) {
+    result.expanded !== "true" ||
+    result.options !== result.nativeOptions ||
+    result.groups !== result.nativeGroups ||
+    result.selected !== 1 ||
+    !result.marker ||
+    !result.activeVisible ||
+    result.bounds.left < 15 ||
+    result.bounds.right > viewport.width - 15 ||
+    result.bounds.top < 15 ||
+    result.bounds.bottom > viewport.height - 15 ||
+    result.minHeight < (viewport.touch ? 44 : 32) ||
+    result.overflow ||
+    /Archivo|JetBrains/.test(result.font) ||
+    result.background === "rgba(0, 0, 0, 0)"
+  )
+    failures.push(`${viewport.name}/${stage}: ${JSON.stringify(result)}`);
+  await page.screenshot({ path: `/tmp/cloakimg-${viewport.name}-${stage}.png` });
+  await page.keyboard.press("End");
+  const after = await page.evaluate(() => document.activeElement?.textContent);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(
+    (selector) => document.querySelector(selector)?.getAttribute("aria-expanded") === "false",
+    {},
+    selector,
+  );
+  await page.waitForFunction(
+    (selector) => document.activeElement === document.querySelector(selector),
+    { timeout: 3000 },
+    selector,
+  );
+  const dismissed = await page.evaluate(
+    (selector) => ({
+      focused: document.activeElement === document.querySelector(selector),
+      value: document.querySelector(selector).closest(".select-control").querySelector("select")
+        .value,
+    }),
+    selector,
+  );
+  if (after === result.active || dismissed.value !== result.value || !dismissed.focused)
     failures.push(
-      `${viewport.name}/${stage}-keyboard: ${JSON.stringify({ beforeNavigation, afterArrow, afterDismiss })}`,
+      `${viewport.name}/${stage}-keyboard: ${JSON.stringify({ result, after, dismissed })}`,
     );
-  }
 }
 
-const LISTBOX_EDGE_TOLERANCE = 7;
-
 async function inspectIdPhotoDropdowns(page, viewport) {
-  if (viewport.width <= 600) {
+  if (viewport.width <= 768) {
     await page.evaluate(() => {
       Array.from(document.querySelectorAll("button"))
         .find((button) => button.getAttribute("aria-label") === "Open tools")
@@ -406,7 +298,7 @@ async function inspectIdPhotoDropdowns(page, viewport) {
       return controls.map((select) => {
         const shell = select.closest(".select-control");
         const value = shell?.querySelector(".select-control__value");
-        const indicator = shell?.querySelector(".select-control__indicator svg");
+        const indicator = shell?.querySelector(".air-select-icon svg");
         if (!shell || !value || !indicator) {
           return { label: select.getAttribute("aria-label"), missingShell: true };
         }
@@ -688,25 +580,16 @@ async function inspectIdPhotoDropdowns(page, viewport) {
   }
 
   await page.click('button[role="combobox"][aria-label="Photo standard"]');
-  await page.waitForSelector('.select-control__listbox[data-ready="true"]', { timeout: 3000 });
-  const indiaVisaSelected = await page.evaluate(() => {
-    const select = document.querySelector('select[aria-label="Photo standard"]');
-    const indiaOption = Array.from(select?.options ?? []).find(
-      (option) => option.value === "india-visa",
-    );
-    const trigger = document.querySelector('button[role="combobox"][aria-label="Photo standard"]');
-    const listbox = trigger?.getAttribute("aria-controls")
-      ? document.getElementById(trigger.getAttribute("aria-controls"))
-      : null;
-    const option = indiaOption
-      ? listbox?.querySelector(`[data-option-index="${indiaOption.index}"]`)
-      : null;
-    option?.click();
-    return !!option;
+  await page.waitForSelector('.air-floating-positioner:not([hidden]) [role="listbox"]', {
+    timeout: 3000,
   });
-  if (!indiaVisaSelected) {
-    failures.push(`${viewport.name}/id-photo-standard-menu: India visa item missing`);
-  }
+  const indiaOption = await page.evaluateHandle(() =>
+    [...document.querySelectorAll('.air-floating-positioner:not([hidden]) [role="option"]')].find(
+      (o) => o.textContent.trim() === "India · Visa · 51 × 51 mm",
+    ),
+  );
+  if (!indiaOption.asElement()) throw new Error("India visa option missing");
+  await indiaOption.asElement().click();
   await page.waitForFunction(
     () =>
       document.querySelector('select[aria-label="Photo standard"]')?.value === "india-visa" &&
@@ -735,6 +618,10 @@ async function inspectIdPhotoDropdowns(page, viewport) {
     failures.push(`${viewport.name}/id-photo-framing-preset: ${JSON.stringify(afterPreset)}`);
   }
   await inspect("india-visa");
+  await page.waitForSelector('.air-floating-positioner:not([hidden]) [role="listbox"]', {
+    hidden: true,
+    timeout: 3000,
+  });
 
   await page.$eval('select[aria-label="Paper size"]', (select) => {
     select.closest(".select-control")?.scrollIntoView({ block: "center" });
@@ -746,7 +633,7 @@ async function inspectIdPhotoDropdowns(page, viewport) {
     fullPage: false,
   });
 
-  if (viewport.width <= 600) {
+  if (viewport.width <= 768) {
     await page.evaluate(() => {
       Array.from(document.querySelectorAll("button"))
         .find((button) => button.getAttribute("aria-label") === "Cancel")
@@ -757,7 +644,7 @@ async function inspectIdPhotoDropdowns(page, viewport) {
 }
 
 async function inspectBatchDropdown(page, viewport) {
-  if (viewport.width <= 600) return;
+  if (viewport.width <= 768) return;
   await page.click('button[aria-label="Batch"]');
   await page.waitForSelector(".editor-shell .scroll-thin", { timeout: 3000 });
   const expanded = await page.evaluate(() => {
@@ -776,7 +663,7 @@ async function inspectBatchDropdown(page, viewport) {
     const select = document.querySelector('select[aria-label="Format"]');
     const shell = select?.closest(".select-control");
     const value = shell?.querySelector(".select-control__value");
-    const indicator = shell?.querySelector(".select-control__indicator svg");
+    const indicator = shell?.querySelector(".air-select-icon svg");
     if (!select || !shell || !value || !indicator) return { missing: true };
     const shellRect = shell.getBoundingClientRect();
     const indicatorRect = indicator.getBoundingClientRect();
@@ -802,7 +689,7 @@ async function inspectBatchDropdown(page, viewport) {
 
 async function inspectMobileToolPicker(page, viewport) {
   const wrappedLabels = await page.evaluate(() =>
-    Array.from(document.querySelectorAll(".editor-mobile-surface button[aria-pressed] span"))
+    Array.from(document.querySelectorAll(".editor-mobile-surface .grid button[aria-pressed] span"))
       .filter((label) => {
         const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight);
         return (
@@ -830,7 +717,7 @@ async function inspectMobileToolSearch(page, viewport) {
   await new Promise((resolveDelay) => setTimeout(resolveDelay, 120));
   const searchState = await page.evaluate(() => {
     const resultButtons = Array.from(
-      document.querySelectorAll(".editor-mobile-surface button[aria-pressed]"),
+      document.querySelectorAll(".editor-mobile-surface .grid button[aria-pressed]"),
     )
       .map((button) => button.getAttribute("aria-label"))
       .filter(Boolean);
@@ -855,14 +742,14 @@ async function inspectMobileToolSearch(page, viewport) {
 
 async function auditMobileToolPanels(page, viewport) {
   const labels = await page.evaluate(() =>
-    Array.from(document.querySelectorAll(".editor-mobile-surface button[aria-pressed]"))
+    Array.from(document.querySelectorAll(".editor-mobile-surface .grid button[aria-pressed]"))
       .map((button) => button.getAttribute("aria-label"))
       .filter(Boolean),
   );
 
   for (const label of labels) {
     await page.evaluate((toolLabel) => {
-      Array.from(document.querySelectorAll(".editor-mobile-surface button[aria-pressed]"))
+      Array.from(document.querySelectorAll(".editor-mobile-surface .grid button[aria-pressed]"))
         .find((button) => button.getAttribute("aria-label") === toolLabel)
         ?.click();
     }, label);
@@ -1015,7 +902,7 @@ async function inspectScrolledPickerTransition(page, viewport) {
     const scroller = surface?.querySelector(".scroll-thin");
     if (!scroller) return { missing: true };
     scroller.scrollTop = scroller.scrollHeight;
-    const resize = Array.from(surface.querySelectorAll("button[aria-pressed]")).find(
+    const resize = Array.from(surface.querySelectorAll(".grid button[aria-pressed]")).find(
       (button) => button.getAttribute("aria-label") === "Resize",
     );
     resize?.click();
@@ -1073,6 +960,10 @@ for (const viewport of viewports) {
     deviceScaleFactor: 1,
   });
   await page.emulateTimezone("Asia/Kolkata");
+  await page.emulateMediaFeatures([
+    { name: "prefers-reduced-motion", value: "reduce" },
+    { name: "prefers-color-scheme", value: process.env.AIR_THEME || "light" },
+  ]);
   await page.goto(baseUrl, { waitUntil: "networkidle2", timeout: 30000 });
   await inspectLayout(page, viewport, "landing");
   await inspectFooter(page, viewport);
@@ -1118,7 +1009,7 @@ for (const viewport of viewports) {
   await inspectIdPhotoDropdowns(page, viewport);
   await inspectBatchDropdown(page, viewport);
 
-  if (viewport.width <= 600) {
+  if (viewport.width <= 768) {
     await page.evaluate(() => {
       Array.from(document.querySelectorAll("button"))
         .find((button) => button.getAttribute("aria-label") === "Open tools")

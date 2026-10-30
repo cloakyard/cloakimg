@@ -1,3 +1,4 @@
+import { NumberField } from "./NumberField";
 // BatchView.tsx — When the user toggles into batch mode, the canvas
 // swaps for a thumbnail grid (drag/drop to add files) and the right
 // panel becomes a recipe builder of reusable steps.
@@ -44,13 +45,13 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
     >
       <div className="mb-3.5 flex items-center justify-between">
         <div>
-          <div className="text-sm font-semibold">
+          <div className="text-sm font-medium">
             {batchFiles.length === 0
               ? "Drag images here to start a batch"
               : `Batch · ${batchFiles.length} file${batchFiles.length === 1 ? "" : "s"}`}
           </div>
           {batchFiles.length > 0 && (
-            <div className="text-[11.5px] text-text-muted">
+            <div className="text-[0.8125rem] text-text-muted">
               {counts.progress} in progress · {counts.done} done · {counts.queued} queued
               {counts.error > 0 ? ` · ${counts.error} failed` : ""}
             </div>
@@ -86,10 +87,10 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
 
       <div className="relative mb-4 h-1 overflow-hidden rounded-sm bg-border">
         <div
-          className="absolute inset-0 origin-left bg-coral-500"
+          className="absolute inset-0 origin-left bg-accent"
           style={{
             transform: `scaleX(${progress})`,
-            transition: "transform var(--dur-base) var(--ease-standard)",
+            transition: "transform var(--air-motion-dialog) var(--air-ease-out)",
           }}
         />
       </div>
@@ -154,12 +155,12 @@ function BatchThumb({ f }: { f: ReturnType<typeof useEditor>["batchFiles"][numbe
         </a>
       )}
       {f.status === "error" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-danger/40 p-2 text-center text-[10px] font-semibold text-white">
+        <div className="absolute inset-0 flex items-center justify-center bg-danger/40 p-2 text-center text-[0.8125rem] font-medium text-white">
           {f.error ?? "Failed"}
         </div>
       )}
       <div
-        className="t-mono absolute right-0 bottom-0 left-0 overflow-hidden px-1.5 py-1 text-[10px] text-white whitespace-nowrap text-ellipsis"
+        className="tabular-nums absolute right-0 bottom-0 left-0 overflow-hidden px-1.5 py-1 text-[0.8125rem] text-white whitespace-nowrap text-ellipsis"
         style={{ background: "linear-gradient(180deg, transparent, rgba(0,0,0,0.6))" }}
       >
         {f.name}
@@ -288,11 +289,11 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
       }`}
     >
       <div className="border-b border-border-soft px-4 py-3.5">
-        <div className="t-eyebrow mb-1.5 text-[10px]">Recipe</div>
-        <div className="text-sm font-semibold">
+        <div className="t-eyebrow mb-1.5 text-[0.8125rem]">Recipe</div>
+        <div className="text-sm font-medium">
           Apply to {batchFiles.length === 0 ? "…" : `${batchFiles.length} files`}
         </div>
-        <div className="mt-0.75 text-[11.5px] text-text-muted">
+        <div className="mt-0.75 text-[0.8125rem] text-text-muted">
           Drag steps to reorder · click to expand parameters.
         </div>
       </div>
@@ -316,12 +317,12 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
                   onClick={() => setExpandedIdx(expanded ? null : i)}
                   className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 border-none bg-transparent px-3 py-2.5 text-left font-[inherit] text-inherit"
                 >
-                  <span className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-md bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300">
+                  <span className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-md bg-surface-soft text-text">
                     <meta.Icon size={13} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[12.5px] font-semibold">{meta.title}</span>
-                    <span className="block text-[10.5px] text-text-muted">
+                    <span className="block text-[0.8125rem] font-medium">{meta.title}</span>
+                    <span className="block text-[0.8125rem] text-text-muted">
                       {describeStep(step)}
                     </span>
                   </span>
@@ -364,7 +365,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
             <div
               role="menu"
               className="absolute right-0 left-0 z-20 overflow-hidden rounded-lg border border-border bg-surface"
-              style={{ top: "calc(100% + 4px)", boxShadow: "var(--shadow-float)" }}
+              style={{ top: "calc(100% + 4px)", boxShadow: "var(--air-shadow-menu)" }}
             >
               {(["resize", "adjust", "filter", "strip-metadata", "convert"] as StepKind[]).map(
                 (k) => {
@@ -410,7 +411,7 @@ export function BatchPanel({ collapsed = false }: { collapsed?: boolean }) {
             <I.Download size={12} /> Download all ({doneFiles.length}) as .zip
           </button>
         )}
-        <div className="text-center text-[10.5px] text-text-muted">
+        <div className="text-center text-[0.8125rem] text-text-muted">
           {batchFiles.length === 0
             ? "Drop files in the left panel to start"
             : "Done thumbnails become individual download links"}
@@ -429,7 +430,8 @@ function StepEditor({ step, onChange }: StepEditorProps) {
   if (step.kind === "resize") {
     return (
       <NumberRow
-        label="Long edge (px)"
+        label="Long edge"
+        suffix="px"
         value={step.longEdge}
         min={64}
         max={8192}
@@ -491,14 +493,14 @@ function StepEditor({ step, onChange }: StepEditorProps) {
   }
   if (step.kind === "adjust") {
     return (
-      <div className="py-2 text-[11px] text-text-muted">
+      <div className="py-2 text-[0.8125rem] text-text-muted">
         Custom adjust vectors are edited via the Adjust tool. Tweak there, then re-create this step
         to capture the new values.
       </div>
     );
   }
   return (
-    <div className="py-2 text-[11px] text-text-muted">
+    <div className="py-2 text-[0.8125rem] text-text-muted">
       Strips GPS, camera info, and timestamps from the source EXIF on JPEG output.
     </div>
   );
@@ -513,25 +515,18 @@ interface NumberRowProps {
   onChange: (next: number) => void;
 }
 
-function NumberRow({ label, value, min, max, suffix, onChange }: NumberRowProps) {
+function NumberRow({ label, value, min = 0, max = 20000, suffix, onChange }: NumberRowProps) {
   return (
-    <label className="flex items-center justify-between gap-2.5 py-1.5 text-[11.5px]">
-      <span className="text-text-muted">{label}</span>
-      <span className="flex items-center gap-1">
-        <input
-          type="number"
-          value={value}
-          min={min}
-          max={max}
-          onChange={(e) => {
-            const n = +e.target.value;
-            if (!Number.isFinite(n)) return;
-            onChange(Math.max(min ?? n, Math.min(max ?? n, n)));
-          }}
-          className="w-16 rounded border border-border bg-surface px-1.5 py-1 text-right font-mono text-[11.5px] text-text"
-        />
-        {suffix && <span className="text-[10.5px] text-text-muted">{suffix}</span>}
-      </span>
+    <label className="img-dimension">
+      <span>{label}</span>
+      <NumberField
+        value={value}
+        min={min}
+        max={max}
+        unit={suffix}
+        label={label}
+        onCommit={onChange}
+      />
     </label>
   );
 }
@@ -546,7 +541,7 @@ interface SelectRowProps {
 function SelectRow({ label, value, options, onChange }: SelectRowProps) {
   const selected = options.find((option) => option.value === value);
   return (
-    <div className="flex min-w-0 items-center justify-between gap-2.5 py-1.5 text-[11.5px]">
+    <div className="flex min-w-0 items-center justify-between gap-2.5 py-1.5 text-[0.8125rem]">
       <span className="shrink-0 text-text-muted">{label}</span>
       <SelectControl
         aria-label={label}

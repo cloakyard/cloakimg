@@ -84,8 +84,8 @@ export function MovePanel() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-start gap-2 rounded-md border border-border-soft bg-page-bg px-3 py-2.5">
-        <I.Move size={14} className="mt-0.5 shrink-0 text-coral-500" />
-        <div className="text-[12px] leading-relaxed text-text">
+        <I.Move size={14} className="mt-0.5 shrink-0 text-text" />
+        <div className="text-[0.8125rem] leading-relaxed text-text">
           {layerCount === 0 ? (
             <>
               Tap a layer to pick it up. There aren't any yet — add text, a shape, an emoji, or
@@ -93,10 +93,8 @@ export function MovePanel() {
             </>
           ) : activeLabel ? (
             <>
-              <span className="font-semibold text-coral-700 dark:text-coral-300">
-                {activeLabel}
-              </span>{" "}
-              selected. Drag to move, use the corner handles to resize or rotate.
+              <span className="font-medium text-text">{activeLabel}</span> selected. Drag to move,
+              use the corner handles to resize or rotate.
             </>
           ) : (
             <>

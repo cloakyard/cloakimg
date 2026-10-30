@@ -132,9 +132,9 @@ export function BorderPanel() {
                   type="button"
                   onClick={() => patchTool("borderAspect", 0)}
                   aria-pressed={noneActive}
-                  className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+                  className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[0.8125rem] font-medium pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
                     noneActive
-                      ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+                      ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
                       : "border-border-soft bg-page-bg text-text-muted"
                   }`}
                 >
@@ -150,9 +150,9 @@ export function BorderPanel() {
                   type="button"
                   onClick={() => patchTool("borderAspect", active ? 0 : a.ratio)}
                   aria-pressed={active}
-                  className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[11.5px] font-semibold pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+                  className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[0.8125rem] font-medium pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
                     active
-                      ? "border-coral-500 bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+                      ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
                       : "border-border-soft bg-page-bg text-text-muted"
                   }`}
                 >
@@ -169,12 +169,12 @@ export function BorderPanel() {
       </PropRow>
 
       {target && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted">
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">
           New size: {target.w} × {target.h}
         </div>
       )}
       {toolState.borderMode === 0 && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted">
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">
           Adds a uniform pad on every side. Layers shift with the image so a watermark stays in its
           corner.
         </div>
@@ -182,7 +182,7 @@ export function BorderPanel() {
 
       <button
         type="button"
-        className="btn btn-ghost btn-xs mt-1 w-full justify-center text-coral-700 dark:text-coral-300"
+        className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
         onClick={reset}
         disabled={!dirty}
       >

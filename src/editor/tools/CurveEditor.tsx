@@ -28,27 +28,16 @@ import {
   useRef,
   useState,
 } from "react";
+import { NumberField } from "../NumberField";
 import { useEditorReadOnly } from "../EditorContext";
 import { type CurvePoint, IDENTITY_CURVE } from "../toolState";
 import { buildCurveLUT } from "./adjustments";
 
 const SAMPLE_LONG_EDGE = 240;
-// Touch and mouse get different geometry so the handle is grabbable
-// with a finger but doesn't dominate on a precision pointer. Every
-// constant is in viewBox units (0..255), which the SVG stretches to
-// fit its container — the math stays the same regardless of the
-// panel's actual rendered width.
-const COARSE_POINTER =
-  typeof window !== "undefined" &&
-  typeof window.matchMedia === "function" &&
-  window.matchMedia("(pointer: coarse)").matches;
-const HIT_RADIUS = COARSE_POINTER ? 20 : 14;
-const POINT_RADIUS = COARSE_POINTER ? 11 : 7;
-// Drag the point this many viewBox-units past the top or bottom edge
-// to delete it. Photoshop / Affinity use the same gesture; on touch
-// it's the primary delete affordance because dblclick is unreliable
-// across mobile WebKit / WebView combos.
-const OFF_EDGE_DELETE = COARSE_POINTER ? 32 : 24;
+const POINT_RADIUS = 5;
+const OFF_EDGE_DELETE = 24;
+const PLOT_INSET = 16;
+const PLOT_SIZE = 255 + PLOT_INSET * 2;
 
 interface HistogramData {
   r: Uint32Array;
@@ -75,7 +64,10 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
   // point object itself — every drag tick produces a new sorted array,
   // so the index can shift if the user pulls past a neighbour. We
   // re-resolve it from the latest array on each move event.
-  const dragRef = useRef<{ index: number } | null>(null);
+  const dragRef = useRef<{ index: number; before: CurvePoint[] } | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const selected = Math.min(selectedIndex, curve.length - 1);
+  const selectedPoint = curve[selected];
 
   const [hist, setHist] = useState<HistogramData | null>(null);
   // The index of the point currently being dragged outside the SVG
@@ -138,8 +130,8 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
     // Raw values are unclamped so the move handler can detect
     // drag-off-edge for delete; the clamped pair is what actually
     // updates the curve.
-    const rawX = ((clientX - rect.left) / rect.width) * 255;
-    const rawY = 255 - ((clientY - rect.top) / rect.height) * 255;
+    const rawX = ((clientX - rect.left) / rect.width) * PLOT_SIZE - PLOT_INSET;
+    const rawY = 255 - (((clientY - rect.top) / rect.height) * PLOT_SIZE - PLOT_INSET);
     return {
       x: Math.max(0, Math.min(255, rawX)),
       y: Math.max(0, Math.min(255, rawY)),
@@ -160,7 +152,7 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
         if (!p) continue;
         const dx = p.x - local.x;
         const dy = p.y - local.y;
-        if (dx * dx + dy * dy < HIT_RADIUS * HIT_RADIUS) {
+        if (Math.hypot(dx, dy) < (22 * PLOT_SIZE) / e.currentTarget.getBoundingClientRect().width) {
           idx = i;
           break;
         }
@@ -176,7 +168,9 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
         idx = next.findIndex((p) => p.x === insertX);
         onChange(next);
       }
-      dragRef.current = { index: idx };
+      dragRef.current = { index: idx, before: curve.map((point) => ({ ...point })) };
+      setSelectedIndex(idx);
+      e.currentTarget.focus({ preventScroll: true });
     },
     [curve, onChange, toLocal],
   );
@@ -243,39 +237,84 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
     setPendingDeleteIdx(null);
   }, [curve, onChange, pendingDeleteIdx]);
 
-  const reset = useCallback(() => onChange(IDENTITY_CURVE), [onChange]);
+  const reset = () => {
+    setSelectedIndex(0);
+    onChange(IDENTITY_CURVE);
+  };
+  const movePoint = (x: number, y: number) => {
+    if (!selectedPoint) return;
+    const first = selected === 0,
+      last = selected === curve.length - 1;
+    const lo = first ? 0 : curve[selected - 1]!.x + 1,
+      hi = last ? 255 : curve[selected + 1]!.x - 1;
+    const next = curve.map((point, i) =>
+      i === selected
+        ? {
+            x: first ? 0 : last ? 255 : Math.max(lo, Math.min(hi, Math.round(x))),
+            y: Math.max(0, Math.min(255, Math.round(y))),
+          }
+        : point,
+    );
+    onChange(next);
+  };
+  const removePoint = () => {
+    if (selected === 0 || selected === curve.length - 1) return;
+    onChange(curve.filter((_, i) => i !== selected));
+    setSelectedIndex(selected - 1);
+  };
+  const addPoint = () => {
+    let gap = 0,
+      index = 0;
+    for (let i = 1; i < curve.length; i++) {
+      const nextGap = curve[i]!.x - curve[i - 1]!.x;
+      if (nextGap > gap) {
+        gap = nextGap;
+        index = i;
+      }
+    }
+    if (gap < 2) return;
+    const x = Math.round((curve[index - 1]!.x + curve[index]!.x) / 2);
+    const next = [...curve];
+    next.splice(index, 0, { x, y: lut[x] ?? x });
+    onChange(next);
+    setSelectedIndex(index);
+  };
+  const keys = (event: React.KeyboardEvent) => {
+    if (!selectedPoint) return;
+    const step = event.shiftKey ? 10 : 1;
+    if (
+      ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Delete", "Backspace"].includes(event.key)
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else return;
+    if (event.key === "Delete" || event.key === "Backspace") removePoint();
+    else
+      movePoint(
+        selectedPoint.x +
+          (event.key === "ArrowRight" ? step : event.key === "ArrowLeft" ? -step : 0),
+        selectedPoint.y + (event.key === "ArrowUp" ? step : event.key === "ArrowDown" ? -step : 0),
+      );
+  };
 
   return (
-    <div className="rounded-md border border-border-soft bg-page-bg p-1.5">
+    <div className="img-curve" data-compact={fit}>
+      <p className="air-label">RGB tone curve</p>
       <svg
         ref={svgRef}
-        viewBox="0 0 255 255"
-        preserveAspectRatio="none"
-        // In `fit` mode (mobile Histogram tab) the height is capped by
-        // the drawer's actual max — exposed by MobileSheet as
-        // `--ci-sheet-max`, inherited via CSS — so total content fits
-        // without scrolling. The width grows up to 1.2× the height,
-        // which closes the side gaps a square left behind on phones
-        // without crossing into "stretched" territory (control points
-        // become only mildly elliptical, the diagonal stays close to
-        // 45°). `min(100%, …)` keeps it inside the panel on narrow
-        // viewports; `mx-auto` centers when the cap kicks in.
-        className={fit ? "mx-auto block touch-none" : "block w-full touch-none"}
-        // Square aspect on desktop — circles stay round, the diagonal
-        // stays at 45°, and the histogram bins read at consistent
-        // visual density.
-        style={
-          fit
-            ? {
-                height: "max(140px, calc(var(--ci-sheet-max, 45vh) - 220px))",
-                width: "min(100%, calc(max(140px, calc(var(--ci-sheet-max, 45vh) - 220px)) * 1.2))",
-              }
-            : { aspectRatio: "1 / 1" }
-        }
+        viewBox={`-${PLOT_INSET} -${PLOT_INSET} ${PLOT_SIZE} ${PLOT_SIZE}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="img-curve-plot"
+        tabIndex={0}
+        onKeyDown={keys}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerCancel={() => {
+          if (dragRef.current) onChange(dragRef.current.before);
+          dragRef.current = null;
+          setPendingDeleteIdx(null);
+        }}
         role="application"
         aria-label="Tone curve editor"
       >
@@ -311,7 +350,7 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
           strokeDasharray="3 4"
         />
         {/* Curve. */}
-        <path d={curvePath} stroke="#f5613a" strokeWidth="1.5" fill="none" />
+        <path d={curvePath} stroke="var(--air-accent)" strokeWidth="1.5" fill="none" />
         {/* Control points — drawn last so they sit on top of the line.
             x is unique within the sorted curve (we dedupe on insert),
             so it makes a stable React key without falling back to
@@ -328,8 +367,8 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
               cx={p.x}
               cy={255 - p.y}
               r={POINT_RADIUS}
-              fill="#ffffff"
-              stroke="#f5613a"
+              fill={selected === i ? "var(--air-accent)" : "var(--air-surface)"}
+              stroke="var(--air-accent)"
               strokeWidth="1.5"
               opacity={fading ? 0.35 : 1}
               style={{ cursor: isEndpoint ? "ns-resize" : "move" }}
@@ -337,22 +376,69 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
           );
         })}
       </svg>
-      <div className="mt-1 flex items-center justify-between text-text-muted">
-        <span className="text-[10px] pointer-coarse:text-[11px]">
-          {COARSE_POINTER
-            ? "Tap to add · drag off edge to remove"
-            : "Click to add · drag off edge to remove"}
-        </span>
+      <p className="img-curve-hint">
+        Red, green, blue and luminance histogram. Select a point, then use arrow keys or enter
+        input/output. Shift moves 10 levels.
+      </p>
+      <div className="img-curve-points" role="group" aria-label="Curve points">
+        {curve.map((point, i) => (
+          <button
+            type="button"
+            key={i}
+            className="btn btn-secondary btn-sm"
+            aria-pressed={selected === i}
+            aria-label={`Point ${i + 1}: input ${point.x}, output ${point.y}`}
+            onClick={() => setSelectedIndex(i)}
+            onKeyDown={keys}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
+      {selectedPoint && (
+        <div className="img-curve-values">
+          <label>
+            Input
+            <NumberField
+              label="Curve input"
+              value={selectedPoint.x}
+              min={selected === 0 ? 0 : curve[selected - 1]!.x + 1}
+              max={selected === curve.length - 1 ? 255 : curve[selected + 1]!.x - 1}
+              disabled={selected === 0 || selected === curve.length - 1}
+              onCommit={(x) => movePoint(x, selectedPoint.y)}
+            />
+          </label>
+          <label>
+            Output
+            <NumberField
+              label="Curve output"
+              value={selectedPoint.y}
+              min={0}
+              max={255}
+              onCommit={(y) => movePoint(selectedPoint.x, y)}
+            />
+          </label>
+        </div>
+      )}
+      <div className="img-curve-actions">
         <button
+          className="btn btn-secondary btn-sm"
           type="button"
-          onClick={reset}
-          // Touch users get a meaningfully larger tap target — the
-          // visible label stays compact, but the button's padding +
-          // font scale up on coarse pointers so it clears the ~44 pt
-          // minimum without making the chrome heavier on desktop.
-          className="cursor-pointer border-none bg-transparent p-0 font-[inherit] text-[10.5px] font-semibold text-coral-700 pointer-coarse:min-h-11 pointer-coarse:px-2 pointer-coarse:py-1 pointer-coarse:text-[12.5px] dark:text-coral-300"
+          onClick={addPoint}
+          disabled={curve.length >= 256}
         >
-          Reset
+          Add point
+        </button>
+        <button
+          className="btn btn-ghost btn-sm"
+          type="button"
+          onClick={removePoint}
+          disabled={selected === 0 || selected === curve.length - 1}
+        >
+          Remove point
+        </button>
+        <button className="btn btn-ghost btn-sm" type="button" onClick={reset}>
+          Reset curve
         </button>
       </div>
     </div>

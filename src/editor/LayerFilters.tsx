@@ -135,7 +135,7 @@ export function LayerFilters({ image }: Props) {
         />
       </PropRow>
       <div className="flex items-center justify-between">
-        <span className="text-[11.5px] text-text-muted">Grayscale</span>
+        <span className="text-[0.8125rem] text-text-muted">Grayscale</span>
         <ToggleSwitch
           ariaLabel="Grayscale"
           on={state.grayscale}
@@ -143,7 +143,7 @@ export function LayerFilters({ image }: Props) {
         />
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[11.5px] text-text-muted">Sepia</span>
+        <span className="text-[0.8125rem] text-text-muted">Sepia</span>
         <ToggleSwitch
           ariaLabel="Sepia"
           on={state.sepia}

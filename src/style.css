@@ -1,763 +1,652 @@
-/* style.css — App-level glue on top of the tokens. The unified editor
-   takes over the full viewport, so we strip the default vite starter
-   layout and add a couple of small animations. */
-
+/* Product composition; component materials and metrics come from Air. */
 #app {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
-
-/* ── Shared modal family ───────────────────────────────────────── */
-.cloak-modal-root {
-  isolation: isolate;
+.editor-shell {
+  flex: 1;
+  min-height: 0;
+  height: 0;
+  background: var(--air-surface-soft);
+}
+.editor-topbar {
+  background: var(--air-surface);
+  min-height: var(--air-editor-header);
+}
+.editor-topbar__brand {
+  min-width: 44px;
+}
+.editor-topbar__brand .logo-wordmark {
+  display: none;
+}
+@media (min-width: 360px) {
+  .editor-topbar__brand .logo-wordmark {
+    display: block;
+  }
+}
+@media (min-width: 769px) and (max-width: 1100px) {
+  .editor-topbar__brand .logo-wordmark,
+  .editor-topbar__dimensions {
+    display: none;
+  }
+  .editor-topbar__file {
+    max-width: 7.5rem;
+  }
+}
+.editor-tool-search-input:focus-visible {
+  outline: none;
+}
+.editor-mobile-surface {
+  background: var(--air-surface);
+}
+.editor-properties {
+  width: var(--air-inspector);
+}
+@media (min-width: 769px) and (max-width: 1179px) {
+  .editor-properties {
+    width: 288px;
+  }
+}
+.editor-properties .scroll-thin {
+  gap: 16px;
+}
+.editor-toolrail button[aria-pressed="true"] {
+  background: var(--air-surface-soft);
+}
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-x: none;
 }
 
-.cloak-modal-scrim {
-  background: var(--color-overlay);
+/* Shared select adds a supporting line without adding a second field contour. */
+.select-control {
+  position: relative;
+  display: block;
+  min-width: 0;
+  width: 100%;
 }
-
-.cloak-dialog {
-  border: var(--rule-thin) solid var(--color-rule-strong);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-overlay);
+.select-control__trigger {
+  width: 100%;
+  height: auto;
+  text-align: left;
+  white-space: normal;
 }
-
-.cloak-dialog:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--color-accent) 68%, transparent);
+.select-control__content {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.select-control__value {
+  overflow-wrap: anywhere;
+}
+.select-control__detail {
+  font-size: var(--air-text-meta);
+  color: var(--air-ink-muted);
+  line-height: 1.5;
+}
+.select-control__native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.select-control--compact .select-control__trigger {
+  min-height: 32px;
+}
+.air-floating-positioner {
+  z-index: var(--air-z-popover);
+}
+.img-prop-row {
+  min-width: 0;
+}
+.img-number {
+  display: grid;
+  gap: 4px;
+  max-width: 168px;
+  flex-shrink: 0;
+}
+.img-number__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.img-number input {
+  width: 72px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.img-number__unit {
+  width: 20px;
+  font-size: var(--air-text-label);
+  color: var(--air-ink-muted);
+}
+.img-field-error {
+  color: var(--air-danger);
+  font-size: var(--air-text-meta);
+  line-height: 1.5;
+  white-space: normal;
+}
+.img-slider-zero {
+  position: absolute;
+  left: 50%;
+  height: 10px;
+  width: 1px;
+  background: var(--air-line-control);
+  pointer-events: none;
+}
+.img-segments {
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  min-width: 0;
+  background: var(--air-surface-soft);
+  border: 1px solid var(--air-line);
+  border-radius: var(--air-radius-control);
+}
+.img-segments label {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  cursor: pointer;
+}
+.img-segments input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: inherit;
+}
+.img-segments span {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: var(--air-radius-chip);
+  font-size: var(--air-text-label);
+  line-height: 1.4;
+  pointer-events: none;
+}
+.img-segments input:checked + span {
+  background: var(--air-surface);
+  color: var(--air-ink);
+}
+.img-segments input:checked + span::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  width: 2px;
+  height: 16px;
+  background: var(--air-accent);
+}
+.img-segments input:focus-visible + span {
+  outline: 2px solid var(--air-accent);
   outline-offset: -2px;
 }
+.img-segments input:disabled + span {
+  opacity: 0.5;
+}
 
+/* Dialog geometry is independent of editor layout; one 640px sheet boundary. */
+.cloak-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--air-z-dialog);
+  background: var(--air-scrim);
+}
+.cloak-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--air-z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  isolation: isolate;
+}
+.cloak-dialog {
+  position: relative;
+  display: flex;
+  width: min(576px, 100%);
+  max-height: calc(100dvh - 48px);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--air-line);
+  border-radius: var(--air-radius-dialog);
+  background: var(--air-surface);
+  color: var(--air-ink);
+  box-shadow: var(--air-shadow-dialog);
+}
+.cloak-dialog:focus-visible {
+  outline: 2px solid var(--air-accent);
+  outline-offset: 2px;
+}
 .cloak-dialog__header {
   display: flex;
   flex: none;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-sm);
-  border-bottom: var(--rule-thin) solid var(--color-rule);
+  gap: 12px;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--air-line);
 }
-
 .cloak-dialog__eyebrow {
-  color: var(--color-ink-3);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.cloak-dialog__title {
-  margin: 0.2rem 0 0;
-  color: var(--color-ink);
-  font-size: 1rem;
-  font-weight: 680;
-  letter-spacing: -0.015em;
-  line-height: 1.25;
-}
-
-.cloak-dialog__description {
-  margin-top: 0.25rem;
-  color: var(--color-ink-3);
-  font-size: 0.75rem;
+  color: var(--air-ink-muted);
+  font-size: var(--air-text-label);
+  font-weight: 400;
   line-height: 1.5;
 }
-
+.cloak-dialog__title {
+  margin: 4px 0 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.cloak-dialog__description {
+  margin-top: 8px;
+  color: var(--air-ink-secondary);
+  font-size: var(--air-text-body);
+  line-height: 1.6;
+}
 .cloak-dialog__close {
   display: grid;
-  width: var(--control-touch-size);
-  height: var(--control-touch-size);
+  place-items: center;
   flex: none;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  place-items: center;
   border: 0;
-  border-radius: var(--radius-input);
-  color: var(--color-ink-3);
+  border-radius: var(--air-radius-control);
   background: transparent;
+  color: var(--air-ink);
   cursor: pointer;
-  transition:
-    color var(--dur-fast) var(--ease-standard),
-    background-color var(--dur-fast) var(--ease-standard);
 }
-
-.cloak-dialog__close:hover:not(:disabled) {
-  color: var(--color-ink);
-  background: var(--color-paper-2);
-}
-
-.cloak-dialog__close:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .cloak-dialog__icon {
-  width: 2rem;
-  height: 2rem;
   display: grid;
-  flex: none;
   place-items: center;
-  border-radius: var(--radius-input);
-  color: var(--color-accent);
+  flex: none;
+  width: 32px;
+  height: 32px;
+  color: var(--air-ink-secondary);
 }
-
 .cloak-dialog__body {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
+  padding: 24px;
 }
-
 .cloak-dialog__footer {
   display: flex;
   flex: none;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-2xs);
-  padding: var(--space-xs) var(--space-sm) max(var(--space-xs), env(safe-area-inset-bottom));
-  border-top: var(--rule-thin) solid var(--color-rule);
-  background: color-mix(in oklab, var(--color-paper-2) 52%, var(--color-surface));
+  gap: 8px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--air-line);
+  background: var(--air-surface);
 }
-
-.cloak-dialog :where(input, select, textarea) {
-  border-color: var(--color-rule);
-  border-radius: var(--radius-input);
+.cloak-dialog :where(input, textarea) {
+  max-width: 100%;
 }
-
-.cloak-dialog :where(input, select, textarea):focus-visible {
-  border-color: var(--color-accent);
-}
-
-.cloak-dialog [class*="border-b"],
-.cloak-dialog [class*="border-t"] {
-  border-color: var(--color-rule);
-}
-
-.cloak-dialog [class*="bg-page-bg"] {
-  background: color-mix(in oklab, var(--color-paper-2) 55%, var(--color-surface));
-}
-
-@media (max-width: 639px) {
-  .cloak-dialog__footer {
-    align-items: stretch;
-    flex-direction: column-reverse;
-  }
-
-  .cloak-dialog__footer > :where(a, button) {
-    width: 100%;
-  }
-}
-
-/* Privacy is presented as an inspectable system receipt followed by the full
-   ruled document—the same architecture-first pattern used across Cloakyard. */
-.cloak-privacy-dialog {
-  color: var(--color-ink);
-  background: var(--color-surface);
-}
-
-.cloak-privacy-dialog__bar {
-  display: flex;
-  min-height: var(--banner-height);
-  flex: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  padding-inline: var(--space-md) var(--space-sm);
-  color: var(--color-night-muted);
-  background: var(--color-night);
-  border-bottom: var(--rule-thin) solid var(--color-night-rule);
-}
-
-.cloak-privacy-dialog__bar p {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: var(--space-2xs);
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.cloak-privacy-dialog__bar p svg {
-  color: var(--color-accent);
-}
-
-.cloak-privacy-dialog__bar .cloak-dialog__close {
-  color: var(--color-night-muted);
-}
-
-.cloak-privacy-dialog__bar .cloak-dialog__close:hover:not(:disabled) {
-  color: var(--color-night-ink);
-  background: var(--color-night-2);
-}
-
-.cloak-privacy-dialog__scroll {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background: var(--color-surface);
-}
-
-.cloak-privacy-dialog__architecture {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-xl);
-  padding: var(--space-lg) var(--space-md) var(--space-xl);
-  color: var(--color-night-ink);
-  background: var(--color-night);
-}
-
-.cloak-privacy-dialog__promise,
-.cloak-privacy-dialog__path {
-  min-width: 0;
-}
-
-.cloak-privacy-dialog__kicker,
-.cloak-privacy-dialog__path-head,
-.cloak-privacy-dialog__facts,
-.cloak-privacy-dialog__absent,
-.cloak-privacy-policy__marker {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.cloak-privacy-dialog__kicker {
-  margin: 0 0 var(--space-sm);
-  color: var(--color-accent);
-}
-
-.cloak-privacy-dialog__promise h2 {
-  max-width: 12ch;
-  margin: 0;
-  color: var(--color-night-ink);
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 7vw, 4.9rem);
-  font-weight: 760;
-  letter-spacing: -0.06em;
-  line-height: 0.94;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
-}
-
-.cloak-privacy-dialog__lede {
-  max-width: 40rem;
-  margin: var(--space-md) 0 0;
-  color: var(--color-night-muted);
-  font-size: 1rem;
-  line-height: 1.65;
-}
-
-.cloak-privacy-dialog__facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-md) var(--space-sm);
-  margin: var(--space-lg) 0 0;
-  padding-top: var(--space-sm);
-  border-top: var(--rule-thin) solid var(--color-night-rule);
-}
-
-.cloak-privacy-dialog__facts div:last-child {
-  grid-column: 1 / -1;
-}
-
-.cloak-privacy-dialog__facts dt {
-  color: var(--color-night-muted);
-}
-
-.cloak-privacy-dialog__facts dd {
-  margin: var(--space-3xs) 0 0;
-  color: var(--color-night-ink);
-}
-
-.cloak-privacy-dialog__path {
-  align-self: end;
-  border-top: var(--rule-thin) solid var(--color-night-rule);
-}
-
-.cloak-privacy-dialog__path-head {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  padding-block: var(--space-xs);
-  color: var(--color-night-muted);
-  border-bottom: var(--rule-thin) solid var(--color-night-rule);
-}
-
-.cloak-privacy-dialog__path-head span:last-child {
-  color: var(--color-accent);
-}
-
-.cloak-privacy-dialog__path-row {
-  display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-xs);
-  padding-block: var(--space-sm);
-  border-bottom: var(--rule-thin) solid var(--color-night-rule);
-}
-
-.cloak-privacy-dialog__path-row > span,
-.cloak-privacy-dialog__path-row p,
-.cloak-privacy-dialog__path-row strong {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.cloak-privacy-dialog__path-row > span,
-.cloak-privacy-dialog__path-row p {
-  color: var(--color-night-muted);
-}
-
-.cloak-privacy-dialog__path-row h3,
-.cloak-privacy-dialog__path-row p {
-  margin: 0;
-}
-
-.cloak-privacy-dialog__path-row h3 {
-  color: var(--color-night-ink);
-  font-size: 0.875rem;
-  font-weight: 650;
-  line-height: 1.35;
-}
-
-.cloak-privacy-dialog__path-row p {
-  margin-top: 0.2rem;
-}
-
-.cloak-privacy-dialog__path-row strong {
-  color: var(--color-accent);
-  font-weight: 700;
-}
-
-.cloak-privacy-dialog__absent {
-  padding-top: var(--space-sm);
-  color: var(--color-night-muted);
-}
-
-.cloak-privacy-dialog__absent p {
-  margin: 0 0 var(--space-2xs);
-  color: var(--color-accent);
-}
-
-.cloak-privacy-dialog__absent div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2xs) var(--space-md);
-}
-
-.cloak-privacy-policy {
-  width: min(48rem, calc(100% - (var(--space-md) * 2)));
-  margin-inline: auto;
-}
-
-.cloak-privacy-policy__section {
-  padding-block: var(--space-xl);
-  border-bottom: var(--rule-thin) solid var(--color-rule);
-}
-
-.cloak-privacy-policy__marker {
-  margin: 0;
-  color: var(--color-accent);
-}
-
-.cloak-privacy-policy__section h3 {
-  margin: var(--space-xs) 0 0;
-  color: var(--color-ink);
-  font-size: clamp(1.55rem, 3vw, 2.15rem);
-  font-weight: 720;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
-  text-wrap: balance;
-}
-
-.cloak-privacy-policy__copy {
-  margin-top: var(--space-md);
-  color: var(--color-ink-2);
-  font-size: 1rem;
-  line-height: 1.72;
-}
-
-.cloak-privacy-policy__copy > * {
-  margin: 0;
-}
-
-.cloak-privacy-policy__copy > * + * {
-  margin-top: var(--space-sm);
-}
-
-.cloak-privacy-policy__copy ul {
-  display: grid;
-  gap: var(--space-2xs);
-  padding-left: 1.2rem;
-}
-
-.cloak-privacy-policy__copy li::marker {
-  color: var(--color-accent);
-}
-
-.cloak-privacy-policy__link {
-  color: var(--color-accent);
-  font-weight: 650;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in oklab, var(--color-accent) 45%, transparent);
-  text-underline-offset: 0.22em;
-}
-
-@media (min-width: 48rem) {
-  .cloak-privacy-dialog__architecture {
-    grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
-    gap: var(--space-2xl);
-    padding: var(--space-xl);
-  }
-
-  .cloak-privacy-dialog__facts {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .cloak-privacy-dialog__facts div:last-child {
-    grid-column: auto;
-  }
-
-  .cloak-privacy-policy {
-    width: min(48rem, calc(100% - (var(--space-xl) * 2)));
-  }
-}
-
-/* ── Persistent editor workbench ──────────────────────────────── */
-.editor-shell {
-  background: var(--color-paper-2);
-}
-
-.editor-topbar {
-  background: var(--color-surface);
-}
-
-.editor-topbar > button:first-of-type {
-  border-radius: var(--radius-input);
-}
-
-.editor-topbar__brand .logo-wordmark {
-  display: none;
-}
-
-.editor-tool-search-input:focus-visible {
-  outline: none;
-}
-
-.editor-toolrail button,
-.editor-properties button,
-.editor-mobile-surface button {
+.cloak-dialog[data-motion="true"],
+.cloak-modal-scrim[data-motion="true"] {
   transition:
-    transform var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-standard),
-    border-color var(--dur-fast) var(--ease-standard),
-    color var(--dur-fast) var(--ease-standard);
+    opacity var(--air-motion-dialog) var(--air-ease-out),
+    transform var(--air-motion-dialog) var(--air-ease-out);
 }
-
-.editor-toolrail button:active:not(:focus-visible),
-.editor-properties button:active:not(:focus-visible),
-.editor-mobile-surface button:active:not(:focus-visible) {
-  transform: translateY(1px);
+.cloak-dialog[data-motion="true"][data-starting-style],
+.cloak-dialog[data-motion="true"][data-ending-style] {
+  opacity: 0;
+  transform: translateY(4px) scale(0.98);
 }
-
-.editor-mobile-surface {
-  border-top: var(--rule-thin) solid transparent;
-  background: var(--color-surface);
+.cloak-modal-scrim[data-starting-style],
+.cloak-modal-scrim[data-ending-style] {
+  opacity: 0;
 }
-
-.editor-mobile-surface[role="dialog"] {
-  border-top-color: var(--color-rule);
+.cloak-dialog[data-ending-style],
+.cloak-modal-scrim[data-ending-style] {
+  transition-duration: var(--air-motion-exit);
 }
-
-@media (min-width: 22.5rem) {
-  .editor-topbar__brand .logo-wordmark {
-    display: block;
+@media (max-width: 640px) {
+  .cloak-modal-root {
+    align-items: flex-end;
+    padding: 16px 0 0;
+  }
+  .cloak-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+  }
+  .cloak-dialog__footer {
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+  .cloak-dialog__footer > .btn {
+    flex: 1;
+  }
+  .cloak-dialog[data-motion="true"][data-starting-style],
+  .cloak-dialog[data-motion="true"][data-ending-style] {
+    transform: translateY(100%);
   }
 }
-
-/* Tablet keeps the full desktop workbench but has less toolbar width.
-   This must follow the generic wordmark reveal above so it wins the
-   cascade: show the mark alone and preserve breathing room for file,
-   history, zoom, compare, and Export controls. */
-@media (min-width: 761px) and (max-width: 900px) {
-  .editor-topbar__brand .logo-wordmark,
-  .editor-topbar__dimensions {
-    display: none;
+@media (max-width: 768px), (pointer: coarse) {
+  .select-control--compact .select-control__trigger,
+  .img-segments span {
+    min-height: 44px;
   }
-
-  .editor-topbar__file {
-    max-width: 7.5rem;
+  .cloak-dialog__close {
+    width: 44px;
+    height: 44px;
   }
 }
-
-/* Remove the double-tap delay from controls without disabling browser
-   pinch zoom. The editor canvas opts into full gesture ownership via
-   `touch-action: none` on its own container. */
-html,
-body {
-  touch-action: manipulation;
-  /* Belt-and-suspenders: text-size-adjust prevents Safari's automatic
-     font upscaling in landscape, which would otherwise break the
-     pixel-tuned panel chrome. */
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  /* Stop iOS from showing the horizontal rubber-band "page bounce"
-     when a user drags past a canvas edge sideways — the editor
-     occupies the full viewport and never wants to scroll horizontally.
-     Leave the y-axis on `auto` so the browser's pull-to-refresh
-     gesture still works at the top of the page. */
-  overscroll-behavior-x: none;
+@media (forced-colors: active) {
+  .img-segments input {
+    opacity: 1;
+    position: static;
+    width: 18px;
+    height: 18px;
+    margin: 12px;
+  }
+  .img-segments input:checked + span::before {
+    background: Highlight;
+  }
 }
-
 @keyframes ci-spin {
   to {
     transform: rotate(360deg);
   }
 }
-
-/* Indeterminate progress uses a translated highlight layer. The prior
-   background-position animation repainted the entire bar on every
-   frame; this transform-only version stays on the compositor. */
-@keyframes ci-progress-shimmer {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(350%);
-  }
-}
-
-.ci-progress-shimmer::after {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 40%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 50%), transparent);
-  pointer-events: none;
-  will-change: transform;
-  animation: ci-progress-shimmer 1.4s linear infinite;
-}
-
-.ci-progress-shimmer {
-  position: relative;
-}
-
-/* Subtle rotation cue used by the OrientationLock overlay — tilts a
-   phone glyph back and forth so the user reads "rotate this device"
-   even before they parse the headline. */
-@keyframes ci-rotate-hint {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  35% {
-    transform: rotate(-90deg);
-  }
-  70% {
-    transform: rotate(-90deg);
-  }
-}
-
-/* Pointer-opened popovers share one restrained, trigger-aware entry.
-   Keyboard-opened popovers opt out with data-animate="false" so
-   frequent navigation never waits on motion. */
-@keyframes ci-popover-in-below {
-  from {
-    transform: translateY(calc(-1 * var(--motion-distance-2))) scale(var(--motion-scale-subtle));
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-@keyframes ci-popover-in-above {
-  from {
-    transform: translateY(var(--motion-distance-2)) scale(var(--motion-scale-subtle));
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-.ci-popover-surface {
-  transform-origin: top center;
-}
-.ci-popover-surface[data-placement="above"] {
-  transform-origin: bottom center;
-}
-.ci-popover-surface[data-animate="true"] {
-  animation: ci-popover-in-below var(--dur-fast) var(--ease-out) both;
-}
-.ci-popover-surface[data-animate="true"][data-placement="above"] {
-  animation-name: ci-popover-in-above;
-}
-
-.ci-pressable {
-  transition: transform var(--dur-instant) var(--ease-out);
-}
-.ci-pressable:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-/* The PWA status toast is occasional system feedback. It enters from
-   and exits toward the edge where it lives; both paths stay within the
-   small-distance vocabulary and never animate layout. */
-@keyframes ci-toast-in {
-  from {
-    transform: translateY(var(--motion-distance-8));
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-@keyframes ci-toast-out {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(var(--motion-distance-8));
-    opacity: 0;
-  }
-}
-.ci-toast-enter {
-  animation: ci-toast-in var(--dur-base) var(--ease-out) both;
-}
-.ci-toast-exit {
-  animation: ci-toast-out var(--dur-fast) var(--ease-out) both;
-}
-
-/* ── Modal motion ──────────────────────────────────────────────
-   Every dialog in the app routes through ModalFrame; the open /
-   close motion lives here so the visual language is one system.
-
-   Two surfaces:
-     • backdrop (the dimmed full-bleed pane)
-     • dialog  (the solid paper card — bottom-sheet on mobile,
-                centered card on desktop)
-
-   The backdrop is a pure opacity crossfade so the page behind the
-   modal doesn't flicker. The dialog uses transform + opacity only;
-   enter and exit both begin immediately with the shared strong
-   ease-out curve. */
-@keyframes ci-modal-backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes ci-modal-backdrop-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-@keyframes ci-modal-card-in {
-  from {
-    transform: translateY(var(--motion-distance-8)) scale(0.98);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-@keyframes ci-modal-card-out {
-  from {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(var(--motion-distance-6)) scale(0.98);
-    opacity: 0;
-  }
-}
-@keyframes ci-modal-sheet-in {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-@keyframes ci-modal-sheet-out {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
-}
-
-.ci-modal-backdrop-enter {
-  animation: ci-modal-backdrop-in var(--dur-base) var(--ease-out) both;
-}
-.ci-modal-backdrop-exit {
-  animation: ci-modal-backdrop-out var(--dur-fast) var(--ease-out) both;
-}
-.ci-modal-card-enter {
-  animation: ci-modal-card-in var(--dur-modal) var(--ease-out) both;
-}
-.ci-modal-card-exit {
-  animation: ci-modal-card-out var(--dur-fast) var(--ease-out) both;
-}
-.ci-modal-sheet-enter {
-  animation: ci-modal-sheet-in var(--dur-sheet) var(--ease-out) both;
-}
-.ci-modal-sheet-exit {
-  animation: ci-modal-sheet-out var(--dur-base) var(--ease-out) both;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .ci-popover-surface[data-animate="true"] {
-    animation-name: ci-modal-backdrop-in;
-    animation-duration: var(--dur-instant) !important;
+  .cloak-dialog,
+  .cloak-modal-scrim {
+    transition: none !important;
   }
+}
+.img-colour-trigger {
+  width: 100%;
+  gap: 12px;
+}
+.img-colour-trigger > span:nth-child(2) {
+  flex: 1;
+  text-align: left;
+}
+.img-colour-swatch {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  flex: none;
+  border: 1px solid var(--air-line-control);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.img-colour-swatch > span {
+  position: absolute;
+  inset: 0;
+}
+.img-colour-popover {
+  width: min(320px, calc(100vw - 32px));
+  max-height: var(--available-height);
+  overflow: auto;
+}
+.img-colour-popover .air-colour-wheel {
+  width: 160px;
+  margin: 12px auto;
+}
+.img-colour-hint {
+  margin: 4px 0;
+  color: var(--air-ink-muted);
+  font-size: var(--air-text-meta);
+  line-height: 1.5;
+}
+.img-colour-axis {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: var(--air-text-label);
+  gap: 4px;
+}
+.img-colour-axis output {
+  margin-left: auto;
+  color: var(--air-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.img-colour-axis input {
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  min-width: 0;
+}
+.img-colour-hex {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  font-size: var(--air-text-label);
+}
+.img-colour-rgb {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  font-size: var(--air-text-label);
+}
+.img-colour-rgb .img-number input {
+  width: 100%;
+}
+.img-colour-rgb .img-number__unit {
+  display: none;
+}
+.img-colour-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.img-colour-recents {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.img-recent-colour {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.img-recent-colour span {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--air-line-control);
+  border-radius: 4px;
+}
+@media (pointer: coarse) {
+  .img-colour-axis input,
+  .img-recent-colour {
+    min-height: 44px;
+  }
+  .img-recent-colour {
+    min-width: 44px;
+  }
+}
+.img-curve {
+  padding: 12px;
+  border: 1px solid var(--air-line);
+  border-radius: var(--air-radius-menu);
+  background: var(--air-surface-soft);
+  min-width: 0;
+}
+.img-curve p {
+  margin: 0;
+}
+.img-curve-plot {
+  display: block;
+  width: min(100%, 288px);
+  aspect-ratio: 1;
+  touch-action: none;
+  margin: 8px auto;
+}
+.img-curve[data-compact="true"] .img-curve-plot {
+  width: min(100%, 224px);
+}
+.img-curve-hint {
+  font-size: var(--air-text-meta);
+  color: var(--air-ink-muted);
+  line-height: 1.5;
+}
+.img-curve-points,
+.img-curve-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.img-curve-points [aria-pressed="true"] {
+  background: var(--air-surface-hover);
+  border-color: var(--air-accent);
+}
+.img-curve-values {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: var(--air-text-label);
+}
+.img-curve-values label {
+  display: grid;
+  gap: 4px;
+}
+.img-rail-search {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-bottom: 1px solid var(--air-line);
+  background: var(--air-surface);
+  color: var(--air-ink);
+  cursor: pointer;
+  flex: none;
+}
+.img-rail-tool {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin: 4px auto;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--air-ink-secondary);
+  cursor: pointer;
+}
+.img-rail-tool[aria-pressed="true"] {
+  color: var(--air-ink);
+}
+.img-rail-marker {
+  position: absolute;
+  left: -12px;
+  width: 2px;
+  height: 16px;
+  background: var(--air-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .img-rail-tool:hover,
+  .img-rail-search:hover {
+    background: var(--air-surface-hover);
+    color: var(--air-ink);
+  }
+}
 
-  .ci-toast-enter,
-  .ci-toast-exit {
-    animation-name: ci-modal-backdrop-in;
-    animation-duration: var(--dur-instant) !important;
-  }
-  .ci-toast-exit {
-    animation-name: ci-modal-backdrop-out;
-  }
+.img-dimension {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--air-text-label);
+  color: var(--air-ink-secondary);
+}
+.img-dimension > span:first-child {
+  padding-top: 8px;
+}
+.img-dimension .img-number {
+  min-width: 0;
+  flex: 1;
+}
+.img-dimension .img-number input {
+  width: 100%;
+  min-width: 0;
+}
+.img-canvas-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--air-text-meta);
+  color: var(--air-ink-muted);
+  pointer-events: none;
+}
 
-  .ci-modal-backdrop-enter,
-  .ci-modal-backdrop-exit,
-  .ci-modal-card-enter,
-  .ci-modal-card-exit,
-  .ci-modal-sheet-enter,
-  .ci-modal-sheet-exit {
-    /* Drop spatial motion but keep a short opacity crossfade so the
-       transition still reads as deliberate. */
-    animation-name: ci-modal-backdrop-in;
-    animation-duration: var(--dur-instant) !important;
-  }
-  .ci-modal-backdrop-exit,
-  .ci-modal-card-exit,
-  .ci-modal-sheet-exit {
-    animation-name: ci-modal-backdrop-out;
-  }
+.img-layer-row {
+  border-radius: var(--air-radius-control);
+  padding: 4px;
+}
+.img-layer-row.is-selected {
+  background: var(--air-surface-soft);
+}
+.img-layer-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  border: 0;
+  border-radius: var(--air-radius-control);
+  padding: 4px 8px;
+  background: none;
+  color: var(--air-ink);
+  text-align: left;
+  font-size: var(--air-text-label);
+  cursor: pointer;
+}
+.img-layer-select span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.img-layer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.img-layer-actions button {
+  flex: none;
 }

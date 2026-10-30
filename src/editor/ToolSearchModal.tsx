@@ -41,13 +41,7 @@ export function ToolSearchModal({ instant = false, onClose, onSelect }: Props) {
   }, [activeIndex]);
 
   return (
-    <ModalFrame
-      onClose={onClose}
-      instant={instant}
-      position="absolute"
-      maxWidth="max-w-168"
-      labelledBy="tool-search-title"
-    >
+    <ModalFrame onClose={onClose} instant={instant} labelledBy="tool-search-title">
       <ToolSearchBody
         query={query}
         results={results}
@@ -129,7 +123,7 @@ function ToolSearchBody({
             <I.Search size={16} aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <div className="t-eyebrow text-[10px]">Workbench / navigation</div>
+            <div className="t-eyebrow text-[0.8125rem]">Workbench / navigation</div>
             <div id="tool-search-title" className="t-headline truncate text-base">
               Find a tool
             </div>
@@ -140,7 +134,7 @@ function ToolSearchBody({
             id="tool-search-count"
             aria-live="polite"
             aria-atomic="true"
-            className="t-mono text-[9px] tracking-[0.05em] text-text-muted uppercase"
+            className="tabular-nums text-[0.8125rem] tracking-normal text-text-muted"
           >
             {countLabel}
           </span>
@@ -148,7 +142,7 @@ function ToolSearchBody({
         </div>
       </div>
 
-      <div className="flex h-13 shrink-0 items-center gap-2.5 border-b border-border bg-page-bg px-4 focus-within:z-10 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-coral-500">
+      <div className="flex h-13 shrink-0 items-center gap-2.5 border-b border-border bg-page-bg px-4 focus-within:z-10 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-accent">
         <I.Search size={17} className="shrink-0 text-text-muted" aria-hidden="true" />
         <input
           ref={inputRef}
@@ -195,7 +189,7 @@ function ToolSearchBody({
       >
         {results.length === 0 ? (
           <div className="flex flex-col items-center px-5 py-10 text-center">
-            <div className="text-sm font-semibold text-text">No tool found</div>
+            <div className="text-sm font-medium text-text">No tool found</div>
             <div className="mt-1 max-w-72 text-xs leading-relaxed text-text-muted">
               Try “crop”, “background”, “colour”, or a tool family such as “retouch”.
             </div>
@@ -225,31 +219,29 @@ function ToolSearchBody({
                 data-tool-index={index}
                 onPointerEnter={() => onActive(index)}
                 onClick={() => choose(tool.id)}
-                className={`relative grid min-h-14 w-full grid-cols-[2rem_1.25rem_minmax(0,1fr)_auto] items-center gap-2.5 border-x-0 border-t-0 border-b border-border px-4 py-2 text-left transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-coral-500 ${
+                className={`relative grid min-h-14 w-full grid-cols-[2rem_1.25rem_minmax(0,1fr)_auto] items-center gap-2.5 border-x-0 border-t-0 border-b border-border px-4 py-2 text-left transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
                   active
-                    ? "bg-coral-50 dark:bg-[var(--color-accent-soft)]"
+                    ? "bg-surface-soft dark:bg-[var(--air-surface-soft)]"
                     : "bg-surface hover:bg-page-bg"
                 }`}
               >
-                <span className="t-mono text-[9px] tabular-nums text-text-muted">
+                <span className="tabular-nums text-[0.8125rem] text-text-muted">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <span
                   aria-hidden="true"
-                  className={active ? "text-coral-600 dark:text-coral-400" : "text-text-muted"}
+                  className={active ? "text-text text-text" : "text-text-muted"}
                 >
                   <Icon size={16} />
                 </span>
-                <span className="min-w-0 truncate text-sm font-semibold text-text">
-                  {tool.name}
-                </span>
-                <span className="t-mono shrink-0 text-[9px] tracking-[0.05em] text-text-muted uppercase">
+                <span className="min-w-0 truncate text-sm font-medium text-text">{tool.name}</span>
+                <span className="tabular-nums shrink-0 text-[0.8125rem] tracking-normal text-text-muted">
                   {TOOL_GROUP_LABELS[tool.group]}
                 </span>
                 {active && (
                   <span
                     aria-hidden="true"
-                    className="absolute top-[18%] bottom-[18%] left-0 w-[2px] bg-coral-500"
+                    className="absolute top-[18%] bottom-[18%] left-0 w-[2px] bg-accent"
                   />
                 )}
               </button>
@@ -259,13 +251,13 @@ function ToolSearchBody({
       </div>
 
       <div className="cloak-dialog__footer hidden items-center justify-between px-4 py-2.5 sm:flex">
-        <span className="t-mono text-[9px] tracking-[0.05em] text-text-muted uppercase">
+        <span className="tabular-nums text-[0.8125rem] tracking-normal text-text-muted">
           ↑↓ Navigate
         </span>
-        <span className="t-mono text-[9px] tracking-[0.05em] text-text-muted uppercase">
+        <span className="tabular-nums text-[0.8125rem] tracking-normal text-text-muted">
           Enter Open
         </span>
-        <span className="t-mono text-[9px] tracking-[0.05em] text-text-muted uppercase">
+        <span className="tabular-nums text-[0.8125rem] tracking-normal text-text-muted">
           Esc Close
         </span>
       </div>

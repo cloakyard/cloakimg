@@ -32,7 +32,7 @@ export function DrawPanel() {
           onChange={(v) => patchTool("drawSize", Math.max(1, v * 64))}
         />
       </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Drag on the canvas to paint a freehand stroke. In Eraser mode, drag over existing strokes to
         wipe them.
       </div>

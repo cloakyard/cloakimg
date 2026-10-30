@@ -104,7 +104,7 @@ export function LevelsPanel() {
       <AiSectionHeader />
       <MaskScopeRow scope={toolState.levelsScope} onScope={(i) => patchTool("levelsScope", i)} />
       <ScopeGate disabled={gated}>
-        <div className="text-[11.5px] leading-relaxed text-text-muted">
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">
           Pull the input black up to crush shadows, the white down to clip highlights, and the
           midtone slider to lift or darken the middle of the curve.
         </div>
@@ -114,6 +114,7 @@ export function LevelsPanel() {
           valueInput={
             <NumericReadout
               display={`${toolState.levelsBlackIn}`}
+              max={toolState.levelsWhiteIn - 1}
               normalized={toolState.levelsBlackIn / 255}
               fromNormalized={(n) => Math.round(n * 255)}
               toNormalized={(real) => real / 255}
@@ -135,7 +136,7 @@ export function LevelsPanel() {
             <NumericReadout
               display={toolState.levelsGamma.toFixed(2)}
               normalized={gammaToNormalized(toolState.levelsGamma)}
-              step={0.1}
+              step={0.01}
               fromNormalized={(n) => normalizedToGamma(n)}
               toNormalized={(real) => gammaToNormalized(real)}
               onCommit={(n) => setGamma(normalizedToGamma(n))}
@@ -155,6 +156,7 @@ export function LevelsPanel() {
           valueInput={
             <NumericReadout
               display={`${toolState.levelsWhiteIn}`}
+              min={toolState.levelsBlackIn + 1}
               normalized={toolState.levelsWhiteIn / 255}
               fromNormalized={(n) => Math.round(n * 255)}
               toNormalized={(real) => real / 255}
@@ -212,7 +214,7 @@ export function LevelsPanel() {
 
         <button
           type="button"
-          className="btn btn-ghost btn-xs mt-1 w-full justify-center text-coral-700 dark:text-coral-300"
+          className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
           onClick={reset}
           disabled={!dirty}
         >

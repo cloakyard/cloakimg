@@ -24,8 +24,7 @@
     "test:air-links": "node scripts/test-air-links.mjs"
   },
   "dependencies": {
-    "@fontsource/archivo": "^5.3.0",
-    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@base-ui/react": "1.9.0",
     "@huggingface/transformers": "^4.3.1",
     "@jsquash/avif": "^2.1.1",
     "@mediapipe/tasks-vision": "1.1.1",

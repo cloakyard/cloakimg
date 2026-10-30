@@ -69,7 +69,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           aria-label="Back to start"
           className="editor-topbar__brand flex cursor-pointer items-center gap-2 rounded-md border-none bg-transparent p-0 font-[inherit] text-inherit pointer-coarse:min-h-11"
         >
-          <BrandMark size={40} />
+          <BrandMark size={36} />
           {/* Brand mark + wordmark sized identically across breakpoints
               in V3 — the prior mobile-shrunk treatment made the editor
               feel apologetic at the top of the screen. With the TopBar
@@ -88,13 +88,13 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="editor-topbar__file flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-md border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[12px] text-inherit transition-colors hover:bg-surface pointer-coarse:min-h-11"
+            className="editor-topbar__file flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-md border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[0.8125rem] text-inherit transition-colors hover:bg-surface pointer-coarse:min-h-11"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
             </span>
             {dimensions && (
-              <span className="editor-topbar__dimensions t-mono ml-1 shrink-0 whitespace-nowrap text-[11px] text-text-muted">
+              <span className="editor-topbar__dimensions tabular-nums ml-1 shrink-0 whitespace-nowrap text-[0.8125rem] text-text-muted">
                 · {dimensions}
               </span>
             )}
@@ -121,7 +121,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
                   aria-pressed={active}
                   className={`flex h-6 w-7 cursor-pointer items-center justify-center rounded-sm border-none font-[inherit] transition-colors pointer-coarse:h-11 pointer-coarse:w-11 ${
                     active
-                      ? "bg-surface text-text shadow-[var(--shadow-control)]"
+                      ? "bg-surface text-text shadow-[none]"
                       : "bg-transparent text-text-muted hover:text-text"
                   }`}
                 >
@@ -186,7 +186,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             >
               <I.ZoomOut size={13} />
             </button>
-            <span className="t-mono min-w-9 px-1 text-center text-[11px] font-semibold">
+            <span className="tabular-nums min-w-9 px-1 text-center text-[0.8125rem] font-medium">
               {Math.round(view.zoom * 100)}%
             </span>
             <button
@@ -204,9 +204,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           <button
             type="button"
             className={`btn btn-ghost btn-icon-sm ${
-              compareActive
-                ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : ""
+              compareActive ? "bg-surface-soft text-text bg-surface-soft text-text" : ""
             }`}
             aria-label="Hold to compare with original"
             aria-pressed={compareActive}
@@ -230,7 +228,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         {!isMobile && (
           <button
             type="button"
-            className="btn btn-outline-coral btn-sm"
+            className="btn btn-secondary btn-sm"
             onClick={openExport}
             aria-label="Export"
             title="Export"

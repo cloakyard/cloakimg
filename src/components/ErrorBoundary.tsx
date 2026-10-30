@@ -214,7 +214,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           }
         }}
         className="absolute inset-0 flex items-center justify-center px-6"
-        style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
+        style={{ zIndex: "var(--air-z-dialog)", background: "var(--air-scrim)" }}
       >
         <div className="cloak-dialog flex w-full max-w-sm flex-col items-center gap-5 rounded-lg px-7 py-8 text-center">
           <div className="cloak-dialog__icon h-14 w-14">
@@ -229,7 +229,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               {description}
             </p>
             {error.message && (
-              <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted">
+              <div className="tabular-nums mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[0.8125rem] wrap-break-word text-text-muted">
                 {error.message}
               </div>
             )}
@@ -284,7 +284,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           }
         }}
         className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-6"
-        style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
+        style={{ zIndex: "var(--air-z-dialog)", background: "var(--air-scrim)" }}
       >
         <div className="cloak-dialog relative flex max-h-[92svh] w-full flex-col overflow-hidden rounded-t-lg border-b-0 sm:max-h-[min(820px,calc(100svh-48px))] sm:max-w-160 sm:rounded-lg sm:border-b">
           <div className="cloak-dialog__header">
@@ -305,7 +305,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
           <div className="cloak-dialog__body scroll-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
             <div className="flex shrink-0 items-center justify-between gap-2">
-              <span className="t-eyebrow text-[10px] text-text-muted">Error details</span>
+              <span className="t-eyebrow text-[0.8125rem] text-text-muted">Error details</span>
               <button
                 type="button"
                 onClick={this.handleCopy}
@@ -314,7 +314,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               >
                 {copied ? (
                   <>
-                    <I.Check size={13} className="text-coral-600 dark:text-coral-300" />
+                    <I.Check size={13} className="text-text" />
                     Copied
                   </>
                 ) : (
@@ -327,7 +327,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
             <pre
               id="ci-error-details"
-              className="t-mono m-0 rounded-md border border-border-soft bg-page-bg p-3 text-[11.5px] leading-[1.55] break-words whitespace-pre-wrap text-text"
+              className="tabular-nums m-0 rounded-md border border-border-soft bg-page-bg p-3 text-[0.8125rem] leading-[1.55] break-words whitespace-pre-wrap text-text"
             >
               {details}
             </pre>

@@ -49,24 +49,13 @@
     {
       "path": "src/components/ModalFrame.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
-    },
-    {
-      "path": "src/components/OrientationLock.tsx",
-      "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
-      "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/components/icons.tsx",
@@ -93,13 +82,13 @@
     {
       "path": "src/editor/ColorPicker.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/ConfirmModal.tsx",
@@ -159,13 +148,13 @@
     {
       "path": "src/editor/ImageCanvas.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/LayerFilters.tsx",
@@ -181,35 +170,24 @@
     {
       "path": "src/editor/LayersList.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline selected text layer inspected"],
-      "viewports": ["1440x900 light"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
-    },
-    {
-      "path": "src/editor/MobileCompareButton.tsx",
-      "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
-      "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/MobileEditorSurface.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/MobileMoreMenu.tsx",
@@ -221,6 +199,17 @@
       "viewports": [],
       "evidence": [],
       "notes": ""
+    },
+    {
+      "path": "src/editor/NumberField.tsx",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/PrivacyAuditCard.tsx",
@@ -258,24 +247,24 @@
     {
       "path": "src/editor/SelectControl.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/StageHost.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/ToolControls.tsx",
@@ -291,13 +280,13 @@
     {
       "path": "src/editor/ToolRail.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/ToolSearchModal.tsx",
@@ -324,24 +313,24 @@
     {
       "path": "src/editor/TopBar.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/UnifiedEditor.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/ai/capabilities/depth/ConsentHost.tsx",
@@ -489,13 +478,13 @@
     {
       "path": "src/editor/atoms.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/tools/AdjustPanel.tsx",
@@ -600,12 +589,12 @@
       "path": "src/editor/tools/CurveEditor.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected"],
-      "viewports": ["1440x900 light", "390x844 dark coarse"],
-      "evidence": ["docs/air/editor-audit.md"],
-      "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/editor/tools/DefaultPanel.tsx",
@@ -1175,13 +1164,13 @@
     {
       "path": "src/landing/StartModal.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": ["light", "dark", "keyboard", "touch", "invalid", "selected", "disabled"],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-editor-2026-10-30.md"],
+      "notes": "Shared editor slice verified in automated browsers; final product/output/physical acceptance remains separate."
     },
     {
       "path": "src/main.tsx",

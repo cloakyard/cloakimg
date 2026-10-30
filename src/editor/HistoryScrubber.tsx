@@ -61,7 +61,7 @@ export function HistoryScrubber() {
       role="toolbar"
       aria-label="Edit history timeline"
     >
-      <span className="t-section-label hidden tracking-[0.12em] text-text-muted/70 sm:inline">
+      <span className="t-section-label hidden tracking-normal text-text-muted/70 sm:inline">
         History
       </span>
       {/* The horizontal scroller's `overflow-x-auto` implicitly forces
@@ -99,7 +99,7 @@ export function HistoryScrubber() {
               // thumb is independent of canvas/blob).
               className={`group relative flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-none p-0 ${
                 active
-                  ? "outline-2 outline-offset-2 outline-coral-500 dark:outline-coral-400"
+                  ? "outline-2 outline-offset-2 outline-accent outline-accent"
                   : "outline-1 outline-offset-1 outline-border-soft hover:outline-text-muted/40"
               }`}
               style={{ width: THUMB_PX, height: THUMB_PX }}

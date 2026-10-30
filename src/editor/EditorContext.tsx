@@ -278,7 +278,7 @@ const EditorReadCtx = createContext<EditorReadValue | null>(null);
 const Ctx = createContext<EditorContextValue | null>(null);
 
 function detectLayout(width: number): Layout {
-  if (width < MOBILE_MAX_PX) return "mobile";
+  if (width < MOBILE_MAX_PX || (width <= 960 && window.innerHeight <= 500)) return "mobile";
   if (width < TABLET_MAX_PX) return "tablet";
   return "desktop";
 }

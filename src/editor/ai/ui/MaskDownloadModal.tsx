@@ -70,13 +70,7 @@ export function MaskDownloadModal({
   const onClose = error ? onCancel : onDismiss;
 
   return (
-    <ModalFrame
-      onClose={onClose}
-      bottomSheet={isMobile}
-      position="absolute"
-      maxWidth="max-w-130"
-      labelledBy="cloak-mask-download-title"
-    >
+    <ModalFrame onClose={onClose} labelledBy="cloak-mask-download-title">
       {/* Sticky header — same icon-+-title-+-close-X pattern as
           ConfirmModal, FilePropertiesModal, and the consent modal.
           The icon swatch swaps from Sparkles (active download) to a
@@ -153,13 +147,13 @@ function ErrorBody({ message, suggestion }: { message: string; suggestion: strin
     <div className="flex flex-col gap-2">
       <div
         role="alert"
-        className="flex items-start gap-2 rounded-lg border border-coral-300 bg-coral-50 px-3 py-2.5 text-[12px] leading-relaxed text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-100"
+        className="flex items-start gap-2 rounded-lg border border-accent bg-surface-soft px-3 py-2.5 text-[0.8125rem] leading-relaxed text-text"
       >
         <I.Triangle size={13} stroke={2.25} className="mt-px shrink-0" />
         <span className="min-w-0 flex-1 wrap-break-word">{message}</span>
       </div>
       {suggestion && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted">{suggestion}</div>
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">{suggestion}</div>
       )}
     </div>
   );

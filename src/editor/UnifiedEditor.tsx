@@ -357,11 +357,11 @@ function LoadingBanner() {
 function BusyOverlay({ label }: { label: string }) {
   return (
     <div
-      className="absolute inset-0 z-150 flex items-center justify-center bg-[var(--color-overlay)]"
+      className="absolute inset-0 z-150 flex items-center justify-center bg-[var(--air-scrim)]"
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-5 py-4 shadow-[var(--shadow-popover)]">
+      <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-5 py-4 shadow-[var(--air-shadow-menu)]">
         <Spinner size={22} />
         <span className="text-[13px] font-medium text-text">{label}</span>
       </div>
@@ -372,22 +372,22 @@ function BusyOverlay({ label }: { label: string }) {
 function ErrorBanner({ message }: { message: string }) {
   const { exit } = useEditorActions();
   return (
-    <div className="absolute inset-0 z-200 flex items-center justify-center bg-[var(--color-overlay)] px-6">
+    <div className="absolute inset-0 z-200 flex items-center justify-center bg-[var(--air-scrim)] px-6">
       <div
         role="alert"
-        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-lg border border-border bg-surface px-7 py-8 text-center shadow-[var(--shadow-overlay)]"
+        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-lg border border-border bg-surface px-7 py-8 text-center shadow-[var(--air-shadow-dialog)]"
       >
         <div className="cloak-dialog__icon h-14 w-14">
           <I.Triangle size={26} stroke={1.75} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <div className="text-[17px] font-semibold tracking-tight">Couldn't open this image</div>
+          <div className="text-[17px] font-medium tracking-tight">Couldn't open this image</div>
           <div className="text-[13px] leading-relaxed text-text-muted">
             The file may be corrupted, in an unsupported format, or no longer available on this
             device.
           </div>
           {message && (
-            <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted">
+            <div className="tabular-nums mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[0.8125rem] wrap-break-word text-text-muted">
               {message}
             </div>
           )}
