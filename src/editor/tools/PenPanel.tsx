@@ -19,7 +19,7 @@ import type { FabricObject } from "fabric";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
 import { useEditorActions, useToolState } from "../EditorContext";
-import { PropRow, ToggleSwitch, SliderField } from "../atoms";
+import { PropRow, SwitchField, SliderField } from "../atoms";
 
 interface TaggedFabricObject extends FabricObject {
   cloakKind?: string;
@@ -135,14 +135,15 @@ export function PenPanel() {
       <PropRow label="Stroke">
         <ColorPicker value={selStroke} onChange={onStrokeChange} />
       </PropRow>
-      <PropRow label="Fill" valueInput={<ToggleSwitch on={selFillOn} onChange={onFillToggle} />}>
+      <div className="flex flex-col gap-2">
+        <SwitchField label="Fill" on={selFillOn} onChange={onFillToggle} />
         {selFillOn ? (
           <ColorPicker
             value={selFill === "transparent" ? lastFillRef.current : selFill}
             onChange={onFillColor}
           />
         ) : null}
-      </PropRow>
+      </div>
       <SliderField
         label="Stroke width"
         domain={[0, 32]}

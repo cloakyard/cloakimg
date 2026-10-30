@@ -116,7 +116,9 @@ export function HslPanel() {
                   aria-pressed={active}
                   title={name}
                   className={`relative flex aspect-square cursor-pointer items-center justify-center rounded border p-0 ${
-                    active ? "border-accent ring-2 ring-accent" : "border-border-soft"
+                    active
+                      ? "border-transparent outline-2 outline-accent outline-offset-2"
+                      : "border-border-soft"
                   }`}
                   style={{ background: `hsl(${center}, 75%, 50%)` }}
                 >
@@ -214,7 +216,7 @@ export function HslPanel() {
             onClick={reset}
             disabled={!dirty}
           >
-            <I.Refresh size={12} />
+            <I.Refresh size={16} />
             Reset all
           </button>
         </div>

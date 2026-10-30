@@ -206,7 +206,7 @@ try {
           result.dialog
         )
           failures.push(results.at(-1));
-        if ([390, 1280].includes(width)) {
+        if (process.env.AIR_CAPTURES !== "0" && [390, 1280].includes(width)) {
           const stem = `${width}-${font}-${theme}-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`;
           await page.screenshot({ path: resolve(output, `${stem}.png`) });
           await page

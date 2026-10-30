@@ -8,7 +8,7 @@ import { type FabricImage, filters as FabricFilters } from "fabric";
 type FabricFilter = FabricImage["filters"][number];
 import { useCallback, useEffect, useState } from "react";
 import { useEditor } from "./EditorContext";
-import { ToggleSwitch, SliderField } from "./atoms";
+import { SwitchField, SliderField } from "./atoms";
 
 interface ImageFilterState {
   brightness: number; // -1..+1
@@ -119,22 +119,16 @@ export function LayerFilters({ image }: Props) {
         accent
         onChange={(v) => apply({ ...state, hue: v * 2 - 1 })}
       />
-      <div className="flex items-center justify-between">
-        <span className="text-[0.8125rem] text-text-muted">Grayscale</span>
-        <ToggleSwitch
-          ariaLabel="Grayscale"
-          on={state.grayscale}
-          onChange={(on) => apply({ ...state, grayscale: on })}
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-[0.8125rem] text-text-muted">Sepia</span>
-        <ToggleSwitch
-          ariaLabel="Sepia"
-          on={state.sepia}
-          onChange={(on) => apply({ ...state, sepia: on })}
-        />
-      </div>
+      <SwitchField
+        label="Grayscale"
+        on={state.grayscale}
+        onChange={(on) => apply({ ...state, grayscale: on })}
+      />
+      <SwitchField
+        label="Sepia"
+        on={state.sepia}
+        onChange={(on) => apply({ ...state, sepia: on })}
+      />
       <div className="flex gap-1.5">
         <button type="button" className="btn btn-secondary btn-xs flex-1" onClick={reset}>
           Reset

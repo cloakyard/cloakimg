@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
 import { ColorPicker } from "../ColorPicker";
-import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField, SwitchField } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -511,45 +511,16 @@ function AutoPanel({
         onChange={onPatchConfidence}
       />
 
-      {/* AI Inspector toggle — a row button that flips the overlay
-          on/off and surfaces a one-liner explanation when active so
-          users know what they're looking at. Disabled when there's
-          nothing to inspect yet (no cached mask, alreadyRemoved). */}
-      <button
-        type="button"
-        onClick={onToggleInspector}
-        disabled={busy || alreadyRemoved || !maskReady}
-        role="switch"
-        aria-checked={aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium outline-2 outline-transparent transition-colors focus-visible:outline-accent active:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11 pointer-coarse:text-[0.8125rem] ${
-          aiInspector
-            ? "bg-surface-soft text-text"
-            : "bg-page-bg text-text-muted hover:bg-page-bg/70"
-        }`}
+      <SwitchField
+        label="See what the AI sees"
+        on={aiInspector}
+        onChange={busy || alreadyRemoved || !maskReady ? undefined : onToggleInspector}
         title={
           maskReady
-            ? aiInspector
-              ? "Hide the AI's view"
-              : "Tint the photo to show what the AI sees as the subject"
+            ? "Tint the photo to show what the AI sees as the subject"
             : "Run Apply once to compute the mask, then toggle the inspector to inspect it"
         }
-      >
-        <span className="flex items-center gap-1.5">
-          <I.Sparkles size={12} aria-hidden="true" /> See what the AI sees
-        </span>
-        <span
-          aria-hidden="true"
-          className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-            aiInspector ? "bg-accent" : "bg-text-muted/30"
-          }`}
-        >
-          <span
-            className={`h-3 w-3 rounded-full bg-surface shadow-[none] transition-transform ${
-              aiInspector ? "translate-x-3" : "translate-x-0"
-            }`}
-          />
-        </span>
-      </button>
+      />
 
       <BackgroundControls
         mode={backgroundFillMode}
@@ -573,7 +544,7 @@ function AutoPanel({
         >
           {alreadyRemoved && backgroundFillMode === 0 ? (
             <>
-              <I.Check size={13} aria-hidden="true" /> Background removed
+              <I.Check size={16} aria-hidden="true" /> Background removed
             </>
           ) : busy ? (
             <>
@@ -581,7 +552,7 @@ function AutoPanel({
             </>
           ) : (
             <>
-              <I.Wand size={13} aria-hidden="true" />
+              <I.Wand size={16} aria-hidden="true" />
               {alreadyRemoved
                 ? "Add background"
                 : backgroundFillMode > 0
@@ -716,18 +687,17 @@ function ChromaPanel({
       />
       <PropRow label="Sample">
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={onTogglePick}
-            disabled={alreadyRemoved}
-            aria-pressed={bgPickActive}
-            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium outline-2 outline-transparent focus-visible:outline-accent active:bg-page-bg disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
-              bgPickActive ? "bg-surface-soft text-text" : "bg-page-bg text-text-muted"
-            }`}
-          >
-            <I.Pipette size={12} aria-hidden="true" />
-            {bgPickActive ? "Click image…" : "Pick"}
-          </button>
+          <div className="air-segments min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={onTogglePick}
+              disabled={alreadyRemoved}
+              aria-pressed={bgPickActive}
+            >
+              <I.Pipette size={16} aria-hidden="true" />
+              {bgPickActive ? "Click image…" : "Pick"}
+            </button>
+          </div>
           {bgSample && (
             <>
               <span
@@ -741,9 +711,9 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-accent active:bg-page-bg pointer-coarse:h-11 pointer-coarse:w-11"
+                className="btn btn-ghost btn-icon"
               >
-                <I.X size={11} aria-hidden="true" />
+                <I.X size={16} aria-hidden="true" />
               </button>
             </>
           )}
@@ -751,12 +721,11 @@ function ChromaPanel({
       </PropRow>
       <button
         type="button"
-        className="btn btn-secondary justify-center px-2! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]!"
+        className="btn btn-secondary"
         onClick={onAutoTune}
         disabled={alreadyRemoved}
-        style={{ opacity: alreadyRemoved ? 0.5 : 1 }}
       >
-        <I.Wand size={12} aria-hidden="true" /> Auto-detect
+        <I.Wand size={16} aria-hidden="true" /> Auto-detect
       </button>
       <BackgroundControls
         mode={backgroundFillMode}
@@ -774,11 +743,11 @@ function ChromaPanel({
         >
           {alreadyRemoved && backgroundFillMode === 0 ? (
             <>
-              <I.Check size={13} aria-hidden="true" /> Background removed
+              <I.Check size={16} aria-hidden="true" /> Background removed
             </>
           ) : (
             <>
-              <I.Layers size={13} aria-hidden="true" />
+              <I.Layers size={16} aria-hidden="true" />
               {alreadyRemoved
                 ? "Add background"
                 : backgroundFillMode > 0
@@ -819,7 +788,11 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
   return (
     <div className="space-y-2.5 border-t border-border-soft pt-2.5">
       <PropRow label="Output background">
-        <div className="grid grid-cols-2 gap-1.5" role="group" aria-label="Output background">
+        <div
+          className="air-segments img-background-choices"
+          role="group"
+          aria-label="Output background"
+        >
           {BACKGROUND_CHOICES.map((choice, index) => {
             const active = index === mode;
             return (
@@ -828,11 +801,6 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
                 type="button"
                 aria-pressed={active}
                 onClick={() => onChangeMode(index)}
-                className={`flex min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[0.8125rem] font-medium outline-2 outline-transparent transition-colors focus-visible:outline-accent active:bg-page-bg pointer-coarse:min-h-11 pointer-coarse:text-[0.8125rem] ${
-                  active
-                    ? "border-accent bg-surface-soft text-text"
-                    : "border-border-soft bg-page-bg text-text-muted hover:border-border hover:bg-surface"
-                }`}
               >
                 <span
                   aria-hidden="true"
@@ -841,7 +809,7 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
                   }`}
                   style={backgroundSwatch(choice.fill, color)}
                 />
-                <span className="truncate">{choice.label}</span>
+                <span>{choice.label}</span>
               </button>
             );
           })}

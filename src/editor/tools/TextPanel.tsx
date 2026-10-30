@@ -130,7 +130,7 @@ export function TextPanel() {
             else patchTool("textValue", e.target.value);
           }}
           rows={2}
-          className="control-field min-h-24 w-full resize-y bg-page-bg py-2"
+          className="air-field w-full"
         />
       </PropRow>
       <PropRow label="Font">
@@ -201,7 +201,7 @@ export function TextPanel() {
         />
       </PropRow>
       <PropRow label="Style">
-        <div className="flex gap-1">
+        <div className="air-segments">
           <StyleToggle
             label="I"
             italic
@@ -275,7 +275,7 @@ export function TextPanel() {
           />
         </PropRow>
       )}
-      <div className="grid grid-cols-3 gap-1">
+      <div className="air-segments img-choice-grid">
         <PresetButton
           label="Straight"
           active={Math.abs(toolState.textCurve) < 0.02}
@@ -329,12 +329,9 @@ function StyleToggle({ label, on, italic, underline, onChange }: StyleToggleProp
   return (
     <button
       type="button"
-      aria-label={label}
+      aria-label={italic ? "Italic" : "Underline"}
       aria-pressed={on}
       onClick={() => onChange(!on)}
-      className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded border-none font-[inherit] text-[0.8125rem] font-medium pointer-coarse:h-11 pointer-coarse:w-11 ${
-        on ? "bg-surface-soft text-text" : "bg-page-bg text-text-muted"
-      }`}
       style={{
         fontStyle: italic ? "italic" : "normal",
         textDecoration: underline ? "underline" : "none",
@@ -353,14 +350,7 @@ interface PresetButtonProps {
 
 function PresetButton({ label, active, onClick }: PresetButtonProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`cursor-pointer rounded-md border-none px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
-        active ? "bg-surface-soft text-text" : "bg-page-bg text-text-muted"
-      }`}
-    >
+    <button type="button" onClick={onClick} aria-pressed={active}>
       {label}
     </button>
   );

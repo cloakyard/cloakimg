@@ -17,16 +17,16 @@ describe("precision input", () => {
         onCommit={commit}
       />,
     );
-    const input = screen.getByRole("textbox");
-    for (const value of ["-", "", "2.5", "1x"]) {
+    const input = screen.getByRole("spinbutton");
+    for (const value of ["", "2.5", "0.15"]) {
       fireEvent.change(input, { target: { value } });
       fireEvent.blur(input);
-      expect(input).toHaveValue(value);
+      expect(input).toHaveValue(value === "" ? null : Number(value));
       expect(input).toHaveAttribute("aria-invalid", "true");
       expect(commit).not.toHaveBeenCalled();
     }
     fireEvent.keyDown(input, { key: "Escape" });
-    expect(input).toHaveValue("0");
+    expect(input).toHaveValue(0);
     expect(screen.queryByRole("alert")).toBeNull();
   });
   it("commits one signed value on Enter and preserves keyboard precision", async () => {
@@ -49,15 +49,18 @@ describe("precision input", () => {
     }
     const user = userEvent.setup();
     render(<Field />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByRole("spinbutton");
     await user.click(input);
     await user.clear(input);
     await user.type(input, "-1.2{Enter}");
     expect(commit).toHaveBeenCalledExactlyOnceWith(-1.2);
     await user.click(input);
-    await user.keyboard("{ArrowUp}");
-    expect(input).toHaveValue("-1.1");
+    // JSDOM has no native keyboard default action; browser journeys exercise it.
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    fireEvent.change(input, { target: { value: "-1.1" } });
+    fireEvent.keyUp(input, { key: "ArrowUp" });
+    expect(input).toHaveValue(-1.1);
     await user.keyboard("{Shift>}{ArrowUp}{/Shift}");
-    expect(input).toHaveValue("-0.1");
+    expect(input).toHaveValue(-0.1);
   });
 });

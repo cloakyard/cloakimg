@@ -119,7 +119,7 @@ export function MovePanel() {
             className="btn btn-secondary btn-xs flex-1 justify-center"
             onClick={onDelete}
           >
-            <I.X size={11} />
+            <I.X size={16} />
             Delete
           </button>
         </div>

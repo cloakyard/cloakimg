@@ -217,8 +217,8 @@ export function FramePanel() {
           // noise + clean vertical-pan propagation to the parent).
           className={
             isMobile
-              ? "no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-              : "grid grid-cols-4 gap-1.5"
+              ? "air-segments img-presets img-presets--strip no-scrollbar overflow-x-auto"
+              : "air-segments img-presets"
           }
         >
           {FRAME_STYLES.map((name, i) => {
@@ -231,14 +231,12 @@ export function FramePanel() {
                 onClick={() => patchTool("frameStyle", i)}
                 aria-pressed={active}
                 aria-label={name}
-                className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 ${
-                  isMobile ? "w-18 shrink-0" : ""
-                } ${active ? "border-2 border-accent" : "border border-border"}`}
+                className="img-preset"
               >
                 {thumbUrl ? (
                   <img
                     src={thumbUrl}
-                    alt={name}
+                    alt=""
                     width={72}
                     height={72}
                     className="block aspect-square w-full object-cover"
@@ -246,7 +244,7 @@ export function FramePanel() {
                 ) : (
                   <div className="aspect-square w-full bg-page-bg" />
                 )}
-                <div className="px-1 py-0.75 text-center text-[0.8125rem] font-medium">{name}</div>
+                <div className="img-preset-label">{name}</div>
               </button>
             );
           })}

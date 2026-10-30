@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clearDraft } from "../landing/draft";
 import { I } from "../components/icons";
 import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
-import { PropRow, Segment, Spinner, ToggleSwitch, SliderField } from "./atoms";
+import { PropRow, Segment, Spinner, SwitchField, SliderField } from "./atoms";
 import { startBlobDownload } from "./download";
 import { useEditor } from "./EditorContext";
 import { PrivacyAuditCard } from "./PrivacyAuditCard";
@@ -403,14 +403,12 @@ function MetadataSection({
       )}
       <div className="flex flex-col gap-1.5">
         {toggles.map((row) => (
-          <div key={row.key} className="flex items-center justify-between text-xs">
-            <span>{row.label}</span>
-            <ToggleSwitch
-              ariaLabel={row.label}
-              on={meta[row.key]}
-              onChange={(next) => onPatch(row.key, next)}
-            />
-          </div>
+          <SwitchField
+            key={row.key}
+            label={row.label}
+            on={meta[row.key]}
+            onChange={(next) => onPatch(row.key, next)}
+          />
         ))}
       </div>
     </div>

@@ -23,9 +23,9 @@ describe("author color", () => {
     fireEvent.change(hex, { target: { value: "#abc" } });
     fireEvent.keyDown(hex, { key: "Enter" });
     expect(hex).toHaveValue("#AABBCC");
-    expect(screen.getByRole("textbox", { name: "Red" })).toHaveValue("170");
-    fireEvent.change(screen.getByRole("textbox", { name: "Red" }), { target: { value: "255" } });
-    fireEvent.blur(screen.getByRole("textbox", { name: "Red" }));
+    expect(screen.getByRole("spinbutton", { name: "Red" })).toHaveValue(170);
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Red" }), { target: { value: "255" } });
+    fireEvent.blur(screen.getByRole("spinbutton", { name: "Red" }));
     expect(hex).toHaveValue("#FFBBCC");
   });
   it("keeps hue and saturation available through black and names the brightness axis", async () => {

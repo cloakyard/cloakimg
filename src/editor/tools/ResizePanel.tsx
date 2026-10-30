@@ -240,7 +240,7 @@ export function ResizePanel() {
             <button
               key={p.value}
               type="button"
-              className="btn btn-secondary flex-1 px-2! py-1.5! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]!"
+              className="btn btn-secondary grow"
               onClick={() => setLongEdge(p.value)}
             >
               {p.label}
@@ -276,7 +276,7 @@ export function ResizePanel() {
           disabled={resizing}
           aria-busy={resizing}
         >
-          <I.Check size={12} /> {resizing ? "Resizing…" : "Apply resize"}
+          <I.Check size={16} /> {resizing ? "Resizing…" : "Apply resize"}
         </button>
       )}
     </>

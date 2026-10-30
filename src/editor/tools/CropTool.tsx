@@ -603,10 +603,9 @@ export function CropPanel() {
         type="button"
         onClick={() => void smartCrop()}
         disabled={smartBusy}
-        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium text-text pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem]"
-        style={{ opacity: smartBusy ? 0.7 : 1 }}
+        className="btn btn-secondary w-full"
       >
-        {smartBusy ? <InlineSpinner size={12} /> : <I.Sparkles size={12} className="text-text" />}
+        {smartBusy ? <InlineSpinner size={16} /> : <I.Sparkles size={16} className="text-text" />}
         {smartLabel}
       </button>
       <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
@@ -622,33 +621,26 @@ export function CropPanel() {
       />
       <p className="text-[0.8125rem] text-text-muted">Total rotation: {rotationLabel}</p>
       <PropRow label="Flip / rotate 90°">
-        <div className="flex flex-wrap gap-1.5">
+        <div className="air-segments img-crop-actions">
           <button
             type="button"
-            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]! ${
-              toolState.flipH ? "border-accent text-text" : ""
-            }`}
             onClick={() => patchTool("flipH", !toolState.flipH)}
             aria-pressed={toolState.flipH}
           >
-            <I.Resize size={12} /> Flip H
+            <I.Resize size={16} /> Flip H
           </button>
           <button
             type="button"
-            className={`btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]! ${
-              toolState.flipV ? "border-accent text-text" : ""
-            }`}
             onClick={() => patchTool("flipV", !toolState.flipV)}
             aria-pressed={toolState.flipV}
           >
-            <I.Resize size={12} className="rotate-90" /> Flip V
+            <I.Resize size={16} className="rotate-90" /> Flip V
           </button>
           <button
             type="button"
-            className="btn btn-secondary flex-1 px-2.5! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]!"
             onClick={() => patchTool("cropQuarterTurns", (toolState.cropQuarterTurns + 1) % 4)}
           >
-            <I.Rotate size={12} /> 90°
+            <I.Rotate size={16} /> 90°
           </button>
         </div>
       </PropRow>
@@ -657,7 +649,7 @@ export function CropPanel() {
         className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
         onClick={reset}
       >
-        <I.Refresh size={12} />
+        <I.Refresh size={16} />
         Reset crop area
       </button>
       {/* Explicit Apply — desktop / tablet only. On mobile the
@@ -684,7 +676,7 @@ export function CropPanel() {
               </>
             ) : (
               <>
-                <I.Check size={13} /> Apply crop
+                <I.Check size={16} /> Apply crop
               </>
             )}
           </button>

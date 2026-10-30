@@ -1,7 +1,15 @@
 // Shared precision and choice control behavior.
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { NumericReadout, PropRow, Segment, Slider, SliderField, ToggleSwitch } from "./atoms";
+import {
+  NumericReadout,
+  PropRow,
+  Segment,
+  Slider,
+  SliderField,
+  SwitchField,
+  ToggleSwitch,
+} from "./atoms";
 
 describe("Segment", () => {
   it("exposes one native radio group and reports the selected value", () => {
@@ -73,7 +81,7 @@ describe("PropRow accessibility", () => {
       </PropRow>,
     );
 
-    expect(screen.getByRole("textbox", { name: "Exposure" })).toBeInTheDocument();
+    expect(screen.getByRole("spinbutton", { name: "Exposure" })).toBeInTheDocument();
     expect(screen.getByRole("slider", { name: "Exposure" })).toBeInTheDocument();
   });
 
@@ -121,10 +129,10 @@ describe("SliderField", () => {
         onValueCommit={onValueCommit}
       />,
     );
-    const input = screen.getByRole("textbox", { name: "Fine rotation" });
+    const input = screen.getByRole("spinbutton", { name: "Fine rotation" });
     fireEvent.change(input, { target: { value: "60" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(input).toHaveValue("60");
+    expect(input).toHaveValue(60);
     expect(input).toHaveAttribute("aria-invalid", "true");
     expect(onChange).not.toHaveBeenCalled();
     fireEvent.change(input, { target: { value: "-22" } });
@@ -135,8 +143,21 @@ describe("SliderField", () => {
   });
   it("keeps lossless output quality non-editable", () => {
     render(<SliderField label="Quality" value={0.92} readOnlyValue="Lossless" />);
-    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
     expect(screen.getByText("Lossless")).toBeInTheDocument();
     expect(screen.getByRole("slider")).toHaveAttribute("aria-disabled", "true");
+  });
+});
+
+describe("SwitchField", () => {
+  it("activates from its visible label and respects disabled state", () => {
+    const onChange = vi.fn();
+    const view = render(<SwitchField label="Inspector" on={false} onChange={onChange} />);
+    fireEvent.click(screen.getByText("Inspector"));
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(true);
+    view.rerender(<SwitchField label="Inspector" on={false} />);
+    expect(screen.getByRole("switch")).toBeDisabled();
+    fireEvent.click(screen.getByText("Inspector"));
+    expect(onChange).toHaveBeenCalledTimes(1);
   });
 });

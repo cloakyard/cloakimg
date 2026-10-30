@@ -101,14 +101,14 @@ export function RelightPanel() {
             className="btn btn-primary btn-sm self-start"
             onClick={() => void depth.requestExplicit().catch(() => undefined)}
           >
-            <I.Download size={13} /> Enable relight
+            <I.Download size={16} /> Enable relight
           </button>
         </div>
       )}
 
       <ScopeGate disabled={!depthReady}>
         {/* Header — names the gesture so the on-canvas sun is discoverable. */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-[0.875rem] font-medium leading-tight tracking-normal text-text">
               Relight
@@ -121,10 +121,10 @@ export function RelightPanel() {
             <button
               type="button"
               onClick={reset}
-              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 py-1 font-[inherit] text-[0.8125rem] font-medium text-text-muted transition-colors hover:bg-surface hover:text-text"
+              className="btn btn-ghost btn-sm shrink-0"
               aria-label="Reset relight"
             >
-              <I.Rotate size={11} /> Reset
+              <I.Rotate size={16} /> Reset
             </button>
           )}
         </div>

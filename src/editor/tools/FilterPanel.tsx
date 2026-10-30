@@ -128,7 +128,7 @@ export function FilterPanel() {
             categories, so the rendered structure is data-driven and
             stays in sync if a future preset is re-categorised. Each
             section gets its own scroll container on mobile (one
-            horizontal row per category) or a 3-col grid on desktop.
+            horizontal row per category) or a responsive grid on desktop.
             Section headers (`t-section-label`) match the existing
             panel typography (Adjust, Levels) so the Filter panel
             doesn't introduce a one-off heading style.
@@ -153,8 +153,8 @@ export function FilterPanel() {
                 // pans propagate to the parent panel naturally.
                 className={
                   isMobile
-                    ? "no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-                    : "grid grid-cols-3 gap-1.5"
+                    ? "air-segments img-presets img-presets--strip no-scrollbar overflow-x-auto"
+                    : "air-segments img-presets"
                 }
               >
                 {items.map(({ recipe, index }) => {
@@ -166,9 +166,7 @@ export function FilterPanel() {
                       type="button"
                       onClick={() => patchTool("filterPreset", index)}
                       aria-pressed={active}
-                      className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 ${
-                        isMobile ? "w-18 shrink-0" : ""
-                      } ${active ? "border-2 border-accent" : "border border-border"}`}
+                      className="img-preset"
                     >
                       {thumbUrl ? (
                         <img
@@ -187,9 +185,7 @@ export function FilterPanel() {
                           }}
                         />
                       )}
-                      <div className="px-1 py-0.75 text-center text-[0.8125rem] font-medium">
-                        {recipe.name}
-                      </div>
+                      <div className="img-preset-label">{recipe.name}</div>
                     </button>
                   );
                 })}

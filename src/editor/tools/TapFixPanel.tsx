@@ -30,7 +30,7 @@ export function TapFixPanel() {
 
   return (
     <>
-      <div className="flex items-start gap-2 rounded-lg border border-accent bg-surface-soft px-3 py-2.5">
+      <div className="flex items-start gap-2 rounded-lg border border-border-soft bg-surface-soft px-3 py-2.5">
         <I.Wand size={14} className="mt-0.5 shrink-0 text-text" />
         <div className="flex-1 text-[0.8125rem] leading-relaxed text-text">
           <div className="font-medium">Tap anything on the photo.</div>
@@ -58,7 +58,7 @@ export function TapFixPanel() {
           className="btn btn-secondary btn-sm justify-center"
           style={{ opacity: facesReady && subjectReady ? 0.5 : 1 }}
         >
-          <I.Sparkles size={12} />
+          <I.Sparkles size={16} />
           {facesReady && subjectReady ? "AI ready" : "Warm up AI"}
         </button>
       )}
@@ -76,7 +76,7 @@ function ReadinessChip({ label, ready }: { label: string; ready: boolean }) {
     <span
       className={`inline-flex items-center gap-1 rounded-full border px-2 py-px text-[0.8125rem] font-medium ${
         ready
-          ? "border-[var(--air-success)] bg-[var(--air-success-soft)] text-success border-[var(--air-success)] bg-[var(--air-success-soft)] text-success"
+          ? "border-[var(--air-success)] bg-[var(--air-success-soft)] text-success"
           : "border-border-soft bg-page-bg text-text-muted"
       }`}
     >

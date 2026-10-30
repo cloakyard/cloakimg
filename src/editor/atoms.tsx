@@ -33,7 +33,7 @@ export function PropRow({ label, value, valueInput, children }: PropRowProps) {
   return (
     <PropRowLabelContext.Provider value={labelId}>
       <div className="img-prop-row">
-        <div className="mb-1 flex items-start justify-between gap-2">
+        <div className="mb-2 flex items-start justify-between gap-2">
           <span
             id={labelId}
             className="text-[0.8125rem] font-medium tracking-normal text-text-muted"
@@ -456,14 +456,8 @@ export function Spinner({ size = 36, label }: SpinnerProps) {
   );
 }
 
-/** Compact 13 px circular spinner sized for inline use next to a 12 –
- *  12.5 px button label. Use this in panel buttons that flip into a
- *  busy state while a synchronous post-detection bake or other tight
- *  operation runs — pairing the label change with a visible spinner
- *  is what tells the user "I'm working" instead of the button just
- *  freezing. The full-overlay `<Spinner />` above is for modal /
- *  full-screen waits; this one is for inline button affordances. */
-export function InlineSpinner({ size = 13 }: { size?: number } = {}) {
+/** Shared button-size spinner. The full Spinner above is for blocking overlays. */
+export function InlineSpinner({ size = 16 }: { size?: number } = {}) {
   const r = (size - 3) / 2;
   const c = size / 2;
   return (
@@ -501,6 +495,20 @@ interface ToggleProps {
   onChange?: (next: boolean) => void;
   /** Explicit accessible name when the switch is not inside PropRow. */
   ariaLabel?: string;
+}
+
+/** An unboxed, fully clickable label for the family switch. */
+export function SwitchField({
+  label,
+  title,
+  ...switchProps
+}: Omit<ToggleProps, "ariaLabel"> & { label: string; title?: string }) {
+  return (
+    <label className="air-switch-row" title={title}>
+      <span>{label}</span>
+      <ToggleSwitch {...switchProps} ariaLabel={label} />
+    </label>
+  );
 }
 
 export function ToggleSwitch({ on, onChange, ariaLabel }: ToggleProps) {

@@ -5,6 +5,7 @@
 
 import { FabricImage, IText } from "fabric";
 import { useCallback, useState } from "react";
+import { ImageFileButton } from "../ImageFileButton";
 import { ColorPicker } from "../ColorPicker";
 import { acquireCanvas, releaseCanvas, type WatermarkAnchor } from "../doc";
 import { useEditor } from "../EditorContext";
@@ -34,7 +35,7 @@ const POSITIONS: { id: WatermarkAnchor; label: string; name: string }[] = [
 ];
 
 export function WatermarkPanel() {
-  const { toolState, patchTool, layers, commit, doc, getFabricCanvas } = useEditor();
+  const { toolState, patchTool, commit, doc, getFabricCanvas } = useEditor();
   const subjectMask = useSubjectMask();
   const [smartBusy, setSmartBusy] = useState(false);
   const [smartError, setSmartError] = useState<string | null>(null);
@@ -242,8 +243,6 @@ export function WatermarkPanel() {
     [patchTool],
   );
 
-  void layers;
-
   return (
     <>
       <PropRow label="Mode">
@@ -262,7 +261,7 @@ export function WatermarkPanel() {
             autoComplete="off"
             value={toolState.watermarkText}
             onChange={(e) => patchTool("watermarkText", e.target.value)}
-            className="control-field w-full bg-page-bg"
+            className="control-field w-full"
           />
         </PropRow>
       )}
@@ -276,31 +275,11 @@ export function WatermarkPanel() {
       )}
       {isImage && (
         <PropRow label="Image">
-          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs pointer-coarse:min-h-11">
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
-              className="hidden"
-            />
-            {toolState.watermarkImageDataUrl ? (
-              <>
-                <img
-                  src={toolState.watermarkImageDataUrl}
-                  alt=""
-                  width={28}
-                  height={28}
-                  className="h-7 w-7 rounded-xs bg-surface object-contain"
-                />
-                <span className="flex-1">Replace image…</span>
-              </>
-            ) : (
-              <>
-                <I.Upload size={14} />
-                <span className="flex-1">Choose a PNG / JPG…</span>
-              </>
-            )}
-          </label>
+          <ImageFileButton
+            accept="image/png,image/jpeg,image/webp"
+            preview={toolState.watermarkImageDataUrl || undefined}
+            onPick={onPickFile}
+          />
         </PropRow>
       )}
       <PropRow label="Position">
@@ -313,16 +292,15 @@ export function WatermarkPanel() {
           type="button"
           onClick={() => void smartPlace()}
           disabled={smartBusy}
-          className="mb-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium text-text pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem]"
-          style={{ opacity: smartBusy ? 0.7 : 1 }}
+          className="btn btn-secondary mb-1.5 w-full"
         >
           {smartBusy ? (
             <>
-              <InlineSpinner size={12} /> Finding empty corner…
+              <InlineSpinner size={16} /> Finding empty corner…
             </>
           ) : (
             <>
-              <I.Sparkles size={12} className="text-text" /> Place away from subject
+              <I.Sparkles size={16} /> Place away from subject
             </>
           )}
         </button>
