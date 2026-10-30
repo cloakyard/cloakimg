@@ -48,7 +48,7 @@ function pipelineKey(model: string, dtype: string, device: "webgpu" | "wasm"): s
 }
 
 export async function handleSegment(req: AiSegmentRequest): Promise<void> {
-  const order = deviceOrder(req.device);
+  const order = await deviceOrder(req.device);
 
   aiLog.debug("worker", "handleSegment", {
     id: req.id,

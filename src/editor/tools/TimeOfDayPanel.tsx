@@ -179,16 +179,18 @@ export function TimeOfDayPanel() {
           dirty; hidden at identity to keep the panel calm. */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[15px] font-semibold leading-tight tracking-[-0.01em] text-text">
+          <div className="text-[15px] font-medium leading-tight tracking-normal text-text">
             {label}
           </div>
-          <div className="mt-0.5 text-[11.5px] leading-snug text-text-muted">{active.caption}</div>
+          <div className="mt-0.5 text-[0.8125rem] leading-snug text-text-muted">
+            {active.caption}
+          </div>
         </div>
         {dirty && (
           <button
             type="button"
             onClick={reset}
-            className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 py-1 font-[inherit] text-[11px] font-semibold text-text-muted transition-colors hover:bg-page-bg hover:text-text"
+            className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 py-1 font-[inherit] text-[0.8125rem] font-medium text-text-muted transition-colors hover:bg-page-bg hover:text-text"
             aria-label="Reset Time of day to Noon"
           >
             <I.Rotate size={11} /> Reset
@@ -231,7 +233,7 @@ export function TimeOfDayPanel() {
               patchTool("timeOfDay", 1);
             }
           }}
-          className="relative flex h-9 w-full cursor-grab touch-none items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-coral-500 focus-visible:ring-offset-2 pointer-coarse:h-11 active:cursor-grabbing"
+          className="relative flex h-9 w-full cursor-grab touch-none items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 pointer-coarse:h-11 active:cursor-grabbing"
         >
           {/* Sky strip. Inner shadow + thin dark hairline keep the
               gradient from floating off the page in light mode. */}
@@ -279,9 +281,9 @@ export function TimeOfDayPanel() {
                 onClick={() => patchTool("timeOfDay", k.t)}
                 aria-pressed={isActive}
                 aria-label={`Snap to ${k.label}`}
-                className={`flex h-8 min-w-0 cursor-pointer items-center justify-center rounded-md border-none px-1 font-[inherit] text-[10.5px] font-semibold whitespace-nowrap transition-colors pointer-coarse:h-11 ${
+                className={`flex h-8 min-w-0 cursor-pointer items-center justify-center rounded-md border-none px-1 font-[inherit] text-[0.8125rem] font-medium whitespace-nowrap transition-colors pointer-coarse:h-11 ${
                   isActive
-                    ? "bg-coral-50 text-coral-700 dark:bg-[var(--color-accent-soft)] dark:text-coral-300"
+                    ? "bg-surface-soft text-text dark:bg-[var(--air-surface-soft)] text-text"
                     : "bg-page-bg text-text-muted hover:text-text"
                 }`}
               >
@@ -292,7 +294,7 @@ export function TimeOfDayPanel() {
         </div>
       </div>
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Drag the sun, or tap a moment to snap. One move layers temperature, exposure, saturation,
         and contrast — re-enter Adjust afterwards to fine-tune.
       </div>

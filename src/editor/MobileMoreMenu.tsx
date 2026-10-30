@@ -1,19 +1,7 @@
-// MobileMoreMenu.tsx — Overflow drawer for the mobile top bar. Houses
-// the secondary actions (file info, reset) so the bar itself can stay
-// focused on the high-frequency triad (undo · redo · export).
-//
-// "Show original" used to live here too; it was demoted to a press-and-
-// hold pill on the canvas because flipping back-and-forth via this menu
-// took four taps. The pill (see ImageCanvas → MobileCompareButton) is
-// now the single canonical compare affordance on mobile.
-//
-// Renders as a bottom sheet via the shared ModalFrame for visual
-// consistency with the other editor modals.
-
+// Secondary mobile actions; Compare remains in the top bar and canvas gesture.
 import { useRef } from "react";
 import { I } from "../components/icons";
 import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
-import { useFocusReturn, useFocusTrap } from "./useFocusReturn";
 
 type IconComponent = (typeof I)[keyof typeof I];
 
@@ -35,22 +23,9 @@ export function MobileMoreMenu({
   onClose,
 }: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
-  useFocusReturn(true);
-  useFocusTrap(modalRef, true);
 
   return (
-    <ModalFrame
-      onClose={onClose}
-      bottomSheet
-      position="absolute"
-      // This drawer only ever renders in the mobile layout (≤ 760 px),
-      // so it should span the full width edge-to-edge like the Export
-      // sheet — a fixed cap (e.g. max-w-130 = 520 px) left it a narrow
-      // centred sheet on 520–760 px viewports instead of a true drawer.
-      maxWidth="max-w-none"
-      labelledBy="mobile-more-title"
-      modalRef={modalRef}
-    >
+    <ModalFrame onClose={onClose} labelledBy="mobile-more-title" modalRef={modalRef}>
       <MoreMenuBody
         fileName={fileName}
         hasDoc={hasDoc}
@@ -97,8 +72,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
             // Open the file-properties modal immediately so it slides
             // in while this menu slides out — the visual handoff feels
             // like one continuous gesture.
-            onShowFileProps();
-            dismiss();
+            dismiss(onShowFileProps);
           }}
         />
         <Divider />
@@ -139,22 +113,20 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
       onClick={onClick}
       disabled={disabled}
       className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-lg border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-        active
-          ? "bg-coral-50/70 dark:bg-coral-900/20"
-          : "hover:bg-page-bg active:bg-coral-50/50 dark:hover:bg-white/5"
+        active ? "bg-surface-soft" : "hover:bg-page-bg active:bg-surface-soft dark:hover:bg-white/5"
       }`}
     >
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-          active ? "text-coral-700 dark:text-coral-300" : "text-text-muted"
+          active ? "text-text" : "text-text-muted"
         }`}
       >
         <Icon size={17} stroke={2.1} />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[13.5px] font-semibold">{label}</span>
+        <span className="text-[13.5px] font-medium">{label}</span>
         {hint && (
-          <span className="overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted">
+          <span className="overflow-hidden text-[0.8125rem] text-ellipsis whitespace-nowrap text-text-muted">
             {hint}
           </span>
         )}

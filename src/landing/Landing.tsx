@@ -1,14 +1,10 @@
-// Landing.tsx — CloakIMG's functional workbench landing. The visual
-// language follows the CloakPDF sibling while the instrument is a real
-// local image input, not a decorative product mock-up.
-
 import { useEffect, useState } from "react";
 import { DropZone } from "../components/DropZone";
 import { I } from "../components/icons";
+import { PhotoFrame } from "./PhotoFrame";
 import { Features } from "./Features";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
-import { PrivacyModal } from "./PrivacyModal";
 import { StartModal, type StartChoice } from "./StartModal";
 
 interface Props {
@@ -16,145 +12,85 @@ interface Props {
   onIntent?: () => void;
 }
 
-const WORKFLOW = [
-  {
-    number: "01",
-    title: "Open",
-    copy: "Choose a photo. The browser reads it directly from your device.",
-  },
-  {
-    number: "02",
-    title: "Work",
-    copy: "Retouch, grade, redact, replace backgrounds, or frame an ID photo on one canvas.",
-  },
-  {
-    number: "03",
-    title: "Export",
-    copy: "Write an image, or an exact passport and visa print sheet, back to your device.",
-  },
-] as const;
-
 export function Landing({ onStart, onIntent }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
-  const [width, setWidth] = useState(() =>
-    typeof window === "undefined" ? 1280 : window.innerWidth,
+  const [isPhone, setIsPhone] = useState(
+    () => window.matchMedia?.("(max-width: 640px)").matches ?? false,
   );
 
   useEffect(() => {
-    const onResize = () => setWidth(window.innerWidth);
-    window.addEventListener("resize", onResize, { passive: true });
-    return () => window.removeEventListener("resize", onResize);
+    const media = window.matchMedia?.("(max-width: 640px)");
+    if (!media) return;
+    const update = () => setIsPhone(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, []);
 
-  const isPhone = width < 600;
-  const openStart = () => {
-    onIntent?.();
-    setModalOpen(true);
-  };
+  // A missed file drop must not navigate away from the entry flow. Text and
+  // links keep their native drag behaviour; accepted drops stop at DropZone.
+  useEffect(() => {
+    const preventFileNavigation = (event: DragEvent) => {
+      if (event.dataTransfer?.types.includes("Files")) event.preventDefault();
+    };
+    window.addEventListener("dragover", preventFileNavigation);
+    window.addEventListener("drop", preventFileNavigation);
+    return () => {
+      window.removeEventListener("dragover", preventFileNavigation);
+      window.removeEventListener("drop", preventFileNavigation);
+    };
+  }, []);
 
   return (
-    <div className="cloak-site">
-      <a href="#main" className="cloak-skip-link">
+    <div className="img-site">
+      <a href="#main" className="img-skip air-button">
         Skip to main content
       </a>
-
-      <Header
-        right={
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={openStart}
-            onMouseEnter={onIntent}
-            onFocus={onIntent}
-          >
-            Open editor
-            <I.ArrowRight size={14} />
-          </button>
-        }
-      />
-
-      <main id="main">
-        <section className="site-frame cloak-hero" aria-labelledby="home-title">
-          <div className="cloak-hero__intro">
-            <h1 id="home-title" className="cloak-display">
-              A complete photo workbench.{" "}
-              <span className="cloak-display__accent">Your pixels stay put.</span>
-            </h1>
-
-            <div className="cloak-hero__aside">
-              <p className="cloak-hero__lede">
-                Crop, retouch, replace backgrounds, build passport or visa print sheets, and export
-                in one capable web app. Image content remains inside your browser.
-              </p>
-              <a className="cloak-text-link" href="#workbench">
-                Open the workbench
-                <I.ArrowRight size={15} className="cloak-link-arrow" />
-              </a>
-            </div>
-          </div>
-
+      <Header />
+      <main id="main" tabIndex={-1}>
+        <section className="img-hero img-page-width" aria-labelledby="home-title">
+          <h1 id="home-title">
+            Your photos. <span>Your way.</span>
+          </h1>
+          <p className="img-lede">
+            A little retouching or a whole new look. Edit, compose and export with a complete photo
+            toolkit, right on your device.
+          </p>
+          <PhotoFrame />
           <div
             id="workbench"
-            className="cloak-workbench"
-            onMouseEnter={onIntent}
+            className="img-entry"
+            tabIndex={-1}
+            onPointerEnter={onIntent}
             onFocus={onIntent}
           >
-            <div className="cloak-instrument-bar">
-              <span>Live web app / local image pipeline</span>
-              <span className="cloak-status">
-                <span className="cloak-status-dot" aria-hidden="true" />
-                Ready in this tab
-              </span>
-            </div>
-
-            <div className="cloak-workbench__body">
-              <ol className="cloak-workbench__steps">
-                {WORKFLOW.map((step) => (
-                  <li key={step.number} className="cloak-workbench__step">
-                    <span className="cloak-workbench__step-number">{step.number}</span>
-                    <div>
-                      <p className="cloak-workbench__step-title">{step.title}</p>
-                      <p className="cloak-workbench__step-copy">{step.copy}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-
-              <div className="cloak-workbench__drop">
-                <DropZone
-                  title="Drop an image to open the editor"
-                  subtitle="Or browse your device — JPG, PNG, WebP, AVIF, GIF, HEIC, or HEIF"
-                  showPasteButton
-                  onFiles={(files) => {
-                    const file = files[0];
-                    if (file) onStart({ kind: "upload", file });
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="cloak-workbench__footer" aria-label="Workbench architecture">
-              {[
-                ["Browser", "Execution"],
-                ["Canvas", "Raster editing"],
-                ["On device", "Optional AI"],
-                ["Local file", "Export"],
-              ].map(([value, label]) => (
-                <div key={value} className="cloak-workbench__metric">
-                  <span className="cloak-workbench__metric-value">{value}</span>
-                  <span className="cloak-workbench__metric-label">{label}</span>
-                </div>
-              ))}
-            </div>
+            <DropZone
+              title="Drop an image to start"
+              subtitle="One image · JPG, PNG, WebP, AVIF, GIF, HEIC or HEIF"
+              onFiles={(files) => {
+                const file = files[0];
+                if (file) onStart({ kind: "upload", file });
+              }}
+            />
+            <button
+              type="button"
+              className="air-button air-button--quiet"
+              onClick={() => {
+                onIntent?.();
+                setModalOpen(true);
+              }}
+              onPointerEnter={onIntent}
+              onFocus={onIntent}
+            >
+              Open editor <I.ArrowRight size={16} aria-hidden="true" />
+            </button>
+            <p className="img-entry-note">
+              Start a blank canvas, resume a draft or reopen a recent photo.
+            </p>
           </div>
         </section>
-
         <Features />
       </main>
-
-      <Footer onPrivacy={() => setPrivacyOpen(true)} />
-
+      <Footer />
       {modalOpen && (
         <StartModal
           isPhone={isPhone}
@@ -165,8 +101,6 @@ export function Landing({ onStart, onIntent }: Props) {
           }}
         />
       )}
-
-      {privacyOpen && <PrivacyModal isPhone={isPhone} onClose={() => setPrivacyOpen(false)} />}
     </div>
   );
 }

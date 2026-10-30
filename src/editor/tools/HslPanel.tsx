@@ -116,7 +116,7 @@ export function HslPanel() {
                   aria-pressed={active}
                   title={name}
                   className={`relative flex aspect-square cursor-pointer items-center justify-center rounded border p-0 ${
-                    active ? "border-coral-500 ring-2 ring-coral-500/40" : "border-border-soft"
+                    active ? "border-accent ring-2 ring-accent" : "border-border-soft"
                   }`}
                   style={{ background: `hsl(${center}, 75%, 50%)` }}
                 >
@@ -131,7 +131,7 @@ export function HslPanel() {
               );
             })}
           </div>
-          <div className="mt-1.5 text-center text-[11px] font-semibold text-text-muted">
+          <div className="mt-1.5 text-center text-[0.8125rem] font-medium text-text-muted">
             {HSL_BAND_NAMES[band]}
           </div>
         </PropRow>
@@ -141,6 +141,7 @@ export function HslPanel() {
           valueInput={
             <NumericReadout
               display={fmtSigned((hueVal - 0.5) * 120, 0)}
+              unit="°"
               normalized={hueVal}
               fromNormalized={(n) => (n - 0.5) * 120}
               toNormalized={(real) => real / 120 + 0.5}
@@ -161,6 +162,7 @@ export function HslPanel() {
           valueInput={
             <NumericReadout
               display={fmtSigned((satVal - 0.5) * 200, 0)}
+              unit="%"
               normalized={satVal}
               fromNormalized={(n) => (n - 0.5) * 200}
               toNormalized={(real) => real / 200 + 0.5}
@@ -181,6 +183,7 @@ export function HslPanel() {
           valueInput={
             <NumericReadout
               display={fmtSigned((lumVal - 0.5) * 100, 0)}
+              unit="%"
               normalized={lumVal}
               fromNormalized={(n) => (n - 0.5) * 100}
               toNormalized={(real) => real / 100 + 0.5}
@@ -199,7 +202,7 @@ export function HslPanel() {
         <div className="flex gap-2">
           <button
             type="button"
-            className="btn btn-ghost btn-xs flex-1 justify-center text-coral-700 dark:text-coral-300"
+            className="btn btn-ghost btn-xs flex-1 justify-center text-text"
             onClick={resetBand}
             disabled={!bandIsDirty(toolState, band)}
           >
@@ -207,7 +210,7 @@ export function HslPanel() {
           </button>
           <button
             type="button"
-            className="btn btn-ghost btn-xs flex-1 justify-center text-coral-700 dark:text-coral-300"
+            className="btn btn-ghost btn-xs flex-1 justify-center text-text"
             onClick={reset}
             disabled={!dirty}
           >

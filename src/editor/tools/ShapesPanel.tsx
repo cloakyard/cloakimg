@@ -9,7 +9,7 @@ import type { ComponentType } from "react";
 import { I } from "../../components/icons";
 import { ColorPicker } from "../ColorPicker";
 import { useEditorActions, useToolState } from "../EditorContext";
-import { PropRow, Slider, ToggleSwitch } from "../atoms";
+import { PropRow, ToggleSwitch, SliderField } from "../atoms";
 
 interface ShapeDef {
   name: string;
@@ -66,7 +66,7 @@ export function ShapesPanel() {
                 aria-pressed={active}
                 className={`flex h-8 cursor-pointer items-center justify-center rounded border-none p-0 sm:h-7 pointer-coarse:h-11 ${
                   active
-                    ? "bg-surface text-coral-600 shadow-[var(--shadow-control)] dark:text-coral-400"
+                    ? "bg-surface text-text shadow-[none] text-text"
                     : "bg-transparent text-text-muted"
                 }`}
               >
@@ -82,24 +82,24 @@ export function ShapesPanel() {
       <PropRow label="Stroke">
         <ColorPicker value={toolState.shapeStroke} onChange={(c) => patchTool("shapeStroke", c)} />
       </PropRow>
-      <PropRow label="Stroke width" value={`${toolState.shapeStrokeWidth.toFixed(0)} px`}>
-        <Slider
-          value={Math.min(1, toolState.shapeStrokeWidth / 32)}
-          accent
-          defaultValue={2 / 32}
-          onChange={(v) => patchTool("shapeStrokeWidth", Math.max(0, v * 32))}
-        />
-      </PropRow>
-      <PropRow label="Opacity" value={`${Math.round(toolState.shapeOpacity * 100)}%`}>
-        <Slider
-          value={toolState.shapeOpacity}
-          accent
-          defaultValue={1}
-          onChange={(v) => patchTool("shapeOpacity", v)}
-        />
-      </PropRow>
+      <SliderField
+        label="Stroke width"
+        domain={[0, 32]}
+        unit="px"
+        value={Math.min(1, toolState.shapeStrokeWidth / 32)}
+        accent
+        defaultValue={2 / 32}
+        onChange={(v) => patchTool("shapeStrokeWidth", Math.max(0, v * 32))}
+      />
+      <SliderField
+        label="Opacity"
+        value={toolState.shapeOpacity}
+        accent
+        defaultValue={1}
+        onChange={(v) => patchTool("shapeOpacity", v)}
+      />
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11.5px] font-medium text-text-muted">Lock aspect</span>
+        <span className="text-[0.8125rem] font-medium text-text-muted">Lock aspect</span>
         <ToggleSwitch
           ariaLabel="Lock aspect"
           on={toolState.shapeLockAspect}
@@ -108,43 +108,46 @@ export function ShapesPanel() {
       </div>
 
       {kind === 1 && (
-        <PropRow label="Corner radius" value={`${toolState.shapeCornerRadius.toFixed(0)} px`}>
-          <Slider
-            value={Math.min(1, toolState.shapeCornerRadius / 80)}
-            accent
-            defaultValue={12 / 80}
-            onChange={(v) => patchTool("shapeCornerRadius", Math.max(0, v * 80))}
-          />
-        </PropRow>
+        <SliderField
+          label="Corner radius"
+          domain={[0, 80]}
+          unit="px"
+          value={Math.min(1, toolState.shapeCornerRadius / 80)}
+          accent
+          defaultValue={12 / 80}
+          onChange={(v) => patchTool("shapeCornerRadius", Math.max(0, v * 80))}
+        />
       )}
 
       {kind === 6 && (
-        <PropRow label="Sides" value={`${toolState.shapeSides}`}>
-          <Slider
-            value={(toolState.shapeSides - 3) / 9}
-            accent
-            defaultValue={(6 - 3) / 9}
-            onChange={(v) =>
-              patchTool("shapeSides", Math.max(3, Math.min(12, Math.round(3 + v * 9))))
-            }
-          />
-        </PropRow>
+        <SliderField
+          label="Sides"
+          domain={[3, 12]}
+          unit=""
+          value={(toolState.shapeSides - 3) / 9}
+          accent
+          defaultValue={(6 - 3) / 9}
+          onChange={(v) =>
+            patchTool("shapeSides", Math.max(3, Math.min(12, Math.round(3 + v * 9))))
+          }
+        />
       )}
 
       {kind === 7 && (
-        <PropRow label="Points" value={`${toolState.shapeStarPoints}`}>
-          <Slider
-            value={(toolState.shapeStarPoints - 4) / 8}
-            accent
-            defaultValue={(5 - 4) / 8}
-            onChange={(v) =>
-              patchTool("shapeStarPoints", Math.max(4, Math.min(12, Math.round(4 + v * 8))))
-            }
-          />
-        </PropRow>
+        <SliderField
+          label="Points"
+          domain={[4, 12]}
+          unit=""
+          value={(toolState.shapeStarPoints - 4) / 8}
+          accent
+          defaultValue={(5 - 4) / 8}
+          onChange={(v) =>
+            patchTool("shapeStarPoints", Math.max(4, Math.min(12, Math.round(4 + v * 8))))
+          }
+        />
       )}
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Drag on the canvas to create. Click a shape to select; corners scale, the rotation handle
         rotates.
       </div>

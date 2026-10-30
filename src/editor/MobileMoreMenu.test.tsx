@@ -1,22 +1,10 @@
-// Tests for MobileMoreMenu.
-//
-// The menu used to host three actions: File information · Show original ·
-// Reset. "Show original" was demoted to a press-and-hold pill on the
-// canvas (see MobileCompareButton) because flipping back-and-forth via
-// this menu took four taps and felt cumbersome.
-//
-// These tests pin the reduced surface so a future refactor can't
-// silently re-introduce the compare entry here (which would dilute the
-// canvas pill as the canonical compare affordance) and so the remaining
-// actions stay discoverable.
-
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+// Secondary mobile actions; Compare remains in the top bar and canvas gesture.
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vite-plus/test";
 import { MobileMoreMenu } from "./MobileMoreMenu";
 
 // ModalFrame routes pointer close paths through a ~260ms exit budget
 // so the sheet settles before unmount. Escape remains immediate.
-const EXIT_MS = 260;
 
 const baseProps = {
   fileName: "photo.jpg",
@@ -64,67 +52,30 @@ describe("MobileMoreMenu", () => {
     expect(screen.getByRole("button", { name: /Reset all edits/i })).toBeDisabled();
   });
 
-  // The next three cases drive ModalFrame's animated-close lifecycle.
-  // The user-facing contract is unchanged ("clicking dismisses the
-  // menu" / "Esc closes" / "Reset runs after the menu is gone") but
-  // the timing now includes the exit animation, so the tests use fake
-  // timers to advance past the slide-down without waiting in real time.
-  describe("animated close", () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it("clicking File information fires onShowFileProps immediately and onClose after the exit animation", () => {
-      const onShowFileProps = vi.fn();
-      const onClose = vi.fn();
-      render(<MobileMoreMenu {...baseProps} onShowFileProps={onShowFileProps} onClose={onClose} />);
-      // fireEvent (not userEvent) — userEvent's internal awaits stall
-      // forever under fake timers.
-      act(() => {
-        fireEvent.click(screen.getByRole("button", { name: /File information/i }));
-      });
-      // The file properties modal must open right away — it slides in
-      // while the menu slides out so the handoff feels continuous.
-      expect(onShowFileProps).toHaveBeenCalledTimes(1);
-      expect(onClose).not.toHaveBeenCalled();
-      act(() => {
-        vi.advanceTimersByTime(EXIT_MS + 16);
-      });
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    // Reset is destructive — the menu must fully animate closed BEFORE
-    // the parent shows its confirm modal, otherwise the confirm stacks
-    // on top of a still-fading menu.
-    it("clicking Reset all edits closes the menu before invoking onReset", () => {
+  it.each(["File information", "Reset all edits"])(
+    "closes before handing off %s",
+    async (label) => {
       const calls: string[] = [];
-      const onReset = vi.fn(() => calls.push("reset"));
-      const onClose = vi.fn(() => calls.push("close"));
-      render(<MobileMoreMenu {...baseProps} onReset={onReset} onClose={onClose} />);
-      act(() => {
-        fireEvent.click(screen.getByRole("button", { name: /Reset all edits/i }));
-      });
-      // Neither has fired yet — both are queued behind the slide-down.
-      expect(calls).toEqual([]);
-      act(() => {
-        vi.advanceTimersByTime(EXIT_MS + 16);
-      });
-      // close fires first (via ModalFrame's onCloseRef.current()), then
-      // the onSettled callback runs onReset — preserving the invariant.
-      expect(calls).toEqual(["close", "reset"]);
-    });
-
-    it("Escape key dismisses the menu immediately", () => {
-      const onClose = vi.fn();
-      render(<MobileMoreMenu {...baseProps} onClose={onClose} />);
-      const ev = new KeyboardEvent("keydown", { key: "Escape", bubbles: true });
-      act(() => {
-        window.dispatchEvent(ev);
-      });
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
+      render(
+        <MobileMoreMenu
+          {...baseProps}
+          onClose={() => calls.push("close")}
+          onShowFileProps={() => calls.push("info")}
+          onReset={() => calls.push("reset")}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
+      await waitFor(() =>
+        expect(calls).toEqual(["close", label === "File information" ? "info" : "reset"]),
+      );
+    },
+  );
+  it("Escape dismisses the focused menu", async () => {
+    const onClose = vi.fn();
+    render(<MobileMoreMenu {...baseProps} onClose={onClose} />);
+    const dialog = screen.getByRole("dialog");
+    await waitFor(() => expect(dialog).toHaveFocus());
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
   });
 });

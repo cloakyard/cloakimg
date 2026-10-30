@@ -19,6 +19,7 @@
 // MediaPipe SDK / WASM init / network fetch fires.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import pkg from "../../../../../package.json";
 
 const runFaceDetectMock = vi.hoisted(() => vi.fn());
 vi.mock("./runner", () => ({
@@ -116,8 +117,9 @@ describe("detect-face service — runner forwards the right request shape", () =
     expect(args.modelUrl).toBe("/models/face/blaze_face_full_range.tflite");
     // FilesetResolver pulls the MediaPipe Tasks WASM bundle from a
     // version-pinned jsdelivr URL (no user pixels cross this boundary).
-    expect(args.wasmBaseUrl).toMatch(
-      /^https:\/\/cdn\.jsdelivr\.net\/npm\/@mediapipe\/tasks-vision@[\d.]+\/wasm$/,
+    // The JS package and downloaded WASM must share an exact SDK version.
+    expect(args.wasmBaseUrl).toBe(
+      `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${pkg.dependencies["@mediapipe/tasks-vision"]}/wasm`,
     );
     expect(args.device).toBe("auto");
     expect(args.source).toBe(source);

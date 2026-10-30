@@ -7,7 +7,7 @@
 import { type FabricObject, FabricImage } from "fabric";
 import { useCallback, useEffect, useState } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Slider } from "../atoms";
+import { PropRow, SliderField } from "../atoms";
 import { useEditor } from "../EditorContext";
 
 const IMAGE_TAG = "cloak:image";
@@ -193,19 +193,42 @@ export function ImagePanel() {
         </label>
       </PropRow>
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Drop an image to add a new layer. Drag handles to scale or rotate; use Layers to reorder.
       </div>
 
       {activeImage && (
         <>
-          <PropRow label="Opacity" value={`${Math.round(opacity * 100)}%`}>
-            <div onPointerUp={commitOpacity}>
-              <Slider value={opacity} accent onChange={onOpacity} />
-            </div>
-          </PropRow>
+          <div
+            onPointerUp={commitOpacity}
+            onKeyUp={(event) => {
+              if (
+                [
+                  "ArrowLeft",
+                  "ArrowRight",
+                  "ArrowUp",
+                  "ArrowDown",
+                  "Home",
+                  "End",
+                  "PageUp",
+                  "PageDown",
+                ].includes(event.key) &&
+                event.target instanceof HTMLElement &&
+                event.target.getAttribute("role") === "slider"
+              )
+                commitOpacity();
+            }}
+          >
+            <SliderField
+              label="Opacity"
+              value={opacity}
+              accent
+              onChange={onOpacity}
+              onValueCommit={commitOpacity}
+            />
+          </div>
           <div className="mt-1.5">
-            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted">Align</div>
+            <div className="mb-1.5 text-[0.8125rem] font-medium text-text-muted">Align</div>
             <div className="grid grid-cols-3 gap-1.5">
               <ReorderButton label="Center H" onClick={() => center("h")} />
               <ReorderButton label="Center V" onClick={() => center("v")} />
@@ -213,14 +236,16 @@ export function ImagePanel() {
             </div>
           </div>
           <div className="mt-1.5">
-            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted">Size to canvas</div>
+            <div className="mb-1.5 text-[0.8125rem] font-medium text-text-muted">
+              Size to canvas
+            </div>
             <div className="grid grid-cols-2 gap-1.5">
               <ReorderButton label="Fit" onClick={() => fitOrFill("fit")} />
               <ReorderButton label="Fill" onClick={() => fitOrFill("fill")} />
             </div>
           </div>
           <div className="mt-1.5">
-            <div className="mb-1.5 text-[11.5px] font-medium text-text-muted">Layer order</div>
+            <div className="mb-1.5 text-[0.8125rem] font-medium text-text-muted">Layer order</div>
             <div className="grid grid-cols-2 gap-1.5">
               <ReorderButton label="To front" onClick={() => reorder("front")} />
               <ReorderButton label="Forward" onClick={() => reorder("forward")} />

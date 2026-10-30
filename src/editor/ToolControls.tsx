@@ -13,7 +13,6 @@ import { Spinner } from "./atoms";
 import { useActiveTool } from "./EditorContext";
 import { AdjustPanel } from "./tools/AdjustPanel";
 import { CropPanel } from "./tools/CropTool";
-import { DefaultPanel } from "./tools/DefaultPanel";
 import { FilterPanel } from "./tools/FilterPanel";
 import { MovePanel } from "./tools/MovePanel";
 import { ResizePanel } from "./tools/ResizePanel";
@@ -145,7 +144,7 @@ function renderPanel(activeTool: ToolState["activeTool"]) {
       return <BgBlurPanel />;
     case "bgrm":
       return <RemoveBgPanel />;
-    default:
-      return <DefaultPanel />;
   }
+  const unreachable: never = activeTool;
+  return unreachable;
 }

@@ -1,0 +1,13 @@
+$ vp test run
+
+ RUN  v5.0.5 /private/tmp/cloakyard-rollout-2026-10-21/cloakimg-clean
+
+
+ Test Files  46 passed (46)
+      Tests  470 passed (470)
+   Start at  17:33:59
+   Duration  3.62s (environment 57%, tests 25%, setup 13%, import 2%, transform 2%, worker 1%)
+
+    Isolate  46 workers spawned · ~490ms startup each (spawn + environment, per file)
+             at least ~1.56s faster with isolate: false — reuses workers across files instead of one per file
+

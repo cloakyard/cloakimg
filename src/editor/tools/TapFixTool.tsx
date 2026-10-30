@@ -330,7 +330,7 @@ export function TapFixTool() {
           key={chip.label}
           type="button"
           onClick={chip.run}
-          className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-coral-50 px-2 py-1 text-[11px] font-semibold text-coral-700 transition-colors hover:bg-coral-100 dark:bg-coral-900/30 dark:text-coral-300"
+          className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-surface-soft px-2 py-1 text-[0.8125rem] font-medium text-text transition-colors hover:bg-surface-soft"
         >
           {chip.icon}
           {chip.label}

@@ -111,10 +111,8 @@ export function PrivacyAuditCard({ stripGPS, onPatchMeta }: Props) {
       className="flex flex-col gap-2 rounded-lg border border-border bg-surface px-3 py-2.5"
     >
       <div className="flex items-center gap-1.5">
-        <I.Shield size={13} className="text-coral-600 dark:text-coral-300" />
-        <span className="t-section-label tracking-[0.05em] text-coral-700 dark:text-coral-300">
-          Privacy review
-        </span>
+        <I.Shield size={13} className="text-text" />
+        <span className="t-section-label tracking-normal text-text">Privacy review</span>
       </div>
 
       {/* Findings — each row is conditional. When everything passes
@@ -176,13 +174,9 @@ interface FindingProps {
  *  vertically and pick up which lines need their attention. */
 function Finding({ icon, tone, children }: FindingProps) {
   const toneClass =
-    tone === "ok"
-      ? "text-emerald-700 dark:text-emerald-400"
-      : tone === "warn"
-        ? "text-coral-700 dark:text-coral-300"
-        : "text-text-muted";
+    tone === "ok" ? "text-success text-success" : tone === "warn" ? "text-text" : "text-text-muted";
   return (
-    <div className="flex items-center gap-2 text-[12px] leading-snug text-text">
+    <div className="flex items-center gap-2 text-[0.8125rem] leading-snug text-text">
       <span className={`shrink-0 ${toneClass}`}>{icon}</span>
       {children}
     </div>
@@ -202,7 +196,7 @@ function Action({ onClick, label, disabled }: ActionProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="privacy-audit-action ml-auto cursor-pointer rounded-md border border-coral-500 bg-coral-500 px-2 py-1 font-[inherit] text-[11px] font-semibold text-[var(--color-accent-ink)] transition-colors hover:border-coral-600 hover:bg-coral-600 disabled:cursor-not-allowed disabled:opacity-50"
+      className="privacy-audit-action btn btn-secondary btn-sm ml-auto"
     >
       {label}
     </button>

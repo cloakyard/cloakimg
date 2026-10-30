@@ -30,10 +30,10 @@ export function TapFixPanel() {
 
   return (
     <>
-      <div className="flex items-start gap-2 rounded-lg border border-coral-200/70 bg-coral-50/60 px-3 py-2.5 dark:border-coral-500/30 dark:bg-coral-900/15">
-        <I.Wand size={14} className="mt-0.5 shrink-0 text-coral-600 dark:text-coral-300" />
-        <div className="flex-1 text-[12px] leading-relaxed text-text">
-          <div className="font-semibold">Tap anything on the photo.</div>
+      <div className="flex items-start gap-2 rounded-lg border border-accent bg-surface-soft px-3 py-2.5">
+        <I.Wand size={14} className="mt-0.5 shrink-0 text-text" />
+        <div className="flex-1 text-[0.8125rem] leading-relaxed text-text">
+          <div className="font-medium">Tap anything on the photo.</div>
           <div className="mt-1 text-text-muted">
             CloakIMG figures out what you tapped and offers 2–3 things to do with it. Tap a face →
             redact options. Tap the subject → background tools. Tap anywhere else → spot heal.
@@ -63,7 +63,7 @@ export function TapFixPanel() {
         </button>
       )}
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Warming up runs both models on this image once so the next tap is instant. You can also just
         tap — the models run on demand the first time you need them.
       </div>
@@ -74,9 +74,9 @@ export function TapFixPanel() {
 function ReadinessChip({ label, ready }: { label: string; ready: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-px text-[10.5px] font-semibold ${
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-px text-[0.8125rem] font-medium ${
         ready
-          ? "border-emerald-300/70 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200"
+          ? "border-[var(--air-success)] bg-[var(--air-success-soft)] text-success border-[var(--air-success)] bg-[var(--air-success-soft)] text-success"
           : "border-border-soft bg-page-bg text-text-muted"
       }`}
     >

@@ -19,7 +19,7 @@ import type { FabricObject } from "fabric";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
 import { useEditorActions, useToolState } from "../EditorContext";
-import { PropRow, Slider, ToggleSwitch } from "../atoms";
+import { PropRow, ToggleSwitch, SliderField } from "../atoms";
 
 interface TaggedFabricObject extends FabricObject {
   cloakKind?: string;
@@ -143,15 +143,16 @@ export function PenPanel() {
           />
         ) : null}
       </PropRow>
-      <PropRow label="Stroke width" value={`${selStrokeWidth.toFixed(0)} px`}>
-        <Slider
-          value={Math.min(1, selStrokeWidth / 32)}
-          accent
-          defaultValue={2 / 32}
-          onChange={onStrokeWidth}
-        />
-      </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <SliderField
+        label="Stroke width"
+        domain={[0, 32]}
+        unit="px"
+        value={Math.min(1, selStrokeWidth / 32)}
+        accent
+        defaultValue={2 / 32}
+        onChange={onStrokeWidth}
+      />
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {selected
           ? "Editing the selected path. Click an empty area on the canvas to deselect, or pick another tool to stop editing."
           : "Click to drop anchors; drag from a click to bend with bezier handles. Click the first anchor or press "}

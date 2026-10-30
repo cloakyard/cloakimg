@@ -5,8 +5,6 @@
 import { parseColor, rgbToHex, type RGB } from "../colorUtils";
 import { acquireCanvas } from "../doc";
 
-export const BACKGROUND_FILL_OPTIONS = ["None", "Solid", "Gradient", "Vignette"] as const;
-
 export type BackgroundFill = "transparent" | "solid" | "gradient" | "vignette";
 
 export interface BackgroundPalette {
@@ -36,7 +34,7 @@ export function backgroundPalette(baseColor: string, fill: BackgroundFill): Back
   return { first: normalized, second: normalized };
 }
 
-export function paintBackground(
+function paintBackground(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,

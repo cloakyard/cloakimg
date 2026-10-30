@@ -206,10 +206,3 @@ function hueToChannel(p: number, q: number, t: number): number {
   if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
   return p;
 }
-
-/** A flat 6-stop CSS gradient stop list keyed off the canonical hue
- *  positions, so swatches and pickers in the panel always render the
- *  same colour wheel. Returned as a CSS gradient value. */
-export function hslWheelGradient(): string {
-  return "linear-gradient(to right, hsl(0,80%,50%), hsl(60,80%,50%), hsl(120,80%,50%), hsl(180,80%,50%), hsl(240,80%,50%), hsl(300,80%,50%), hsl(360,80%,50%))";
-}

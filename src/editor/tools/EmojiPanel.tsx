@@ -70,7 +70,7 @@ export function EmojiPanel() {
           >
             {active}
           </div>
-          <div className="text-[11.5px] leading-snug text-text-muted">
+          <div className="text-[0.8125rem] leading-snug text-text-muted">
             Click on the canvas to drop this emoji.
           </div>
         </div>
@@ -89,9 +89,7 @@ export function EmojiPanel() {
                 aria-label={c.label}
                 aria-pressed={isActive}
                 className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 text-[15px] leading-none pointer-coarse:h-11 pointer-coarse:min-w-11 ${
-                  isActive
-                    ? "border border-coral-500 bg-coral-500/10"
-                    : "border border-border bg-surface"
+                  isActive ? "border border-accent bg-accent/10" : "border border-border bg-surface"
                 }`}
                 style={{ fontFamily: EMOJI_FONT_STACK }}
               >
@@ -123,7 +121,7 @@ export function EmojiPanel() {
                 aria-pressed={isActive}
                 className={`flex aspect-square cursor-pointer items-center justify-center rounded-md text-[20px] leading-none ${
                   isActive
-                    ? "border-2 border-coral-500 bg-coral-500/10"
+                    ? "border-2 border-accent bg-accent/10"
                     : "border border-border bg-surface"
                 }`}
                 style={{ fontFamily: EMOJI_FONT_STACK }}
@@ -165,7 +163,7 @@ export function EmojiPanel() {
         </div>
       </PropRow>
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Pick from the grid or paste any emoji — including ones from your system picker (
         {navigator.platform.startsWith("Mac") ? "Cmd+Ctrl+Space" : "Win+."}). Drops as a layer you
         can drag, scale, and rotate.

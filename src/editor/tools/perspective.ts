@@ -10,14 +10,12 @@
 
 import { createCanvas } from "../doc";
 
-export type Point = [number, number];
+type Point = [number, number];
 
 /** Corner order is fixed: TL, TR, BR, BL. The panel and the on-canvas
  *  handles share this order so a "corner index" reads the same
  *  everywhere. */
 export type Quad = [Point, Point, Point, Point];
-
-export const PERS_CORNER_LABELS = ["Top-left", "Top-right", "Bottom-right", "Bottom-left"] as const;
 
 export function defaultQuad(w: number, h: number): Quad {
   return [
@@ -45,7 +43,7 @@ export function isPersIdentity(corners: Quad | null, w: number, h: number): bool
  *  are colinear (or two share a position), in which case the
  *  homography solve produces NaN / Inf and the bake silently
  *  blanks the canvas. */
-export function quadArea(q: Quad): number {
+function quadArea(q: Quad): number {
   let sum = 0;
   for (let i = 0; i < 4; i++) {
     const a = q[i];
@@ -93,7 +91,7 @@ function dist(a: Point, b: Point): number {
  *  order; callers append a 1.0 for h33 themselves. Implementation
  *  is direct Gaussian elimination on the 8×8 system — no library
  *  dependency, ~150 multiplications, runs in microseconds. */
-export function solveHomography(src: Quad, dst: Quad): number[] {
+function solveHomography(src: Quad, dst: Quad): number[] {
   // Build the 8×9 augmented matrix.
   const A: number[][] = [];
   for (let i = 0; i < 4; i++) {
@@ -153,36 +151,8 @@ function gaussianSolve(A: number[][], n: number): number[] {
   return x;
 }
 
-/** Warp `src` so that `srcCorners` (TL, TR, BR, BL) ends up at the
- *  four corners of a rectangle of size (outW × outH). Bilinear
- *  sampling; out-of-bounds reads return transparent black so the
- *  output canvas is well-defined even for extreme quads.
- *
- *  Synchronous variant — blocks the main thread for the duration of
- *  the warp. For a 4K rectified output that's roughly 0.5–1 s on a
- *  modern laptop, multiple seconds on a phone. Prefer
- *  `warpPerspectiveAsync` from any UI path; this signature is kept
- *  for callers that already run inside a worker or off-thread. */
-export function warpPerspective(
-  src: HTMLCanvasElement,
-  srcCorners: Quad,
-  outW: number,
-  outH: number,
-): HTMLCanvasElement {
-  const { ctx, out, sd, sw, sh, outImg, od, H } = preparePerspectiveWarp(
-    src,
-    srcCorners,
-    outW,
-    outH,
-  );
-  if (!ctx) return out;
-  warpRows(0, outH, outW, outH, sd, sw, sh, od, H);
-  ctx.putImageData(outImg, 0, 0);
-  return out;
-}
-
-/** Async, chunked version of `warpPerspective`. Same per-pixel
- *  pipeline, but yields to the event loop every `CHUNK_ROWS` so the
+/** Rectify a quadrilateral with bilinear sampling. The per-pixel
+ *  pipeline yields to the event loop every `CHUNK_ROWS` so the
  *  busy-spinner overlay keeps animating during a high-resolution
  *  bake. The yield overhead is single-digit-percent on the total
  *  warp time — same trade-off as `bakeAdjustAsync`. */

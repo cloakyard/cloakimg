@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-21",
+  "baselineCommit": "8cbc910",
+  "status": "passed-bounded-dependency-upgrade-only",
+  "scope": "Dependencies and vendored codec on the committed baseline. The parked 15-file Air entry draft is excluded and byte-preserved; full IMG Air migration is not complete.",
+  "changes": {
+    "@mediapipe/tasks-vision": {
+      "before": "1.1.0",
+      "after": "1.1.1"
+    },
+    "react": {
+      "before": "^19.3.0",
+      "after": "^19.3.1"
+    },
+    "react-dom": {
+      "before": "^19.3.0",
+      "after": "^19.3.1"
+    },
+    "@testing-library/user-event": {
+      "before": "^14.6.7",
+      "after": "^14.6.8"
+    },
+    "@types/node": {
+      "before": "^26.6.4",
+      "after": "^26.6.5"
+    },
+    "puppeteer-core": {
+      "before": "^25.12.0",
+      "after": "^25.15.0"
+    }
+  },
+  "packageManager": "pnpm@12.14.0",
+  "vitePlus": "1.3.0",
+  "overrideUpdates": {
+    "canvas": "npm:@napi-rs/canvas@1.0.13",
+    "jsdom": "30.1.3"
+  },
+  "native": {
+    "libheif": {
+      "version": "1.23.6",
+      "commit": "f81f28ac014b1c28dee483ac45b72c6b05bc421a"
+    },
+    "libde265": {
+      "version": "1.1.3",
+      "commit": "ba62bf4cfb3242f3bf0a45617ff09e35236e4d82"
+    },
+    "kvazaar": {
+      "version": "2.3.2",
+      "commit": "6040962bed5cc68c5ad01234c38c08b8b2822068"
+    },
+    "emscripten": {
+      "version": "6.0.13",
+      "image": "emscripten/emsdk@sha256:fb7864e398acfda863dfcea78b8bc8adad359fa60c6a0bbeb845931de64aa68a"
+    }
+  },
+  "checks": {
+    "formatLintTypes": true,
+    "units": 470,
+    "unitFiles": 46,
+    "productionBuildFiles": 101,
+    "deploymentAssetLimit": "all <= 25 MiB",
+    "inventory": 105,
+    "portability": 18,
+    "auditFindings": 0,
+    "outdatedDirect": 0,
+    "responsive": {
+      "cases": 88,
+      "geometryAndStyles": "exact",
+      "pixelExact": 84,
+      "remaining4": "At most 5 pixels / 1 channel level of antialiasing",
+      "overflow": false,
+      "coverage": "11 sizes, light/dark, coarse/fine, landing/editor. Service-worker notifications disabled only for visual comparison."
+    },
+    "nativeCodec": "Original HEIC fixture and nine HEIC quality/size export round trips retain every decoded RGBA pixel; container bytes differ. Real AVIF/HEIC unit codecs also pass.",
+    "faceDetection": "Actual portrait IMG_0002.JPG; SDK and pinned CDN WASM 1.1.1, same-origin model, positive detection and anonymization pass. Zero page/worker/network failures.",
+    "toolPanels": 26,
+    "historyExport": "Apply/undo/redo/reset/export and HEIC upload pass",
+    "horizon": "12 layouts, both real GPU themes, lifecycle plus five static fallback profiles; actual PNG export retains every RGBA pixel",
+    "wranglerDryRun": "4.151.3 passed; not deployed"
+  },
+  "cleanup": [
+    "Removed obsolete minimum-release-age exclusions; kept only exact current packages",
+    "Updated stale face probe fixture default from product graphic 00554.jpg to actual portrait IMG_0002.JPG; FACE_FIXTURE override remains",
+    "Strengthened existing service test to require exact JS/WASM SDK version agreement; no new package or runtime abstraction"
+  ],
+  "frozenFiles": 416,
+  "evidencePrivacy": "Private portrait/HEIC files and screenshots are excluded from Git; UI captures use synthetic pixels. Raw scratch logs retained locally.",
+  "knownMigrationGates": [
+    "Committed baseline still uses the former UI palette and hyperlink treatment; Air link audit fails as expected for this unmigrated source. This is not a new dependency regression or a passed Air gate.",
+    "Existing coarse-pointer landscape orientation lock remains unchanged, including at 1280\u00d7720; complete migration must audit it.",
+    "Parked entry draft, all deeper IMG surfaces, full feature/accessibility/physical acceptance remain unfinished."
+  ],
+  "attempts": [
+    "Initial package installation overlapped a package-manager command and produced dangling links; discarded generated node_modules, resolved and reinstalled sequentially. Final clean install and all 470 tests pass.",
+    "Face probe initially used a product graphic and returned no faces. Corrected fixture default; real positive detection passed twice.",
+    "Initial screenshot comparison caught a transient worker-ready notice. Identical SW-disabled visual contexts now compare stable surfaces; worker behavior is not claimed by that visual proof."
+  ],
+  "rollout": "Do not publish this as a completed Air migration. Preserve parked draft; finish Resume then IMG; integrate only after required gates pass."
+}

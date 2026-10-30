@@ -159,11 +159,7 @@ export function lanczosResampleBuffer(
  * main thread for the duration of the convolution. Prefer
  * `lanczosResampleAsync` for any image larger than a few megapixels.
  */
-export function lanczosResample(
-  src: HTMLCanvasElement,
-  dstW: number,
-  dstH: number,
-): HTMLCanvasElement {
+function lanczosResample(src: HTMLCanvasElement, dstW: number, dstH: number): HTMLCanvasElement {
   const sw = src.width;
   const sh = src.height;
   if (sw === dstW && sh === dstH) {

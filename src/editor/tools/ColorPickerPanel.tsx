@@ -51,12 +51,12 @@ export function ColorPickerPanel() {
         <div
           role="img"
           aria-label="Picked color swatch"
-          className="h-14 w-14 shrink-0 rounded-lg border border-border shadow-[var(--shadow-control)]"
+          className="h-14 w-14 shrink-0 rounded-lg border border-border shadow-[none]"
           style={{ background: swatch }}
         />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex items-center gap-1.5">
-            <span className="t-mono truncate text-[12.5px] font-semibold">
+            <span className="tabular-nums truncate text-[0.8125rem] font-medium">
               {swatch.toUpperCase()}
             </span>
             <button
@@ -66,15 +66,13 @@ export function ColorPickerPanel() {
               aria-label={pickerCopied ? "Copied" : "Copy hex code"}
               title={pickerCopied ? "Copied" : "Copy hex code"}
               className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-11 pointer-coarse:w-11 ${
-                pickerCopied
-                  ? "text-coral-600 dark:text-coral-400"
-                  : "text-text-muted hover:text-text"
+                pickerCopied ? "text-text" : "text-text-muted hover:text-text"
               }`}
             >
               {pickerCopied ? <I.Check size={13} stroke={2.5} /> : <I.Copy size={12} />}
             </button>
           </div>
-          <span className="text-[11px] text-text-muted">
+          <span className="text-[0.8125rem] text-text-muted">
             {pickerCopied
               ? "Hex copied to clipboard"
               : toolState.pickedColor
@@ -121,14 +119,14 @@ export function ColorPickerPanel() {
                 aria-label={isCopied ? `${c.toUpperCase()} copied` : `Copy ${c.toUpperCase()}`}
                 className={`flex cursor-pointer flex-col overflow-hidden rounded-md bg-page-bg p-0 ${
                   isMobile ? "w-18 shrink-0" : ""
-                } ${isCopied ? "border-2 border-coral-500" : "border border-border"}`}
+                } ${isCopied ? "border-2 border-accent" : "border border-border"}`}
               >
                 <span
                   aria-hidden
                   className="block aspect-square w-full"
                   style={{ background: c }}
                 />
-                <span className="t-mono flex items-center justify-center gap-0.5 px-1 py-0.75 text-center text-[10px] font-semibold">
+                <span className="tabular-nums flex items-center justify-center gap-0.5 px-1 py-0.75 text-center text-[0.8125rem] font-medium">
                   {isCopied ? (
                     <>
                       <I.Check size={10} stroke={3} />
@@ -144,7 +142,7 @@ export function ColorPickerPanel() {
         </div>
       </div>
 
-      <div className="text-[11px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Click the canvas to sample any pixel, then tap the copy icon — or tap any palette swatch to
         copy its hex.
       </div>

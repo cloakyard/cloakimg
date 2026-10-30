@@ -1,15 +1,8 @@
-// DropZone.tsx — Shared file-picker dropzone. Drag-and-drop, paste,
-// click-to-browse, and an explicit local-input status bar — all the
-// controls that the StartModal upload tab pioneered, now reusable in any place
-// that needs to pull image files in (StartModal, BatchView, etc.).
-//
-// Always returns an array via `onFiles` even in single-pick mode, so
-// consumers don't have to special-case multi vs single.
-
 import {
   type DragEvent as ReactDragEvent,
   type ClipboardEvent as ReactClipboardEvent,
   useCallback,
+  useId,
   useEffect,
   useRef,
   useState,
@@ -23,8 +16,6 @@ interface DropZoneProps {
   onFiles: (files: File[]) => void;
   /** Allow multiple files (drag-drop + file picker). Default false. */
   multiple?: boolean;
-  /** Tighter padding on mobile widths. */
-  isPhone?: boolean;
   /** Headline shown when no file is highlighted. */
   title?: string;
   /** Sub-headline below the title. */
@@ -45,13 +36,28 @@ const DEFAULT_ACCEPT = "image/*,.heic,.heif";
 export function DropZone({
   onFiles,
   multiple = false,
-  isPhone = false,
   title = "Drop an image here",
   subtitle = "or use Browse files — JPG, PNG, WebP, AVIF, HEIC, HEIF",
   accept = DEFAULT_ACCEPT,
   showPasteButton = true,
   selectedFile = null,
 }: DropZoneProps) {
+  const statusId = useId();
+  const attempt = useRef(0);
+  const clipboardPending = useRef(false);
+  const [error, setError] = useState("");
+  const [readingClipboard, setReadingClipboard] = useState(false);
+  useEffect(
+    () => () => {
+      attempt.current++;
+    },
+    [],
+  );
+  useEffect(() => {
+    attempt.current++;
+    clipboardPending.current = false;
+    setReadingClipboard(false);
+  }, [selectedFile]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [hover, setHover] = useState(false);
   // Thumbnail preview when a file is selected (single-pick mode). The
@@ -131,74 +137,120 @@ export function DropZone({
     return () => URL.revokeObjectURL(url);
   }, [multiple, selectedFile]);
 
-  const onPick = useCallback(() => inputRef.current?.click(), []);
-
-  const onDrop = useCallback(
-    (e: ReactDragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      // Stop bubbling — prevents an outer drop handler (e.g. BatchView's
-      // section-level catcher) from also firing and double-adding files.
-      e.stopPropagation();
-      setHover(false);
-      const all = Array.from(e.dataTransfer.files ?? []);
-      const images = all.filter(
-        (f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name),
-      );
-      if (!images.length) return;
-      onFiles(multiple ? images : images.slice(0, 1));
-    },
-    [onFiles, multiple],
-  );
-
-  const onPaste = useCallback(
-    async (e: ReactClipboardEvent<HTMLDivElement>) => {
-      const items = Array.from(e.clipboardData.items).filter((i) => i.type.startsWith("image/"));
-      const files = items.map((i) => i.getAsFile()).filter((f): f is File => f !== null);
+  const acceptFiles = useCallback(
+    (files: File[]) => {
+      attempt.current++;
+      clipboardPending.current = false;
+      setReadingClipboard(false);
       if (!files.length) return;
-      onFiles(multiple ? files : files.slice(0, 1));
+      if (!multiple && files.length > 1) {
+        setError("Choose one image at a time. Your current selection is unchanged.");
+        return;
+      }
+      if (
+        files.some(
+          (file) =>
+            !file.type.startsWith("image/") &&
+            !/\.(jpe?g|png|webp|avif|gif|heic|heif|bmp|svg)$/i.test(file.name),
+        )
+      ) {
+        setError("Choose an image file, such as JPG, PNG, WebP, AVIF, GIF, HEIC or HEIF.");
+        return;
+      }
+      if (files.some((file) => file.size === 0)) {
+        setError("That image is empty. Choose a file that contains image data.");
+        return;
+      }
+      setError("");
+      onFiles(files);
     },
-    [onFiles, multiple],
+    [multiple, onFiles],
   );
 
-  const onClipboardPasteButton = useCallback(async () => {
+  const onPick = () => {
+    attempt.current++;
+    clipboardPending.current = false;
+    setReadingClipboard(false);
+    inputRef.current?.click();
+  };
+
+  const onDrop = (event: ReactDragEvent<HTMLElement>) => {
+    if (!event.dataTransfer.types.includes("Files")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setHover(false);
+    acceptFiles(Array.from(event.dataTransfer.files));
+  };
+
+  const onPaste = (event: ReactClipboardEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest("input, textarea, [contenteditable]")) return;
+    const files = Array.from(event.clipboardData.items)
+      .filter((item) => item.type.startsWith("image/"))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file !== null);
+    if (!files.length) return;
+    event.preventDefault();
+    event.stopPropagation();
+    acceptFiles(files);
+  };
+
+  const onClipboardPasteButton = async () => {
+    if (clipboardPending.current) return;
+    const current = ++attempt.current;
+    setError("");
+    if (!navigator.clipboard?.read) {
+      setError(
+        "Clipboard access is unavailable. Use Browse files or paste an image here with your keyboard.",
+      );
+      return;
+    }
+    clipboardPending.current = true;
+    setReadingClipboard(true);
     try {
       const items = await navigator.clipboard.read();
       const collected: File[] = [];
       for (const item of items) {
-        const type = item.types.find((t) => t.startsWith("image/"));
+        const type = item.types.find((value) => value.startsWith("image/"));
         if (type) {
           const blob = await item.getType(type);
+          if (current !== attempt.current) return;
           collected.push(new File([blob], "clipboard.png", { type }));
           if (!multiple) break;
         }
       }
-      if (collected.length) onFiles(collected);
+      if (current !== attempt.current) return;
+      if (collected.length) acceptFiles(collected);
+      else setError("No image was found on the clipboard. Copy an image or use Browse files.");
     } catch {
-      // Permission denied / unsupported — silently no-op.
+      if (current === attempt.current)
+        setError("The clipboard couldn’t be read. Allow clipboard access or use Browse files.");
+    } finally {
+      if (current === attempt.current) {
+        clipboardPending.current = false;
+        setReadingClipboard(false);
+      }
     }
-  }, [onFiles, multiple]);
+  };
 
   const showSelected = !multiple && selectedFile;
 
   return (
-    // Wrapper is a non-interactive `<section>` — it accepts dragged
-    // files but is not itself a clickable region (clicking it does
-    // nothing). The Browse / Paste buttons inside are the canonical
-    // keyboard- and screen-reader-accessible affordances; "click
-    // anywhere on the dashed area" was a bonus the lint rules
-    // (correctly) flag as ambiguous a11y.
     <section
       aria-label={multiple ? "Drop or pick images" : "Drop or pick an image"}
-      data-dragging={hover ? "true" : "false"}
+      data-dragging={hover ? "true" : undefined}
+      aria-describedby={error ? statusId : undefined}
       onDragOver={(e) => {
-        e.preventDefault();
-        setHover(true);
+        if (e.dataTransfer.types.includes("Files")) {
+          e.preventDefault();
+          setHover(true);
+        }
       }}
-      onDragLeave={() => setHover(false)}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHover(false);
+      }}
       onDrop={onDrop}
       onPaste={onPaste}
-      style={{ touchAction: "manipulation" }}
-      className={`cloak-dropzone group ${isPhone ? "cloak-dropzone--phone" : ""}`}
+      className="img-dropzone"
     >
       <input
         ref={inputRef}
@@ -208,42 +260,32 @@ export function DropZone({
         className="hidden"
         onChange={(e) => {
           const files = Array.from(e.target.files ?? []);
-          if (files.length) onFiles(multiple ? files : files.slice(0, 1));
+          acceptFiles(files);
           e.target.value = "";
         }}
       />
-      <div className="cloak-dropzone__bar">
-        <span>Local image input</span>
-        <span>{hover ? "Release to open" : "No image upload"}</span>
-      </div>
-
-      <div className="cloak-dropzone__body">
+      <div className="img-dropzone__body">
         {showSelected && previewUrl ? (
-          <div className="cloak-dropzone__preview">
+          <div className="img-dropzone__preview">
             <img src={previewUrl} alt={selectedFile.name} width={56} height={56} />
             <span aria-hidden>
-              <I.Check size={12} stroke={3} />
+              <I.Check size={12} stroke={1.6} />
             </span>
           </div>
         ) : (
-          <div
-            {...(previewLoading
-              ? { role: "status", "aria-busy": true, "aria-label": "Decoding HEIC preview…" }
-              : {})}
-            className="cloak-dropzone__icon"
-          >
-            {previewLoading ? (
-              <span aria-hidden className="cloak-dropzone__spinner" />
-            ) : showSelected ? (
-              <I.FileImage size={24} />
+          <div className="img-dropzone__icon" aria-hidden="true">
+            {showSelected ? (
+              <I.FileImage size={24} stroke={1.6} aria-hidden="true" />
             ) : (
-              <I.Upload size={24} />
+              <I.Upload size={24} stroke={1.6} aria-hidden="true" />
             )}
           </div>
         )}
 
-        <div className="cloak-dropzone__copy">
-          <strong>{showSelected ? selectedFile.name : title}</strong>
+        <div className="img-dropzone__copy">
+          <strong>
+            {showSelected ? selectedFile.name : hover ? "Release to select your image" : title}
+          </strong>
           <span>
             {showSelected
               ? `${(selectedFile.size / 1024).toFixed(0)} KB · ${selectedFile.type || "image"}`
@@ -251,33 +293,48 @@ export function DropZone({
           </span>
         </div>
 
-        <div className="cloak-dropzone__actions">
+        <div className="img-dropzone__actions">
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="air-button air-button--primary"
             onClick={(e) => {
               e.stopPropagation();
               onPick();
             }}
           >
-            <I.Folder size={13} /> Browse files
+            <I.Folder size={18} stroke={1.6} aria-hidden="true" /> Browse files
           </button>
 
           {showPasteButton && (
             <button
               type="button"
               aria-label="Paste from clipboard"
-              className="btn btn-ghost btn-sm"
+              aria-disabled={readingClipboard}
+              aria-busy={readingClipboard}
+              className="air-button air-button--quiet"
               onClick={(e) => {
                 e.stopPropagation();
                 void onClipboardPasteButton();
               }}
             >
-              <I.Layers size={13} /> Paste
+              <I.Layers size={18} stroke={1.6} aria-hidden="true" /> Paste
             </button>
           )}
         </div>
       </div>
+      <p
+        id={statusId}
+        className={error ? "img-dropzone__error" : "img-dropzone__status"}
+        role="status"
+        aria-live="polite"
+      >
+        {error ||
+          (readingClipboard
+            ? "Reading the clipboard…"
+            : previewLoading
+              ? "Decoding HEIC preview…"
+              : "")}
+      </p>
     </section>
   );
 }

@@ -68,7 +68,7 @@ function depthToGrayscaleBitmap(img: RawImage): ImageBitmap {
 }
 
 export async function handleDepth(req: AiDepthRequest): Promise<void> {
-  const order = deviceOrder(req.device);
+  const order = await deviceOrder(req.device);
 
   aiLog.debug("worker", "handleDepth", {
     id: req.id,

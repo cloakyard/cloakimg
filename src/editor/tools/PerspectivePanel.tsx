@@ -81,22 +81,19 @@ export function PerspectivePanel() {
 
   return (
     <>
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {isMobile
           ? "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting."
           : "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting — then Apply to flatten it."}
       </div>
 
       {recommended && !degenerate && (
-        <div className="text-[11.5px] leading-relaxed text-text-muted">
+        <div className="text-[0.8125rem] leading-relaxed text-text-muted">
           Output size: {recommended.w} × {recommended.h}
         </div>
       )}
       {degenerate && (
-        <div
-          role="alert"
-          className="text-[11.5px] leading-relaxed text-coral-700 dark:text-coral-300"
-        >
+        <div role="alert" className="text-[0.8125rem] leading-relaxed text-text">
           The four corners are too close together to rectify. Spread them apart to mark the
           subject's actual edges.
         </div>
@@ -109,7 +106,7 @@ export function PerspectivePanel() {
       <div className="flex gap-2">
         <button
           type="button"
-          className={`btn btn-ghost btn-xs justify-center text-coral-700 dark:text-coral-300 ${
+          className={`btn btn-ghost btn-xs justify-center text-text ${
             isMobile ? "w-full" : "flex-1"
           }`}
           onClick={reset}

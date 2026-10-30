@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/icons/og-image.png" alt="CloakIMG — A minimal photo editor that respects your photos" width="800" />
+  <img src="public/icons/og-image.png" alt="CloakIMG — Your photos. Your way." width="800" />
 
   <p>A fast, privacy-first photo editor that runs entirely in your browser.<br>
   No uploads, no servers, no tracking — your photos never leave your device.</p>
@@ -43,9 +43,19 @@ The subject mask is detected once per image and reused across every subject-awar
 
 Layered non-destructive overlays · undo/redo (`⌘Z` / `⌘⇧Z`) · hold-to-compare · reset to original · pan + pinch-zoom · single-key shortcuts · light/dark mode · mobile bottom-sheet UI.
 
-Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata strip · recents + autosave (IndexedDB) · batch mode · export to JPEG/PNG/WebP · exact-size ID-photo PDF/print sheets · wide-gamut (Display-P3) output.
+Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata strip · recents + autosave (IndexedDB) · batch mode · export to JPEG/PNG/WebP/AVIF/HEIC · exact-size ID-photo PDF/print sheets · wide-gamut (Display-P3) output.
 
 ---
+
+## Editor previews
+
+Actual Air editor captures using the same local photograph as the landing page.
+
+<img src="public/screenshots/iPad.png" alt="CloakIMG Air editor with Adjust controls" width="800" />
+<img src="public/screenshots/iPhone.png" alt="CloakIMG mobile editor with the searchable tool picker" width="260" />
+
+Regenerate with `BASE_URL=http://127.0.0.1:5173 vp run generate-screenshots` and
+`node scripts/build-og-image.mjs`.
 
 ## 🔒 Privacy
 
@@ -83,10 +93,10 @@ vp dev       # dev server with hot reload
 | Command              | Description                                                    |
 | -------------------- | -------------------------------------------------------------- |
 | `vp dev`             | Dev server with hot reload                                     |
-| `vp build`           | Type-check + production build                                  |
+| `vp run build`       | Type-check + production build                                  |
 | `vp preview`         | Preview the production build                                   |
 | `vp check`           | Format, lint, and type-check                                   |
-| `vp test`            | Run the unit and component suite                               |
+| `vp test run`        | Run the unit and component suite                               |
 | `vp run test:tools`  | Open every editor tool and audit names, bounds, and touch size |
 | `vp run test:visual` | Audit desktop, tablet, phone, and narrow Android layouts       |
 | `vp run test:audit`  | Audit shared dialogs and responsive component contracts        |

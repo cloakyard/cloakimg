@@ -5,10 +5,15 @@ packages:
 # `canvas` is an API-compatible alias used only by Node-side Fabric/jsdom code;
 # the browser application continues to use the native Canvas APIs.
 overrides:
+  # Workbox minifier dependency: GHSA-m5mm-p8h7-m29v.
+  serialize-javascript: ">=7.1.4"
+  # Pinned node-resolve patch clones its fixed defaults with Node structuredClone.
+  # Remove this override and patch when upstream drops deepmerge (GHSA-gcqx-w48m-w2h4).
+  "@rollup/plugin-node-resolve@16.0.3>deepmerge": "-"
   adm-zip: 0.6.1
-  canvas: npm:@napi-rs/canvas@1.0.10
+  canvas: npm:@napi-rs/canvas@1.0.13
   glob: 13.0.6
-  jsdom: 30.1.2
+  jsdom: 30.1.3
   onnxruntime-node: 1.30.0
   sharp: 0.35.5
   vite@*: "catalog:"
@@ -23,21 +28,19 @@ peerDependencyRules:
     vite: "*"
 
 minimumReleaseAgeExclude:
-  - "@huggingface/transformers@4.3.1"
-  - "@mediapipe/tasks-vision@1.1.0"
-  - "@puppeteer/browsers@3.2.2"
-  - "@types/react-dom@19.2.7"
-  - puppeteer-core@25.10.0
-  - "@voidzero-dev/vite-plus-core@1.1.0"
-  - "@voidzero-dev/vite-plus-darwin-arm64@1.1.0"
-  - "@voidzero-dev/vite-plus-darwin-x64@1.1.0"
-  - "@voidzero-dev/vite-plus-linux-arm64-gnu@1.1.0"
-  - "@voidzero-dev/vite-plus-linux-arm64-musl@1.1.0"
-  - "@voidzero-dev/vite-plus-linux-x64-gnu@1.1.0"
-  - "@voidzero-dev/vite-plus-linux-x64-musl@1.1.0"
-  - "@voidzero-dev/vite-plus-win32-arm64-msvc@1.1.0"
-  - "@voidzero-dev/vite-plus-win32-x64-msvc@1.1.0"
-  - vite-plus@1.1.0
+  - serialize-javascript@7.1.4
+  - "@napi-rs/canvas-android-arm64@1.0.13"
+  - "@napi-rs/canvas-darwin-arm64@1.0.13"
+  - "@napi-rs/canvas-darwin-x64@1.0.13"
+  - "@napi-rs/canvas-linux-arm-gnueabihf@1.0.13"
+  - "@napi-rs/canvas-linux-arm64-gnu@1.0.13"
+  - "@napi-rs/canvas-linux-arm64-musl@1.0.13"
+  - "@napi-rs/canvas-linux-riscv64-gnu@1.0.13"
+  - "@napi-rs/canvas-linux-x64-gnu@1.0.13"
+  - "@napi-rs/canvas-linux-x64-musl@1.0.13"
+  - "@napi-rs/canvas-win32-arm64-msvc@1.0.13"
+  - "@napi-rs/canvas-win32-x64-msvc@1.0.13"
+  - "@napi-rs/canvas@1.0.13"
 
 allowBuilds:
   # Transformers.js ships this Node backend for server consumers; CloakIMG
@@ -46,5 +49,8 @@ allowBuilds:
   # This dependency's postinstall is not required by the browser bundle.
   protobufjs: false
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@1.1.0
-  vite-plus: 1.1.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite-plus: 1.4.0
+
+patchedDependencies:
+  "@rollup/plugin-node-resolve@16.0.3": patches/@rollup__plugin-node-resolve@16.0.3.patch

@@ -115,63 +115,31 @@ if (sliderValue === null || sliderValue < 0.05) {
   process.exit(1);
 }
 
-async function hashCanvas() {
-  const dataUrl = await page.evaluate(() => {
-    // The Fabric stage stacks a transparent overlay canvas on top of
-    // the image canvas — both are >200 px. Pick the one with actual
-    // photo pixels at its centre (alpha=255, RGB not pure white) so
-    // we hash the live preview, not Fabric's empty interaction layer.
-    const canvases = Array.from(document.querySelectorAll("canvas")).filter((cv) => {
-      const r = cv.getBoundingClientRect();
-      return r.width > 200 && r.height > 200;
-    });
-    for (const cv of canvases) {
-      try {
-        const ctx = cv.getContext("2d", { willReadFrequently: true });
-        if (!ctx) continue;
-        const px = ctx.getImageData(Math.floor(cv.width / 2), Math.floor(cv.height / 2), 1, 1).data;
-        const isOpaque = px[3] >= 250;
-        const isNotWhite = px[0] < 240 || px[1] < 240 || px[2] < 240;
-        if (isOpaque && isNotWhite) return cv.toDataURL("image/png");
-      } catch {
-        // ignore tainted-canvas / cross-origin cases
-      }
-    }
-    return null;
+// The photo is Fabric's lower canvas. Colour-based heuristics wrongly
+// reject legitimate bright/white pixels in the tilt-shift preview.
+async function canvasDataUrl() {
+  return page.evaluate(() => {
+    const canvas = document.querySelector("canvas.lower-canvas");
+    if (!canvas || canvas.width < 200 || canvas.height < 200) return null;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    if (!pixels.some((value, index) => index % 4 === 3 && value > 0)) return null;
+    return canvas.toDataURL("image/png");
   });
-  if (!dataUrl) return null;
-  const base64 = dataUrl.split(",")[1];
-  return createHash("md5").update(Buffer.from(base64, "base64")).digest("hex");
 }
-
+async function hashCanvas() {
+  const dataUrl = await canvasDataUrl();
+  return dataUrl
+    ? createHash("md5")
+        .update(Buffer.from(dataUrl.split(",")[1], "base64"))
+        .digest("hex")
+    : null;
+}
 async function saveSnapshot(name) {
-  const dataUrl = await page.evaluate(() => {
-    // The Fabric stage stacks a transparent overlay canvas on top of
-    // the image canvas — both are >200 px. Pick the one with actual
-    // photo pixels at its centre (alpha=255, RGB not pure white) so
-    // we hash the live preview, not Fabric's empty interaction layer.
-    const canvases = Array.from(document.querySelectorAll("canvas")).filter((cv) => {
-      const r = cv.getBoundingClientRect();
-      return r.width > 200 && r.height > 200;
-    });
-    for (const cv of canvases) {
-      try {
-        const ctx = cv.getContext("2d", { willReadFrequently: true });
-        if (!ctx) continue;
-        const px = ctx.getImageData(Math.floor(cv.width / 2), Math.floor(cv.height / 2), 1, 1).data;
-        const isOpaque = px[3] >= 250;
-        const isNotWhite = px[0] < 240 || px[1] < 240 || px[2] < 240;
-        if (isOpaque && isNotWhite) return cv.toDataURL("image/png");
-      } catch {
-        // ignore tainted-canvas / cross-origin cases
-      }
-    }
-    return null;
-  });
-  if (!dataUrl) return;
-  const base64 = dataUrl.split(",")[1];
+  const dataUrl = await canvasDataUrl();
+  if (!dataUrl) throw new Error(`Missing preview: ${name}`);
   const path = `/tmp/cloakimg-bgblur-${name}.png`;
-  writeFileSync(path, Buffer.from(base64, "base64"));
+  writeFileSync(path, Buffer.from(dataUrl.split(",")[1], "base64"));
   console.log(`  ${path}`);
 }
 

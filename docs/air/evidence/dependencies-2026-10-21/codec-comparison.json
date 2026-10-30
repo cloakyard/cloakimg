@@ -1,0 +1,100 @@
+{
+  "realHeic": {
+    "width": 1200,
+    "height": 630,
+    "rgbaSha256": "d6c052677e516caa8aa3146cf94f8de85c27ad50bf51eb4c0dd573e97e25b795",
+    "equal": true
+  },
+  "roundTrips": [
+    {
+      "width": 8,
+      "height": 6,
+      "quality": 20,
+      "beforeBytes": 1058,
+      "afterBytes": 1074,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "b2fdc6a318ad79e90ae405d24e9ad45f53b5935515e867134a2a9d195521aea5"
+    },
+    {
+      "width": 8,
+      "height": 6,
+      "quality": 80,
+      "beforeBytes": 1141,
+      "afterBytes": 1157,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "4265cf1ca960c4506917daf244d174b6f133b5acde262c51fc86033218fdefa0"
+    },
+    {
+      "width": 8,
+      "height": 6,
+      "quality": 95,
+      "beforeBytes": 1163,
+      "afterBytes": 1179,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "4ec5926a41b9a8658b23bca6eff48131e591e9c65ad0148824c680e6e410565d"
+    },
+    {
+      "width": 32,
+      "height": 24,
+      "quality": 20,
+      "beforeBytes": 1236,
+      "afterBytes": 1252,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "4dd78573ffe98f823d8fb6c908feb660a5edcbe89e796ff20104ee812d6b229a"
+    },
+    {
+      "width": 32,
+      "height": 24,
+      "quality": 80,
+      "beforeBytes": 2046,
+      "afterBytes": 2062,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "585075e21d6115e3ff8301ea6fa8d7c0a46a9919b0e8f0a9fa6896856a90e635"
+    },
+    {
+      "width": 32,
+      "height": 24,
+      "quality": 95,
+      "beforeBytes": 2276,
+      "afterBytes": 2292,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "6f583ce39ccb20aa284f36b660c25a29e2cfb0e0cba2b80f4931132f9a172b71"
+    },
+    {
+      "width": 256,
+      "height": 192,
+      "quality": 20,
+      "beforeBytes": 1406,
+      "afterBytes": 1422,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "7d5e682c6e9e0fe1d0882c948de7793c2a7a7193123af09518a1cbb7267eed23"
+    },
+    {
+      "width": 256,
+      "height": 192,
+      "quality": 80,
+      "beforeBytes": 2037,
+      "afterBytes": 2053,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "9b284e39759a97a346adbe3d49b54ac2486821d851ad4e353ab55002fc2c2b8b"
+    },
+    {
+      "width": 256,
+      "height": 192,
+      "quality": 95,
+      "beforeBytes": 2162,
+      "afterBytes": 2178,
+      "encodedBytesEqual": false,
+      "rgbaEqual": true,
+      "rgbaSha256": "377aa49726ddac6c67b31e90be5bfe73d5687c7115304f8c5a2af63fcf14584c"
+    }
+  ]
+}

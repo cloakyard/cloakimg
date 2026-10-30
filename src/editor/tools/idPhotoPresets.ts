@@ -15,15 +15,8 @@ export interface IdPhotoPreset {
   sourceUrl?: string;
   sourceLabel?: string;
   note?: string;
-  /** Country names and alternate spellings used by the panel filter. */
-  searchTerms?: string;
   custom?: boolean;
 }
-
-const SCHENGEN_COUNTRIES =
-  "Austria Belgium Bulgaria Croatia Czechia Czech Republic Denmark Estonia Finland France Germany Greece Hungary Iceland Italy Latvia Liechtenstein Lithuania Luxembourg Malta Netherlands Norway Poland Portugal Romania Slovakia Slovenia Spain Sweden Switzerland";
-
-const EUROPE_COMMON_COUNTRIES = `${SCHENGEN_COUNTRIES} Ireland Cyprus`;
 
 export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
   {
@@ -35,7 +28,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     headHeightMm: { min: 25, max: 35 },
     sourceUrl: "https://travel.state.gov/en/passports/apply/help/photos.html",
     sourceLabel: "U.S. Department of State",
-    searchTerms: "USA US America 2x2 inch",
   },
   {
     id: "canada-passport",
@@ -58,7 +50,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     headHeightMm: { min: 29, max: 34 },
     sourceUrl: "https://www.gov.uk/photos-for-passports/photo-requirements",
     sourceLabel: "GOV.UK",
-    searchTerms: "UK Britain British England Scotland Wales Northern Ireland",
   },
   {
     id: "europe-passport-common",
@@ -71,7 +62,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
       "https://www.government.nl/themes/justice-security-and-defence/identification-documents/requirements-for-photos",
     sourceLabel: "Government of the Netherlands",
     note: "35 × 45 mm is common across Europe, but head position and paper rules remain national. Verify the authority handling your application.",
-    searchTerms: EUROPE_COMMON_COUNTRIES,
   },
   {
     id: "australia-passport",
@@ -92,7 +82,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     heightMm: 45,
     sourceUrl: "https://www.passports.govt.nz/passport-photos/passport-photo-requirements/",
     sourceLabel: "New Zealand Passports",
-    searchTerms: "NZ Aotearoa",
   },
   {
     id: "india-passport-paper",
@@ -103,7 +92,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     sourceUrl: "https://passportindia.gov.in/psp/apply",
     sourceLabel: "Passport Seva",
     note: "Passport Seva currently calls for a paper photo mainly for applicants under 4 years old; most other applicants are photographed at the centre.",
-    searchTerms: "Indian Bharat",
   },
   {
     id: "japan-passport",
@@ -113,7 +101,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     heightMm: 45,
     sourceUrl: "https://www.anzen.mofa.go.jp/c_info/passport.html",
     sourceLabel: "Ministry of Foreign Affairs of Japan",
-    searchTerms: "Japanese Nippon",
   },
   {
     id: "china-passport",
@@ -124,7 +111,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     headHeightMm: { min: 28, max: 33 },
     sourceUrl: "https://chicago.china-consulate.gov.cn/lsfw/zj/hzlxz/202605/t20260501_11903971.htm",
     sourceLabel: "Consulate-General of China",
-    searchTerms: "Chinese PRC 48x33",
   },
   {
     id: "singapore-passport",
@@ -145,7 +131,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     sourceUrl:
       "https://www.kdmid.ru/cons/passports/list-of-documents-required-for-registration-of-foreign-passports/",
     sourceLabel: "Russian Consular Department",
-    searchTerms: "Russian Federation",
   },
   {
     id: "turkey-passport",
@@ -156,7 +141,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     headHeightMm: { min: 32, max: 36 },
     sourceUrl: "https://burgaz-bk.mfa.gov.tr/Mission/ShowInfoNote/308347",
     sourceLabel: "Ministry of Foreign Affairs of Türkiye",
-    searchTerms: "Turkey Turkish biometric",
   },
   {
     id: "south-africa-passport",
@@ -167,7 +151,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     headHeightMm: { min: 29, max: 34 },
     sourceUrl: "https://dirco.gov.za/ottawa/regular-passport/",
     sourceLabel: "South African High Commission",
-    searchTerms: "RSA",
   },
   {
     id: "mexico-passport",
@@ -177,7 +160,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     heightMm: 45,
     sourceUrl: "https://consulmex.sre.gob.mx/frankfurt/images/stories/pdf/fotosejemp.pdf",
     sourceLabel: "Secretaría de Relaciones Exteriores",
-    searchTerms: "Mexican México",
   },
   {
     id: "brazil-passport-5x7",
@@ -189,7 +171,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
       "https://www.gov.br/mre/pt-br/consulado-montreal/servicos/passaportes/passaporte-para-adultos",
     sourceLabel: "Ministry of Foreign Affairs of Brazil",
     note: "The cited consular guidance accepts either 5 × 7 cm or 5 × 5 cm. Choose the square Brazil preset if your office requests it.",
-    searchTerms: "Brazilian Brasil",
   },
   {
     id: "brazil-passport-square",
@@ -201,7 +182,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
       "https://www.gov.br/mre/pt-br/consulado-montreal/servicos/passaportes/passaporte-para-adultos",
     sourceLabel: "Ministry of Foreign Affairs of Brazil",
     note: "The cited consular guidance accepts either 5 × 5 cm or 5 × 7 cm. Confirm which format your processing office wants.",
-    searchTerms: "Brazilian Brasil",
   },
   {
     id: "us-visa",
@@ -213,7 +193,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     sourceUrl:
       "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/photos/frequently-asked-questions.html",
     sourceLabel: "U.S. Department of State",
-    searchTerms: "USA US America 2x2 inch",
   },
   {
     id: "schengen-visa",
@@ -224,7 +203,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     sourceUrl: "https://www.eeas.europa.eu/kenya/travel-study_en",
     sourceLabel: "European External Action Service",
     note: "Local consulates can add capture and paper requirements. Check the destination country’s current visa checklist before printing.",
-    searchTerms: SCHENGEN_COUNTRIES,
   },
   {
     id: "india-visa",
@@ -236,7 +214,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     sourceUrl: "https://www.eoiminsk.gov.in/page/photo-requirements/",
     sourceLabel: "Embassy of India",
     note: "Indian missions commonly require a 51 × 51 mm paper photo, while online applications require a square JPEG. Verify the mission handling your application before printing.",
-    searchTerms: "Indian Bharat eVisa e-Visa 2x2 inch",
   },
   {
     id: "china-visa",
@@ -247,7 +224,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     headHeightMm: { min: 28, max: 33 },
     sourceUrl: "https://in.china-embassy.gov.cn/eng/lsfw/qz/202505/t20250514_11622818.htm",
     sourceLabel: "Embassy of China",
-    searchTerms: "Chinese PRC 48x33",
   },
   {
     id: "japan-visa",
@@ -257,7 +233,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     heightMm: 45,
     sourceUrl: "https://www.mofa.go.jp/j_info/visit/visa/pdfs/application1_e.pdf",
     sourceLabel: "Ministry of Foreign Affairs of Japan",
-    searchTerms: "Japanese",
   },
   {
     id: "malaysia-visa",
@@ -268,7 +243,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     sourceUrl: "https://malaysiavisa.imi.gov.my/faq/",
     sourceLabel: "Immigration Department of Malaysia",
     note: "Malaysia’s eVisa process asks for a studio-taken image and may not accept a home-made or selfie photo.",
-    searchTerms: "Malaysian eVISA",
   },
   {
     id: "russia-visa",
@@ -278,7 +252,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     heightMm: 45,
     sourceUrl: "https://reykjavik.kdmid.ru/en/visas/applying-for-a-visa/",
     sourceLabel: "Russian Consular Department",
-    searchTerms: "Russian Federation",
   },
   {
     id: "uae-visa",
@@ -289,7 +262,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     sourceUrl: "https://www.mofa.gov.ae/en/missions/lima/services/visas",
     sourceLabel: "UAE Ministry of Foreign Affairs",
     note: "UAE mission instructions vary by application route. This preset follows the cited mission’s 6 × 6 cm requirement; verify your processing mission.",
-    searchTerms: "UAE Emirates Dubai Abu Dhabi",
   },
   {
     id: "standard-35x45",
@@ -298,7 +270,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     widthMm: 35,
     heightMm: 45,
     note: "A common physical format only. It does not certify country-specific head position, background, expression, age, or print rules.",
-    searchTerms: "passport visa ID licence license common universal",
   },
   {
     id: "custom",
@@ -307,7 +278,6 @@ export const ID_PHOTO_PRESETS: readonly IdPhotoPreset[] = [
     widthMm: 35,
     heightMm: 45,
     note: "Enter the exact physical dimensions supplied by the issuing authority.",
-    searchTerms: "other manual any country",
     custom: true,
   },
 ] as const;
@@ -319,8 +289,4 @@ export function findIdPhotoPreset(id: string): IdPhotoPreset {
     ID_PHOTO_PRESETS.find((preset) => preset.id === id) ??
     ID_PHOTO_PRESETS.find((preset) => preset.id === DEFAULT_ID_PHOTO_PRESET_ID)!
   );
-}
-
-export function idPhotoPresetSearchText(preset: IdPhotoPreset): string {
-  return `${preset.label} ${preset.group} ${preset.widthMm}x${preset.heightMm} ${preset.searchTerms ?? ""}`.toLocaleLowerCase();
 }

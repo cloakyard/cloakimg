@@ -99,7 +99,7 @@ export interface BgModelFamily {
  *  and scenery. Replaced Xenova/modnet (portraits-only, returned
  *  empty masks for pets and products). q8 / fp16 / fp32 ONNX dumps
  *  are all in v4's CUSTOM_ARCHITECTURES_MAPPING ("isnet"). */
-export const ISNET: BgModelFamily = {
+const ISNET: BgModelFamily = {
   id: "isnet",
   label: "ISNet (DIS)",
   inferenceLongEdge: 1024,

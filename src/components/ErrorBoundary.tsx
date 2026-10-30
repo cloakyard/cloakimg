@@ -33,7 +33,14 @@
 // Built standalone (not via ModalFrame) because the boundary must
 // keep working even if shared infrastructure is what threw.
 
-import { Component, createRef, Fragment, type ErrorInfo, type ReactNode } from "react";
+import {
+  Component,
+  createRef,
+  Fragment,
+  type ErrorInfo,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { I } from "./icons";
 import { GITHUB_NEW_ISSUE_URL } from "../constants/links";
 import { aiLog } from "../editor/ai/log";
@@ -143,6 +150,23 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }));
   };
 
+  private handleRecoveryKey(event: KeyboardEvent<HTMLDivElement>, recover: () => void) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      recover();
+    } else if (event.key === "Tab") {
+      const controls = event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), a[href], [tabindex="0"]',
+      );
+      if (controls.length) {
+        event.preventDefault();
+        const current = Array.from(controls).indexOf(document.activeElement as HTMLElement);
+        const next = (current + (event.shiftKey ? -1 : 1) + controls.length) % controls.length;
+        controls[next]?.focus();
+      }
+    }
+  }
+
   handleCopy = async () => {
     const payload = buildDetailsText(this.state.error, this.state.componentStack);
     try {
@@ -207,53 +231,56 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         aria-modal="true"
         aria-labelledby="cloak-eb-title"
         aria-describedby="cloak-eb-description"
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            primaryOnClick();
-          }
-        }}
-        className="absolute inset-0 flex items-center justify-center px-6"
-        style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
+        onKeyDown={(event) => this.handleRecoveryKey(event, primaryOnClick)}
+        className="cloak-modal-root"
+        style={{ background: "var(--air-scrim)" }}
       >
-        <div className="cloak-dialog flex w-full max-w-sm flex-col items-center gap-5 rounded-lg px-7 py-8 text-center">
-          <div className="cloak-dialog__icon h-14 w-14">
-            <I.Triangle size={26} stroke={1.75} />
+        <div className="cloak-dialog flex-col">
+          <div className="cloak-dialog__header">
+            <span className="cloak-dialog__icon">
+              <I.Triangle size={20} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="cloak-dialog__eyebrow">Recovery / local session</p>
+              <h2 id="cloak-eb-title" className="cloak-dialog__title">
+                {title}
+              </h2>
+            </div>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <p className="cloak-dialog__eyebrow">Recovery / local session</p>
-            <h2 id="cloak-eb-title" className="cloak-dialog__title">
-              {title}
-            </h2>
+          <div className="cloak-dialog__body">
             <p id="cloak-eb-description" className="cloak-dialog__description">
               {description}
             </p>
             {error.message && (
-              <div className="t-mono mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[11px] wrap-break-word text-text-muted">
+              <div
+                tabIndex={0}
+                aria-label="Error details"
+                className="tabular-nums mt-2 max-h-20 overflow-auto rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-left text-[0.8125rem] wrap-break-word text-text-muted"
+              >
                 {error.message}
               </div>
             )}
           </div>
-          <div className="flex w-full flex-col gap-2">
-            <button
-              ref={this.primaryRef}
-              type="button"
-              onClick={primaryOnClick}
-              className="btn btn-primary btn-sm w-full justify-center"
-            >
-              {primaryIcon}
-              {primaryLabel}
-            </button>
+          <div className="cloak-dialog__footer">
             {secondary && (
               <button
                 type="button"
                 onClick={secondary.onClick ?? this.defaultRetry}
-                className="btn btn-secondary btn-sm w-full justify-center"
+                className="btn btn-secondary btn-sm justify-center"
               >
                 {secondary.icon}
                 {secondary.label}
               </button>
             )}
+            <button
+              ref={this.primaryRef}
+              type="button"
+              onClick={primaryOnClick}
+              className="btn btn-primary btn-sm justify-center"
+            >
+              {primaryIcon}
+              {primaryLabel}
+            </button>
           </div>
         </div>
       </div>
@@ -277,16 +304,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         aria-modal="true"
         aria-labelledby="ci-error-title"
         aria-describedby="ci-error-description"
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            primaryOnClick();
-          }
-        }}
-        className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-6"
-        style={{ zIndex: "var(--z-dialog)", background: "var(--color-overlay)" }}
+        onKeyDown={(event) => this.handleRecoveryKey(event, primaryOnClick)}
+        className="cloak-modal-root"
+        style={{ background: "var(--air-scrim)" }}
       >
-        <div className="cloak-dialog relative flex max-h-[92svh] w-full flex-col overflow-hidden rounded-t-lg border-b-0 sm:max-h-[min(820px,calc(100svh-48px))] sm:max-w-160 sm:rounded-lg sm:border-b">
+        <div className="cloak-dialog flex-col">
           <div className="cloak-dialog__header">
             <span className="cloak-dialog__icon h-11 w-11">
               <I.AlertTriangle size={20} stroke={2.25} />
@@ -296,16 +318,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <h2 id="ci-error-title" className="cloak-dialog__title">
                 {title}
               </h2>
-              <p id="ci-error-description" className="cloak-dialog__description">
-                Your image is still on this device — nothing was uploaded. Send the details below
-                and we'll fix the bug.
-              </p>
             </div>
           </div>
 
           <div className="cloak-dialog__body scroll-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+            <p id="ci-error-description" className="cloak-dialog__description">
+              Your image is still on this device — nothing was uploaded. Send the details below and
+              we'll fix the bug.
+            </p>
             <div className="flex shrink-0 items-center justify-between gap-2">
-              <span className="t-eyebrow text-[10px] text-text-muted">Error details</span>
+              <span className="t-eyebrow text-[0.8125rem] text-text-muted">Error details</span>
               <button
                 type="button"
                 onClick={this.handleCopy}
@@ -314,7 +336,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               >
                 {copied ? (
                   <>
-                    <I.Check size={13} className="text-coral-600 dark:text-coral-300" />
+                    <I.Check size={13} className="text-text" />
                     Copied
                   </>
                 ) : (
@@ -327,7 +349,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
             <pre
               id="ci-error-details"
-              className="t-mono m-0 rounded-md border border-border-soft bg-page-bg p-3 text-[11.5px] leading-[1.55] break-words whitespace-pre-wrap text-text"
+              tabIndex={0}
+              aria-label="Error details"
+              className="tabular-nums m-0 rounded-md border border-border-soft bg-page-bg p-3 text-[0.8125rem] leading-[1.55] break-words whitespace-pre-wrap text-text"
             >
               {details}
             </pre>

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
+import userEvent from "@testing-library/user-event";
 import { ALL_TOOLS } from "./tools";
 import { ToolRail } from "./ToolRail";
 
@@ -17,15 +18,17 @@ describe("ToolRail", () => {
     expect(onOpenSearch).toHaveBeenCalledTimes(1);
   });
 
-  it("selects a tool and exposes its name through accessible hover/focus labels", () => {
+  it("selects a tool and exposes its name through accessible hover/focus labels", async () => {
     const onSelect = vi.fn();
     render(<ToolRail activeTool="move" onSelect={onSelect} onOpenSearch={() => undefined} />);
 
     const crop = screen.getByRole("button", { name: "Crop & rotate" });
     expect(screen.getByRole("button", { name: "Move" })).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.focus(crop);
-    expect(screen.getByRole("tooltip")).toHaveTextContent("Crop & rotate");
+    const user = userEvent.setup();
+    for (let i = 0; i < 4; i++) await user.tab();
+    expect(crop).toHaveFocus();
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("Crop & rotate");
 
     fireEvent.click(crop);
     expect(onSelect).toHaveBeenCalledWith("crop");

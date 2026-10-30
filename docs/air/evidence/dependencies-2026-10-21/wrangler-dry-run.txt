@@ -1,0 +1,7 @@
+
+ ⛅️ wrangler 4.151.3
+────────────────────
+✨ Read 106 files from the assets directory /private/tmp/cloakyard-rollout-2026-10-21/cloakimg-clean/dist
+Total Upload: 0.39 KiB / gzip: 0.26 KiB
+No bindings found.
+--dry-run: exiting now.

@@ -177,10 +177,9 @@ export async function encodeCanvas(
   const blob = await canvasToBlob(canvas, mime, quality);
   if (blob?.type === mime && (await blobMatchesFormat(blob, format))) return blob;
 
-  // AVIF and HEIC get real WASM fallbacks. WebP/JPEG/PNG are supported
-  // by all target browsers; if one of those encoders refuses or lies,
-  // fail visibly rather than produce a corrupt/misnamed download.
-  if (format === "avif" || format === "heic") {
+  // WebKit may return PNG for WebP, as browsers do for AVIF/HEIC.
+  // Use a real local codec and validate its signature before downloading.
+  if (format === "avif" || format === "heic" || format === "webp") {
     const encoded = await encodeModernCanvas(canvas, format, quality);
     if (encoded.type === mime && (await blobMatchesFormat(encoded, format))) return encoded;
     throw new Error(`${format.toUpperCase()} encoder returned invalid bytes`);

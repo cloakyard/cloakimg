@@ -1,4 +1,4 @@
-// AiSectionHeader.tsx — Small uppercase eyebrow that marks a panel
+// AiSectionHeader.tsx — Small  eyebrow that marks a panel
 // section as powered by the on-device subject model. Sparkle icon +
 // short label lets users see at a glance which controls trigger
 // detection vs which are pure pixel ops.
@@ -17,8 +17,8 @@ interface Props {
 
 export function AiSectionHeader({ label = "Smart adjustments" }: Props) {
   return (
-    <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-      <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" />
+    <div className="flex items-center gap-1.5 text-[0.8125rem] font-medium tracking-normal text-text-muted">
+      <I.Sparkles size={12} className="text-text" />
       {label}
     </div>
   );

@@ -1,0 +1,6 @@
+→ Navigating to http://127.0.0.1:8230
+→ Open editor
+→ Uploading HEIC: /private/tmp/cloakyard-rollout-2026-10-21/cloakimg-clean/test-fixtures/IMG_1804.heic
+→ Waiting up to 30s for confirmation OR error message…
+→ Outcome: ready
+→ Editor mounted (Redact tool present): true

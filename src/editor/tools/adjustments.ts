@@ -1,6 +1,5 @@
 // adjustments.ts — Pure functions that translate adjust-slider values
-// into either a CSS filter string (for cheap live preview) or per-pixel
-// canvas operations (for the destructive Apply).
+// into per-pixel canvas operations shared by preview and Apply.
 //
 // Each slider stores 0..1 with 0.5 == "no change". We map those to a
 // signed range and let the math do the rest.
@@ -8,7 +7,7 @@
 import { ADJUST_KEYS, type AdjustKey, type CurvePoint, isCurveIdentity } from "../toolState";
 import { acquireCanvas } from "../doc";
 
-export type AdjustValues = Partial<Record<AdjustKey, number>>;
+type AdjustValues = Partial<Record<AdjustKey, number>>;
 
 /** Build a 256-entry LUT from a sorted list of control points. The
  *  curve passes through every point exactly; values between points
@@ -78,11 +77,11 @@ const RANGE: Record<AdjustKey, number> = {
   sharpen: 1, // -1 = blur, +1 = unsharp mask
 };
 
-export function sliderToSigned(key: AdjustKey, slider: number): number {
+function sliderToSigned(key: AdjustKey, slider: number): number {
   return (slider - 0.5) * 2 * RANGE[key];
 }
 
-export function sliderArrayToValues(arr: number[]): Required<AdjustValues> {
+function sliderArrayToValues(arr: number[]): Required<AdjustValues> {
   const out = {} as Required<AdjustValues>;
   ADJUST_KEYS.forEach((k, i) => {
     out[k] = sliderToSigned(k, arr[i] ?? 0.5);
@@ -103,33 +102,6 @@ export function isAdjustIdentity(arr: number[], curve?: CurvePoint[]): boolean {
   if (!isIdentity(arr)) return false;
   if (curve && !isCurveIdentity(curve)) return false;
   return true;
-}
-
-/** A CSS filter string that approximates the adjust pipeline. Used for
- *  live preview only; Apply runs the proper per-pixel bake. */
-export function cssFilterFor(arr: number[]): string {
-  const v = sliderArrayToValues(arr);
-  const parts: string[] = [];
-  // exposure: 1.0 base, 1 stop = 2x brightness, but visually ±0.4 reads
-  // about right for the design's intent.
-  const exposure = 1 + v.exposure * 0.4;
-  if (Math.abs(exposure - 1) > 1e-3) parts.push(`brightness(${exposure.toFixed(3)})`);
-  // contrast: 1.0 base, ±100% maps to 0..2 visually too aggressive, so
-  // damp it.
-  const contrast = 1 + v.contrast * 0.6;
-  if (Math.abs(contrast - 1) > 1e-3) parts.push(`contrast(${contrast.toFixed(3)})`);
-  // saturation
-  const saturation = 1 + v.saturation * 0.8;
-  if (Math.abs(saturation - 1) > 1e-3) parts.push(`saturate(${saturation.toFixed(3)})`);
-  // temp — sepia + hue-rotate gives a warm/cool shift.
-  const temp = v.temp;
-  if (Math.abs(temp) > 1e-3) {
-    const sepia = Math.min(0.6, Math.abs(temp) * 0.6);
-    const hue = temp > 0 ? -10 : 30;
-    parts.push(`sepia(${sepia.toFixed(3)})`);
-    parts.push(`hue-rotate(${hue.toFixed(0)}deg)`);
-  }
-  return parts.join(" ") || "none";
 }
 
 /** Async, chunked version of `bakeAdjust`. Same per-pixel pipeline,

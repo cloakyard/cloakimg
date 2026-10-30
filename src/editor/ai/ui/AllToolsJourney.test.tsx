@@ -300,6 +300,30 @@ describe("AI tool journey — worker error mid-download", () => {
 // ── Cancel mid-download per tool ───────────────────────────────────
 
 describe("AI tool journey — user cancels mid-download", () => {
+  it("keeps an active Subject scope paused until the user explicitly resumes", async () => {
+    const { sm, Host } = await loadFreshHost();
+    const { MaskScopeRow } = await import("./MaskScopeRow");
+    const run = vi.fn(() => deferred<HTMLCanvasElement>().promise);
+    harness.smartRemoveBackground = run;
+    render(
+      <>
+        <Host />
+        <MaskScopeRow scope={1} onScope={() => undefined} />
+      </>,
+    );
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /^Download \d+ MB$/i }));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    await user.click(screen.getByRole("button", { name: /^Cancel$/i }));
+    const resume = await screen.findByRole("button", { name: "Enable AI" });
+    expect(sm.getMaskState().status).toBe("idle");
+    expect(run).toHaveBeenCalledTimes(1);
+    await user.click(resume);
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+    expect(sm.getMaskState().status).toBe("loading");
+    expect(harness.exitCalled).toBe(false);
+  });
+
   for (const tool of SMART_ACTION_TOOLS) {
     it(`${tool.id}: Cancel terminates worker, modal clears, no redirect`, async () => {
       const { sm, Host } = await loadFreshHost();

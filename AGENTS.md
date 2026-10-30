@@ -10,6 +10,10 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 
 `vp <name>` runs a built-in command. `vp run <name>` runs a `package.json` script or a `vite.config.ts` task. Scripts cannot overwrite built-ins, so `vp dev` and `vp run dev` may do different things. Check `package.json` and `vite.config.ts` first, and run `vp run <name>` when the project defines a script or task with that name.
 
+## Running Scripts
+
+Run TypeScript and JavaScript files with `vpx <file>`, for example `vpx ./scripts/seed.ts --dry-run`. It handles enums, decorators, JSX, and tsconfig `paths`, so do not add `tsx` or `ts-node` to run scripts. `vpx --watch <file>` reruns the file when a file it uses changes, in place of `tsx watch`. `vp node <file>` runs plain Node.js.
+
 ## Tool Versions
 
 Run `vp toolchain` to show versions and relationships in the active Vite+
@@ -25,6 +29,19 @@ release. Add a tool name to select part of the graph. For example, run
 - [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
 
 <!--VITE PLUS END-->
+
+# Cloakyard Air refresh
+
+Read `DESIGN.md` before changing UI. It is the portable family-wide Air contract
+and supersedes earlier Workbench styling. It applies to all custom controls,
+editors, canvas surrounds, overlays, loading/error states and responsive layouts.
+Image pixels and functional visual data keep their own appearance.
+
+Track each source/state in `docs/air/surfaces.json` and run
+`node scripts/check-air-design.mjs`. Implement one bounded piece, inspect
+desktop/laptop/tablet/phone themes and input modes, run required checks and feature
+tests, record evidence, then commit only on a complete pass. Preserve all AI and
+canvas lifecycle requirements below.
 
 # AI capability architecture (Phase 0)
 
@@ -70,8 +87,7 @@ src/editor/ai/
 │       └── ConsentHost.tsx              dialog mount under the editor shell
 ├── ui/
 │   ├── status/
-│   │   └── CapabilityStatusCards.tsx    CapabilityProgressCard / ReadyChip /
-│   │                                    ErrorCard / PausedChip / ConsentChip
+│   │   └── CapabilityStatusCards.tsx    CapabilityProgressCard / ErrorCard
 │   └── consent/
 │       └── CapabilityConsentDialog.tsx  generic tier picker + consent dialog
 └── (legacy mask flow files kept in place: subjectMask.ts, useSubjectMask.ts,
@@ -129,7 +145,7 @@ fail with "ModuleFactory not set." inside the worker. For those:
 7. **Wire the service into a hook + tool**. The capability owns its
    hook (the face surface has `useDetectFaces`); follow the same
    pattern. Wire `CapabilityConsentDialog` for tier selection and
-   `CapabilityProgressCard / ReadyChip / ErrorCard / PausedChip` for
+   `CapabilityProgressCard / CapabilityErrorCard` for
    inline status.
 
 The service primitive handles every state-machine concern that the

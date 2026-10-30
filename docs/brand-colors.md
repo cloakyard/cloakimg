@@ -1,66 +1,7 @@
-# CloakIMG — Brand Colors
+# CloakIMG brand colour and Air
 
-The primary accent for CloakIMG is **Sunset Coral** — a warm coral
-that sits on top of the Cloak family's shared slate spine.
+[DESIGN.md](../DESIGN.md) owns the product UI. Buttons, links (including hover and visited), navigation, dialogs and fields use neutral Air ink and surfaces. Blue is reserved for the family focus/selection markers specified by Air.
 
-## Primary
+Sunset coral identifies the launcher logo and the finite photographic crop-frame illustration. It is not a general-purpose UI accent. The existing logo gradient remains `#ff7d54` → `#f5613a` → `#b8371a`, as encoded in `public/icons/logo.svg` and `favicon.svg`. User-selected drawing colours, functional canvas handles, histogram channels and exported pixels retain their own colours.
 
-| Role          | Token         | Hex       |
-| ------------- | ------------- | --------- |
-| Primary       | `--coral-500` | `#f5613a` |
-| Primary hover | `--coral-600` | `#e54a22` |
-| Primary tint  | `--coral-50`  | `#fff5f1` |
-
-`--coral-500` (Tailwind: `coral-500`) is the canonical primary. It
-drives `.btn-primary`, the page eyebrow, the form `accent-color`, the
-text selection highlight, the focus ring (`rgba(245, 97, 58, 0.22)`),
-and the logo gradient's midpoint.
-
-## Logo gradient
-
-The launcher logo at [public/icons/logo.svg](../public/icons/logo.svg)
-runs `--coral-400` → `--coral-700`, with `--coral-500` (the primary)
-as the visual midpoint:
-
-| Stop      | Token         | Hex       | RGB                 |
-| --------- | ------------- | --------- | ------------------- |
-| `bg-from` | `--coral-400` | `#ff7d54` | `rgb(255, 125, 84)` |
-| midpoint  | `--coral-500` | `#f5613a` | `rgb(245, 97, 58)`  |
-| `bg-to`   | `--coral-700` | `#b8371a` | `rgb(184, 55, 26)`  |
-
-The same gradient is mirrored in
-[public/icons/favicon.svg](../public/icons/favicon.svg) and the
-CloakIMG mark inside
-[public/icons/og-image.svg](../public/icons/og-image.svg). The
-generated PNGs (`pwa-*.png`, `apple-touch-icon.png`,
-`maskable-icon-512x512.png`, `og-image.png`) need to be regenerated
-from the SVG sources after any future brand-color change — see
-`docs/logo-spec.md` §7.
-
-## Full ramp
-
-Defined in [src/tokens.css](../src/tokens.css):
-
-| Step | Hex                 |
-| ---- | ------------------- |
-| 50   | `#fff5f1`           |
-| 100  | `#ffe4d8`           |
-| 200  | `#ffc8b0`           |
-| 300  | `#ffa483`           |
-| 400  | `#ff7d54`           |
-| 500  | `#f5613a` ← primary |
-| 600  | `#e54a22`           |
-| 700  | `#b8371a`           |
-| 800  | `#8a2914`           |
-| 900  | `#5c1c0e`           |
-
-## Usage
-
-- **Tailwind utilities**: `bg-coral-500`, `text-coral-600`,
-  `border-coral-200`, etc. — exposed via the `@theme` block in
-  `src/tokens.css`.
-- **Raw CSS**: `var(--coral-500)` (legacy bridge in `:root`, kept
-  during the FX-3 Tailwind migration).
-- **Sunset palette**: the landing-page Grainient uses the wider
-  `--sunset-*` set (coral, amber, peach, rose, gold). The coral stop
-  there is the same `#f5613a`.
+The logo assets are unchanged. Regenerate their PNG derivatives only when their SVG sources change; see [logo-spec.md](logo-spec.md). The social preview has one source, [scripts/og-image.html](../scripts/og-image.html), rendered by `node scripts/build-og-image.mjs` using local Air CSS, the logo and the landing photograph. Store/README screenshots come from the actual editor via `vp run generate-screenshots`.

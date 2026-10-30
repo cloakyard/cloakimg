@@ -33,10 +33,6 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     // and gives every panel enough horizontal room to lay out cleanly
     // including the new subject scope row, the byte-readout progress
     // card, and the Selective-colour 8-band swatch grid.
-    // V5 (May 2026 minimalist desktop redesign) — like the ToolRail
-    // opposite, the panel no longer carries its own surface or
-    // backdrop blur. Controls sit directly on cream; only a soft
-    // left divider separates them from the canvas.
     <div
       className={`editor-properties flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface ${
         collapsed ? "w-72" : "w-82"
@@ -44,16 +40,14 @@ export function PropertiesPanel({ collapsed = false }: Props) {
     >
       {/* Header — V4 (May 2026): single-line rhythm. The prior layout
           painted three echoes of the same fact — coral icon chip + tool
-          name + uppercase group caption — even though the active tool
+          name +  group caption — even though the active tool
           rail button already tells the user which tool is selected.
           Stripping the chip and stacking name + group inline gives the
           panel a quieter chrome that defers to the controls below. */}
       <div className="flex shrink-0 items-baseline gap-2 border-b border-border px-4 py-3.5">
         <div className="min-w-0 flex-1 truncate">
-          <span className="text-[14px] font-semibold tracking-[-0.01em] text-text">
-            {tool.name}
-          </span>
-          <span className="t-mono ml-2 text-[10px] font-semibold tracking-[0.06em] text-text-muted uppercase">
+          <span className="text-[14px] font-medium tracking-normal text-text">{tool.name}</span>
+          <span className="tabular-nums ml-2 text-[0.8125rem] font-medium tracking-normal text-text-muted">
             {tool.group}
           </span>
         </div>

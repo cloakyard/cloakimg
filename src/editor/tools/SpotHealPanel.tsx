@@ -1,29 +1,31 @@
 // SpotHealPanel.tsx — Phase 8 wires brush size + opacity to a clone-
 // stamp pipeline.
 
-import { PropRow, Slider } from "../atoms";
+import { SliderField } from "../atoms";
 import { useEditor } from "../EditorContext";
 
 export function SpotHealPanel() {
   const { toolState, patchTool } = useEditor();
   return (
     <>
-      <PropRow label="Brush size" value={`${Math.round(toolState.brushSize * 100)} px`}>
-        <Slider
-          value={toolState.brushSize}
-          accent
-          defaultValue={0.32}
-          onChange={(v) => patchTool("brushSize", v)}
-        />
-      </PropRow>
-      <PropRow label="Edge feather" value={`${Math.round(toolState.feather * 30)} px`}>
-        <Slider
-          value={toolState.feather}
-          defaultValue={0.2}
-          onChange={(v) => patchTool("feather", v)}
-        />
-      </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <SliderField
+        label="Brush size"
+        domain={[0, 100]}
+        unit="px"
+        value={toolState.brushSize}
+        accent
+        defaultValue={0.32}
+        onChange={(v) => patchTool("brushSize", v)}
+      />
+      <SliderField
+        label="Edge feather"
+        domain={[0, 30]}
+        unit="px"
+        value={toolState.feather}
+        defaultValue={0.2}
+        onChange={(v) => patchTool("feather", v)}
+      />
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Click on a spot to heal it from neighbouring pixels.
       </div>
     </>

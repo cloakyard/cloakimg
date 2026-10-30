@@ -15,6 +15,8 @@ import {
   useRef,
 } from "react";
 
+import { NumberField } from "./NumberField";
+
 const PropRowLabelContext = createContext<string | undefined>(undefined);
 
 interface PropRowProps {
@@ -28,25 +30,20 @@ interface PropRowProps {
 
 export function PropRow({ label, value, valueInput, children }: PropRowProps) {
   const labelId = useId();
-  // Typography hierarchy: label sits as semibold body-muted, value
-  // pairs with it in mono so the eye latches on to the number first.
-  // The `tracking-[-0.005em]` mirrors the rest of the editor's
-  // labels; without it, semibold at 12 px looks ever-so-slightly
-  // wider than the surrounding chrome.
   return (
     <PropRowLabelContext.Provider value={labelId}>
-      <div>
-        <div className="mb-1.5 flex items-center justify-between gap-2">
+      <div className="img-prop-row">
+        <div className="mb-1 flex items-start justify-between gap-2">
           <span
             id={labelId}
-            className="text-[12px] font-semibold tracking-[-0.005em] text-text-muted"
+            className="text-[0.8125rem] font-medium tracking-normal text-text-muted"
           >
             {label}
           </span>
           {valueInput
             ? valueInput
             : value && (
-                <span className="t-mono text-[11.5px] font-semibold text-text">{value}</span>
+                <span className="tabular-nums text-[0.8125rem] font-medium text-text">{value}</span>
               )}
         </div>
         {children}
@@ -59,6 +56,9 @@ interface NumericReadoutProps {
   /** Default display string when not focused (lets the panel keep its
    *  own formatting — sign, units, decimals). */
   display: string;
+  unit?: string;
+  min?: number;
+  max?: number;
   /** Current slider value in 0..1 normalized space. */
   normalized: number;
   /** Convert 0..1 normalized → real-world units (e.g. -100..100). */
@@ -71,11 +71,12 @@ interface NumericReadoutProps {
   onCommit: (next: number) => void;
 }
 
-/** Click the value chip to edit it directly. Esc reverts; Enter or
- *  blur commits. The readout uses each panel's own formatting when
- *  not focused — only switches to a raw number while typing. */
+/** Precise domain-value adapter for controls with nonlinear mappings. */
 export function NumericReadout({
   display,
+  unit,
+  min,
+  max,
   normalized,
   fromNormalized,
   toNormalized,
@@ -83,65 +84,71 @@ export function NumericReadout({
   onCommit,
 }: NumericReadoutProps) {
   const propRowLabelId = useContext(PropRowLabelContext);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const editingRef = useRef(false);
-
-  const real = fromNormalized(normalized);
-  const editStr = step >= 1 ? Math.round(real).toString() : real.toFixed(1);
-
-  const commit = useCallback(
-    (raw: string) => {
-      const parsed = Number.parseFloat(raw.replace(/[^0-9+\-.]/g, ""));
-      if (Number.isFinite(parsed)) {
-        const next = Math.min(1, Math.max(0, toNormalized(parsed)));
-        onCommit(next);
-      }
-    },
-    [onCommit, toNormalized],
-  );
-
   return (
-    <input
-      ref={inputRef}
-      type="text"
-      inputMode="numeric"
-      autoComplete="off"
-      spellCheck={false}
-      defaultValue={display}
-      // Keep the visible chip in sync when the slider is dragged, but
-      // not while the user is mid-edit (or their typing would be wiped
-      // every time onCommit fires).
-      key={editingRef.current ? "editing" : `${normalized}`}
-      onFocus={(e) => {
-        editingRef.current = true;
-        e.currentTarget.value = editStr;
-        e.currentTarget.select();
-      }}
-      onChange={(e) => {
-        commit(e.currentTarget.value);
-      }}
-      onBlur={(e) => {
-        editingRef.current = false;
-        // Snap the chip back to the formatted display, in case the
-        // user typed something out of range that got clamped.
-        e.currentTarget.value = display;
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.currentTarget.blur();
-        } else if (e.key === "Escape") {
-          e.currentTarget.value = display;
-          e.currentTarget.blur();
-        }
-      }}
-      // Coarse pointers (touch) get a larger pill so the tap target
-      // clears the ~44 pt minimum without dominating desktop's denser
-      // panel layout. The visible chip stays compact on hover-precise
-      // pointers; only width / padding / type-size grow on coarse.
-      className="t-mono w-12 cursor-text rounded border border-transparent bg-transparent px-1 py-0 text-right text-[11px] font-semibold text-text outline-none hover:border-border-soft focus:border-coral-500 focus:bg-page-bg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-coral-500 pointer-coarse:h-11 pointer-coarse:w-16 pointer-coarse:px-2 pointer-coarse:text-base"
-      aria-label={propRowLabelId ? undefined : "Edit value"}
-      aria-labelledby={propRowLabelId}
+    <NumberField
+      value={fromNormalized(normalized)}
+      min={min ?? Math.min(fromNormalized(0), fromNormalized(1))}
+      max={max ?? Math.max(fromNormalized(0), fromNormalized(1))}
+      step={step}
+      unit={unit ?? display.replace(/^[+−-]?[\d.]+\s*/, "")}
+      labelledBy={propRowLabelId}
+      label={propRowLabelId ? undefined : "Edit value"}
+      onCommit={(n) => onCommit(toNormalized(n))}
     />
+  );
+}
+
+/** A normalized slider paired with an editable value in its actual domain.
+ * Pointer behavior stays in Slider; only numeric commits convert units. */
+export function SliderField({
+  label,
+  domain = [0, 100],
+  unit = "%",
+  inputMin,
+  inputStep = 1,
+  readOnlyValue,
+  onValueCommit,
+  ...slider
+}: SliderProps & {
+  label: string;
+  domain?: readonly [number, number];
+  unit?: string;
+  inputMin?: number;
+  inputStep?: number;
+  readOnlyValue?: string;
+  onValueCommit?: () => void;
+}) {
+  const [min, max] = domain;
+  const value = min + slider.value * (max - min);
+  return (
+    <PropRow
+      label={label}
+      value={readOnlyValue}
+      valueInput={
+        readOnlyValue ? undefined : (
+          <NumberField
+            label={label}
+            value={value}
+            min={inputMin ?? min}
+            max={max}
+            step={inputStep}
+            unit={unit}
+            disabled={!slider.onChange || max === min}
+            onCommit={(next) => {
+              slider.onChange?.((next - min) / (max - min));
+              onValueCommit?.();
+            }}
+          />
+        )
+      }
+    >
+      <Slider
+        {...slider}
+        ariaValueText={
+          slider.ariaValueText ?? `${Number(value.toFixed(3))}${unit ? ` ${unit}` : ""}`
+        }
+      />
+    </PropRow>
   );
 }
 
@@ -345,24 +352,25 @@ export function Slider({
       // and Material both ask for ≥44 pt. The visible rail stays the
       // same; only the wrapper's height grows so the thumb is easier
       // to grab without changing the panel layout density.
-      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 pointer-coarse:h-11 ${onChange ? "cursor-pointer" : "cursor-default opacity-50"}`}
+      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent pointer-coarse:h-11 ${onChange ? "cursor-pointer" : "cursor-default opacity-50"}`}
       title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
       <div className="relative h-0.75 w-full rounded-sm bg-border-soft pointer-coarse:h-1">
         <div
           ref={fillRef}
           className={`absolute top-0 left-0 h-full rounded-sm ${
-            accent ? "bg-coral-500" : "bg-text"
+            accent ? "bg-accent" : "bg-border"
           }`}
           style={{ width: `${value * 100}%` }}
         />
       </div>
+      {defaultValue === 0.5 && <span aria-hidden="true" className="img-slider-zero" />}
       <div
         ref={thumbRef}
-        className="pointer-events-none absolute h-3.5 w-3.5 -translate-x-1/2 rounded-full border-[1.5px] border-coral-500 bg-surface pointer-coarse:h-5.5 pointer-coarse:w-5.5 pointer-coarse:border-2"
+        className="pointer-events-none absolute h-3.5 w-3.5 -translate-x-1/2 rounded-full border-[1.5px] border-accent bg-surface pointer-coarse:h-5.5 pointer-coarse:w-5.5 pointer-coarse:border-2"
         style={{
           left: `${value * 100}%`,
-          boxShadow: "var(--shadow-control)",
+          boxShadow: "none",
         }}
       />
     </div>
@@ -378,64 +386,21 @@ interface SegmentProps {
 
 export function Segment({ options, active, onChange, style }: SegmentProps) {
   const propRowLabelId = useContext(PropRowLabelContext);
-  // Sliding indicator: a single absolutely-positioned pill animates
-  // between options instead of the active background discretely
-  // jumping. Width = 100/N % per slot; transform: translateX picks
-  // the slot. Transition is on `transform`, so the indicator slides
-  // smoothly between taps without forcing a repaint of the buttons.
-  // Falls back gracefully when N === 0 (renders nothing).
-  //
-  // Inset is sourced from the `--seg-inset` CSS variable so the pill
-  // geometry tracks the parent's padding (2px on mouse, 4px on touch).
-  // Hard-coding the inset caused the rightmost pill to touch the
-  // outer border on coarse pointers because the parent padding
-  // doubled while the pill's inset stayed at 2px.
-  const n = options.length;
-  const slotPct = n > 0 ? 100 / n : 0;
+  const name = useId();
   return (
-    <div
-      role="group"
-      aria-labelledby={propRowLabelId}
-      className="relative flex rounded-md border border-border-soft bg-page-bg p-0.5 [--seg-inset:2px] pointer-coarse:min-h-11 pointer-coarse:[--seg-inset:4px]"
-      style={style}
-    >
-      {n > 0 && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute rounded-[5px] bg-surface shadow-[var(--shadow-control)]"
-          style={{
-            top: "var(--seg-inset)",
-            bottom: "var(--seg-inset)",
-            left: "var(--seg-inset)",
-            width: `calc(${slotPct}% - var(--seg-inset) * 2)`,
-            transform: `translateX(calc(${active} * 100% + ${active} * var(--seg-inset) * 2))`,
-            transition: "transform var(--dur-fast) var(--ease-out)",
-          }}
-        />
-      )}
-      {options.map((o, i) => {
-        const isActive = i === active;
-        return (
-          <button
-            key={o}
-            type="button"
-            onClick={() => onChange?.(i)}
+    <div role="radiogroup" aria-labelledby={propRowLabelId} className="img-segments" style={style}>
+      {options.map((option, index) => (
+        <label key={option}>
+          <input
+            type="radio"
+            name={name}
+            checked={index === active}
             disabled={!onChange}
-            aria-pressed={isActive}
-            // Touch devices get larger padding + slightly bigger label
-            // so each segment clears the ~44 pt minimum tap target.
-            // The button itself stays transparent — the sliding pill
-            // above provides the active background. We toggle text
-            // colour on `isActive` so the active label snaps to the
-            // foreground colour while the pill animates underneath.
-            className={`relative z-1 min-w-0 flex-1 cursor-pointer whitespace-nowrap rounded border-none bg-transparent px-2 py-1 text-center font-[inherit] text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:px-3 pointer-coarse:text-[12.5px] ${
-              isActive ? "text-text" : "text-text-muted"
-            }`}
-          >
-            {o}
-          </button>
-        );
-      })}
+            onChange={() => onChange?.(index)}
+          />
+          <span>{option}</span>
+        </label>
+      ))}
     </div>
   );
 }
@@ -476,14 +441,14 @@ export function Spinner({ size = 36, label }: SpinnerProps) {
           r={r}
           stroke="currentColor"
           strokeWidth={stroke}
-          className="text-coral-500/20 dark:text-coral-400/20"
+          className="text-text"
         />
         <path
           d={`M ${size / 2} ${stroke / 2} A ${r} ${r} 0 0 1 ${size - stroke / 2} ${size / 2}`}
           stroke="currentColor"
           strokeWidth={stroke}
           strokeLinecap="round"
-          className="text-coral-500 dark:text-coral-400"
+          className="text-text"
         />
       </svg>
       {label && <div className="text-[13px] text-text-muted">{label}</div>}
@@ -553,11 +518,11 @@ export function ToggleSwitch({ on, onChange, ariaLabel }: ToggleProps) {
       aria-label={ariaLabel}
       aria-labelledby={ariaLabel ? undefined : propRowLabelId}
       disabled={!onChange}
-      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:h-11 pointer-coarse:w-11"
+      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:h-11 pointer-coarse:w-11"
     >
       <span
         className={`relative inline-block h-4 w-7 rounded-full transition-colors pointer-coarse:h-6 pointer-coarse:w-10 ${
-          on ? "bg-coral-500" : "bg-slate-300 dark:bg-slate-600"
+          on ? "bg-accent" : "bg-border"
         }`}
       >
         <span
@@ -565,7 +530,7 @@ export function ToggleSwitch({ on, onChange, ariaLabel }: ToggleProps) {
           // (desktop) / 16 px (touch) to land inset 2 px from the on-side
           // — width and pad scale together so the same translate values
           // bottom out at both sizes.
-          className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-surface shadow-[var(--shadow-control)] transition-transform pointer-coarse:top-1 pointer-coarse:left-1 pointer-coarse:h-4 pointer-coarse:w-4 ${
+          className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-surface shadow-[none] transition-transform pointer-coarse:top-1 pointer-coarse:left-1 pointer-coarse:h-4 pointer-coarse:w-4 ${
             on ? "translate-x-3 pointer-coarse:translate-x-4" : "translate-x-0"
           }`}
         />

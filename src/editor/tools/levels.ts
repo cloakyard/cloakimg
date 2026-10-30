@@ -41,7 +41,7 @@ export function isLevelsIdentity(p: LevelsParams): boolean {
 
 /** 256-entry LUT for a Levels pass. Out-of-range inputs clip to the
  *  output bounds so the curve never wraps. */
-export function buildLevelsLUT(p: LevelsParams): Uint8Array {
+function buildLevelsLUT(p: LevelsParams): Uint8Array {
   const lut = new Uint8Array(256);
   const black = Math.max(0, Math.min(254, p.blackIn));
   const white = Math.max(black + 1, Math.min(255, p.whiteIn));

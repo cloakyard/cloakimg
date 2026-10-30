@@ -18,23 +18,19 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  build: { rollupOptions: { input: { main: "index.html", privacy: "privacy/index.html" } } },
   server: {
     allowedHosts: true,
   },
-  // Pre-bundle the heavy, lazily-loaded dependencies at dev-server
-  // startup. These are imported only inside the AI worker
-  // (`@huggingface/transformers`), a lazy main-thread runner
-  // (`@mediapipe/tasks-vision` for face detection), or on first HEIC
-  // open — so Vite's dep optimizer doesn't discover them
-  // until the user first triggers that path. When it discovers a new
-  // dep mid-session it logs "optimized dependencies changed. reloading"
-  // and force-reloads the tab; because the editor's chosen document
-  // lives in in-memory React state, that reload silently bounced the
-  // user back to the landing page the first time they downloaded ANY
-  // model. Pre-including them here means they're optimized before the
-  // app mounts, so the first model download no longer reloads the tab.
+  // Discover lazy model/codec dependencies before an editing session starts.
+  // A new dependency optimized mid-session reloads the page and loses its image.
   optimizeDeps: {
-    include: ["@huggingface/transformers", "@mediapipe/tasks-vision"],
+    include: [
+      "@huggingface/transformers",
+      "@mediapipe/tasks-vision",
+      "@jsquash/avif/encode.js",
+      "@base-ui/react/menu",
+    ],
   },
   plugins: [
     react(),
@@ -53,11 +49,11 @@ export default defineConfig({
         name: "CloakIMG",
         short_name: "CloakIMG",
         description:
-          "A private browser photo workbench for editing, background replacement, and exact passport or visa photo print sheets.",
-        theme_color: "#faf8f5",
-        background_color: "#faf8f5",
+          "A private photo editor. Edit, compose and export on your device, including exact passport and visa photo sheets.",
+        theme_color: "#fafbfc",
+        background_color: "#fafbfc",
         display: "standalone",
-        orientation: "portrait",
+        orientation: "any",
         scope: process.env.VITE_APP_BASE_PATH || "/",
         start_url: process.env.VITE_APP_BASE_PATH || "/",
         icons: [
@@ -84,8 +80,7 @@ export default defineConfig({
           },
         ],
         screenshots: [
-          // Deterministic captures from the live app using the privacy-safe
-          // generated demo image in scripts/generate-pwa-screenshots.mjs.
+          // Actual editor captures using the local landing photograph.
           {
             src: "screenshots/iPhone.png",
             sizes: "1290x2796",
@@ -171,10 +166,16 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    ignorePatterns: ["src/editor/vendor/heif-codec.js", ".agents/**", ".claude/skills/**"],
+    ignorePatterns: [
+      "src/editor/vendor/heif-codec.js",
+      ".agents/**",
+      ".claude/skills/**",
+      "docs/air/assets/**",
+    ],
   },
   lint: {
     ignorePatterns: [
+      "docs/air/assets/**",
       "handoff-readonly/**",
       // Vendored skill bundles — third-party UI for Hallmark, mirrored
       // to both `.claude/` (Claude Code) and `.agents/` (Agent SDK).

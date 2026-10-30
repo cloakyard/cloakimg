@@ -1,0 +1,1 @@
+PASS: GPU/pointer/offscreen/editor cleanup; five restricted profiles; PNG RGBA/dimensions; shader outside precache.

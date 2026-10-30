@@ -1,4 +1,4 @@
-// exportCodec.ts — Main-thread bridge to the AVIF/HEIC codec worker.
+// exportCodec.ts — Main-thread bridge to the raster codec worker.
 
 import type {
   ExportCodecRequest,
@@ -68,7 +68,7 @@ export function encodeModernCanvas(
 
   const rgba = context.getImageData(0, 0, canvas.width, canvas.height).data;
   const id = ++nextId;
-  const mime = format === "heic" ? "image/heic" : "image/avif";
+  const mime = `image/${format}`;
 
   return new Promise<Blob>((resolve, reject) => {
     let codecWorker: Worker;

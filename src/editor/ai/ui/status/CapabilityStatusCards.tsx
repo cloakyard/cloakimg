@@ -1,23 +1,4 @@
-// CapabilityStatusCards.tsx — Generic versions of the inline status
-// atoms (progress card, ready chip, error card, paused chip, awaiting-
-// consent chip) used across every AI-aware tool. Replaces the segment-
-// specific DetectionStatus.tsx for new capabilities; the legacy mask
-// surface keeps using DetectionStatus until that migration is done.
-//
-// The visual rhythm matches DetectionStatus 1:1 — same paddings,
-// type scales, icon sizes, palette — so all AI surfaces continue to
-// read as one coherent system regardless of capability.
-//
-// Type rhythm (kept aligned with the panel system):
-//   • Card label / strong text:  text-[12px]    font-medium
-//   • Mono % readout:            text-[12px]    t-mono
-//   • Card body footnote:        text-[10.75px] muted
-//   • Status chip body:          text-[11.5px]  font-medium
-//   • Inline error body:         text-[11.5px]
-//   • Icons pair 1:1 with the matching label size, with one extra
-//     pixel of stroke breathing room when the icon sits in a circular
-//     swatch.
-
+// Shared progress and retry surfaces for AI capabilities.
 import { I } from "../../../../components/icons";
 import type { CapabilityProgress, StatusCopy } from "../../capability/types";
 
@@ -54,7 +35,7 @@ interface ProgressProps {
  *
  *  Labels read from the family's status copy so the same card is
  *  honest whether triggered by Adjust scope, Portrait blur, Smart
- *  Crop, Auto-Anonymize, or Read text. */
+ *  Crop, or Auto-Anonymize. */
 export function CapabilityProgressCard({
   progress,
   warm,
@@ -70,10 +51,10 @@ export function CapabilityProgressCard({
   // its first chunk. Show the same sliding-stripe animation as
   // inference so the modal never sits looking dead.
   const isIndeterminate = isDownload && !((progress?.bytesTotal ?? 0) > 0);
-  const animateStripe = isInference || isIndeterminate;
+  const indeterminate = isInference || isIndeterminate;
   const downloadPct =
     isDownload && !isIndeterminate ? Math.round((progress?.ratio ?? 0) * 100) : null;
-  const widthPct = animateStripe ? 100 : Math.max(2, Math.round((progress?.ratio ?? 0) * 100));
+  const widthPct = indeterminate ? 33 : Math.max(2, Math.round((progress?.ratio ?? 0) * 100));
   const bytes = progress?.bytesDownloaded ?? 0;
   const total =
     progress?.bytesTotal && progress.bytesTotal > 0 ? progress.bytesTotal : (expectedTotal ?? 0);
@@ -86,15 +67,13 @@ export function CapabilityProgressCard({
     isIndeterminate && rawLabel === "Preparing model…" ? copy.connectingLabel : rawLabel;
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
-      <div className="flex items-center justify-between gap-2 text-[12px] font-medium text-text">
+      <div className="flex items-center justify-between gap-2 text-[0.8125rem] font-medium text-text">
         <span className="flex min-w-0 items-center gap-1.5">
-          <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
+          <I.Sparkles size={12} className="shrink-0 text-text" />
           <span className="truncate">{label}</span>
         </span>
         {downloadPct !== null && (
-          <span className="t-mono shrink-0 text-[12px] text-coral-700 dark:text-coral-300">
-            {downloadPct}%
-          </span>
+          <span className="tabular-nums shrink-0 text-[0.8125rem] text-text">{downloadPct}%</span>
         )}
       </div>
       <div
@@ -102,37 +81,32 @@ export function CapabilityProgressCard({
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={animateStripe ? undefined : (downloadPct ?? 0)}
+        aria-valuenow={indeterminate ? undefined : (downloadPct ?? 0)}
         aria-label={label}
       >
         <div
-          className={`h-full origin-left overflow-hidden rounded-full bg-coral-500 ${
-            animateStripe ? "ci-progress-shimmer" : ""
-          }`}
+          className="h-full origin-left rounded-full bg-accent"
           style={{
             width: "100%",
             transform: `scaleX(${widthPct / 100})`,
-            transition: animateStripe
-              ? undefined
-              : "transform var(--dur-base) var(--ease-standard)",
           }}
         />
       </div>
       {!warm && total > 0 && !isInference && (
-        <div className="flex items-center justify-between gap-2 text-[10.75px] text-text-muted">
-          <span className="t-mono">
+        <div className="flex items-center justify-between gap-2 text-[0.8125rem] text-text-muted">
+          <span className="tabular-nums">
             {formatMb(bytes)} / {formatMb(total)}
           </span>
           <span className="truncate">One-time · cached after</span>
         </div>
       )}
       {(warm || isInference) && (
-        <div className="text-[10.75px] text-text-muted">
+        <div className="text-[0.8125rem] text-text-muted">
           Running on this device. The image never leaves your browser.
         </div>
       )}
       {isIndeterminate && !warm && total === 0 && (
-        <div className="text-[10.75px] text-text-muted">
+        <div className="text-[0.8125rem] text-text-muted">
           Spinning up the on-device model. This is a one-time download — cached for next time.
         </div>
       )}
@@ -141,33 +115,12 @@ export function CapabilityProgressCard({
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[11px] font-semibold text-coral-700 underline dark:text-coral-300"
+            className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[0.8125rem] font-medium text-text underline"
           >
             Cancel
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
-interface ReadyProps {
-  /** Override the chip text. Defaults to the family's `readyMessage`. */
-  message?: string;
-  copy: StatusCopy;
-}
-
-/** Subtle confirmation chip — emerald to read as success without
- *  dominating the panel. */
-export function CapabilityReadyChip({ message, copy }: ReadyProps) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-md border border-emerald-200/70 bg-emerald-50 px-2.5 py-1.5 text-[11.5px] font-medium text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
-      <I.Sparkles
-        size={12}
-        stroke={2}
-        className="shrink-0 text-emerald-600 dark:text-emerald-300"
-      />
-      <span className="min-w-0 flex-1">{message ?? copy.readyMessage}</span>
     </div>
   );
 }
@@ -184,7 +137,7 @@ export function CapabilityErrorCard({ msg, onRetry, fallbackMsg }: ErrorProps) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded-lg border border-coral-300 bg-coral-50 px-2.5 py-2 text-[11.5px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200"
+      className="flex items-start gap-2 rounded-lg border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] text-text"
     >
       <I.ShieldCheck size={13} className="mt-px shrink-0" />
       <div className="min-w-0 flex-1">
@@ -192,52 +145,11 @@ export function CapabilityErrorCard({ msg, onRetry, fallbackMsg }: ErrorProps) {
         <button
           type="button"
           onClick={onRetry}
-          className="mt-1 cursor-pointer rounded border-none bg-transparent p-0 text-[11.5px] font-semibold underline"
+          className="mt-1 cursor-pointer rounded border-none bg-transparent p-0 text-[0.8125rem] font-medium underline"
         >
           Try again
         </button>
       </div>
-    </div>
-  );
-}
-
-interface PausedProps {
-  /** Tap handler — clears the deny latch and re-fires the operation
-   *  (which re-opens the consent modal via the central host). */
-  onResume: () => void;
-  copy: StatusCopy;
-}
-
-/** Inline affordance shown when the user previously dismissed the
- *  consent modal. Without this, denying leaves the panel in a stuck
- *  state — controls gated, no obvious way to opt back in. */
-export function CapabilityPausedChip({ onResume, copy }: PausedProps) {
-  return (
-    <div
-      role="status"
-      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px]"
-    >
-      <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
-      <span className="min-w-0 flex-1 text-text-muted">{copy.pausedMessage}</span>
-      <button
-        type="button"
-        onClick={onResume}
-        className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[11.5px] font-semibold text-coral-700 underline dark:text-coral-300"
-      >
-        Enable AI
-      </button>
-    </div>
-  );
-}
-
-/** Sits in for the progress card while the user has the consent
- *  modal up. Reassures them the panel is waiting on their tap, not
- *  on a stuck download. */
-export function CapabilityConsentChip() {
-  return (
-    <div className="flex items-center gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px] font-medium text-text-muted">
-      <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
-      <span className="min-w-0 flex-1">Approve the on-device model to continue.</span>
     </div>
   );
 }

@@ -19,7 +19,7 @@ export interface PaperPreset {
   note?: string;
 }
 
-export interface SheetSlot {
+interface SheetSlot {
   xMm: number;
   yMm: number;
   widthMm: number;
@@ -95,7 +95,7 @@ export const PAPER_PRESETS: readonly PaperPreset[] = [
   },
 ] as const;
 
-export const DEFAULT_PAPER_PRESET_ID = "photo-4x6";
+const DEFAULT_PAPER_PRESET_ID = "photo-4x6";
 export const ID_PHOTO_DPI = 300;
 
 export function findPaperPreset(id: string): PaperPreset {

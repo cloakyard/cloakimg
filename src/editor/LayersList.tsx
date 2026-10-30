@@ -161,6 +161,20 @@ export function LayersList() {
     [commit, dragId, getFabricCanvas],
   );
 
+  const onReorder = useCallback(
+    (id: string, direction: -1 | 1) => {
+      const fc = getFabricCanvas();
+      const target = fc?.getObjects().find((o) => objId(o) === id);
+      if (!fc || !target) return;
+      if (direction === 1) fc.bringObjectForward(target);
+      else fc.sendObjectBackwards(target);
+      fc.requestRenderAll();
+      setRows(buildRows(fc));
+      commit("Reorder layers");
+    },
+    [getFabricCanvas, commit],
+  );
+
   if (rows.length === 0) return null;
 
   // Render top-down with the visually-topmost layer first (last in
@@ -179,7 +193,7 @@ export function LayersList() {
           size={11}
           style={{
             transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)",
-            transition: "transform var(--dur-instant) var(--ease-out)",
+            transition: "transform var(--air-motion-press) var(--air-ease-out)",
           }}
         />
         Layers
@@ -187,7 +201,7 @@ export function LayersList() {
       </button>
       {!collapsed && (
         <div className="scroll-thin mt-2 flex max-h-44 flex-col gap-0.5 overflow-y-auto">
-          {ordered.map((row) => (
+          {ordered.map((row, index) => (
             <LayerRow
               key={row.id}
               row={row}
@@ -200,6 +214,9 @@ export function LayersList() {
               onDragStart={onDragStart}
               onDragOver={onDragOver}
               onDrop={onDrop}
+              onReorder={onReorder}
+              canRaise={index > 0}
+              canLower={index < ordered.length - 1}
             />
           ))}
         </div>
@@ -219,6 +236,9 @@ interface RowProps {
   onDragStart: (e: ReactDragEvent<HTMLDivElement>, id: string) => void;
   onDragOver: (e: ReactDragEvent<HTMLDivElement>) => void;
   onDrop: (e: ReactDragEvent<HTMLDivElement>, targetId: string) => void;
+  onReorder: (id: string, direction: -1 | 1) => void;
+  canRaise: boolean;
+  canLower: boolean;
 }
 
 function LayerRow({
@@ -232,6 +252,9 @@ function LayerRow({
   onDragStart,
   onDragOver,
   onDrop,
+  onReorder,
+  canRaise,
+  canLower,
 }: RowProps) {
   const Ic = ROW_TYPES[row.kind]?.Icon ?? I.Square;
   const filterable = FILTERABLE_KINDS.has(row.kind);
@@ -242,78 +265,88 @@ function LayerRow({
         onDragStart={(e) => onDragStart(e, row.id)}
         onDragOver={onDragOver}
         onDrop={(e) => onDrop(e, row.id)}
-        onClick={() => onSelect(row.id)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect(row.id);
-          }
-          if (e.key === "Delete" || e.key === "Backspace") {
-            e.preventDefault();
-            onDelete(row.id);
-          }
-        }}
-        className={`flex cursor-grab items-center gap-2 rounded-md px-1.5 py-1 focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
-          selected
-            ? "bg-coral-50 shadow-[inset_0_0_0_1px_var(--coral-200)] dark:bg-coral-900/30"
-            : "bg-transparent hover:bg-border-soft"
-        }`}
+        className={`img-layer-row ${selected ? "is-selected" : ""}`}
       >
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleVisible(row.id);
+          className="img-layer-select"
+          aria-pressed={selected}
+          onClick={() => onSelect(row.id)}
+          onKeyDown={(event) => {
+            if (event.key === "Delete" || event.key === "Backspace") {
+              event.preventDefault();
+              onDelete(row.id);
+            }
           }}
-          aria-label={row.visible ? "Hide layer" : "Show layer"}
-          title={row.visible ? "Hide layer" : "Show layer"}
-          className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-border-soft pointer-coarse:h-8 pointer-coarse:w-8 ${
-            row.visible ? "text-text" : "text-text-muted opacity-50"
-          }`}
         >
-          {row.visible ? <I.Eye size={13} /> : <I.EyeOff size={13} />}
+          <Ic size={16} aria-hidden="true" />
+          <span>{row.label}</span>
         </button>
-        <Ic size={12} className="shrink-0 text-text-muted" />
-        <span
-          className={`min-w-0 flex-1 overflow-hidden text-[11.5px] whitespace-nowrap text-ellipsis ${
-            selected ? "font-semibold text-coral-700 dark:text-coral-300" : "font-medium text-text"
-          }`}
-        >
-          {row.label}
-        </span>
-        {filterable && (
+        <div className="img-layer-actions">
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon-sm"
+            aria-label={`Raise ${row.label}`}
+            disabled={!canRaise}
+            onClick={() => onReorder(row.id, 1)}
+          >
+            <I.ChevronUp size={16} />
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon-sm"
+            aria-label={`Lower ${row.label}`}
+            disabled={!canLower}
+            onClick={() => onReorder(row.id, -1)}
+          >
+            <I.ChevronDown size={16} />
+          </button>
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onToggleFilters(row.id);
+              onToggleVisible(row.id);
             }}
-            aria-label={filtersOpen ? "Close layer filters" : "Open layer filters"}
-            aria-expanded={filtersOpen}
-            title="Filters"
-            className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none p-0 pointer-coarse:h-8 pointer-coarse:w-8 ${
-              filtersOpen
-                ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
-                : "bg-transparent text-text-muted hover:bg-border-soft"
+            aria-label={row.visible ? "Hide layer" : "Show layer"}
+            title={row.visible ? "Hide layer" : "Show layer"}
+            className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-border-soft pointer-coarse:h-8 pointer-coarse:w-8 ${
+              row.visible ? "text-text" : "text-text-muted opacity-50"
             }`}
           >
-            <I.Wand size={12} />
+            {row.visible ? <I.Eye size={13} /> : <I.EyeOff size={13} />}
           </button>
-        )}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(row.id);
-          }}
-          aria-label="Delete layer"
-          title="Delete layer"
-          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-border-soft hover:text-text pointer-coarse:h-8 pointer-coarse:w-8"
-        >
-          <I.X size={11} />
-        </button>
+          {filterable && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFilters(row.id);
+              }}
+              aria-label={filtersOpen ? "Close layer filters" : "Open layer filters"}
+              aria-expanded={filtersOpen}
+              title="Filters"
+              className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none p-0 pointer-coarse:h-8 pointer-coarse:w-8 ${
+                filtersOpen
+                  ? "bg-surface-soft text-text bg-surface-soft text-text"
+                  : "bg-transparent text-text-muted hover:bg-border-soft"
+              }`}
+            >
+              <I.Wand size={12} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(row.id);
+            }}
+            aria-label="Delete layer"
+            title="Delete layer"
+            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-border-soft hover:text-text pointer-coarse:h-8 pointer-coarse:w-8"
+          >
+            <I.X size={11} />
+          </button>
+        </div>
       </div>
       {filtersOpen && filterable && <LayerFilters image={row.obj as FabricImage} />}
     </div>

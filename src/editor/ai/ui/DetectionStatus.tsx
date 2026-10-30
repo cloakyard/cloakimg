@@ -7,11 +7,11 @@
 // no matter which tool surfaced it.
 //
 // Type rhythm (kept consistent with the rest of the panel system):
-//   • Card label / strong text:  text-[12px]    font-medium
-//   • Mono % readout:            text-[12px]    t-mono
-//   • Card body footnote:        text-[10.75px] muted
-//   • Status chip body:          text-[11.5px]  font-medium
-//   • Inline error body:         text-[11.5px]
+//   • Card label / strong text:  text-[0.8125rem]    font-medium
+//   • Mono % readout:            text-[0.8125rem]    tabular-nums
+//   • Card body footnote:        text-[0.8125rem] muted
+//   • Status chip body:          text-[0.8125rem]  font-medium
+//   • Inline error body:         text-[0.8125rem]
 //   • Icons pair 1:1 with the matching label size, with one extra
 //     pixel of stroke breathing room when the icon sits in a circular
 //     swatch.
@@ -68,10 +68,10 @@ export function DetectionProgressCard({
   // sliding-stripe animation as inference so the modal never sits
   // looking dead.
   const isIndeterminate = isDownload && !((progress?.bytesTotal ?? 0) > 0);
-  const animateStripe = isInference || isIndeterminate;
+  const indeterminate = isInference || isIndeterminate;
   const downloadPct =
     isDownload && !isIndeterminate ? Math.round((progress?.ratio ?? 0) * 100) : null;
-  const widthPct = animateStripe ? 100 : Math.max(2, Math.round((progress?.ratio ?? 0) * 100));
+  const widthPct = indeterminate ? 33 : Math.max(2, Math.round((progress?.ratio ?? 0) * 100));
   const bytes = progress?.bytesDownloaded ?? 0;
   // Prefer the live `bytesTotal` once the lib reports it, otherwise
   // fall back to the caller's pre-flight estimate so the user sees
@@ -85,15 +85,13 @@ export function DetectionProgressCard({
   const label = isIndeterminate && rawLabel === "Preparing model…" ? "Connecting…" : rawLabel;
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
-      <div className="flex items-center justify-between gap-2 text-[12px] font-medium text-text">
+      <div className="flex items-center justify-between gap-2 text-[0.8125rem] font-medium text-text">
         <span className="flex min-w-0 items-center gap-1.5">
-          <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
+          <I.Sparkles size={12} className="shrink-0 text-text" />
           <span className="truncate">{label}</span>
         </span>
         {downloadPct !== null && (
-          <span className="t-mono shrink-0 text-[12px] text-coral-700 dark:text-coral-300">
-            {downloadPct}%
-          </span>
+          <span className="tabular-nums shrink-0 text-[0.8125rem] text-text">{downloadPct}%</span>
         )}
       </div>
       <div
@@ -101,32 +99,27 @@ export function DetectionProgressCard({
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={animateStripe ? undefined : (downloadPct ?? 0)}
+        aria-valuenow={indeterminate ? undefined : (downloadPct ?? 0)}
         aria-label={label}
       >
         <div
-          className={`h-full origin-left overflow-hidden rounded-full bg-coral-500 ${
-            animateStripe ? "ci-progress-shimmer" : ""
-          }`}
+          className="h-full origin-left rounded-full bg-accent"
           style={{
             width: "100%",
             transform: `scaleX(${widthPct / 100})`,
-            transition: animateStripe
-              ? undefined
-              : "transform var(--dur-base) var(--ease-standard)",
           }}
         />
       </div>
       {!warm && total > 0 && !isInference && (
-        <div className="flex items-center justify-between gap-2 text-[10.75px] text-text-muted">
-          <span className="t-mono">
+        <div className="flex items-center justify-between gap-2 text-[0.8125rem] text-text-muted">
+          <span className="tabular-nums">
             {formatMb(bytes)} / {formatMb(total)}
           </span>
           <span className="truncate">One-time · cached after</span>
         </div>
       )}
       {(warm || isInference) && (
-        <div className="text-[10.75px] text-text-muted">
+        <div className="text-[0.8125rem] text-text-muted">
           Running on this device. The image never leaves your browser.
         </div>
       )}
@@ -135,7 +128,7 @@ export function DetectionProgressCard({
           single muted bar and nothing else, which is what the user
           flagged as "nothing happens". */}
       {isIndeterminate && !warm && total === 0 && (
-        <div className="text-[10.75px] text-text-muted">
+        <div className="text-[0.8125rem] text-text-muted">
           Spinning up the on-device model. This is a one-time download — cached for next time.
         </div>
       )}
@@ -144,7 +137,7 @@ export function DetectionProgressCard({
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[11px] font-semibold text-coral-700 underline dark:text-coral-300"
+            className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[0.8125rem] font-medium text-text underline"
           >
             Cancel
           </button>
@@ -166,12 +159,8 @@ interface ReadyProps {
  *  the panel so the visual weight stays uniform. */
 export function DetectionReadyChip({ message }: ReadyProps) {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-emerald-200/70 bg-emerald-50 px-2.5 py-1.5 text-[11.5px] font-medium text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
-      <I.Sparkles
-        size={12}
-        stroke={2}
-        className="shrink-0 text-emerald-600 dark:text-emerald-300"
-      />
+    <div className="flex items-center gap-1.5 rounded-md border border-[var(--air-success)] bg-[var(--air-success-soft)] px-2.5 py-1.5 text-[0.8125rem] font-medium text-success">
+      <I.Sparkles size={12} stroke={2} className="shrink-0 text-success" />
       <span className="min-w-0 flex-1">
         {message ?? "Subject detected — every scoped tool now applies instantly."}
       </span>
@@ -184,13 +173,12 @@ interface ErrorProps {
   onRetry: () => void;
 }
 
-/** Inline error with a Try Again affordance. Coral palette to mirror
- *  the editor's existing alert styling. */
+/** Inline error with a Try Again affordance and Air error tokens. */
 export function DetectionErrorCard({ msg, onRetry }: ErrorProps) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded-lg border border-coral-300 bg-coral-50 px-2.5 py-2 text-[11.5px] text-coral-900 dark:border-coral-500/40 dark:bg-coral-900/20 dark:text-coral-200"
+      className="flex items-start gap-2 rounded-lg border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] text-text"
     >
       <I.ShieldCheck size={13} className="mt-px shrink-0" />
       <div className="min-w-0 flex-1">
@@ -198,7 +186,7 @@ export function DetectionErrorCard({ msg, onRetry }: ErrorProps) {
         <button
           type="button"
           onClick={onRetry}
-          className="mt-1 cursor-pointer rounded border-none bg-transparent p-0 text-[11.5px] font-semibold underline"
+          className="mt-1 cursor-pointer rounded border-none bg-transparent p-0 text-[0.8125rem] font-medium underline"
         >
           Try again
         </button>
@@ -226,14 +214,14 @@ export function DetectionPausedChip({ onResume }: PausedProps) {
   return (
     <div
       role="status"
-      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[11.5px]"
+      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[0.8125rem]"
     >
-      <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
+      <I.Sparkles size={12} className="shrink-0 text-text" />
       <span className="min-w-0 flex-1 text-text-muted">Detection paused.</span>
       <button
         type="button"
         onClick={onResume}
-        className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[11.5px] font-semibold text-coral-700 underline dark:text-coral-300"
+        className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[0.8125rem] font-medium text-text underline"
       >
         Enable AI
       </button>

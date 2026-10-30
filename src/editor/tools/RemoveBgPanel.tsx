@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../../components/icons";
 import { ColorPicker } from "../ColorPicker";
-import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -424,7 +424,7 @@ interface AutoProps {
    *  source — the Apply will be effectively instant (no detection,
    *  no download). Surfaces as a small green pill above Apply. */
   maskReady: boolean;
-  /** Mobile (V3.4+) hides the per-tool Apply button — the global ✓ in
+  /** Compact layout hides the per-tool Apply button — the global ✓ in
    *  MobileEditorSurface's footer is the universal commit, and the
    *  parent registers `applyAuto` via useApplyOnToolSwitch so ✓ runs
    *  it. Desktop / tablet still surface the visible button. */
@@ -464,8 +464,8 @@ function AutoPanel({
   const meta = getTierById(quality);
   return (
     <>
-      <div className="flex items-center gap-1.5 text-[10.75px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-        <I.Sparkles size={12} className="text-coral-500 dark:text-coral-400" aria-hidden="true" />
+      <div className="flex items-center gap-1.5 text-[0.8125rem] font-medium tracking-normal text-text-muted">
+        <I.Sparkles size={12} className="text-text" aria-hidden="true" />
         On-device AI
       </div>
       {/* Model readout. Single source of truth for the tier picker
@@ -474,12 +474,12 @@ function AutoPanel({
           mid-detection because invalidating the in-flight cache to
           switch tiers would cancel the worker and confuse the user. */}
       <PropRow label="Model">
-        <div className="flex flex-1 items-center justify-between gap-2 text-[12.5px] text-text">
+        <div className="flex flex-1 items-center justify-between gap-2 text-[0.8125rem] text-text">
           <span className="flex items-center gap-1.5">
-            <span className="font-semibold">{meta.label}</span>
-            <span className="t-mono text-[11px] text-text-muted">~{meta.mb} MB</span>
+            <span className="font-medium">{meta.label}</span>
+            <span className="tabular-nums text-[0.8125rem] text-text-muted">~{meta.mb} MB</span>
             {modelCached && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/70 bg-emerald-50 px-1.5 py-px text-[10px] font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/20 dark:text-emerald-200">
+              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--air-success)] bg-[var(--air-success-soft)] px-1.5 py-px text-[0.8125rem] font-medium text-success">
                 <I.Check size={9} stroke={2.5} aria-hidden="true" /> Cached
               </span>
             )}
@@ -488,7 +488,7 @@ function AutoPanel({
             type="button"
             onClick={onChangeModel}
             disabled={busy}
-            className="cursor-pointer rounded-md border-none bg-transparent p-0 text-[12px] font-semibold text-coral-600 outline-2 outline-transparent hover:text-coral-700 focus-visible:outline-coral-500 active:text-coral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:text-coral-300 dark:hover:text-coral-200 dark:active:text-coral-100"
+            className="cursor-pointer rounded-md border-none bg-transparent p-0 text-[0.8125rem] font-medium text-text outline-2 outline-transparent hover:text-text focus-visible:outline-accent active:text-text disabled:cursor-not-allowed disabled:opacity-50 dark:hover:text-text dark:active:text-text"
           >
             Change
           </button>
@@ -503,9 +503,13 @@ function AutoPanel({
           Disabled while the model is mid-detection because changing
           it mid-flight would do nothing useful (the threshold is
           applied at compositing time, not during inference). */}
-      <PropRow label="Confidence" value={`${Math.round(bgConfidence * 100)}%`}>
-        <Slider value={bgConfidence} accent defaultValue={0.5} onChange={onPatchConfidence} />
-      </PropRow>
+      <SliderField
+        label="Confidence"
+        value={bgConfidence}
+        accent
+        defaultValue={0.5}
+        onChange={onPatchConfidence}
+      />
 
       {/* AI Inspector toggle — a row button that flips the overlay
           on/off and surfaces a one-liner explanation when active so
@@ -517,9 +521,9 @@ function AutoPanel({
         disabled={busy || alreadyRemoved || !maskReady}
         role="switch"
         aria-checked={aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold outline-2 outline-transparent transition-colors focus-visible:outline-coral-500 active:bg-coral-50 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium outline-2 outline-transparent transition-colors focus-visible:outline-accent active:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
           aiInspector
-            ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+            ? "bg-surface-soft text-text bg-surface-soft text-text"
             : "bg-page-bg text-text-muted hover:bg-page-bg/70"
         }`}
         title={
@@ -536,11 +540,11 @@ function AutoPanel({
         <span
           aria-hidden="true"
           className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-            aiInspector ? "bg-coral-500" : "bg-text-muted/30"
+            aiInspector ? "bg-accent" : "bg-text-muted/30"
           }`}
         >
           <span
-            className={`h-3 w-3 rounded-full bg-surface shadow-[var(--shadow-control)] transition-transform ${
+            className={`h-3 w-3 rounded-full bg-surface shadow-[none] transition-transform ${
               aiInspector ? "translate-x-3" : "translate-x-0"
             }`}
           />
@@ -562,7 +566,7 @@ function AutoPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
           onClick={onApply}
           disabled={(alreadyRemoved && backgroundFillMode === 0) || busy}
           style={{ opacity: (alreadyRemoved && backgroundFillMode === 0) || busy ? 0.6 : 1 }}
@@ -599,7 +603,7 @@ function AutoPanel({
         />
       )}
 
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {alreadyRemoved
           ? backgroundFillMode > 0
             ? "Transparent cutout ready. Apply the selected background without running detection again."
@@ -623,14 +627,14 @@ function AutoPanel({
 function CapabilityHints() {
   return (
     <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
-      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+      <div className="mb-2 flex items-center gap-1.5 text-[0.8125rem] font-medium tracking-normal text-text-muted">
         <I.Info size={12} aria-hidden="true" /> What it detects
       </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11.5px] leading-snug">
-        <div className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[0.8125rem] leading-snug">
+        <div className="flex items-center gap-1.5 font-medium text-success">
           <I.Check size={13} stroke={2.5} aria-hidden="true" /> Works well
         </div>
-        <div className="flex items-center gap-1.5 font-semibold text-coral-700 dark:text-coral-300">
+        <div className="flex items-center gap-1.5 font-medium text-text">
           <I.X size={13} stroke={2.5} aria-hidden="true" /> Less reliable
         </div>
         <ul className="list-none space-y-0.5 text-text-muted">
@@ -669,7 +673,7 @@ interface ChromaProps {
   onClearSample: () => void;
   onAutoTune: () => void;
   onApply: () => void;
-  /** Mobile (V3.4+) hides the per-tool Apply button — see AutoProps. */
+  /** Compact layout hides the per-tool Apply button — see AutoProps. */
   showApplyButton: boolean;
 }
 
@@ -694,12 +698,22 @@ function ChromaPanel({
 }: ChromaProps) {
   return (
     <>
-      <PropRow label="Edge feather" value={`${Math.round(feather * 30)} px`}>
-        <Slider value={feather} accent defaultValue={0.2} onChange={onPatchFeather} />
-      </PropRow>
-      <PropRow label="Threshold" value={`${Math.round(threshold * 100)}%`}>
-        <Slider value={threshold} accent defaultValue={0.5} onChange={onPatchThreshold} />
-      </PropRow>
+      <SliderField
+        label="Edge feather"
+        domain={[0, 30]}
+        unit="px"
+        value={feather}
+        accent
+        defaultValue={0.2}
+        onChange={onPatchFeather}
+      />
+      <SliderField
+        label="Threshold"
+        value={threshold}
+        accent
+        defaultValue={0.5}
+        onChange={onPatchThreshold}
+      />
       <PropRow label="Sample">
         <div className="flex items-center gap-1.5">
           <button
@@ -707,9 +721,9 @@ function ChromaPanel({
             onClick={onTogglePick}
             disabled={alreadyRemoved}
             aria-pressed={bgPickActive}
-            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[11.5px] font-semibold outline-2 outline-transparent focus-visible:outline-coral-500 active:bg-page-bg disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[12.5px] ${
+            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium outline-2 outline-transparent focus-visible:outline-accent active:bg-page-bg disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
               bgPickActive
-                ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+                ? "bg-surface-soft text-text bg-surface-soft text-text"
                 : "bg-page-bg text-text-muted"
             }`}
           >
@@ -729,7 +743,7 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-coral-500 active:bg-page-bg pointer-coarse:h-11 pointer-coarse:w-11"
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-accent active:bg-page-bg pointer-coarse:h-11 pointer-coarse:w-11"
               >
                 <I.X size={11} aria-hidden="true" />
               </button>
@@ -739,7 +753,7 @@ function ChromaPanel({
       </PropRow>
       <button
         type="button"
-        className="btn btn-secondary justify-center px-2! py-1.75! text-[11.5px]! pointer-coarse:py-2.5! pointer-coarse:text-[12.5px]!"
+        className="btn btn-secondary justify-center px-2! py-1.75! text-[0.8125rem]! pointer-coarse:py-2.5! pointer-coarse:text-[0.8125rem]!"
         onClick={onAutoTune}
         disabled={alreadyRemoved}
         style={{ opacity: alreadyRemoved ? 0.5 : 1 }}
@@ -755,7 +769,7 @@ function ChromaPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="btn btn-primary justify-center px-2! py-2.25! text-[12.5px]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
           onClick={onApply}
           disabled={applyDisabled}
           style={{ opacity: applyDisabled ? 0.5 : 1 }}
@@ -776,7 +790,7 @@ function ChromaPanel({
           )}
         </button>
       )}
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {alreadyRemoved
           ? backgroundFillMode > 0
             ? "Transparent cutout ready. Apply the selected background without keying the image again."
@@ -816,9 +830,9 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
                 type="button"
                 aria-pressed={active}
                 onClick={() => onChangeMode(index)}
-                className={`flex min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[11.5px] font-semibold outline-2 outline-transparent transition-colors focus-visible:outline-coral-500 active:bg-page-bg pointer-coarse:min-h-11 pointer-coarse:text-[12.5px] ${
+                className={`flex min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[0.8125rem] font-medium outline-2 outline-transparent transition-colors focus-visible:outline-accent active:bg-page-bg pointer-coarse:min-h-11 pointer-coarse:text-[0.8125rem] ${
                   active
-                    ? "border-coral-400 bg-coral-50 text-coral-800 dark:border-coral-500 dark:bg-coral-900/25 dark:text-coral-200"
+                    ? "border-accent bg-surface-soft text-text border-accent bg-surface-soft text-text"
                     : "border-border-soft bg-page-bg text-text-muted hover:border-border hover:bg-surface"
                 }`}
               >
@@ -847,7 +861,7 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
         </PropRow>
       ) : null}
 
-      <div className="flex gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-2 text-[10.75px] leading-relaxed text-text-muted">
+      <div className="flex gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text-muted">
         <I.Info size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>
           Plain white or light grey is safest for official photos. Gradient and vignette are for
@@ -874,16 +888,16 @@ function AppliedBackground({ treatment }: { treatment: "solid" | "gradient" | "v
   return (
     <div
       role="status"
-      className="flex gap-2.5 rounded-md border border-emerald-300/60 bg-emerald-50/70 px-3 py-3 text-emerald-900 dark:border-emerald-500/25 dark:bg-emerald-900/15 dark:text-emerald-200"
+      className="flex gap-2.5 rounded-md border border-[var(--air-success)] bg-[var(--air-success-soft)] px-3 py-3 text-success"
     >
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--air-success-soft)] text-success">
         <I.Check size={14} stroke={2.5} aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <strong className="block text-[12.5px]">
+        <strong className="block text-[0.8125rem]">
           {backgroundFillLabel(treatment)} background applied
         </strong>
-        <span className="mt-0.5 block text-[11px] leading-relaxed text-emerald-800/80 dark:text-emerald-200/75">
+        <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-success">
           The replacement is baked into this history step. Undo once to choose another style or
           colour.
         </span>

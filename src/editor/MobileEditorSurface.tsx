@@ -1,26 +1,5 @@
-// MobileEditorSurface.tsx — One bottom surface, three states. A single
-// morphing shell that progresses through:
-//
-//   collapsed  →  picker  →  tool  →  collapsed
-//        \                              /
-//         \________ X / ✓ / drag-down _/
-//
-// V3.4 design goals (Braun + fluid, peeled further back):
-//   • Idle is just text. The collapsed state has NO container — no
-//     background, border, shape, or shadow. Just "Tools" + Grid icon
-//     floating on the cream page. Tap target is 44 × 140 invisibly.
-//   • One surface. The shell stays open across the picker → tool
-//     transition; only the inner content cross-fades.
-//   • Hairline edges only when expanded. The implicit container
-//     materialises (background fades to white, top corners round to
-//     16 px, hairline inset) as the shell grows from icon-sized to
-//     full-sheet.
-//   • In-flow geometry. Wrapper height updates immediately so the
-//     canvas reflows once; the photo stays visible during a tool session.
-//   • Pinned tool header. Like CloakPDF, ✕ and ✓ stay together at the
-//     top-right while only the controls body scrolls. This keeps the
-//     session actions reachable without stealing a second row below
-//     the controls.
+// MobileEditorSurface.tsx — Compact Air tool picker and controls.
+// The canvas stays visible above the measured in-flow surface.
 //
 // History semantics:
 //   • ✓ — keep changes, reset tool to Move, collapse the surface.
@@ -50,14 +29,10 @@ import { findTool, toolsForTab, type Tool, type ToolId } from "./tools";
 
 type Mode = "collapsed" | "picker" | "tool";
 
-// Geometry — V3.4 strips the container in collapsed state. The
-// collapsed footprint is just the size needed for icon + label; no
-// background, no border, no shape. Tap target stays comfortably 44 px
-// (icon row + padding) while the visual is just text + glyph floating
-// on the cream page.
+// Collapsed Tools affordance retains a 44 px touch target.
 const COLLAPSED_W = 140;
 const COLLAPSED_H = 44;
-const EXPANDED_R = 8;
+const EXPANDED_R = 18;
 
 // Chrome heights for sheet sizing. The picker keeps the compact drag
 // handle; an active tool swaps that row for a pinned title + action
@@ -65,31 +40,15 @@ const EXPANDED_R = 8;
 const HANDLE_H = 44;
 const TOOL_HEADER_H = 56;
 
-// Surface colour settles on the same restrained timing as the shared
-// dialogs. Width and height update immediately so the canvas does not
-// re-layout across several frames while a live preview is painting.
-const MORPH_MS = 220;
-const EASING = "var(--ease-out)";
-
-// Hoisted because the drag handlers temporarily disable transitions
-// and must restore the same string React owns afterward.
-const SHEET_TRANSITION = `background-color ${MORPH_MS}ms ${EASING}`;
+// Tool selection is immediate. Only a dismissed drag settles back into place.
+const EASING = "var(--air-ease-out)";
 
 const DRAG_DISMISS_PX = 100;
 const DRAG_DISMISS_VELOCITY = 0.11;
 const DRAG_SETTLE_MS = 220;
 const MOBILE_TOOLS = toolsForTab(null);
 
-interface SurfaceProps {
-  /** Notify parent when the surface enters / leaves an expanded state.
-   *  The parent doesn't strictly need this today (the in-flow height
-   *  drives canvas reflow on its own), but exposing it keeps the
-   *  shape compatible with future "mute background while sheet is
-   *  open" needs. */
-  onExpandedChange?: (expanded: boolean) => void;
-}
-
-export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
+export function MobileEditorSurface() {
   const {
     toolState,
     setActiveTool,
@@ -116,6 +75,8 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [maxPx, setMaxPx] = useState(0);
+  const [availablePx, setAvailablePx] = useState(0);
+  const [expandedControls, setExpandedControls] = useState(false);
   useLayoutEffect(() => {
     const outer = wrapRef.current;
     if (!outer) return;
@@ -123,7 +84,10 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     if (!parent) return;
     const update = () => {
       const h = parent.clientHeight;
-      if (h > 0) setMaxPx(Math.floor(h * 0.5));
+      if (h > 0) {
+        setMaxPx(Math.floor(h * 0.5));
+        setAvailablePx(h);
+      }
     };
     update();
     const ro = new ResizeObserver(update);
@@ -131,7 +95,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     return () => ro.disconnect();
   }, []);
 
-  // V3.5: measured natural height of whatever's currently rendered
+  // Measured natural height of whatever's currently rendered
   // inside the sheet. Drives the sheet's actual height so a short tool
   // (Perspective, Color picker) doesn't waste vertical real estate by
   // sitting in a half-height shell. Capped by maxPx so a tall picker
@@ -165,11 +129,6 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
 
   const expanded = mode !== "collapsed";
 
-  // Notify parent on expanded transitions.
-  useEffect(() => {
-    onExpandedChange?.(expanded);
-  }, [expanded, onExpandedChange]);
-
   // Sync external activeTool changes with the surface mode.
   //   • activeTool flips to a real tool while collapsed/picker → tool mode
   //   • activeTool flips back to Move while in tool mode → collapse
@@ -185,6 +144,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       // checkpoint, which is none until the tool effect below fires.
       if (mode === "collapsed") checkpointRef.current = null;
       setMode("tool");
+      if (toolState.activeTool === "adjust") setExpandedControls(true);
     } else if (prev !== "move") {
       setMode("collapsed");
     }
@@ -322,16 +282,14 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
       const dismiss =
         !cancelled && (dragDeltaRef.current >= DRAG_DISMISS_PX || velocity > DRAG_DISMISS_VELOCITY);
-      sheet.style.transition = reduceMotion
-        ? "none"
-        : `transform ${DRAG_SETTLE_MS}ms ${EASING}, ${SHEET_TRANSITION}`;
+      sheet.style.transition = reduceMotion ? "none" : `transform ${DRAG_SETTLE_MS}ms ${EASING}`;
       if (!dismiss) {
         sheet.style.transform = "";
         dragDeltaRef.current = 0;
-        if (reduceMotion) sheet.style.transition = SHEET_TRANSITION;
+        if (reduceMotion) sheet.style.transition = "none";
         else {
           dragSettleTimerRef.current = window.setTimeout(() => {
-            sheet.style.transition = SHEET_TRANSITION;
+            sheet.style.transition = "none";
             dragSettleTimerRef.current = null;
           }, DRAG_SETTLE_MS);
         }
@@ -339,7 +297,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
       }
       sheet.style.transform = reduceMotion ? "" : "translateY(100%)";
       const settle = () => {
-        sheet.style.transition = SHEET_TRANSITION;
+        sheet.style.transition = "none";
         sheet.style.transform = "";
         dragDeltaRef.current = 0;
         dragSettleTimerRef.current = null;
@@ -370,10 +328,25 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
 
   const visibleTools = useMemo(() => searchEditorTools(toolQuery, MOBILE_TOOLS), [toolQuery]);
   const activeTool = findTool(toolState.activeTool);
+  const expandButton = (
+    <button
+      type="button"
+      className="btn btn-ghost btn-icon"
+      aria-label={expandedControls ? "Return to split view" : "Expand controls"}
+      aria-pressed={expandedControls}
+      onClick={() => setExpandedControls((v) => !v)}
+    >
+      <I.ChevronDown
+        size={18}
+        style={{ transform: expandedControls ? undefined : "rotate(180deg)" }}
+        aria-hidden="true"
+      />
+    </button>
+  );
+
   const modalProps = expanded
     ? ({
-        role: "dialog",
-        "aria-modal": true,
+        role: "region",
         "aria-label": mode === "picker" ? "Tools" : "Tool controls",
       } as const)
     : {};
@@ -382,7 +355,11 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
   // half the column. Picker and tool headers both stay outside the
   // scroller, so controls gain the space previously consumed by the
   // bottom action row.
-  const expandedHeight = maxPx > 0 ? maxPx : 360;
+  const expandedHeight = expandedControls
+    ? Math.max(120, availablePx - 96)
+    : maxPx > 0
+      ? maxPx
+      : 360;
   const expandedChromeHeight = mode === "tool" ? TOOL_HEADER_H : HANDLE_H;
   const sheetHeight =
     mode === "collapsed" ? COLLAPSED_H : Math.min(expandedChromeHeight + contentH, expandedHeight);
@@ -391,9 +368,9 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
     height: `${sheetHeight}px`,
     borderTopLeftRadius: expanded ? `${EXPANDED_R}px` : 0,
     borderTopRightRadius: expanded ? `${EXPANDED_R}px` : 0,
-    backgroundColor: expanded ? "var(--surface)" : "transparent",
-    boxShadow: expanded ? "inset 0 1px 0 0 var(--color-rule)" : "none",
-    transition: SHEET_TRANSITION,
+    backgroundColor: expanded ? "var(--air-surface)" : "transparent",
+    boxShadow: expanded ? "inset 0 1px 0 0 var(--air-line)" : "none",
+    transition: "none",
   };
 
   return (
@@ -424,7 +401,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
             style={{ height: COLLAPSED_H }}
           >
             <I.Grid2x2 size={18} stroke={2} />
-            <span className="text-[13px] font-semibold">Tools</span>
+            <span className="text-[13px] font-medium">Tools</span>
           </button>
         ) : (
           /* Expanded — pinned picker/tool header followed by the only
@@ -444,11 +421,12 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                   onPointerUp={finishDrag}
                   onPointerCancel={(event) => finishDrag(event, true)}
                 >
-                  <span className="truncate text-[13px] font-semibold tracking-[-0.01em] text-text">
+                  <span className="truncate text-[13px] font-medium tracking-normal text-text">
                     {activeTool.name}
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
+                  {expandButton}
                   <button
                     type="button"
                     onClick={() => void handleCancel()}
@@ -461,29 +439,32 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                     type="button"
                     onClick={() => void handleClose()}
                     aria-label="Done"
-                    className="btn btn-outline-coral btn-icon"
+                    className="btn btn-secondary btn-icon"
                   >
                     <I.Check size={18} stroke={2} aria-hidden="true" />
                   </button>
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={onHandleClick}
-                onPointerDown={onDragStart}
-                onPointerMove={onDragMove}
-                onPointerUp={finishDrag}
-                onPointerCancel={(event) => finishDrag(event, true)}
-                aria-label="Close — drag down to dismiss"
-                className="group flex shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
-                style={{ height: HANDLE_H }}
-              >
-                <span
-                  aria-hidden
-                  className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:group-active:bg-dark-text-muted"
-                />
-              </button>
+              <div className="flex items-center">
+                {expandButton}
+                <button
+                  type="button"
+                  onClick={onHandleClick}
+                  onPointerDown={onDragStart}
+                  onPointerMove={onDragMove}
+                  onPointerUp={finishDrag}
+                  onPointerCancel={(event) => finishDrag(event, true)}
+                  aria-label="Close — drag down to dismiss"
+                  className="group flex flex-1 shrink-0 cursor-pointer touch-none items-center justify-center border-none bg-transparent p-0"
+                  style={{ height: HANDLE_H }}
+                >
+                  <span
+                    aria-hidden
+                    className="h-1 w-9 rounded-full bg-border transition-colors group-active:bg-text-muted dark:group-active:bg-dark-text-muted"
+                  />
+                </button>
+              </div>
             )}
 
             <div
@@ -505,13 +486,9 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                       <div
                         role="search"
                         aria-label="Editor tools"
-                        className="flex h-11 items-center gap-2 rounded-md border border-border bg-page-bg px-3 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-coral-500"
+                        className="flex h-11 items-center gap-2 rounded-md border border-border bg-page-bg px-3 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-accent"
                       >
-                        <I.Search
-                          size={16}
-                          className="shrink-0 text-coral-600 dark:text-coral-400"
-                          aria-hidden="true"
-                        />
+                        <I.Search size={16} className="shrink-0 text-text" aria-hidden="true" />
                         <label htmlFor="mobile-editor-tool-search" className="sr-only">
                           Search editor tools
                         </label>
@@ -542,7 +519,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                       <p
                         id="mobile-editor-tool-search-count"
                         aria-live="polite"
-                        className="t-mono mt-1.5 text-[9px] tracking-[0.05em] text-text-muted uppercase"
+                        className="tabular-nums mt-1.5 text-[0.8125rem] tracking-normal text-text-muted"
                       >
                         {toolQuery.trim()
                           ? `${visibleTools.length} matching ${visibleTools.length === 1 ? "tool" : "tools"}`
@@ -563,7 +540,7 @@ export function MobileEditorSurface({ onExpandedChange }: SurfaceProps = {}) {
                       </div>
                     ) : (
                       <div className="px-5 py-7 text-center">
-                        <div className="text-sm font-semibold text-text">No tool found</div>
+                        <div className="text-sm font-medium text-text">No tool found</div>
                         <div className="mt-1 text-xs leading-relaxed text-text-muted">
                           Try “crop”, “background”, “colour”, or “privacy”.
                         </div>
@@ -616,14 +593,14 @@ function ToolGridCard({ tool, active, onClick }: CardProps) {
       onClick={onClick}
       aria-label={tool.name}
       aria-pressed={active}
-      className={`flex cursor-pointer flex-col items-center justify-start gap-1.5 rounded-lg border bg-transparent px-1 py-2.5 font-[inherit] transition-colors focus-visible:outline-2 focus-visible:outline-coral-500 focus-visible:outline-offset-1 ${
+      className={`flex cursor-pointer flex-col items-center justify-start gap-1.5 rounded-lg border bg-transparent px-1 py-2.5 font-[inherit] transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1 ${
         active
-          ? "border-coral-500 bg-coral-50/50 text-coral-700 dark:bg-coral-900/20 dark:text-coral-300"
+          ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
           : "border-transparent text-text"
       }`}
     >
       <Ic size={26} stroke={active ? 2 : 1.6} />
-      <span className="text-[11px] leading-tight font-medium tracking-[-0.005em] whitespace-nowrap">
+      <span className="text-[0.8125rem] leading-tight font-medium tracking-normal whitespace-nowrap">
         {tool.name}
       </span>
     </button>

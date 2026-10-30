@@ -21,7 +21,6 @@ import type {
   AiProgress,
   AiProgressResponse,
   AiReadyResponse,
-  AiResponse,
   AiResultResponse,
   AiSelfErrorResponse,
 } from "../types";
@@ -63,7 +62,6 @@ export function buildSelfErrorMessage(message: string, filename?: string): strin
 }
 
 // Re-export AiResponse so handlers don't have to import from two paths.
-export type { AiResponse };
 
 // —————————————— Bitmap ↔ RawImage ——————————————
 
@@ -131,10 +129,24 @@ export function rawImageToBitmap(img: RawImage): ImageBitmap {
 /** Order to try inference backends given a hint. "auto" → WebGPU then
  *  WASM. Explicit values force one path (used by integration tests
  *  and by capability-level fallback retry). */
-export function deviceOrder(hint: "auto" | "webgpu" | "wasm" | undefined): ("webgpu" | "wasm")[] {
+/** Avoid initializing ORT's GPU backend without an adapter. Transformers.js
+ * serializes initialization on a promise chain; a rejected GPU initialization
+ * otherwise poisons the subsequent WASM attempt in the same worker. */
+export async function deviceOrder(
+  hint?: "auto" | "webgpu" | "wasm",
+): Promise<("webgpu" | "wasm")[]> {
   if (hint === "wasm") return ["wasm"];
   if (hint === "webgpu") return ["webgpu"];
-  return ["webgpu", "wasm"];
+  const gpu =
+    typeof navigator === "undefined"
+      ? undefined
+      : (navigator as Navigator & { gpu?: { requestAdapter: () => Promise<object | null> } }).gpu;
+  try {
+    if (gpu && (await gpu.requestAdapter())) return ["webgpu", "wasm"];
+  } catch {
+    // Disabled GPU access is a supported WASM-only environment.
+  }
+  return ["wasm"];
 }
 
 // —————————————— Friendly error mapping ——————————————
@@ -143,7 +155,7 @@ export function deviceOrder(hint: "auto" | "webgpu" | "wasm" | undefined): ("web
  *  copy a user can act on. Identical to the segment-only version that
  *  used to live in worker.ts — kept handler-agnostic so any new
  *  capability gets the same friendly messages for free. */
-export function friendlyErrorMessage(raw: string): string {
+function friendlyErrorMessage(raw: string): string {
   const lower = raw.toLowerCase();
   if (
     lower.includes("quotaexceeded") ||

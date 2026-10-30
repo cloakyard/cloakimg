@@ -108,15 +108,17 @@ for (const vp of VIEWPORTS) {
   }
 
   // Read crop rect bounds via the dimension inputs (W/H/X/Y) the
-  // CropPanel renders. Each is an <input type="number"> with a label
+  // CropPanel renders. Each precision field has an accessible name and a label
   // sibling. They're driven by Fabric's object:moving / object:scaling
   // events, so they reflect the live rect.
   const readBox = async () => {
     return page.evaluate(() => {
-      const inputs = Array.from(document.querySelectorAll('input[type="number"]'));
+      const inputs = Array.from(document.querySelectorAll('input[aria-label^="Crop "]'));
       const byLabel = {};
       for (const inp of inputs) {
-        const lbl = inp.previousElementSibling?.textContent?.trim();
+        const lbl = { "Crop width": "W", "Crop height": "H", "Crop X": "X", "Crop Y": "Y" }[
+          inp.getAttribute("aria-label")
+        ];
         if (lbl) byLabel[lbl] = Number(inp.value);
       }
       return byLabel;

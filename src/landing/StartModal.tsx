@@ -1,3 +1,4 @@
+import { NumberField } from "../editor/NumberField";
 // StartModal.tsx — The single entry into the editor. Either upload an
 // image (drag/drop, paste, or file picker) or pick a blank canvas
 // preset. The result is a `StartChoice` the parent can hand to the
@@ -20,14 +21,14 @@ import {
 
 type Tab = "upload" | "blank";
 
-export interface CanvasPreset {
+interface CanvasPreset {
   name: string;
   w: number;
   h: number;
   hint: string;
 }
 
-export const PRESETS: CanvasPreset[] = [
+const PRESETS: CanvasPreset[] = [
   { name: "Square", w: 1080, h: 1080, hint: "Instagram post" },
   { name: "Portrait", w: 1080, h: 1350, hint: "IG portrait" },
   { name: "Story", w: 1080, h: 1920, hint: "9:16 vertical" },
@@ -83,13 +84,13 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
   const canConfirm = tab === "upload" ? !!uploadFile : true;
 
   return (
-    <ModalFrame onClose={onCancel} bottomSheet={isPhone} labelledBy="start-modal-title">
+    <ModalFrame onClose={onCancel} labelledBy="start-modal-title">
       <ModalHeader isPhone={isPhone} onCancel={onCancel} />
       <ModalTabs tab={tab} setTab={setTab} isPhone={isPhone} />
 
       <div className={`cloak-dialog__body flex-1 overflow-y-auto ${isPhone ? "p-5" : "p-7"}`}>
         {tab === "upload" ? (
-          <UploadTab isPhone={isPhone} file={uploadFile} onFile={setUploadFile} />
+          <UploadTab file={uploadFile} onFile={setUploadFile} />
         ) : (
           <BlankTab
             isPhone={isPhone}
@@ -132,7 +133,7 @@ function ModalHeader({ isPhone, onCancel }: { isPhone: boolean; onCancel: () => 
             tone before the user picks anything, instead of crowding
             the action footer with a stray label. */}
         <div className="cloak-dialog__description inline-flex items-center gap-1.5">
-          <I.Lock size={11} stroke={2.25} className="text-coral-600 dark:text-coral-400" />
+          <I.Lock size={11} stroke={2.25} className="text-text" />
           Files never leave your browser
         </div>
       </div>
@@ -166,9 +167,10 @@ function ModalTabs({
             type="button"
             onClick={() => setTab(t.id)}
             aria-label={t.ariaLabel}
-            className={`-mb-px flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap border-none bg-transparent px-1 py-2.5 font-[inherit] text-[12px] font-semibold transition-colors sm:flex-none sm:px-3.5 sm:text-[13px] ${
+            aria-pressed={active}
+            className={`-mb-px flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap border-none bg-transparent px-1 py-2.5 font-[inherit] text-[0.8125rem] font-medium transition-colors sm:flex-none sm:px-3.5 sm:text-[13px] ${
               active
-                ? "border-b-2 border-coral-500 text-coral-700 dark:text-coral-400"
+                ? "border-b-2 border-accent text-text"
                 : "border-b-2 border-transparent text-text-muted"
             }`}
           >
@@ -217,19 +219,10 @@ function ModalFooter({
   );
 }
 
-function UploadTab({
-  isPhone,
-  file,
-  onFile,
-}: {
-  isPhone: boolean;
-  file: File | null;
-  onFile: (f: File | null) => void;
-}) {
+function UploadTab({ file, onFile }: { file: File | null; onFile: (f: File | null) => void }) {
   return (
     <div>
       <DropZone
-        isPhone={isPhone}
         selectedFile={file}
         onFiles={(files) => {
           const f = files[0];
@@ -263,14 +256,14 @@ function DraftResumeRow({ onPick }: { onPick: (f: File | null) => void }) {
   return (
     <div className="mt-5.5">
       <div className="mb-2.5 flex items-center justify-between">
-        <span className="t-eyebrow t-eyebrow-slate text-[10px]">Resume · saved locally</span>
+        <span className="t-eyebrow t-eyebrow-slate text-[0.8125rem]">Resume · saved locally</span>
         <button
           type="button"
           onClick={() => {
             void clearDraft();
             setDraft(null);
           }}
-          className="cursor-pointer border-none bg-transparent font-[inherit] text-[10.5px] text-text-muted"
+          className="cursor-pointer border-none bg-transparent font-[inherit] text-[0.8125rem] text-text-muted"
         >
           Discard
         </button>
@@ -279,7 +272,7 @@ function DraftResumeRow({ onPick }: { onPick: (f: File | null) => void }) {
         type="button"
         onClick={() => onPick(draftToFile(draft))}
         title={`Resume editing ${draft.fileName}`}
-        className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-coral-200 bg-coral-50/60 p-2.5 text-left font-[inherit] dark:border-coral-900/50 dark:bg-coral-900/15"
+        className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-accent bg-surface-soft p-2.5 text-left font-[inherit]"
       >
         {draft.thumbUrl ? (
           <img
@@ -295,12 +288,12 @@ function DraftResumeRow({ onPick }: { onPick: (f: File | null) => void }) {
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[12.5px] font-semibold text-text">{draft.fileName}</div>
-          <div className="text-[11px] text-text-muted">
+          <div className="truncate text-[0.8125rem] font-medium text-text">{draft.fileName}</div>
+          <div className="text-[0.8125rem] text-text-muted">
             {draft.width} × {draft.height} · {ageLabel}
           </div>
         </div>
-        <I.ArrowRight size={14} className="shrink-0 text-coral-700 dark:text-coral-300" />
+        <I.ArrowRight size={14} className="shrink-0 text-text" />
       </button>
     </div>
   );
@@ -336,11 +329,11 @@ function RecentsRow({ onPick }: { onPick: (f: File | null) => void }) {
   return (
     <div className="mt-5.5">
       <div className="mb-2.5 flex items-center justify-between">
-        <span className="t-eyebrow t-eyebrow-slate text-[10px]">Recent · stored locally</span>
+        <span className="t-eyebrow t-eyebrow-slate text-[0.8125rem]">Recent · stored locally</span>
         <button
           type="button"
           onClick={() => void clearRecents()}
-          className="cursor-pointer border-none bg-transparent font-[inherit] text-[10.5px] text-text-muted"
+          className="cursor-pointer border-none bg-transparent font-[inherit] text-[0.8125rem] text-text-muted"
         >
           Clear
         </button>
@@ -426,14 +419,14 @@ function BlankTab({
               aria-pressed={active}
               className={`relative flex cursor-pointer flex-col gap-2 rounded-lg p-3 text-left font-[inherit] transition-[border-color,background-color] duration-150 ${
                 active
-                  ? "border-2 border-coral-500 bg-coral-50 dark:bg-coral-900/25"
-                  : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-coral-200"
+                  ? "border-2 border-accent bg-surface-soft"
+                  : "border-2 border-transparent bg-surface ring-1 ring-border hover:border-accent"
               }`}
             >
               {active && (
                 <span
                   aria-hidden
-                  className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-coral-500 text-white"
+                  className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-white"
                 >
                   <I.Check size={10} stroke={3} />
                 </span>
@@ -458,11 +451,11 @@ function BlankTab({
                 )}
               </div>
               <div>
-                <div className="text-[13px] font-semibold text-text">{p.name}</div>
-                <div className="t-mono mt-px text-[11px] text-text-muted">
+                <div className="text-[13px] font-medium text-text">{p.name}</div>
+                <div className="tabular-nums mt-px text-[0.8125rem] text-text-muted">
                   {p.w ? `${p.w} × ${p.h}` : "Set your own"}
                 </div>
-                <div className="mt-px text-[10.5px] text-text-muted">{p.hint}</div>
+                <div className="mt-px text-[0.8125rem] text-text-muted">{p.hint}</div>
               </div>
             </button>
           );
@@ -476,7 +469,7 @@ function BlankTab({
           three groups back into a single flex-wrap row with the
           background pushed to the right via sm:ml-auto. */}
       <div className="mt-4 flex flex-col gap-3 rounded-lg bg-page-bg p-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
-        <div className="t-eyebrow t-eyebrow-slate text-[10px]">Custom</div>
+        <div className="t-eyebrow t-eyebrow-slate text-[0.8125rem]">Custom</div>
         <div className="flex items-center gap-2 sm:gap-2.5">
           <DimensionInput label="W" value={customW} onChange={setCustomW} />
           <I.X size={11} className="shrink-0 text-text-muted" />
@@ -492,7 +485,7 @@ function BlankTab({
               checked={bgEnabled}
               onChange={(e) => setBgEnabled(e.target.checked)}
               aria-label="Fill canvas with a background color"
-              className="h-3.5 w-3.5 cursor-pointer accent-coral-500"
+              className="h-3.5 w-3.5 cursor-pointer accent-accent"
             />
             <span>Background</span>
           </label>
@@ -501,7 +494,7 @@ function BlankTab({
               <ColorPicker value={bg} onChange={setBg} enableEyedropper={false} />
             </div>
           ) : (
-            <span className="t-mono rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[11px] text-text-muted">
+            <span className="tabular-nums rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[0.8125rem] text-text-muted">
               Transparent
             </span>
           )}
@@ -521,17 +514,17 @@ function DimensionInput({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="t-mono flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-[13px] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-coral-500 sm:min-h-0 sm:py-1.5">
-      <span className="text-[11px] text-text-muted">{label}</span>
-      <input
-        name={`canvas-${label.toLowerCase()}`}
-        type="number"
-        aria-label={label}
-        autoComplete="off"
+    <label className="img-dimension">
+      <span>{label}</span>
+      <NumberField
         value={value}
-        onChange={(e) => onChange(Math.max(1, Math.min(20000, +e.target.value || 0)))}
-        className="h-11 w-17.5 border-none bg-transparent font-[inherit] text-[13px] text-text outline-none sm:h-auto"
+        min={1}
+        max={20000}
+        step={1}
+        unit="px"
+        label={label === "W" ? "Width" : label === "H" ? "Height" : label}
+        onCommit={onChange}
       />
-    </div>
+    </label>
   );
 }

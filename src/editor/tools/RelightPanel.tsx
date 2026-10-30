@@ -17,7 +17,7 @@ import { useSubjectMask } from "../ai/useSubjectMask";
 import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 import { CapabilityErrorCard, CapabilityProgressCard } from "../ai/ui/status/CapabilityStatusCards";
-import { PropRow, Slider } from "../atoms";
+import { SliderField } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -88,11 +88,11 @@ export function RelightPanel() {
       )}
       {!depthReady && status !== "loading" && status !== "error" && (
         <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
-          <div className="flex items-center gap-1.5 text-[12px] font-medium text-text">
-            <I.Sparkles size={12} className="shrink-0 text-coral-500 dark:text-coral-400" />
+          <div className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-text">
+            <I.Sparkles size={12} className="shrink-0 text-text" />
             Relight needs an on-device depth model
           </div>
-          <div className="text-[11.5px] leading-snug text-text-muted">
+          <div className="text-[0.8125rem] leading-snug text-text-muted">
             One ~{DEFAULT_DEPTH_TIER.mb} MB download, then it runs entirely in this tab — your photo
             never leaves your device.
           </div>
@@ -110,10 +110,10 @@ export function RelightPanel() {
         {/* Header — names the gesture so the on-canvas sun is discoverable. */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-[15px] font-semibold leading-tight tracking-[-0.01em] text-text">
+            <div className="text-[15px] font-medium leading-tight tracking-normal text-text">
               Relight
             </div>
-            <div className="mt-0.5 text-[11.5px] leading-snug text-text-muted">
+            <div className="mt-0.5 text-[0.8125rem] leading-snug text-text-muted">
               Drag the sun on your photo to aim the light.
             </div>
           </div>
@@ -121,7 +121,7 @@ export function RelightPanel() {
             <button
               type="button"
               onClick={reset}
-              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 py-1 font-[inherit] text-[11px] font-semibold text-text-muted transition-colors hover:bg-surface hover:text-text"
+              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 py-1 font-[inherit] text-[0.8125rem] font-medium text-text-muted transition-colors hover:bg-surface hover:text-text"
               aria-label="Reset relight"
             >
               <I.Rotate size={11} /> Reset
@@ -129,28 +129,27 @@ export function RelightPanel() {
           )}
         </div>
 
-        <PropRow label="Intensity" value={`${Math.round(toolState.relightIntensity * 100)}%`}>
-          <Slider
-            value={toolState.relightIntensity}
-            accent
-            defaultValue={0}
-            onChange={(v) => patchTool("relightIntensity", v)}
-          />
-        </PropRow>
-        <PropRow label="Light height" value={`${Math.round(toolState.relightElevation * 100)}%`}>
-          <Slider
-            value={toolState.relightElevation}
-            defaultValue={0.6}
-            onChange={(v) => patchTool("relightElevation", v)}
-          />
-        </PropRow>
-        <PropRow label="Warmth" value={warmthLabel(toolState.relightWarmth)}>
-          <Slider
-            value={toolState.relightWarmth}
-            defaultValue={0.5}
-            onChange={(v) => patchTool("relightWarmth", v)}
-          />
-        </PropRow>
+        <SliderField
+          label="Intensity"
+          value={toolState.relightIntensity}
+          accent
+          defaultValue={0}
+          onChange={(v) => patchTool("relightIntensity", v)}
+        />
+        <SliderField
+          label="Light height"
+          value={toolState.relightElevation}
+          defaultValue={0.6}
+          onChange={(v) => patchTool("relightElevation", v)}
+        />
+        <SliderField
+          label="Warmth"
+          domain={[-100, 100]}
+          unit=""
+          value={toolState.relightWarmth}
+          defaultValue={0.5}
+          onChange={(v) => patchTool("relightWarmth", v)}
+        />
 
         <MaskScopeRow
           scope={toolState.relightScope}
@@ -159,12 +158,4 @@ export function RelightPanel() {
       </ScopeGate>
     </>
   );
-}
-
-/** Warmth read-out: a signed "cool ← neutral → warm" hint rather than a
- *  bare percentage, so the slider's centre reads as neutral. */
-function warmthLabel(v: number): string {
-  const d = Math.round((v - 0.5) * 200);
-  if (d === 0) return "Neutral";
-  return d > 0 ? `Warm +${d}` : `Cool ${d}`;
 }

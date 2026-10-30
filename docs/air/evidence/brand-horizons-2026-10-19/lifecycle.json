@@ -1,0 +1,65 @@
+[
+  {
+    "mode": "normal",
+    "initial": {
+      "lightState": "idle",
+      "lightFrames": "1",
+      "lightFirstDraw": "76.0",
+      "lightReady": "true"
+    },
+    "output": {
+      "type": "image/png",
+      "source": {
+        "width": 64,
+        "height": 48,
+        "hash": "b4964e83e8764dbbcb0423597c69eea881c39dedee206e6654ff1f2d8f100881"
+      },
+      "exported": {
+        "width": 64,
+        "height": 48,
+        "hash": "b4964e83e8764dbbcb0423597c69eea881c39dedee206e6654ff1f2d8f100881"
+      }
+    },
+    "editorCleanup": "disposed"
+  },
+  {
+    "mode": "reduced",
+    "initial": {
+      "lightState": "reduced",
+      "lightFrames": "0",
+      "lightFirstDraw": "0.0"
+    }
+  },
+  {
+    "mode": "unsupported",
+    "initial": {
+      "lightState": "unsupported",
+      "lightFrames": "0",
+      "lightFirstDraw": "0.0"
+    }
+  },
+  {
+    "mode": "constrained",
+    "initial": {
+      "lightState": "constrained",
+      "lightFrames": "0",
+      "lightFirstDraw": "0.0"
+    }
+  },
+  {
+    "mode": "save-data",
+    "initial": {
+      "lightState": "constrained",
+      "lightFrames": "0",
+      "lightFirstDraw": "0.0"
+    }
+  },
+  {
+    "mode": "forced",
+    "initial": {
+      "lightState": "forced",
+      "lightFrames": "0",
+      "lightFirstDraw": "0.0"
+    }
+  }
+]

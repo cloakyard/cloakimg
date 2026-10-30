@@ -8,7 +8,7 @@
 // no explicit Apply button.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PropRow, Slider } from "../atoms";
+import { PropRow, SliderField } from "../atoms";
 import { ColorPicker } from "../ColorPicker";
 import { copyInto, createCanvas, snapshot } from "../doc";
 import { useEditor } from "../EditorContext";
@@ -233,7 +233,7 @@ export function FramePanel() {
                 aria-label={name}
                 className={`cursor-pointer overflow-hidden rounded-md bg-page-bg p-0 ${
                   isMobile ? "w-18 shrink-0" : ""
-                } ${active ? "border-2 border-coral-500" : "border border-border"}`}
+                } ${active ? "border-2 border-accent" : "border border-border"}`}
               >
                 {thumbUrl ? (
                   <img
@@ -246,24 +246,25 @@ export function FramePanel() {
                 ) : (
                   <div className="aspect-square w-full bg-page-bg" />
                 )}
-                <div className="px-1 py-0.75 text-center text-[10px] font-semibold">{name}</div>
+                <div className="px-1 py-0.75 text-center text-[0.8125rem] font-medium">{name}</div>
               </button>
             );
           })}
         </div>
       </PropRow>
-      <PropRow label="Width" value={`${w} px`}>
-        <Slider
-          value={maxFramePx > 0 ? Math.min(1, w / maxFramePx) : 0}
-          accent={w > 0}
-          defaultValue={0}
-          onChange={(v) => patchTool("frameWidth", Math.round(v * maxFramePx))}
-        />
-      </PropRow>
+      <SliderField
+        label="Width"
+        domain={[0, maxFramePx]}
+        unit="px"
+        value={maxFramePx > 0 ? Math.min(1, w / maxFramePx) : 0}
+        accent={w > 0}
+        defaultValue={0}
+        onChange={(v) => patchTool("frameWidth", Math.round(v * maxFramePx))}
+      />
       <PropRow label="Color">
         <ColorPicker value={toolState.frameColor} onChange={(c) => patchTool("frameColor", c)} />
       </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {hintFor(toolState.frameStyle)}
       </div>
     </>
@@ -645,7 +646,7 @@ function formatCameraLine(exif: ExifData | null | undefined): string {
   return (model || make || "").toUpperCase();
 }
 
-/** Strip the file extension and uppercase what's left so it reads as
+/** Strip the file extension and  what's left so it reads as
  *  a deliberate title in the Capture frame's first line, rather than
  *  a raw filename like "img_0042.jpg". */
 function prettyFileName(name: string | null | undefined): string {

@@ -17,7 +17,7 @@
 
 import { useCallback, useState } from "react";
 import { I } from "../../components/icons";
-import { InlineSpinner, PropRow, Segment, Slider } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, MaskConsentError } from "../ai/subjectMask";
@@ -325,14 +325,13 @@ export function RedactPanel() {
           Inspector overlay. The value is also the inspector's
           "below-floor" line: faces with a score below it render dimmed
           so the user can see exactly what they'd be excluding. */}
-      <PropRow label="Face confidence" value={`${Math.round(toolState.faceConfidence * 100)}%`}>
-        <Slider
-          value={toolState.faceConfidence}
-          accent
-          defaultValue={0.3}
-          onChange={(v) => patchTool("faceConfidence", v)}
-        />
-      </PropRow>
+      <SliderField
+        label="Face confidence"
+        value={toolState.faceConfidence}
+        accent
+        defaultValue={0.3}
+        onChange={(v) => patchTool("faceConfidence", v)}
+      />
 
       {/* AI Inspector — a single toggle that overlays the detected
           face boxes + scores on the canvas. Sits below the dial so
@@ -344,9 +343,9 @@ export function RedactPanel() {
         onClick={() => patchTool("aiInspector", !toolState.aiInspector)}
         role="switch"
         aria-checked={toolState.aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[12px] font-semibold transition-colors pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium transition-colors pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
           toolState.aiInspector
-            ? "bg-coral-50 text-coral-700 dark:bg-coral-900/30 dark:text-coral-300"
+            ? "bg-surface-soft text-text bg-surface-soft text-text"
             : "bg-page-bg text-text-muted hover:bg-page-bg/70"
         }`}
         title={
@@ -361,18 +360,18 @@ export function RedactPanel() {
         <span
           aria-hidden="true"
           className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-            toolState.aiInspector ? "bg-coral-500" : "bg-text-muted/30"
+            toolState.aiInspector ? "bg-accent" : "bg-text-muted/30"
           }`}
         >
           <span
-            className={`h-3 w-3 rounded-full bg-surface shadow-[var(--shadow-control)] transition-transform ${
+            className={`h-3 w-3 rounded-full bg-surface shadow-[none] transition-transform ${
               toolState.aiInspector ? "translate-x-3" : "translate-x-0"
             }`}
           />
         </span>
       </button>
 
-      <div className="text-[11px] leading-relaxed text-text-muted">
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Pick one: Person redacts the whole subject silhouette; Faces redacts each detected face
         individually. Switching from one to the other replaces the previous bake. Detection runs
         locally — your image never leaves this device.
@@ -394,29 +393,32 @@ export function RedactPanel() {
           onChange={(i) => patchTool("redactStyle", i)}
         />
       </PropRow>
-      <PropRow label="Strength" value={`${Math.round(toolState.redactStrength * 30)} px`}>
-        <Slider
-          value={toolState.redactStrength}
-          accent
-          defaultValue={0.5}
-          onChange={(v) => patchTool("redactStrength", v)}
-        />
-      </PropRow>
-      <PropRow label="Brush size" value={`${Math.round(toolState.brushSize * 100)} px`}>
-        <Slider
-          value={toolState.brushSize}
-          defaultValue={0.32}
-          onChange={(v) => patchTool("brushSize", v)}
-        />
-      </PropRow>
-      <PropRow label="Edge feather" value={`${Math.round(toolState.feather * 30)} px`}>
-        <Slider
-          value={toolState.feather}
-          defaultValue={0.2}
-          onChange={(v) => patchTool("feather", v)}
-        />
-      </PropRow>
-      <div className="text-[11.5px] leading-relaxed text-text-muted">
+      <SliderField
+        label="Strength"
+        domain={[0, 30]}
+        unit="px"
+        value={toolState.redactStrength}
+        accent
+        defaultValue={0.5}
+        onChange={(v) => patchTool("redactStrength", v)}
+      />
+      <SliderField
+        label="Brush size"
+        domain={[0, 100]}
+        unit="px"
+        value={toolState.brushSize}
+        defaultValue={0.32}
+        onChange={(v) => patchTool("brushSize", v)}
+      />
+      <SliderField
+        label="Edge feather"
+        domain={[0, 30]}
+        unit="px"
+        value={toolState.feather}
+        defaultValue={0.2}
+        onChange={(v) => patchTool("feather", v)}
+      />
+      <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {isBrush
           ? `Drag along the canvas to paint ${styleLabel.toLowerCase()} redactions.`
           : `Drag a rectangle on the image to ${styleLabel.toLowerCase()} the region.`}
@@ -452,7 +454,7 @@ function SmartAnonymizeButton({
   // selected tier row). Inactive uses the soft border so the picker
   // reads as a single segmented control rather than two unrelated
   // buttons.
-  const borderClass = active ? "border-coral-500 ring-2 ring-coral-500/30" : "border-border-soft";
+  const borderClass = active ? "border-accent ring-2 ring-accent" : "border-border-soft";
   return (
     <button
       type="button"
@@ -462,27 +464,18 @@ function SmartAnonymizeButton({
       className={`flex cursor-pointer flex-col items-stretch gap-0.5 rounded-md border bg-page-bg px-2.5 py-2 text-left font-[inherit] ${borderClass}`}
       style={{ opacity: disabled && !busy ? 0.6 : 1 }}
     >
-      <div className="flex items-center justify-between gap-2 text-[12px] font-semibold text-text">
+      <div className="flex items-center justify-between gap-2 text-[0.8125rem] font-medium text-text">
         <span className="flex items-center gap-1.5">
           {busy ? (
             <InlineSpinner size={12} />
           ) : (
-            <I.Sparkles
-              size={12}
-              className={
-                active
-                  ? "fill-coral-500 text-coral-500 dark:fill-coral-400 dark:text-coral-400"
-                  : "text-coral-500 dark:text-coral-400"
-              }
-            />
+            <I.Sparkles size={12} className={active ? "fill-accent text-text" : "text-text"} />
           )}
           {busy ? "Working…" : label}
         </span>
-        {active && !busy && (
-          <I.Check size={12} className="text-coral-500 dark:text-coral-400" aria-hidden />
-        )}
+        {active && !busy && <I.Check size={12} className="text-text" aria-hidden />}
       </div>
-      <span className="text-[10.5px] leading-snug text-text-muted">{description}</span>
+      <span className="text-[0.8125rem] leading-snug text-text-muted">{description}</span>
     </button>
   );
 }
