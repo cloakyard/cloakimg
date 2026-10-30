@@ -9,7 +9,7 @@ declare const __APP_VERSION__: string;
 export function Footer({ privacy = false }: { privacy?: boolean }) {
   const version = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "1.0.0";
   return (
-    <footer className="air-page-footer img-page-width img-footer">
+    <footer className="air-page-footer air-page-width img-footer">
       <p className="air-page-identity">
         <span translate="no">CloakIMG v{version}</span>
         <span>

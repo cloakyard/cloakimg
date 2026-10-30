@@ -119,28 +119,33 @@ async function finishFast(art) {
   assert.equal(await art.getAttribute("data-art-state"), "complete");
 }
 async function activate(page, button, touch) {
-  // Let the in-flow cache notice finish any layout shift before targeting a press.
-  let point;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    await button.scrollIntoViewIfNeeded();
-    await button.evaluate(
-      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-    );
-    const box = await button.boundingBox();
-    assert.ok(box && box.width >= 44 && box.height >= 44);
-    point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-    if (
-      await button.evaluate((target, { x, y }) => document.elementFromPoint(x, y) === target, point)
-    )
-      break;
-  }
-  const { x, y } = point;
-  assert.ok(
-    await button.evaluate((target, { x, y }) => document.elementFromPoint(x, y) === target, point),
-    "Press must hit the visible artwork",
-  );
-  if (touch) await page.touchscreen.tap(x, y);
-  else await page.mouse.click(x, y);
+  // Cache-status insertion/removal can reflow the artwork after a scroll.
+  // Read its hit target atomically and require two stable animation frames.
+  const point = await button.evaluate(async (target) => {
+    const until = performance.now() + 2500;
+    let previous = "";
+    while (performance.now() < until) {
+      target.scrollIntoView({ block: "center", behavior: "instant" });
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const box = target.getBoundingClientRect();
+      const x = box.x + box.width / 2,
+        y = box.y + box.height / 2;
+      const key = `${x},${y}`;
+      if (
+        key === previous &&
+        box.width >= 44 &&
+        box.height >= 44 &&
+        document.elementFromPoint(x, y) === target
+      )
+        return { x, y };
+      previous = key;
+    }
+    return null;
+  });
+  assert.ok(point, "Press must hit the stable, visible artwork");
+  // Native coordinates deliberately allow a press on aria-disabled busy artwork.
+  if (touch) await page.touchscreen.tap(point.x, point.y);
+  else await page.mouse.click(point.x, point.y);
 }
 
 try {

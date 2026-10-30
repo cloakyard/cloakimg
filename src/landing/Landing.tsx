@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DropZone } from "../components/DropZone";
 import { I } from "../components/icons";
-import { PhotoFrame } from "./PhotoFrame";
+import { Landscape } from "./Landscape";
 import { Features } from "./Features";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
@@ -47,7 +47,7 @@ export function Landing({ onStart, onIntent }: Props) {
       </a>
       <Header />
       <main id="main" tabIndex={-1}>
-        <section className="img-hero img-page-width" aria-labelledby="home-title">
+        <section className="img-hero air-page-width" aria-labelledby="home-title">
           <h1 id="home-title">
             Your photos. <span>Your way.</span>
           </h1>
@@ -55,7 +55,7 @@ export function Landing({ onStart, onIntent }: Props) {
             A little retouching or a whole new look. Edit, compose and export with a complete photo
             toolkit, right on your device.
           </p>
-          <PhotoFrame />
+          <Landscape />
           <div
             id="workbench"
             className="img-entry"

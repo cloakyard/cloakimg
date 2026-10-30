@@ -1,4 +1,5 @@
 // Render the Air social card using only local artwork, CSS and the product logo.
+import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import puppeteer from "puppeteer-core";
@@ -17,6 +18,13 @@ try {
   await page.goto(pathToFileURL(resolve(root, "scripts/og-image.html")).href, {
     waitUntil: "load",
   });
+  await page.$eval(
+    ".landscape",
+    (node, svg) => {
+      node.innerHTML = svg;
+    },
+    await readFile(resolve(root, "src/landing/landscape.svg"), "utf8"),
+  );
   await page.evaluate(async () => {
     await document.fonts.ready;
     await Promise.all([...document.images].map((image) => image.decode()));

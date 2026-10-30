@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.3.1",
+  "contractVersion": "1.3.2",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -230,7 +230,8 @@
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -877,7 +878,8 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -1167,7 +1169,8 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -1198,7 +1201,8 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -1369,7 +1373,8 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -1503,7 +1508,8 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-public-2026-10-30.md",
-        "docs/air/cloakimg-acceptance-2026-10-30.md"
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -1528,7 +1534,8 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-public-2026-10-30.md",
-        "docs/air/cloakimg-acceptance-2026-10-30.md"
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -1553,7 +1560,8 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-public-2026-10-30.md",
-        "docs/air/cloakimg-acceptance-2026-10-30.md"
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -1578,34 +1586,21 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-public-2026-10-30.md",
-        "docs/air/cloakimg-acceptance-2026-10-30.md"
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
-      "path": "src/landing/PhotoFrame.tsx",
+      "path": "src/landing/Landscape.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": [
-        "light",
-        "dark",
-        "keyboard",
-        "touch",
-        "reduced-motion",
-        "invalid-file",
-        "clipboard-failure",
-        "worker-offline",
-        "worker-update",
-        "emulated-touch"
-      ],
+      "states": ["light", "dark", "initial", "complete", "replay", "static-fallback"],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": [
-        "docs/air/cloakimg-public-2026-10-30.md",
-        "docs/air/cloakimg-acceptance-2026-10-30.md"
-      ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "evidence": ["docs/air/vector-landscape-2026-10-30.md"],
+      "notes": "Local SVG, shared finite lifecycle. Automated evidence and physical acceptance limits recorded in the audit."
     },
     {
       "path": "src/landing/PrivacyPage.tsx",
@@ -1757,7 +1752,8 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-public-2026-10-30.md",
-        "docs/air/cloakimg-acceptance-2026-10-30.md"
+        "docs/air/cloakimg-acceptance-2026-10-30.md",
+        "docs/air/vector-landscape-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },

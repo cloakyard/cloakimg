@@ -38,7 +38,7 @@ export function Features() {
     <>
       <section
         id="toolkit"
-        className="img-section img-page-width"
+        className="img-section air-page-width"
         tabIndex={-1}
         aria-labelledby="toolkit-title"
       >
@@ -55,7 +55,7 @@ export function Features() {
       </section>
       <section
         id="id-photo-workflow"
-        className="img-section img-page-width img-reading"
+        className="img-section air-page-width img-reading"
         tabIndex={-1}
         aria-labelledby="id-photo-title"
       >
@@ -70,7 +70,7 @@ export function Features() {
       </section>
       <section
         id="privacy-model"
-        className="img-section img-page-width img-reading"
+        className="img-section air-page-width img-reading"
         tabIndex={-1}
         aria-labelledby="privacy-model-title"
       >
