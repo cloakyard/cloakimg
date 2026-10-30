@@ -65,11 +65,15 @@ export function ColorPickerPanel() {
               disabled={!toolState.pickedColor}
               aria-label={pickerCopied ? "Copied" : "Copy hex code"}
               title={pickerCopied ? "Copied" : "Copy hex code"}
-              className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-11 pointer-coarse:w-11 ${
+              className={`flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-11 pointer-coarse:w-11 ${
                 pickerCopied ? "text-text" : "text-text-muted hover:text-text"
               }`}
             >
-              {pickerCopied ? <I.Check size={13} stroke={2.5} /> : <I.Copy size={12} />}
+              {pickerCopied ? (
+                <I.Check size={16} aria-hidden="true" />
+              ) : (
+                <I.Copy size={16} aria-hidden="true" />
+              )}
             </button>
           </div>
           <span className="text-[0.8125rem] text-text-muted">
@@ -89,9 +93,9 @@ export function ColorPickerPanel() {
             type="button"
             onClick={reExtract}
             aria-label="Re-extract palette"
-            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 text-text-muted hover:bg-page-bg hover:text-text pointer-coarse:h-11 pointer-coarse:w-11"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 text-text-muted hover:bg-page-bg hover:text-text pointer-coarse:h-11 pointer-coarse:w-11"
           >
-            <I.Refresh size={12} />
+            <I.Refresh size={16} aria-hidden="true" />
           </button>
         </div>
         {/* Mirrors FilterPanel's preset grid: 3-col on desktop, single

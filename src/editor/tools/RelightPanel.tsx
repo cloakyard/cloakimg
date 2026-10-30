@@ -110,7 +110,7 @@ export function RelightPanel() {
         {/* Header — names the gesture so the on-canvas sun is discoverable. */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-[15px] font-medium leading-tight tracking-normal text-text">
+            <div className="text-[0.875rem] font-medium leading-tight tracking-normal text-text">
               Relight
             </div>
             <div className="mt-0.5 text-[0.8125rem] leading-snug text-text-muted">

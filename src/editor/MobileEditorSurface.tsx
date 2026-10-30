@@ -365,7 +365,7 @@ export function MobileEditorSurface() {
     mode === "collapsed" ? COLLAPSED_H : Math.min(expandedChromeHeight + contentH, expandedHeight);
   const sheetStyle: CSSProperties = {
     width: expanded ? "100%" : `${COLLAPSED_W}px`,
-    height: `${sheetHeight}px`,
+    height: mode === "collapsed" ? "auto" : `${sheetHeight}px`,
     borderTopLeftRadius: expanded ? `${EXPANDED_R}px` : 0,
     borderTopRightRadius: expanded ? `${EXPANDED_R}px` : 0,
     backgroundColor: expanded ? "var(--air-surface)" : "transparent",
@@ -398,10 +398,10 @@ export function MobileEditorSurface() {
             aria-label="Open tools"
             aria-expanded={expanded}
             className="flex w-full cursor-pointer items-center justify-center gap-2 border-none bg-transparent py-2.5 font-[inherit] text-text"
-            style={{ height: COLLAPSED_H }}
+            style={{ minHeight: COLLAPSED_H }}
           >
             <I.Grid2x2 size={18} stroke={2} />
-            <span className="text-[13px] font-medium">Tools</span>
+            <span className="text-[0.8125rem] font-medium">Tools</span>
           </button>
         ) : (
           /* Expanded — pinned picker/tool header followed by the only
@@ -410,10 +410,7 @@ export function MobileEditorSurface() {
               while long panels use the full half-sheet allowance. */
           <div className="flex h-full flex-col">
             {mode === "tool" ? (
-              <div
-                className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4"
-                style={{ height: TOOL_HEADER_H }}
-              >
+              <div className="editor-mobile-header" style={{ minHeight: TOOL_HEADER_H }}>
                 <div
                   className="flex min-w-0 flex-1 touch-none items-center"
                   onPointerDown={onDragStart}
@@ -421,9 +418,7 @@ export function MobileEditorSurface() {
                   onPointerUp={finishDrag}
                   onPointerCancel={(event) => finishDrag(event, true)}
                 >
-                  <span className="truncate text-[13px] font-medium tracking-normal text-text">
-                    {activeTool.name}
-                  </span>
+                  <span className="editor-mobile-title">{activeTool.name}</span>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {expandButton}
@@ -473,25 +468,19 @@ export function MobileEditorSurface() {
             >
               <div ref={setContentRef}>
                 {mode === "picker" ? (
-                  // No panel-fade-in here. A transform-based animation
-                  // on the scroller's direct content is a known iOS
-                  // Safari quirk that breaks momentum scroll for the
-                  // first finger touch after mount — users reported
-                  // "can't scroll the tool picker" once the fade was
-                  // added. The outer sheet morph already carries the
-                  // motion; the picker grid lands on a calm fade by
-                  // virtue of the sheet's own enter animation.
+                  // Keep the scroller's content free of transforms: they
+                  // can interfere with the first momentum scroll in Safari.
                   <div style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}>
-                    <div className="sticky top-0 z-10 bg-surface px-4 pt-1 pb-2">
+                    <div className="bg-surface px-4 pt-1 pb-2">
+                      <label htmlFor="mobile-editor-tool-search" className="air-label">
+                        Search editor tools
+                      </label>
                       <div
                         role="search"
                         aria-label="Editor tools"
-                        className="flex h-11 items-center gap-2 rounded-md border border-border bg-page-bg px-3 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-accent"
+                        className="air-field-group editor-tool-search"
                       >
                         <I.Search size={16} className="shrink-0 text-text" aria-hidden="true" />
-                        <label htmlFor="mobile-editor-tool-search" className="sr-only">
-                          Search editor tools
-                        </label>
                         <input
                           id="mobile-editor-tool-search"
                           name="mobile-editor-tool-search"
@@ -503,18 +492,22 @@ export function MobileEditorSurface() {
                           aria-describedby="mobile-editor-tool-search-count"
                           autoComplete="off"
                           spellCheck={false}
-                          className="editor-tool-search-input h-full min-w-0 flex-1 appearance-none border-none bg-transparent font-[inherit] text-[13px] text-text outline-none placeholder:text-text-muted [&::-webkit-search-cancel-button]:appearance-none"
+                          className="air-field"
                         />
-                        {toolQuery ? (
+                        <span className="air-field-actions">
                           <button
                             type="button"
-                            onClick={() => setToolQuery("")}
+                            onClick={() => {
+                              setToolQuery("");
+                              document.getElementById("mobile-editor-tool-search")?.focus();
+                            }}
+                            hidden={!toolQuery}
                             aria-label="Clear editor tool search"
-                            className="btn btn-ghost btn-icon -mr-3 shrink-0"
+                            className="btn btn-ghost btn-icon air-field-clear"
                           >
                             <I.X size={14} aria-hidden="true" />
                           </button>
-                        ) : null}
+                        </span>
                       </div>
                       <p
                         id="mobile-editor-tool-search-count"
@@ -528,7 +521,7 @@ export function MobileEditorSurface() {
                     </div>
 
                     {visibleTools.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-x-1 gap-y-2 px-4">
+                      <div className="editor-tool-grid">
                         {visibleTools.map((tool) => (
                           <ToolGridCard
                             key={tool.id}
@@ -593,16 +586,10 @@ function ToolGridCard({ tool, active, onClick }: CardProps) {
       onClick={onClick}
       aria-label={tool.name}
       aria-pressed={active}
-      className={`flex cursor-pointer flex-col items-center justify-start gap-1.5 rounded-lg border bg-transparent px-1 py-2.5 font-[inherit] transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1 ${
-        active
-          ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
-          : "border-transparent text-text"
-      }`}
+      className="editor-tool-card"
     >
-      <Ic size={26} stroke={active ? 2 : 1.6} />
-      <span className="text-[0.8125rem] leading-tight font-medium tracking-normal whitespace-nowrap">
-        {tool.name}
-      </span>
+      <Ic size={24} stroke={1.6} />
+      <span>{tool.name}</span>
     </button>
   );
 }

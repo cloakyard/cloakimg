@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-30",
+  "contract": "Air 1.3.2",
+  "scope": "CloakIMG editor layout and shared-control corrections",
+  "browserEvidence": {
+    "final-chromium": {
+      "observations": 764,
+      "failures": 0,
+      "browserErrors": 0,
+      "passiveModelRequests": 0
+    },
+    "final-webkit": {
+      "observations": 764,
+      "failures": 0,
+      "browserErrors": 0,
+      "passiveModelRequests": 0
+    },
+    "release-chromium": {
+      "observations": 408,
+      "failures": 0,
+      "browserErrors": 0,
+      "passiveModelRequests": 0
+    },
+    "release-webkit": {
+      "observations": 408,
+      "failures": 0,
+      "browserErrors": 0,
+      "passiveModelRequests": 0
+    },
+    "icons-chromium": {
+      "observations": 24,
+      "failures": 0,
+      "browserErrors": 0,
+      "passiveModelRequests": 0
+    },
+    "icons-webkit": {
+      "observations": 24,
+      "failures": 0,
+      "browserErrors": 0,
+      "passiveModelRequests": 0
+    },
+    "chrome-review": {
+      "observations": 60,
+      "passed": true
+    },
+    "final-controls": {
+      "observations": 8,
+      "passed": true
+    },
+    "interactions": {
+      "observations": 24,
+      "passed": true
+    },
+    "controls": {
+      "observations": 12,
+      "passed": true
+    },
+    "edges": {
+      "observations": 44,
+      "passed": true
+    },
+    "batch": {
+      "observations": 24,
+      "passed": true
+    }
+  },
+  "coverageStages": {
+    "final-*": "Initial complete eleven-size light/dark matrix plus four enlarged-root profiles; before the final target/icon refinements.",
+    "release-*": "Strengthened all-target checks over 320/390/1024/1280 at 16/32px root in both themes, including off-scroll panel controls.",
+    "icons-*": "Final artifact follow-up for Resize, Color picker and Tap to fix at phone/laptop normal/enlarged text in both themes.",
+    "chrome-review": "Final artifact toolbar/export, exact mode glyphs, target bounds and real Single/Batch switching: all eleven sizes plus enlarged text in both engines/themes.",
+    "final-controls": "Final artifact native switch keyboard, shape/watermark choices, blue tap target and exact menu anchoring in both engines/themes."
+  },
+  "gates": {
+    "unitTests": 483,
+    "unitFiles": 50,
+    "formatLintTypes": "pass",
+    "productionBuild": "pass",
+    "deployableFiles": 89,
+    "airContract": "pass",
+    "portableBundle": "pass",
+    "knipIssues": 0,
+    "existingToolRailProbe": "26 tools pass",
+    "existingComponentProbe": "pass",
+    "entryObservations": 204,
+    "entryRealPNG": "pass",
+    "neutralLinks": 192,
+    "neutralKeyboardChecks": 64,
+    "pngRGBAParityWithPreviousProduction": "both engines, alpha preserved",
+    "realPNGDownloads": 24,
+    "batchZIPs": 4,
+    "batchJPEGEntries": 8
+  },
+  "buildManifestSha256": "3ec0137abf0dbdabb7255ef9f82c6609c8cc8f5e97a9c7cbbe9e6300b3fae7f2",
+  "remainingAcceptance": [
+    "physical iPhone and software keyboard",
+    "OS IME",
+    "spoken assistive output",
+    "separate large AI/native codec product acceptance"
+  ],
+  "scratch": "/tmp/air-img-editor-reaudit-2026-10-30"
+}

@@ -170,7 +170,7 @@ export function ResizePanel() {
   return (
     <>
       <PropRow label="Preview">
-        <div className="flex items-center justify-between gap-2 rounded-lg bg-page-bg px-2.5 py-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 rounded-lg bg-page-bg px-2.5 py-2">
           <div
             role="img"
             aria-label="Source size"
@@ -215,7 +215,7 @@ export function ResizePanel() {
         )}
       </PropRow>
       <PropRow label="Dimensions">
-        <div className="flex items-center gap-1.5">
+        <div className="img-dimensions">
           <DimInput value={toolState.resizeW} onChange={setW} label="W" />
           <button
             type="button"
@@ -229,7 +229,7 @@ export function ResizePanel() {
                 : "border-border bg-surface text-text-muted"
             }`}
           >
-            <I.Lock size={11} />
+            <I.Lock size={16} aria-hidden="true" />
           </button>
           <DimInput value={toolState.resizeH} onChange={setH} label="H" />
         </div>
@@ -271,7 +271,7 @@ export function ResizePanel() {
       {!isMobile && (
         <button
           type="button"
-          className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          className="btn btn-primary justify-center"
           onClick={() => void apply()}
           disabled={resizing}
           aria-busy={resizing}

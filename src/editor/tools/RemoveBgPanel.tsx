@@ -488,7 +488,7 @@ function AutoPanel({
             type="button"
             onClick={onChangeModel}
             disabled={busy}
-            className="cursor-pointer rounded-md border-none bg-transparent p-0 text-[0.8125rem] font-medium text-text outline-2 outline-transparent hover:text-text focus-visible:outline-accent active:text-text disabled:cursor-not-allowed disabled:opacity-50 dark:hover:text-text dark:active:text-text"
+            className="btn btn-ghost btn-sm"
           >
             Change
           </button>
@@ -521,9 +521,9 @@ function AutoPanel({
         disabled={busy || alreadyRemoved || !maskReady}
         role="switch"
         aria-checked={aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium outline-2 outline-transparent transition-colors focus-visible:outline-accent active:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium outline-2 outline-transparent transition-colors focus-visible:outline-accent active:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11 pointer-coarse:text-[0.8125rem] ${
           aiInspector
-            ? "bg-surface-soft text-text bg-surface-soft text-text"
+            ? "bg-surface-soft text-text"
             : "bg-page-bg text-text-muted hover:bg-page-bg/70"
         }`}
         title={
@@ -566,7 +566,7 @@ function AutoPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          className="btn btn-primary justify-center"
           onClick={onApply}
           disabled={(alreadyRemoved && backgroundFillMode === 0) || busy}
           style={{ opacity: (alreadyRemoved && backgroundFillMode === 0) || busy ? 0.6 : 1 }}
@@ -722,9 +722,7 @@ function ChromaPanel({
             disabled={alreadyRemoved}
             aria-pressed={bgPickActive}
             className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border-none px-2 py-1.5 font-[inherit] text-[0.8125rem] font-medium outline-2 outline-transparent focus-visible:outline-accent active:bg-page-bg disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
-              bgPickActive
-                ? "bg-surface-soft text-text bg-surface-soft text-text"
-                : "bg-page-bg text-text-muted"
+              bgPickActive ? "bg-surface-soft text-text" : "bg-page-bg text-text-muted"
             }`}
           >
             <I.Pipette size={12} aria-hidden="true" />
@@ -743,7 +741,7 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-accent active:bg-page-bg pointer-coarse:h-11 pointer-coarse:w-11"
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted outline-2 outline-transparent hover:bg-page-bg focus-visible:outline-accent active:bg-page-bg pointer-coarse:h-11 pointer-coarse:w-11"
               >
                 <I.X size={11} aria-hidden="true" />
               </button>
@@ -769,7 +767,7 @@ function ChromaPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+          className="btn btn-primary justify-center"
           onClick={onApply}
           disabled={applyDisabled}
           style={{ opacity: applyDisabled ? 0.5 : 1 }}
@@ -832,7 +830,7 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
                 onClick={() => onChangeMode(index)}
                 className={`flex min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[0.8125rem] font-medium outline-2 outline-transparent transition-colors focus-visible:outline-accent active:bg-page-bg pointer-coarse:min-h-11 pointer-coarse:text-[0.8125rem] ${
                   active
-                    ? "border-accent bg-surface-soft text-text border-accent bg-surface-soft text-text"
+                    ? "border-accent bg-surface-soft text-text"
                     : "border-border-soft bg-page-bg text-text-muted hover:border-border hover:bg-surface"
                 }`}
               >

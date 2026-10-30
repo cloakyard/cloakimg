@@ -17,15 +17,13 @@
 //   • Tap anywhere else → "Spot heal"
 //   • A second tap dismisses the chip menu without acting.
 //
-// Future extensions (out of MVP): sky detection → sky lift; small
-// blemish detection → auto-heal; OCR-detected text region →
-// "Redact text".
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { I } from "../../components/icons";
 import { useEditor } from "../EditorContext";
 import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
+import { FABRIC_SELECTION_RGB } from "../fabricDefaults";
 import { useDetectFaces } from "../ai/capabilities/detect-face/hook";
 import { padFaceBox } from "../ai/capabilities/detect-face/geometry";
 import { useSubjectMask } from "../ai/useSubjectMask";
@@ -144,24 +142,27 @@ export function TapFixTool() {
       if (!tap) return;
       const sx = t.ox + tap.ix * t.scale;
       const sy = t.oy + tap.iy * t.scale;
-      if (Math.abs(sx - tap.sx) > 1 || Math.abs(sy - tap.sy) > 1) {
-        setTap((prev) => (prev ? { ...prev, sx, sy } : prev));
+      // Overlay drawing is canvas-local; the fixed menu needs viewport coordinates.
+      const bounds = ctx.canvas.getBoundingClientRect();
+      const screenX = bounds.left + sx;
+      const screenY = bounds.top + sy;
+      if (Math.abs(screenX - tap.sx) > 1 || Math.abs(screenY - tap.sy) > 1) {
+        setTap((prev) => (prev ? { ...prev, sx: screenX, sy: screenY } : prev));
       }
 
-      // Tap marker — a small coral target at the exact tapped pixel so
+      // Tap marker — an Air selection target at the exact tapped pixel so
       // the user can see what they're acting on. Matters most for Spot
       // heal (a precise point) and to disambiguate which face/subject a
       // tap landed on. White rings keep it legible on any background.
-      const CORAL = "245, 97, 58";
       ctx.save();
       ctx.beginPath();
       ctx.arc(sx, sy, 9, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${CORAL}, 0.5)`;
+      ctx.strokeStyle = `rgba(${FABRIC_SELECTION_RGB}, 0.5)`;
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.beginPath();
       ctx.arc(sx, sy, 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${CORAL}, 0.95)`;
+      ctx.fillStyle = `rgba(${FABRIC_SELECTION_RGB}, 0.95)`;
       ctx.fill();
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
@@ -317,7 +318,7 @@ export function TapFixTool() {
       ref={menuRef}
       role="dialog"
       aria-label="Tap-to-fix actions"
-      className="pointer-events-auto fixed z-50 flex gap-1.5 rounded-md border border-border-soft bg-surface px-1.5 py-1 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.18)]"
+      className="pointer-events-auto fixed z-50 flex max-w-[calc(100vw-16px)] flex-wrap items-center gap-1.5 rounded-[var(--air-radius-menu)] border border-border-soft bg-surface p-2 shadow-[var(--air-shadow-menu)]"
       style={{
         left: tap.sx,
         top: tap.sy - 12,
@@ -330,7 +331,7 @@ export function TapFixTool() {
           key={chip.label}
           type="button"
           onClick={chip.run}
-          className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-surface-soft px-2 py-1 text-[0.8125rem] font-medium text-text transition-colors hover:bg-surface-soft"
+          className="btn btn-secondary btn-sm"
         >
           {chip.icon}
           {chip.label}
@@ -341,9 +342,9 @@ export function TapFixTool() {
         onClick={() => setTap(null)}
         title="Dismiss"
         aria-label="Dismiss tap-to-fix"
-        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-none bg-page-bg p-0 text-text-muted hover:bg-page-bg/60"
+        className="btn btn-ghost btn-icon-sm"
       >
-        <I.X size={11} />
+        <I.X size={16} aria-hidden="true" />
       </button>
     </div>
   );

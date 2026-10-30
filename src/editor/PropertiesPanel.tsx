@@ -23,33 +23,15 @@ export function PropertiesPanel({ collapsed = false }: Props) {
   const tool = findTool(activeTool);
 
   return (
-    // Sidebar widths (tablet vs desktop) were originally 240 / 280 px.
-    // Once subject-aware tools landed, several panels gained an extra
-    // "Apply to: Whole / Subject / Background" segmented row plus
-    // optional progress / status cards — at 240 px those Segments
-    // wrapped onto two lines and the panel started feeling cramped.
-    // Bumped to 288 / 328 px: still leaves >440 px of canvas at the
-    // narrowest tablet breakpoint (MOBILE_MAX_PX viewport − 72 px tool rail),
-    // and gives every panel enough horizontal room to lay out cleanly
-    // including the new subject scope row, the byte-readout progress
-    // card, and the Selective-colour 8-band swatch grid.
     <div
       className={`editor-properties flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface ${
         collapsed ? "w-72" : "w-82"
       }`}
     >
-      {/* Header — V4 (May 2026): single-line rhythm. The prior layout
-          painted three echoes of the same fact — coral icon chip + tool
-          name +  group caption — even though the active tool
-          rail button already tells the user which tool is selected.
-          Stripping the chip and stacking name + group inline gives the
-          panel a quieter chrome that defers to the controls below. */}
-      <div className="flex shrink-0 items-baseline gap-2 border-b border-border px-4 py-3.5">
-        <div className="min-w-0 flex-1 truncate">
-          <span className="text-[14px] font-medium tracking-normal text-text">{tool.name}</span>
-          <span className="tabular-nums ml-2 text-[0.8125rem] font-medium tracking-normal text-text-muted">
-            {tool.group}
-          </span>
+      <div className="editor-properties__header">
+        <div className="editor-properties__heading">
+          <h2>{tool.name}</h2>
+          <span className="text-[0.8125rem] text-text-muted">{tool.group}</span>
         </div>
         {/* Cancel — desktop parity with mobile's ✕ tap in the pinned
             tool header. Visible only when the active tool has

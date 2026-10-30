@@ -147,9 +147,10 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/EditorContext.tsx",
@@ -176,9 +177,10 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-runtime-2026-10-30.md"
+        "docs/air/cloakimg-runtime-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/FilePropertiesModal.tsx",
@@ -206,9 +208,10 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ImageCanvas.tsx",
@@ -294,9 +297,10 @@
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/MobileMoreMenu.tsx",
@@ -309,9 +313,10 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/NumberField.tsx",
@@ -365,9 +370,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/SelectControl.tsx",
@@ -468,9 +474,10 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ToolStage.tsx",
@@ -507,9 +514,10 @@
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/UnifiedEditor.tsx",
@@ -531,9 +539,10 @@
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ai/capabilities/depth/ConsentHost.tsx",
@@ -588,9 +597,10 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-runtime-2026-10-30.md"
+        "docs/air/cloakimg-runtime-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ai/ui/MaskConsentHost.tsx",
@@ -616,9 +626,10 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-runtime-2026-10-30.md"
+        "docs/air/cloakimg-runtime-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ai/ui/MaskDownloadModal.tsx",
@@ -630,9 +641,10 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-runtime-2026-10-30.md"
+        "docs/air/cloakimg-runtime-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ai/ui/MaskReadyPill.tsx",
@@ -700,9 +712,10 @@
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-runtime-2026-10-30.md"
+        "docs/air/cloakimg-runtime-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ai/ui/status/CapabilityStatusCards.tsx",
@@ -738,9 +751,10 @@
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/AdjustPanel.tsx",
@@ -847,9 +861,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ColorPickerTool.tsx",
@@ -879,9 +894,10 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/vector-landscape-2026-10-30.md"
+        "docs/air/vector-landscape-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/CurveEditor.tsx",
@@ -951,9 +967,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/EmojiTool.tsx",
@@ -1029,9 +1046,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/HslTool.tsx",
@@ -1060,9 +1078,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ImagePanel.tsx",
@@ -1186,9 +1205,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/PerspectiveTool.tsx",
@@ -1218,9 +1238,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RedactTool.tsx",
@@ -1249,9 +1270,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RelightTool.tsx",
@@ -1280,9 +1302,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RemoveBgTool.tsx",
@@ -1311,9 +1334,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ShapesPanel.tsx",
@@ -1327,9 +1351,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ShapesTool.tsx",
@@ -1405,9 +1430,10 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TextPanel.tsx",
@@ -1421,9 +1447,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TextTool.tsx",
@@ -1452,9 +1479,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TimeOfDayTool.tsx",
@@ -1483,9 +1511,10 @@
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/landing/Features.tsx",
@@ -1727,9 +1756,10 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/styles/air-entry.css",
@@ -1805,9 +1835,10 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/editor-reaudit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     }
   ]
 }

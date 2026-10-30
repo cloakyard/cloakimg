@@ -577,7 +577,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
 
       {preset.custom ? (
         <PropRow label="Custom size">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+          <div className="img-dimensions">
             <DimensionInput
               label="Width in millimetres"
               value={toolState.idPhotoCustomW}

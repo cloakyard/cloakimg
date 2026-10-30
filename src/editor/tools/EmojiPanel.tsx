@@ -88,7 +88,7 @@ export function EmojiPanel() {
                 title={c.label}
                 aria-label={c.label}
                 aria-pressed={isActive}
-                className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 text-[15px] leading-none pointer-coarse:h-11 pointer-coarse:min-w-11 ${
+                className={`flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-md px-1.5 text-[15px] leading-none pointer-coarse:h-11 pointer-coarse:min-w-11 ${
                   isActive ? "border border-accent bg-accent/10" : "border border-border bg-surface"
                 }`}
                 style={{ fontFamily: EMOJI_FONT_STACK }}

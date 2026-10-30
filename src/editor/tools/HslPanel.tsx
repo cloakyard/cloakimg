@@ -102,7 +102,7 @@ export function HslPanel() {
       <MaskScopeRow scope={toolState.hslScope} onScope={(i) => patchTool("hslScope", i)} />
       <ScopeGate disabled={gated}>
         <PropRow label="Color band">
-          <div className="grid grid-cols-8 gap-1">
+          <div className="img-colour-bands">
             {HSL_BAND_NAMES.map((name, i) => {
               const active = i === band;
               const isDirty = bandIsDirty(toolState, i);

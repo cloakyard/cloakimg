@@ -24,13 +24,13 @@ interface TaggedFabricObject {
   cloakKind?: string;
 }
 
-const POSITIONS: { id: WatermarkAnchor; label: string }[] = [
-  { id: "tl", label: "Top L" },
-  { id: "tc", label: "Top C" },
-  { id: "tr", label: "Top R" },
-  { id: "bl", label: "Btm L" },
-  { id: "bc", label: "Btm C" },
-  { id: "br", label: "Btm R" },
+const POSITIONS: { id: WatermarkAnchor; label: string; name: string }[] = [
+  { id: "tl", label: "Top L", name: "Top left" },
+  { id: "tc", label: "Top C", name: "Top centre" },
+  { id: "tr", label: "Top R", name: "Top right" },
+  { id: "bl", label: "Btm L", name: "Bottom left" },
+  { id: "bc", label: "Btm C", name: "Bottom centre" },
+  { id: "br", label: "Btm R", name: "Bottom right" },
 ];
 
 export function WatermarkPanel() {
@@ -329,7 +329,7 @@ export function WatermarkPanel() {
         <div className="mb-1.5">
           <SmartActionError message={smartError} onDismiss={() => setSmartError(null)} />
         </div>
-        <div className="grid grid-cols-3 gap-1">
+        <div className="air-segments img-position-grid">
           {POSITIONS.map((p, i) => {
             const active = i === toolState.watermarkPosition;
             return (
@@ -337,11 +337,8 @@ export function WatermarkPanel() {
                 key={p.id}
                 type="button"
                 onClick={() => patchTool("watermarkPosition", i)}
-                className={`cursor-pointer rounded-md border px-1 py-2 font-[inherit] text-[0.8125rem] font-medium ${
-                  active
-                    ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
-                    : "border-border bg-surface text-text-muted"
-                }`}
+                aria-pressed={active}
+                aria-label={p.name}
               >
                 {p.label}
               </button>
@@ -369,7 +366,7 @@ export function WatermarkPanel() {
       />
       <button
         type="button"
-        className="btn btn-primary justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+        className="btn btn-primary justify-center"
         onClick={isImage ? applyImage : applyText}
         disabled={isImage && !toolState.watermarkImageDataUrl}
         style={{ opacity: isImage && !toolState.watermarkImageDataUrl ? 0.5 : 1 }}

@@ -91,7 +91,7 @@ export function HistoryScrubber() {
               aria-label={`Jump to step ${i}: ${entry.label}`}
               aria-pressed={active}
               // 30 px base, +2 px on hover/active via outline so the
-              // bounding box doesn't shift the row's height. Coral
+              // bounding box doesn't shift the row's height. Air blue
               // ring on active, neutral hairline on hover. Image is
               // painted from the entry's pre-built <canvas> via a
               // CSS background — works whether the entry is still
@@ -99,20 +99,12 @@ export function HistoryScrubber() {
               // thumb is independent of canvas/blob).
               className={`group relative flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-none p-0 ${
                 active
-                  ? "outline-2 outline-offset-2 outline-accent outline-accent"
+                  ? "outline-2 outline-offset-2 outline-accent"
                   : "outline-1 outline-offset-1 outline-border-soft hover:outline-text-muted/40"
               }`}
               style={{ width: THUMB_PX, height: THUMB_PX }}
             >
               <ThumbCanvas thumb={entry.thumb} />
-              {/* The prior treatment dropped a coral "step number" pip
-                  in the bottom-right of the active thumb. With the
-                  active thumb already wearing a 4 px coral outline-ring
-                  (outline-offset-2 + outline-2), the pip's bottom-right
-                  corner clipped against that ring and read as a visual
-                  overlap. The ring itself is enough "you are here" —
-                  step counts live on the title attribute and aria-label
-                  for users who need to reference them. */}
             </button>
           );
         })}

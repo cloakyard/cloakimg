@@ -52,7 +52,7 @@ export function ShapesPanel() {
   return (
     <>
       <PropRow label="Shape">
-        <div className="grid grid-cols-5 gap-1 rounded-md border border-border-soft bg-page-bg p-0.75 sm:grid-cols-6">
+        <div className="air-segments img-shape-grid">
           {SHAPE_KINDS.map((s, i) => {
             const Ic = s.Icon;
             const active = i === kind;
@@ -64,13 +64,8 @@ export function ShapesPanel() {
                 title={s.name}
                 aria-label={s.name}
                 aria-pressed={active}
-                className={`flex h-8 cursor-pointer items-center justify-center rounded border-none p-0 sm:h-7 pointer-coarse:h-11 ${
-                  active
-                    ? "bg-surface text-text shadow-[none] text-text"
-                    : "bg-transparent text-text-muted"
-                }`}
               >
-                <Ic size={15} />
+                <Ic size={18} />
               </button>
             );
           })}

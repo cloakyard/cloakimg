@@ -90,7 +90,7 @@ export function MaskDownloadModal({
       </div>
 
       <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
-        <p className="text-[13px] leading-relaxed text-text-muted">
+        <p className="text-[0.8125rem] leading-relaxed text-text-muted">
           {error
             ? errorBody(errorKind)
             : "The model downloads once and is cached for future visits. Your image stays on this device."}

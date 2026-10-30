@@ -288,7 +288,7 @@ export function RedactPanel() {
           what's applied without scanning the canvas. */}
       <MaskReadyPill ready={!!subjectMask.peek()} align="end" />
       <PropRow label="Smart anonymize">
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="img-smart-actions">
           <SmartAnonymizeButton
             label="Person"
             description="Whole body silhouette"
@@ -343,9 +343,9 @@ export function RedactPanel() {
         onClick={() => patchTool("aiInspector", !toolState.aiInspector)}
         role="switch"
         aria-checked={toolState.aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium transition-colors pointer-coarse:min-h-11 pointer-coarse:text-[13px] ${
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium transition-colors pointer-coarse:min-h-11 pointer-coarse:text-[0.8125rem] ${
           toolState.aiInspector
-            ? "bg-surface-soft text-text bg-surface-soft text-text"
+            ? "bg-surface-soft text-text"
             : "bg-page-bg text-text-muted hover:bg-page-bg/70"
         }`}
         title={
@@ -450,10 +450,6 @@ function SmartAnonymizeButton({
   disabled,
   onClick,
 }: SmartAnonymizeButtonProps) {
-  // Active state uses the coral border (same as the consent modal's
-  // selected tier row). Inactive uses the soft border so the picker
-  // reads as a single segmented control rather than two unrelated
-  // buttons.
   const borderClass = active ? "border-accent ring-2 ring-accent" : "border-border-soft";
   return (
     <button
