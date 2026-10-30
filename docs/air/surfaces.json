@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.2.4",
+  "contractVersion": "1.3.1",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -17,13 +17,23 @@
     {
       "path": "src/components/DropZone.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
       "path": "src/components/ErrorBoundary.tsx",
@@ -1016,7 +1026,7 @@
       "notes": "Baseline inspection only; Air implementation and full populated/error/interaction coverage remain pending. See editor-audit.md for precise scope."
     },
     {
-      "path": "src/landing/AirHorizon.tsx",
+      "path": "src/landing/Features.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
       "airImplemented": true,
@@ -1024,85 +1034,143 @@
       "states": [
         "light",
         "dark",
+        "keyboard",
+        "touch",
         "reduced-motion",
-        "forced-colors",
-        "unsupported",
-        "constrained",
-        "offscreen",
-        "editor-unmount"
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
       ],
-      "viewports": ["1440x900", "1280x720", "768x1024", "390x844", "320x568", "844x390"],
-      "evidence": [
-        "docs/air/evidence/brand-horizons-2026-10-19/checks.json",
-        "docs/air/consistency-2026-10-28.md"
-      ],
-      "notes": " 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
-    },
-    {
-      "path": "src/landing/Features.tsx",
-      "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
-      "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
       "path": "src/landing/Footer.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
       "path": "src/landing/Header.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
       "path": "src/landing/Landing.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
-      "path": "src/landing/PrivacyModal.tsx",
+      "path": "src/landing/PhotoFrame.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+    },
+    {
+      "path": "src/landing/PrivacyPage.tsx",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
       "path": "src/landing/ReloadPrompt.tsx",
       "kind": "app-surface",
-      "sourceReviewed": false,
-      "airImplemented": false,
+      "sourceReviewed": true,
+      "airImplemented": true,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": ["docs/air/consistency-2026-10-28.md"],
-      "notes": ""
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
       "path": "src/landing/StartModal.tsx",
@@ -1127,6 +1195,27 @@
       "notes": ""
     },
     {
+      "path": "src/privacy.tsx",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "touch",
+        "reduced-motion",
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
+    },
+    {
       "path": "src/style.css",
       "kind": "app-surface",
       "sourceReviewed": false,
@@ -1138,7 +1227,7 @@
       "notes": ""
     },
     {
-      "path": "src/styles/air-horizon.css",
+      "path": "src/styles/air-entry.css",
       "kind": "app-surface",
       "sourceReviewed": true,
       "airImplemented": true,
@@ -1146,19 +1235,17 @@
       "states": [
         "light",
         "dark",
+        "keyboard",
+        "touch",
         "reduced-motion",
-        "forced-colors",
-        "unsupported",
-        "constrained",
-        "offscreen",
-        "editor-unmount"
+        "invalid-file",
+        "clipboard-failure",
+        "worker-offline",
+        "worker-update"
       ],
-      "viewports": ["1440x900", "1280x720", "768x1024", "390x844", "320x568", "844x390"],
-      "evidence": [
-        "docs/air/evidence/brand-horizons-2026-10-19/checks.json",
-        "docs/air/consistency-2026-10-28.md"
-      ],
-      "notes": " 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/cloakimg-public-2026-10-30.md"],
+      "notes": "Automated browser verification recorded; physical iPhone and assistive acceptance remain open. StartModal/editor are separate pending surfaces."
     },
     {
       "path": "src/styles/air.css",
@@ -1200,7 +1287,7 @@
         "1025x768"
       ],
       "evidence": [
-        "docs/air/validation.md — refinement 02 candidate",
+        "docs/air/validation.md \u2014 refinement 02 candidate",
         "docs/air/components.html",
         "docs/air/neutral-links-2026-10-19.md"
       ],

@@ -1,19 +1,19 @@
 ---
 name: CloakIMG — Cloakyard Air
-version: 1.2.4
+version: 1.3.1
 status: approved
-date: 2026-10-28
+date: 2026-10-29
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: c640798a8d45ff8440eb3b101ed260207624ed5eb2e9b9a5a9269b50bc6f8d91
+family-contract-sha256: 8270df3eb88361a7291ea9afff5a12117c093814fe62bd15d92ce6d74d1a963c
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.2.4 — production motion and compact navigation** · Direction: **Air** · Updated: **2026-10-28**
+Version: **1.3.1 — stylesheet-ready artwork** · Direction: **Air** · Updated: **2026-10-29**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -696,15 +696,21 @@ and primary entry gives an app its own identity. It replaces that landing's hori
 do not stack multiple decorative effects or use an app screenshot as the hero hook.
 An accurate product screenshot may remain in the following feature section.
 
+- **Cloakyard:** the family opens out from its mark into five small, recognisable
+  materials: paper, download pixels, résumé lines, an image and a photo strip. This
+  explains the family without a product screenshot. One finite arrival uses 1,800ms
+  ease-out transforms with a 60ms object stagger; details start at 640ms with 45ms
+  staggering and finish within 4,300ms. Product artwork colours remain confined to
+  these materials. Settle into a quiet collection; no looping orbit or moving text.
 - **PDF:** five white pages start as a compact stack. The four rear sheets spread
   left and right over 2,200ms with the shared spatial curve and 60ms stagger,
   keeping their stacking order. The front page and real dropzone stay anchored.
   Settle open after one unveiling; do not loop, reorder, or animate file intake.
 - **Drop:** square teal pixels descend into file, package, disc and archive forms.
-  Show FILE, PKG, ISO and ZIP once, then keep the final form still. Use 600ms
-  arrivals, an 8ms bottom-to-top row stagger plus at most 29ms scatter, 160ms
-  dispersal with at most 48ms stagger and a 300ms hold between forms. The complete
-  sequence stays under five seconds (4,776ms maximum active timeline). Use shared
+  Show FILE, PKG, ISO and ZIP once per run, then keep the final form still. Use 720ms
+  arrivals, a 3ms bottom-to-top row stagger plus at most 9ms scatter, 180ms
+  dispersal with at most 24ms stagger and a 320ms hold between forms. The complete
+  sequence stays under five seconds (4,764ms maximum active timeline). Use shared
   spatial/exit curves and linear descent with a gentle landing; never loop.
   These are illustrative file types, never a simulated real transfer or progress bar.
 - **Resume:** a green career path with three milestones gathers into the spine of
@@ -719,11 +725,35 @@ An accurate product screenshot may remain in the following feature section.
   theme, alongside the existing `paper-accent`; surrounding controls use live themes.
 - Static artwork renders without the animation module. Reduced motion, forced
   colours and constrained/save-data visits do not start decorative motion.
+  For this lightweight transform/opacity artwork, constrained means a reported
+  device memory of 4 GiB or less. Missing memory information is not a restriction.
+  Never gate it on CPU count: WebKit's privacy-rounded four-thread value is not
+  evidence that an iPhone cannot render it. The heavier reference shader retains
+  its separate resource policy. Test artwork with four reported threads and no
+  memory API in WebKit as well as Chrome; do not normalize every test to eight.
   Live preference changes settle immediately. Suspend offscreen and hidden; resume
   the same finite sequence on return. Cancel animations/listeners on departure.
-- Landing artwork has no visible Play, Pause or Replay controls. Each automatic
-  arrival finishes within five seconds and remains still; returning visibility
-  or removing a motion restriction must not restart a completed sequence.
+- Wait for applicable external stylesheets before starting or reading motion tokens.
+  Cold WebKit can run a module while those sheets are pending. Keep the static
+  illustration visible and the replay target hidden until ready; use load/error
+  events with departure cleanup, not a timer or duplicate hardcoded easing values.
+  Read motion tokens inside each run, after readiness. Test a delayed CSS response
+  in WebKit and Chrome as well as a warm local load.
+- Landing artwork has no separate visible Play, Pause or Replay controls. Each
+  automatic arrival finishes within five seconds and remains still; returning
+  visibility or removing a motion restriction must not restart a completed sequence.
+  After completion, click/tap the artwork itself to replay the same finite sequence.
+  Ignore presses begun before completion and all rapid/repeated activation during a
+  run; never interrupt, queue, or loop. The completed artwork is a native button
+  overlay named “Replay {app} animation”, with Air's inset keyboard focus outline
+  and a pointer cursor when ready; it has no background, border or hover motion.
+  Enter/Space explicitly request the same replay (this is a media-like action,
+  not animation attached to an unrelated keyboard command). Ignore held keys.
+  Preserve focus during a replay, mark the target aria-disabled, and remove it from
+  sequential Tab navigation until settled. Reduced-motion, forced-colour,
+  resource/data restrictions, missing APIs and no-JS visits expose no replay action.
+  Keep illustrative children hidden from assistive technology. The button covers
+  only the reserved artwork, never the real upload, download or editor action.
 - Keep the action usable before, during and after motion. Reserve the artwork's
   layout space, contain only its moving marks, and shrink ornamental space first
   in short landscape. Text and controls reflow at enlarged sizes. No fake upload,
@@ -757,16 +787,20 @@ Public shell content follows the same recipe across the family:
   then **Built by Sumit Sahoo**, with the author name linked and underlined. Use
   `air-page-identity` for the two lines. Keep the version in the same text style;
   static recovery pages derive it from the same package version as the application.
-- Footer navigation has exactly four destinations: **Privacy → Source → MIT license
-  → Cloakyard**. Source and License target the product repository and main-branch
+- Footer navigation has exactly five destinations: **Privacy → Source → MIT license
+  → Cloakyard → Buy me a coffee**. Source and License target the product repository and main-branch
   LICENSE. The family destination keeps ArrowUpRight. Use `Footer navigation` as
-  its landmark. Privacy opens the actual policy; the directory points to its
-  existing principles and uses **All apps** (`#tools`) in the fourth slot.
+  its landmark. Privacy opens the actual policy; the directory links to its own policy and uses **All apps** (`/#tools`) in the fourth slot.
+- The support link targets `https://ko-fi.com/sumitsahoo21`, uses ArrowUpRight,
+  neutral ink in every state, and opens in a new tab with `noopener noreferrer`.
+  It is a plain link: no widget, badge, tracking request, popup or extra footer row.
+  Public home, privacy and recovery pages include it; editing workspaces and native
+  applications retain their task-focused controls.
 - Keep the footer one identity group plus one navigation group. Product directories,
   repeated Download actions and marketing copy belong in the main page, not an
   additional footer row. Preserve the directory copyright and existing app versions.
-- The shared footer reserves the same 16rem identity and 28rem navigation bases,
-  with four equal navigation tracks; compact containers use two tracks, then one
+- The shared footer reserves the same 16rem identity and 48rem navigation bases,
+  with five equal navigation tracks; compact containers use two tracks, then one
   at enlarged text when needed. At equal viewport/font/input settings all adopted
   footers have the same natural height. Do not force a fixed height or hide overflow.
   Validate cross-product bounding boxes, including reading and recovery pages.
@@ -835,6 +869,25 @@ Public shell content follows the same recipe across the family:
   wrap at a deliberate word boundary; never reduce its type to hide overflow.
 
 ### Reading and recovery pages
+
+- Public privacy uses the portable `air-policy` recipe in every product: an explicit
+  **Back to {product}** link with ArrowLeft, **{product} · Privacy**, **Privacy policy**,
+  a concise lead, the genuine revision date, then **On this page** and the document.
+  The back link has a real home URL and works on a direct visit without history.
+  Preserve meaningful product navigation and the same family header/footer.
+  The footer marks Privacy with `aria-current="page"` and a neutral 1px underline
+  at 3px offset; its label never turns blue.
+- The shared recipe owns 48px top/64px bottom space (32px top on compact screens),
+  a 32px gap after the return link, 48px before contents/document, a 14rem contents
+  column and 65ch prose with a 64px gap. At 60rem containers or enlarged text the
+  columns stack with 32px separation. Contents use the shared chevron disclosure,
+  neutral links and blue location marker. No numbered technical eyebrows or fact
+  grids above the policy. All section headings use 1.5rem/500 with 48px ruled spacing.
+- Public privacy is a reading page, not a modal. Editors may retain an in-place
+  policy dialog to protect work, using the exact same policy content and existing
+  focus/close safeguards. Returning from public privacy never clears a saved draft.
+- Keep policy facts and dates intact during a visual refresh. Native and website
+  privacy are distinct; a shared layout does not authorize new privacy claims.
 
 - Privacy, help and recovery use the same family mark, navigation, theme, footer
   and controls as the product. They are complete layouts, not unstyled text below
@@ -1206,3 +1259,8 @@ journeys across all apps; it is not inferred from the pilot alone.
   unchanged or unavailable model paths are never described as exercised.
 - Keep a per-component/state inventory and evidence in `docs/air/`. Local tokens
   and this complete contract travel with the repository.
+- Landing artwork uses a still photograph with a crop frame that settles around
+  its subject. The photo remains stationary; frame motion runs once in 2400ms
+  through the shared finite artwork lifecycle, with completed-only explicit
+  replay and static accessibility/resource fallbacks. The real upload target is
+  separate and immediately usable. Retain the approved orange photograph asset.

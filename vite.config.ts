@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { gzipSync } from "node:zlib";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
@@ -20,6 +18,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  build: { rollupOptions: { input: { main: "index.html", privacy: "privacy/index.html" } } },
   server: {
     allowedHosts: true,
   },
@@ -39,25 +38,6 @@ export default defineConfig({
     include: ["@huggingface/transformers", "@mediapipe/tasks-vision"],
   },
   plugins: [
-    {
-      name: "air-landing-assets",
-      generateBundle(_options, bundle) {
-        const shader = Object.values(bundle).find(
-          (asset) => asset.type === "chunk" && asset.fileName.includes("air-light-shader"),
-        );
-        if (!shader || shader.type !== "chunk") this.error("Expected a separate lazy Air shader");
-        if (gzipSync(shader.code).byteLength > 350_000)
-          this.error("Lazy Air shader exceeds 350 kB gzip");
-        this.emitFile({
-          type: "asset",
-          fileName: "air-light.LICENSE.txt",
-          source: readFileSync(
-            new URL("./docs/air/assets/THIRD_PARTY_LICENSES.txt", import.meta.url),
-            "utf8",
-          ),
-        });
-      },
-    },
     react(),
     tailwindcss(),
     VitePWA({
@@ -157,8 +137,6 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         globIgnores: [
-          // Decorative light stays optional and outside the offline shell.
-          "**/air-light-shader-*.js",
           // Modern export codecs are lazy by design. The HEIC WASM is
           // emitted as its own lazy chunk; pre-caching either chunk would
           // make every first visit pay for codecs most users never use.

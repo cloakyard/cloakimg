@@ -2,124 +2,126 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { RegisterSWOptions } from "virtual:pwa-register/react";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { ReloadPrompt } from "./ReloadPrompt";
-
 const pwa = vi.hoisted(() => ({
   useRegisterSW: vi.fn(),
   setNeedRefresh: vi.fn(),
   setOfflineReady: vi.fn(),
   updateServiceWorker: vi.fn(),
 }));
-
-vi.mock("virtual:pwa-register/react", () => ({
-  useRegisterSW: pwa.useRegisterSW,
-}));
-
-function renderPrompt({
-  needRefresh = false,
-  offlineReady = false,
-}: {
-  needRefresh?: boolean;
-  offlineReady?: boolean;
-} = {}) {
+vi.mock("virtual:pwa-register/react", () => ({ useRegisterSW: pwa.useRegisterSW }));
+function setup({ needRefresh = false, offlineReady = false, deferUpdate = false } = {}) {
   pwa.useRegisterSW.mockReturnValue({
     needRefresh: [needRefresh, pwa.setNeedRefresh],
     offlineReady: [offlineReady, pwa.setOfflineReady],
     updateServiceWorker: pwa.updateServiceWorker,
   });
-  return render(<ReloadPrompt />);
+  return render(<ReloadPrompt deferUpdate={deferUpdate} />);
 }
-
 describe("ReloadPrompt", () => {
   beforeEach(() => {
-    pwa.useRegisterSW.mockReset();
-    pwa.setNeedRefresh.mockReset();
-    pwa.setOfflineReady.mockReset();
-    pwa.updateServiceWorker.mockReset();
+    vi.clearAllMocks();
     pwa.updateServiceWorker.mockResolvedValue(undefined);
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    );
   });
-
-  it("stays hidden until the service worker reports a user-facing state", () => {
-    renderPrompt();
+  it("stays hidden until the worker reports a user-facing state", () => {
+    setup();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
-
-  it("announces an honest offline-ready state and pauses dismissal during interaction", () => {
+  it("announces honest caching and pauses dismissal for pointer and focus", () => {
     vi.useFakeTimers();
-    renderPrompt({ offlineReady: true });
-
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Core editor cached. The editor interface is available offline.",
-    );
-
-    const prompt = screen
-      .getByTestId("pwa-toast-positioner")
-      .querySelector("[data-state='offline']");
-    expect(prompt).not.toBeNull();
-    expect(prompt).toHaveTextContent("AI models and some formats may still need a connection.");
-    fireEvent.pointerEnter(prompt!);
-
+    setup({ offlineReady: true });
+    const notice = screen.getByRole("region");
+    expect(notice).toHaveTextContent("Core app cached");
+    expect(notice).toHaveTextContent("Some features may still need a connection");
+    fireEvent.pointerEnter(notice);
     act(() => {
       vi.advanceTimersByTime(5000);
     });
     expect(pwa.setOfflineReady).not.toHaveBeenCalled();
-
-    fireEvent.pointerLeave(prompt!);
+    fireEvent.pointerLeave(notice);
+    fireEvent.focus(screen.getByRole("button"));
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(pwa.setOfflineReady).not.toHaveBeenCalled();
+    fireEvent.blur(screen.getByRole("button"));
     act(() => {
       vi.advanceTimersByTime(4000);
     });
-    expect(prompt).toHaveClass("ci-toast-exit");
-    expect(pwa.setOfflineReady).not.toHaveBeenCalled();
-    act(() => {
-      vi.advanceTimersByTime(160);
-    });
     expect(pwa.setOfflineReady).toHaveBeenCalledWith(false);
-    expect(pwa.setNeedRefresh).toHaveBeenCalledWith(false);
   });
-
-  it("exposes a guarded update action and hides decorative icons", () => {
+  it("guards repeat updates, retains focusability and hides decorative icons", () => {
     vi.useFakeTimers();
-    renderPrompt({ needRefresh: true });
-
-    const positioner = screen.getByTestId("pwa-toast-positioner");
-    expect(positioner).toHaveClass("pointer-events-none");
-    expect(positioner.className).toContain("safe-area-inset-bottom");
-    expect(positioner.className).toContain("--z-toast");
-
-    const update = screen.getByRole("button", { name: "Update" });
+    setup({ needRefresh: true });
+    const update = screen.getByRole("button", { name: "Update and reload" });
     fireEvent.click(update);
-
+    fireEvent.click(update);
+    expect(pwa.updateServiceWorker).toHaveBeenCalledTimes(1);
     expect(pwa.updateServiceWorker).toHaveBeenCalledWith(true);
-    expect(update).toBeDisabled();
-    expect(update).toHaveAttribute("aria-busy", "true");
+    expect(update).toHaveAttribute("aria-disabled", "true");
     expect(update).toHaveTextContent("Updating…");
-
-    for (const icon of positioner.querySelectorAll("svg")) {
-      expect(icon).toHaveAttribute("aria-hidden", "true");
-    }
+    for (const svg of screen.getByRole("region").querySelectorAll("svg"))
+      expect(svg).toHaveAttribute("aria-hidden", "true");
   });
-
-  it("checks for a deployed service worker again when the app returns to the foreground", async () => {
-    const fetchMock = vi
+  it("retains work and offers retry after activation failure", async () => {
+    vi.useFakeTimers();
+    pwa.updateServiceWorker.mockRejectedValueOnce(new Error("offline"));
+    setup({ needRefresh: true });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Update and reload" }));
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("Your work is still here");
+    const retry = screen.getByRole("button", { name: "Try again" });
+    expect(retry).not.toBeDisabled();
+    fireEvent.click(retry);
+    expect(pwa.updateServiceWorker).toHaveBeenCalledTimes(2);
+  });
+  it("defers activation while editing and ignores another tab's activation", () => {
+    setup({ needRefresh: true, deferUpdate: true });
+    const update = screen.getByRole("button", { name: "Update and reload" });
+    fireEvent.click(update);
+    expect(pwa.updateServiceWorker).not.toHaveBeenCalled();
+    expect(screen.getByRole("region")).toHaveTextContent("return home to update");
+    const options = pwa.useRegisterSW.mock.calls[0]?.[0] as RegisterSWOptions;
+    act(() => options.onNeedReload?.());
+    expect(pwa.setNeedRefresh).toHaveBeenCalledWith(true);
+    expect(pwa.updateServiceWorker).not.toHaveBeenCalled();
+  });
+  it("keeps a pending update available after Later and returning from an editor", () => {
+    const view = setup({ needRefresh: true });
+    fireEvent.click(screen.getByRole("button", { name: "Later" }));
+    expect(screen.queryByRole("region")).not.toBeInTheDocument();
+    expect(pwa.setNeedRefresh).not.toHaveBeenCalled();
+    view.rerender(<ReloadPrompt deferUpdate />);
+    view.rerender(<ReloadPrompt />);
+    expect(screen.getByRole("button", { name: "Update and reload" })).toBeInTheDocument();
+  });
+  it("checks for a deployed worker on foreground, throttled to once a minute", async () => {
+    const fetch = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(new Response(null, { status: 200 }));
     const update = vi.fn().mockResolvedValue(undefined);
-    renderPrompt();
-
+    setup();
     const options = pwa.useRegisterSW.mock.calls[0]?.[0] as RegisterSWOptions;
-    act(() => {
+    act(() =>
       options.onRegisteredSW?.("/sw.js", {
         installing: null,
         update,
-      } as unknown as ServiceWorkerRegistration);
-    });
-
+      } as unknown as ServiceWorkerRegistration),
+    );
     await act(async () => {
       window.dispatchEvent(new Event("focus"));
       await Promise.resolve();
     });
-
-    expect(fetchMock).toHaveBeenCalledWith("/sw.js", { cache: "no-store" });
+    window.dispatchEvent(new Event("focus"));
+    expect(fetch).toHaveBeenCalledWith("/sw.js", { cache: "no-store" });
     expect(update).toHaveBeenCalledTimes(1);
-    fetchMock.mockRestore();
+    fetch.mockRestore();
   });
 });

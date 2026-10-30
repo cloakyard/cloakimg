@@ -89,7 +89,7 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
 
       <div className={`cloak-dialog__body flex-1 overflow-y-auto ${isPhone ? "p-5" : "p-7"}`}>
         {tab === "upload" ? (
-          <UploadTab isPhone={isPhone} file={uploadFile} onFile={setUploadFile} />
+          <UploadTab file={uploadFile} onFile={setUploadFile} />
         ) : (
           <BlankTab
             isPhone={isPhone}
@@ -217,19 +217,10 @@ function ModalFooter({
   );
 }
 
-function UploadTab({
-  isPhone,
-  file,
-  onFile,
-}: {
-  isPhone: boolean;
-  file: File | null;
-  onFile: (f: File | null) => void;
-}) {
+function UploadTab({ file, onFile }: { file: File | null; onFile: (f: File | null) => void }) {
   return (
     <div>
       <DropZone
-        isPhone={isPhone}
         selectedFile={file}
         onFiles={(files) => {
           const f = files[0];

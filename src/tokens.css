@@ -916,10 +916,6 @@ html,
     font-size: 1rem;
   }
 
-  .cloak-brand-button,
-  .cloak-text-link,
-  .cloak-site-footer a,
-  .cloak-site-footer button,
   .privacy-audit-action {
     min-height: 2.75rem;
   }

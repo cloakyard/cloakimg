@@ -1,35 +1,69 @@
-import type { ReactNode } from "react";
+import { useRef } from "react";
 import { BrandMark, I } from "../components/icons";
 import { GITHUB_REPO_URL } from "../constants/links";
 
-interface Props {
-  right?: ReactNode;
-}
+const links = [
+  { href: "#workbench", label: "Start editing" },
+  { href: "#toolkit", label: "Tools" },
+  { href: "#privacy-model", label: "Privacy" },
+];
 
-export function Header({ right }: Props) {
-  return (
-    <header className="cloak-site-header">
-      <div className="site-frame cloak-site-header__inner">
-        <a href="#main" className="cloak-brand-button" aria-label="CloakIMG home">
-          <BrandMark size={40} />
-          <span className="logo-wordmark">
-            Cloak<span>IMG</span>
-          </span>
-        </a>
-
-        <div className="cloak-site-header__actions">
-          <a
-            href={GITHUB_REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="cloak-outline-link"
-          >
-            <I.Github size={14} />
-            <span className="hidden sm:inline">Source</span>
+export function Header({ reading = false }: { reading?: boolean }) {
+  const disclosure = useRef<HTMLDetailsElement>(null);
+  const navigation = (
+    <>
+      {(reading ? [{ href: import.meta.env.BASE_URL, label: "Home" }] : links).map(
+        ({ href, label }) => (
+          <a key={href} href={href}>
+            {label}
           </a>
-          {right}
-        </div>
-      </div>
+        ),
+      )}
+      <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
+        Source <I.ArrowUpRight size={16} aria-hidden="true" />
+      </a>
+    </>
+  );
+  return (
+    <header className="air-page-header img-header img-page-width">
+      <a
+        href={import.meta.env.BASE_URL}
+        className="air-page-brand img-brand"
+        aria-label="CloakIMG home"
+      >
+        <BrandMark size={36} />
+        <span translate="no">CloakIMG</span>
+      </a>
+      <nav className="air-page-nav img-navigation" aria-label="Primary navigation">
+        {navigation}
+      </nav>
+      <details
+        className="img-mobile-navigation"
+        ref={disclosure}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && disclosure.current?.open) {
+            disclosure.current.open = false;
+            disclosure.current.querySelector("summary")?.focus();
+            event.preventDefault();
+          }
+        }}
+      >
+        <summary className="air-button air-button--quiet">
+          Menu <I.ChevronDown size={16} aria-hidden="true" />
+        </summary>
+        <nav
+          className="air-page-nav"
+          aria-label="Primary navigation"
+          onClick={(event) => {
+            if ((event.target as Element).closest("a") && disclosure.current) {
+              disclosure.current.open = false;
+              disclosure.current.querySelector("summary")?.focus({ preventScroll: true });
+            }
+          }}
+        >
+          {navigation}
+        </nav>
+      </details>
     </header>
   );
 }

@@ -55,18 +55,17 @@ export function App() {
   if (!choice) {
     return (
       <>
-        <Landing onStart={onStart} onIntent={preloadEditor} />
         <ReloadPrompt />
-        <OrientationLock />
+        <Landing onStart={onStart} onIntent={preloadEditor} />
       </>
     );
   }
   return (
     <>
+      <ReloadPrompt deferUpdate />
       <Suspense fallback={<EditorLoading />}>
         <UnifiedEditor initialDoc={choice} onExit={() => setChoice(null)} />
       </Suspense>
-      <ReloadPrompt />
       <OrientationLock />
     </>
   );

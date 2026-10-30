@@ -15,7 +15,7 @@
 // isHeicFile run real so we exercise the actual extension / MIME
 // detection logic that ships in production.
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 // Mock decodeHeic only — keep isHeicFile real so the format-detection
@@ -110,12 +110,12 @@ describe("DropZone", () => {
       });
     }
 
-    it("native-format thumbnails use the workbench preview frame and selected check", () => {
+    it("native-format thumbnails use the Air preview frame and selected check", () => {
       const file = makeFile("hero.png", "image/png");
       const { container } = render(<DropZone onFiles={() => undefined} selectedFile={file} />);
       const img = screen.getByRole("img");
-      expect(img.closest(".cloak-dropzone__preview")).not.toBeNull();
-      expect(container.querySelector(".cloak-dropzone__preview svg")).not.toBeNull();
+      expect(img.closest(".img-dropzone__preview")).not.toBeNull();
+      expect(container.querySelector(".img-dropzone__preview svg")).not.toBeNull();
     });
   });
 
@@ -146,12 +146,11 @@ describe("DropZone", () => {
       it(`${label}: triggers decodeHeic and never hands a blob: URL to <img>`, async () => {
         const file = makeFile(name, type);
         render(<DropZone onFiles={() => undefined} selectedFile={file} />);
-        // While decode is in flight, the icon-spot exposes a status
-        // role with the "Decoding HEIC preview…" label.
-        expect(screen.getByRole("status")).toBeInTheDocument();
+        // A single live region reports the decode phase without duplicate announcements.
+        expect(screen.getByRole("status")).toHaveTextContent("Decoding HEIC preview…");
         expect(decodeHeic).toHaveBeenCalledTimes(1);
         await waitFor(() => {
-          expect(screen.queryByRole("status")).toBeNull();
+          expect(screen.getByRole("status")).toBeEmptyDOMElement();
         });
         // Even after decode resolves, no <img> in jsdom because the
         // canvas getContext returns null — DropZone falls back to the
@@ -187,4 +186,85 @@ describe("DropZone", () => {
       expect(decodeHeic).toHaveBeenCalledTimes(1);
     });
   });
+});
+
+describe("file acquisition recovery", () => {
+  it("rejects empty, wrong-type and multi-file selections without replacing the current image", () => {
+    const onFiles = vi.fn();
+    const { container } = render(
+      <DropZone onFiles={onFiles} selectedFile={makeFile("kept.png", "image/png")} />,
+    );
+    const input = container.querySelector("input")!;
+    fireEvent.change(input, { target: { files: [makeFile("empty.png", "image/png", 0)] } });
+    expect(screen.getByRole("status")).toHaveTextContent("image is empty");
+    fireEvent.change(input, { target: { files: [makeFile("notes.txt", "text/plain")] } });
+    expect(screen.getByRole("status")).toHaveTextContent("Choose an image file");
+    fireEvent.change(input, {
+      target: { files: [makeFile("a.png", "image/png"), makeFile("b.png", "image/png")] },
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("one image at a time");
+    expect(screen.getByText("kept.png")).toBeInTheDocument();
+    expect(onFiles).not.toHaveBeenCalled();
+    const valid = makeFile("next.png", "image/png");
+    fireEvent.change(input, { target: { files: [valid] } });
+    expect(onFiles).toHaveBeenCalledWith([valid]);
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  });
+
+  it("reports denied and empty clipboard reads with Browse still available", async () => {
+    const read = vi.fn().mockRejectedValueOnce(new Error("denied")).mockResolvedValueOnce([]);
+    vi.stubGlobal("navigator", { clipboard: { read } });
+    try {
+      render(<DropZone onFiles={() => undefined} />);
+      fireEvent.click(screen.getByRole("button", { name: "Paste from clipboard" }));
+      await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("couldn’t be read"));
+      fireEvent.click(screen.getByRole("button", { name: "Paste from clipboard" }));
+      await waitFor(() =>
+        expect(screen.getByRole("status")).toHaveTextContent("No image was found"),
+      );
+      expect(screen.getByRole("button", { name: "Browse files" })).toBeEnabled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it.each(["browse", "replacement", "unmount"])(
+    "drops a pending clipboard result after %s and ignores duplicate reads",
+    async (interruption) => {
+      let resolveRead!: (items: unknown[]) => void;
+      const read = vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveRead = resolve;
+          }),
+      );
+      vi.stubGlobal("navigator", { clipboard: { read } });
+      const onFiles = vi.fn();
+      try {
+        const view = render(<DropZone onFiles={onFiles} />);
+        const button = screen.getByRole("button", { name: "Paste from clipboard" });
+        fireEvent.click(button);
+        fireEvent.click(button);
+        expect(read).toHaveBeenCalledTimes(1);
+        if (interruption === "browse")
+          fireEvent.click(screen.getByRole("button", { name: "Browse files" }));
+        else if (interruption === "replacement")
+          view.rerender(
+            <DropZone onFiles={onFiles} selectedFile={makeFile("new.png", "image/png")} />,
+          );
+        else view.unmount();
+        await act(async () =>
+          resolveRead([
+            {
+              types: ["image/png"],
+              getType: async () => new Blob(["image"], { type: "image/png" }),
+            },
+          ]),
+        );
+        expect(onFiles).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    },
+  );
 });

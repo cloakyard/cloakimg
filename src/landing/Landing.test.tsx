@@ -1,26 +1,26 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { ALL_TOOLS } from "../editor/tools";
 import { Landing } from "./Landing";
 
-// The production browser gate covers GPU lifecycle; jsdom has no WebGPU.
-vi.mock("../../docs/air/light-runtime.mjs", () => ({
-  mountAirLight: () => ({ destroy() {} }),
+// Actual motion and replay run in the production browser gate.
+vi.mock("../../docs/air/artwork.mjs", () => ({
+  mountAirArtwork: () => ({ destroy() {} }),
 }));
 
 describe("Landing", () => {
-  it("renders the workbench identity, honest product facts, and the Cloakyard-family mark", () => {
+  it("renders the photo entry, local-processing facts and the Cloakyard-family mark", () => {
     render(<Landing onStart={() => undefined} />);
 
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "A complete photo workbench. Your pixels stay put.",
+        name: "Your photos. Your way.",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(String(ALL_TOOLS.length))).toBeInTheDocument();
-    expect(screen.getByText("Editor tools")).toBeInTheDocument();
-    expect(screen.getByText("Image uploads")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Browse files" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Your photos stay on your device." }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("CloakIMG home").querySelector("img")).toHaveAttribute(
       "src",
       "/cloakimg-mark.svg",

@@ -1,50 +1,64 @@
-// ReloadPrompt.tsx — PWA service-worker update banner. Shown on the
-// landing page when a new SW version is available, or briefly when the
-// core editor shell has been cached for offline use.
-//
-// A compact floating status instrument at the bottom edge, with an
-// "Update" button when needRefresh and a
-// self-dismissing cache-status toast on first install.
-
-import { useCallback, useEffect, useRef, useState } from "react";
+/** PWA lifecycle; presentation is the pinned family notice. */
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { I } from "../components/icons";
+import { AirUpdateNotice } from "../../docs/air/update-notice.tsx";
 
 const UPDATE_CHECK_INTERVAL_MS = 10 * 60 * 1000;
-const UPDATE_CHECK_THROTTLE_MS = 60 * 1000;
-const OFFLINE_READY_DISMISS_MS = 4000;
 const RELOAD_FALLBACK_MS = 1500;
-const TOAST_EXIT_MS = 160;
-const REDUCED_TOAST_EXIT_MS = 120;
 
-export function ReloadPrompt() {
+export function ReloadPrompt({ deferUpdate = false }: { deferUpdate?: boolean }) {
+  // Stash the SW update interval + the live registration so the unmount
+  // cleanup can clear the timer and so the focus/visibility listeners below —
+  // which fire outside `useRegisterSW`'s onRegisteredSW lifecycle — can reach
+  // the registration to trigger an update check.
   const updateIntervalRef = useRef<number | null>(null);
-  const reloadFallbackRef = useRef<number | null>(null);
-  const offlineDismissRef = useRef<number | null>(null);
-  const promptExitRef = useRef<number | null>(null);
-  const closeRequestedRef = useRef(false);
-  const wasVisibleRef = useRef(false);
   const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
-  const swUrlRef = useRef("");
-  const lastCheckRef = useRef(0);
-  const promptRef = useRef<HTMLDivElement | null>(null);
-  const pointerInsideRef = useRef(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const swUrlRef = useRef<string>("");
+  const lastCheckRef = useRef<number>(0);
+  const updatingRef = useRef(false);
+  const deferUpdateRef = useRef(deferUpdate);
+  const reloadTimerRef = useRef<number | undefined>(undefined);
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState("");
+  const [dismissed, setDismissed] = useState(false);
+  const [paused, setPaused] = useState(false);
 
+  // SW callbacks are registered once. Read the committed route when they fire,
+  // including when another tab activates the waiting worker.
+  useLayoutEffect(() => {
+    deferUpdateRef.current = deferUpdate;
+  }, [deferUpdate]);
+  useEffect(() => {
+    if (!deferUpdate) setDismissed(false);
+  }, [deferUpdate]);
+
+  const finishUpdate = useCallback(() => {
+    window.clearTimeout(reloadTimerRef.current);
+    if (!updatingRef.current) return;
+    if (deferUpdateRef.current) {
+      updatingRef.current = false;
+      setUpdating(false);
+      return;
+    }
+    window.location.reload();
+  }, []);
+
+  // Poll sw.js for a freshly-deployed build. Throttled to once a minute so the
+  // interval and the focus/visibility listeners can all call it without
+  // hammering the network. `cache: "no-store"` bypasses the HTTP cache so an
+  // edge-revalidated sw.js is always seen.
   const checkForUpdate = useCallback(async () => {
     const registration = registrationRef.current;
-    if (!registration || registration.installing || !navigator.onLine) return;
-
+    if (!registration || registration.installing) return;
+    if (!navigator.onLine) return;
     const now = Date.now();
-    if (now - lastCheckRef.current < UPDATE_CHECK_THROTTLE_MS) return;
+    if (now - lastCheckRef.current < 60_000) return;
     lastCheckRef.current = now;
-
     try {
-      const response = await fetch(swUrlRef.current, { cache: "no-store" });
-      if (response.status === 200) await registration.update();
+      const resp = await fetch(swUrlRef.current, { cache: "no-store" });
+      if (resp.status === 200) await registration.update();
     } catch {
-      // A network blip is non-fatal; retry on the next interval or refocus.
+      // Network blip — try again on the next interval or refocus.
     }
   }, []);
 
@@ -53,6 +67,12 @@ export function ReloadPrompt() {
     offlineReady: [offlineReady, setOfflineReady],
     updateServiceWorker,
   } = useRegisterSW({
+    onNeedReload() {
+      // An update in another tab must never discard this tab's work. Only a
+      // local explicit update can reload, and only while outside a task.
+      setNeedRefresh(true);
+      finishUpdate();
+    },
     onRegisteredSW(swUrl, registration) {
       if (!registration) return;
       registrationRef.current = registration;
@@ -64,32 +84,23 @@ export function ReloadPrompt() {
     },
   });
 
+  // A tab left open while a new build ships would otherwise wait up to a full
+  // poll interval to notice (this SPA has no real navigations to trigger the
+  // browser's own SW update check). Re-checking when the user returns to the
+  // tab makes the "Update available" prompt appear within seconds of refocus.
   useEffect(() => {
     const onForeground = () => {
       if (document.visibilityState === "visible") void checkForUpdate();
     };
-
     document.addEventListener("visibilitychange", onForeground);
     window.addEventListener("focus", onForeground);
-
     return () => {
       document.removeEventListener("visibilitychange", onForeground);
       window.removeEventListener("focus", onForeground);
+      window.clearTimeout(reloadTimerRef.current);
       if (updateIntervalRef.current !== null) {
         window.clearInterval(updateIntervalRef.current);
         updateIntervalRef.current = null;
-      }
-      if (reloadFallbackRef.current !== null) {
-        window.clearTimeout(reloadFallbackRef.current);
-        reloadFallbackRef.current = null;
-      }
-      if (offlineDismissRef.current !== null) {
-        window.clearTimeout(offlineDismissRef.current);
-        offlineDismissRef.current = null;
-      }
-      if (promptExitRef.current !== null) {
-        window.clearTimeout(promptExitRef.current);
-        promptExitRef.current = null;
       }
     };
   }, [checkForUpdate]);
@@ -98,142 +109,45 @@ export function ReloadPrompt() {
   // controlling event. Fall back to an explicit reload so the Update
   // button is never a no-op.
   const handleUpdate = useCallback(() => {
-    if (isUpdating) return;
-    setIsUpdating(true);
-    void updateServiceWorker(true).catch(() => window.location.reload());
-    reloadFallbackRef.current = window.setTimeout(
-      () => window.location.reload(),
-      RELOAD_FALLBACK_MS,
-    );
-  }, [isUpdating, updateServiceWorker]);
+    if (updatingRef.current || deferUpdate) return;
+    updatingRef.current = true;
+    setUpdating(true);
+    setError("");
+    void updateServiceWorker(true).catch(() => {
+      window.clearTimeout(reloadTimerRef.current);
+      updatingRef.current = false;
+      setUpdating(false);
+      setError(
+        "The update could not be applied. Your work is still here. Try again when connected.",
+      );
+    });
+    reloadTimerRef.current = window.setTimeout(finishUpdate, RELOAD_FALLBACK_MS);
+  }, [deferUpdate, finishUpdate, updateServiceWorker]);
 
   const close = useCallback(() => {
-    if (closeRequestedRef.current) return;
-    closeRequestedRef.current = true;
-    setClosing(true);
-    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    promptExitRef.current = window.setTimeout(
-      () => {
-        setOfflineReady(false);
-        setNeedRefresh(false);
-        promptExitRef.current = null;
-      },
-      reduceMotion ? REDUCED_TOAST_EXIT_MS : TOAST_EXIT_MS,
-    );
-  }, [setOfflineReady, setNeedRefresh]);
-
-  const visible = offlineReady || needRefresh;
-  useEffect(() => {
-    if (visible && !wasVisibleRef.current) {
-      closeRequestedRef.current = false;
-      setClosing(false);
-    }
-    wasVisibleRef.current = visible;
-  }, [visible]);
-
-  const clearOfflineDismiss = useCallback(() => {
-    if (offlineDismissRef.current === null) return;
-    window.clearTimeout(offlineDismissRef.current);
-    offlineDismissRef.current = null;
-  }, []);
-
-  const scheduleOfflineDismiss = useCallback(() => {
-    clearOfflineDismiss();
-    if (!offlineReady || needRefresh) return;
-    if (pointerInsideRef.current || promptRef.current?.contains(document.activeElement)) return;
-    offlineDismissRef.current = window.setTimeout(close, OFFLINE_READY_DISMISS_MS);
-  }, [clearOfflineDismiss, close, needRefresh, offlineReady]);
+    setOfflineReady(false);
+    setDismissed(needRefresh);
+  }, [needRefresh, setOfflineReady]);
 
   useEffect(() => {
-    scheduleOfflineDismiss();
-    return clearOfflineDismiss;
-  }, [clearOfflineDismiss, scheduleOfflineDismiss]);
+    if (!offlineReady || needRefresh || paused) return;
+    const id = setTimeout(close, 4000);
+    return () => clearTimeout(id);
+  }, [offlineReady, needRefresh, paused, close]);
 
-  if (!visible) return null;
-
-  const Icon = needRefresh ? I.Refresh : I.ShieldCheck;
-  const title = needRefresh ? "Update available" : "Core editor cached";
-  const body = needRefresh
-    ? "Reload to apply the latest version of CloakIMG."
-    : "The editor interface is available offline. AI models and some formats may still need a connection.";
-  const dismissLabel = needRefresh ? "Dismiss update notification" : "Dismiss offline status";
-
-  const pauseOfflineDismiss = () => {
-    pointerInsideRef.current = true;
-    clearOfflineDismiss();
-  };
-
-  const resumeOfflineDismiss = () => {
-    pointerInsideRef.current = false;
-    scheduleOfflineDismiss();
-  };
-
-  return (
-    <div
-      className="pointer-events-none fixed right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] z-[var(--z-toast)] flex justify-center sm:right-[max(1.5rem,env(safe-area-inset-right))] sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:left-auto sm:justify-end"
-      data-testid="pwa-toast-positioner"
-    >
-      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        {title}. {body}
-      </span>
-      <div
-        ref={promptRef}
-        data-state={needRefresh ? "update" : "offline"}
-        className={`pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-lg border border-border bg-surface p-4 text-text shadow-[var(--shadow-popover)] sm:w-auto sm:min-w-80 ${
-          closing ? "ci-toast-exit" : "ci-toast-enter"
-        }`}
-        onPointerEnter={pauseOfflineDismiss}
-        onPointerLeave={resumeOfflineDismiss}
-        onFocusCapture={clearOfflineDismiss}
-        onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-            scheduleOfflineDismiss();
-          }
-        }}
-      >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-coral-200 bg-coral-50 text-coral-600 dark:border-coral-800 dark:bg-[var(--color-accent-soft)] dark:text-coral-400">
-          <Icon size={16} aria-hidden="true" />
-        </div>
-        <div className="min-w-0 flex-1 pt-0.5">
-          <p className="text-[13px] font-semibold tracking-[-0.01em] text-text">{title}</p>
-          <p className="mt-0.5 text-[12px] leading-[1.45] text-text-muted">{body}</p>
-          {needRefresh && (
-            <div className="mt-3 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={close}
-                disabled={isUpdating}
-                className="btn btn-ghost btn-sm"
-              >
-                Later
-              </button>
-              <button
-                type="button"
-                onClick={handleUpdate}
-                disabled={isUpdating}
-                aria-busy={isUpdating}
-                className="btn btn-primary btn-sm"
-              >
-                <I.Refresh
-                  size={13}
-                  aria-hidden="true"
-                  style={isUpdating ? { animation: "ci-spin 0.9s linear infinite" } : undefined}
-                />
-                {isUpdating ? "Updating…" : "Update"}
-              </button>
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={close}
-          disabled={isUpdating}
-          aria-label={dismissLabel}
-          className="btn btn-ghost btn-icon-sm -mt-1 -mr-1"
-        >
-          <I.X size={14} aria-hidden="true" />
-        </button>
-      </div>
-    </div>
-  );
+  const show = offlineReady || (needRefresh && !dismissed);
+  return show ? (
+    <AirUpdateNotice
+      state={needRefresh ? (updating ? "updating" : error ? "error" : "update") : "offline"}
+      detail={
+        needRefresh && deferUpdate
+          ? "Save or download your work, then return home to update."
+          : error || undefined
+      }
+      blocked={deferUpdate}
+      onClose={close}
+      onUpdate={handleUpdate}
+      onPause={setPaused}
+    />
+  ) : null;
 }

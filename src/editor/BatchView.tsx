@@ -96,7 +96,6 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
 
       {batchFiles.length === 0 ? (
         <DropZone
-          isPhone={isMobile}
           multiple
           title="Drop images here to batch-edit"
           subtitle="or click to browse — build a recipe on the right, then run it across all files"
