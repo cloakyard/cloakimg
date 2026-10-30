@@ -1,0 +1,4 @@
+# Keep the shipped application free of edge-injected analytics/scripts, while
+# preserving Workers' default browser revalidation for these static assets.
+/*
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
