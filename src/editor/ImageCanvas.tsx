@@ -29,7 +29,7 @@
 
 import { Canvas, type FabricObject, FabricImage, Point } from "fabric";
 import { get2DContext } from "./colorSpace";
-import { FABRIC_CANVAS_SELECTION } from "./fabricDefaults";
+import { FABRIC_CANVAS_SELECTION, FABRIC_SELECTION_RGB } from "./fabricDefaults";
 import { snapshotPersistentObjects } from "./tools/penPath";
 import {
   type CSSProperties,
@@ -342,7 +342,7 @@ export function ImageCanvas({
       const guides = guidesRef.current;
       if (guides.length > 0) {
         ctx.save();
-        ctx.strokeStyle = "rgba(245, 97, 58, 0.95)";
+        ctx.strokeStyle = `rgba(${FABRIC_SELECTION_RGB}, 0.95)`;
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 3]);
         for (const g of guides) {

@@ -20,10 +20,6 @@ body:has(.img-site) {
   font-size: 1rem;
   line-height: 1.6;
 }
-.img-page-width {
-  width: min(calc(100% - 2 * var(--air-gutter)), var(--air-page-max));
-  margin-inline: auto;
-}
 .img-site :where(h1, h2, h3, p) {
   margin: 0;
 }
@@ -206,13 +202,31 @@ body:has(.img-site) {
   }
 }
 @container (max-width: 40rem) {
-  .img-navigation {
+  .img-site .img-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .img-brand {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+  }
+  .img-header > .img-navigation {
     display: none;
   }
   .img-mobile-navigation {
-    display: contents;
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-inline-size: 0;
+    pointer-events: none;
   }
   .img-mobile-navigation summary {
+    display: flex;
+    inline-size: fit-content;
+    pointer-events: auto;
     margin-inline-start: auto;
     list-style: none;
     min-inline-size: 44px;
@@ -222,7 +236,7 @@ body:has(.img-site) {
     display: none;
   }
   .img-mobile-navigation nav {
-    flex-basis: 100%;
+    pointer-events: auto;
   }
   .img-hero {
     padding-block: 40px 32px;
@@ -256,53 +270,23 @@ body:has(.img-site) {
   }
 }
 
-.img-photo-frame {
-  inline-size: min(100%, 28rem);
+.img-landscape {
+  inline-size: min(100%, 30rem);
   margin: 0 auto 32px;
   color: var(--air-light-cloakimg);
 }
-.img-photo-frame__photo {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 3/2;
-  border-radius: var(--air-radius-panel);
-}
-.img-photo-frame__photo img {
+.img-landscape svg {
   display: block;
   inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
+  block-size: auto;
+  overflow: visible;
 }
-.img-photo-frame__crop {
-  position: absolute;
-  inset: 12% 10% 10% 14%;
-  border: 1px solid white;
-}
-.img-photo-frame__crop i {
-  position: absolute;
-  inline-size: 20px;
-  block-size: 20px;
-  border-color: currentColor;
-  border-style: solid;
-}
-.img-photo-frame__crop i:nth-child(1) {
-  inset: -2px auto auto -2px;
-  border-width: 2px 0 0 2px;
-}
-.img-photo-frame__crop i:nth-child(2) {
-  inset: -2px -2px auto auto;
-  border-width: 2px 2px 0 0;
-}
-.img-photo-frame__crop i:nth-child(3) {
-  inset: auto -2px -2px auto;
-  border-width: 0 2px 2px 0;
-}
-.img-photo-frame__crop i:nth-child(4) {
-  inset: auto auto -2px -2px;
-  border-width: 0 0 2px 2px;
+.img-landscape [data-landscape] {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 @media (max-height: 500px) and (orientation: landscape) {
-  .img-photo-frame {
+  .img-landscape {
     inline-size: 15rem;
     margin-block-end: 24px;
   }

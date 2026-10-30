@@ -18,6 +18,7 @@
 import { Circle, type FabricObject, Path, type TPointerEventInfo } from "fabric";
 import { useEffect, useRef } from "react";
 import { useEditor } from "../EditorContext";
+import { FABRIC_SELECTION_COLOR } from "../fabricDefaults";
 import { useStageProps } from "../StageHost";
 import { buildPenD, type PenAnchor } from "./penPath";
 
@@ -79,7 +80,7 @@ export function PenTool() {
           top: a.y,
           radius,
           fill: "#ffffff",
-          stroke: "#f5613a",
+          stroke: FABRIC_SELECTION_COLOR,
           strokeWidth: 1.5,
           originX: "center",
           originY: "center",

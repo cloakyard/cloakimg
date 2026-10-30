@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useEditor } from "../EditorContext";
+import { FABRIC_SELECTION_RGB } from "../fabricDefaults";
 import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 import type { ToolState } from "../toolState";
@@ -55,7 +56,7 @@ export function PerspectiveTool() {
       ctx.save();
 
       // Quad outline.
-      ctx.strokeStyle = "rgba(245, 97, 58, 0.9)"; // coral-500
+      ctx.strokeStyle = `rgba(${FABRIC_SELECTION_RGB}, 0.9)`;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(sP[0]?.[0] ?? 0, sP[0]?.[1] ?? 0);
@@ -63,7 +64,7 @@ export function PerspectiveTool() {
       ctx.closePath();
       ctx.stroke();
 
-      // Corner handles. Filled coral with a white inner ring so they
+      // Corner handles. Air blue with a white inner ring so they
       // read on any photo content.
       const isCoarse =
         typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
@@ -71,7 +72,7 @@ export function PerspectiveTool() {
       for (let i = 0; i < 4; i++) {
         const px = sP[i]?.[0] ?? 0;
         const py = sP[i]?.[1] ?? 0;
-        ctx.fillStyle = "rgba(245, 97, 58, 0.95)";
+        ctx.fillStyle = `rgba(${FABRIC_SELECTION_RGB}, 0.95)`;
         ctx.beginPath();
         ctx.arc(px, py, r, 0, Math.PI * 2);
         ctx.fill();

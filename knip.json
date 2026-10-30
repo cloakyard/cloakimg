@@ -1,0 +1,13 @@
+{
+  "entry": [
+    "src/main.tsx",
+    "scripts/*.mjs",
+    "src/**/*.test.{ts,tsx}",
+    "src/test/setup.ts",
+    "src/landing/PrivacyPage.tsx"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "scripts/*.mjs"],
+  "ignore": ["src/editor/vendor/**"],
+  "ignoreDependencies": ["tailwindcss"],
+  "ignoreUnresolved": ["^/src/"]
+}

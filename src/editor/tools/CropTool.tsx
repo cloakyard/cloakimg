@@ -18,6 +18,7 @@ import { I } from "../../components/icons";
 import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
 import { copyInto, createCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
+import { FABRIC_SELECTION_COLOR } from "../fabricDefaults";
 import type { Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 import { getSubjectBBox, MaskConsentError } from "../ai/subjectMask";
@@ -139,7 +140,7 @@ export function CropTool() {
         [cx, sy + sh],
         [sx + sw, sy + sh],
       ];
-      ctx.fillStyle = "#f5613a";
+      ctx.fillStyle = FABRIC_SELECTION_COLOR;
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1.5;
       for (const [hx, hy] of handlePts) {
@@ -177,15 +178,15 @@ export function CropTool() {
       originX: "left",
       originY: "top",
       fill: "transparent",
-      stroke: "#f5613a",
+      stroke: FABRIC_SELECTION_COLOR,
       strokeWidth: 1.5,
       strokeUniform: true,
-      cornerColor: "#f5613a",
+      cornerColor: FABRIC_SELECTION_COLOR,
       cornerStrokeColor: "#ffffff",
       // Inherit the global coarse-pointer-aware corner sizing from
       // fabricDefaults instead of pinning a desktop-only 10 px chip.
       transparentCorners: false,
-      borderColor: "#f5613a",
+      borderColor: FABRIC_SELECTION_COLOR,
       borderScaleFactor: 1.5,
       // The global default is 6 px on phones (gives most objects a
       // wider hit halo). On the crop rect that offset paints Fabric's

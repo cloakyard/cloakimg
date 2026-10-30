@@ -47,7 +47,7 @@
         font-size: 72px;
         line-height: 1.04;
         letter-spacing: -0.06em;
-        font-weight: 500;
+        font-weight: 400;
         margin: 0 0 24px;
       }
       h1 span {
@@ -60,48 +60,14 @@
         max-width: 470px;
         margin: 0;
       }
-      .photo {
-        position: relative;
+      .landscape {
         width: 490px;
-        height: 350px;
-        border-radius: 20px;
-        overflow: hidden;
+        color: var(--air-light-cloakimg);
       }
-      .photo img {
+      .landscape svg {
+        display: block;
         width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .crop {
-        position: absolute;
-        inset: 30px 38px;
-        border: 1px solid rgba(255, 255, 255, 0.7);
-      }
-      .crop i {
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        border: solid var(--air-light-cloakimg);
-      }
-      .crop i:nth-child(1) {
-        left: -1px;
-        top: -1px;
-        border-width: 2px 0 0 2px;
-      }
-      .crop i:nth-child(2) {
-        right: -1px;
-        top: -1px;
-        border-width: 2px 2px 0 0;
-      }
-      .crop i:nth-child(3) {
-        right: -1px;
-        bottom: -1px;
-        border-width: 0 2px 2px 0;
-      }
-      .crop i:nth-child(4) {
-        left: -1px;
-        bottom: -1px;
-        border-width: 0 0 2px 2px;
+        height: auto;
       }
       footer {
         position: absolute;
@@ -123,10 +89,7 @@
           <h1>Your photos.<br /><span>Your way.</span></h1>
           <p>Edit, compose and export with a complete photo toolkit, right on your device.</p>
         </div>
-        <div class="photo">
-          <img src="../public/artwork/orange.webp" alt="An orange framed for editing" />
-          <div class="crop"><i></i><i></i><i></i><i></i></div>
-        </div>
+        <div class="landscape" aria-hidden="true"></div>
       </main>
       <footer><span>Private by design. Free to use.</span><span>img.cloakyard.com ↗</span></footer>
     </div>

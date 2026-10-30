@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor } from "../EditorContext";
+import { FABRIC_SELECTION_RGB } from "../fabricDefaults";
 import type { ImagePoint, Transform } from "../ImageCanvas";
 import { useStageProps } from "../StageHost";
 
@@ -232,7 +233,7 @@ export function SpotHealTool() {
       // connector line up to the ring. Lets the user track which
       // direction the offset goes without guessing.
       if (offsetScreen > 0) {
-        ctx.strokeStyle = "rgba(245,97,58,0.7)";
+        ctx.strokeStyle = `rgba(${FABRIC_SELECTION_RGB}, 0.7)`;
         ctx.lineWidth = 1;
         ctx.setLineDash([2, 3]);
         ctx.beginPath();
@@ -240,7 +241,7 @@ export function SpotHealTool() {
         ctx.lineTo(sx, sy + sf + 2);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(245,97,58,0.85)";
+        ctx.fillStyle = `rgba(${FABRIC_SELECTION_RGB}, 0.85)`;
         ctx.beginPath();
         ctx.arc(fingerSx, fingerSy, 4, 0, Math.PI * 2);
         ctx.fill();

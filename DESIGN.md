@@ -1,19 +1,19 @@
 ---
 name: CloakIMG — Cloakyard Air
-version: 1.3.1
+version: 1.3.2
 status: approved
 date: 2026-10-29
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: 8270df3eb88361a7291ea9afff5a12117c093814fe62bd15d92ce6d74d1a963c
+family-contract-sha256: 94b1833a90cc87ac8ea2015a307e04717f4ebcb184ece557a7fa1f032824589a
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.3.1 — stylesheet-ready artwork** · Direction: **Air** · Updated: **2026-10-29**
+Version: **1.3.2 — six-app shell consistency** · Direction: **Air** · Updated: **2026-10-30**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -789,7 +789,9 @@ Public shell content follows the same recipe across the family:
   static recovery pages derive it from the same package version as the application.
 - Footer navigation has exactly five destinations: **Privacy → Source → MIT license
   → Cloakyard → Buy me a coffee**. Source and License target the product repository and main-branch
-  LICENSE. The family destination keeps ArrowUpRight. Use `Footer navigation` as
+  LICENSE. Source, MIT license, the external family destination and support use
+  the same 16px ArrowUpRight cue. Privacy and the directory’s same-page All apps
+  link remain plain. Use `Footer navigation` as
   its landmark. Privacy opens the actual policy; the directory links to its own policy and uses **All apps** (`/#tools`) in the fourth slot.
 - The support link targets `https://ko-fi.com/sumitsahoo21`, uses ArrowUpRight,
   neutral ink in every state, and opens in a new tab with `noopener noreferrer`.
@@ -1230,8 +1232,12 @@ journeys across all apps; it is not inferred from the pilot alone.
   custom colour/curve/slider/select controls, mobile UI, policy and PWA updates.
 - Photo editing is the domain; document/OCR workflows belong in CloakPDF.
 - Actual image pixels, alpha checkerboard, colour fields, histograms, masks,
-  handles and effect previews are functional visual content. Their shells, labels,
-  controls, menus, progress and errors use the shared Air system.
+  and effect previews are functional visual content. Their shells, labels,
+  controls, menus, progress and errors use the shared Air system. Selection, crop,
+  perspective, pen anchors, alignment guides and brush targeting use Air
+  `paper-accent` blue with a contrasting rim. Canvas paint uses its fixed RGB
+  equivalent; author colours and exported pixels stay unchanged. The Relight
+  sun is an effect-position preview, so its warm light material remains functional.
 - Preserve history, preview/apply/cancel semantics, tool switching, selection,
   imported metadata, crop geometry, exact ID-photo dimensions and export fidelity.
 - Never release pooled canvases inside React state updaters; retain the existing
@@ -1259,8 +1265,13 @@ journeys across all apps; it is not inferred from the pilot alone.
   unchanged or unavailable model paths are never described as exercised.
 - Keep a per-component/state inventory and evidence in `docs/air/`. Local tokens
   and this complete contract travel with the repository.
-- Landing artwork uses a still photograph with a crop frame that settles around
-  its subject. The photo remains stationary; frame motion runs once in 2400ms
-  through the shared finite artwork lifecycle, with completed-only explicit
-  replay and static accessibility/resource fallbacks. The real upload target is
-  separate and immediately usable. Retain the approved orange photograph asset.
+- Landing artwork is a local vector landscape: a coral sun rises behind layered
+  mountains while the foreground settles and the crop corners find the composition.
+  The sun uses a 2000ms Air arrival curve after 360ms; mountain/foreground spatial
+  transforms run 2100ms with 60ms staggering; the frame settles in 1800ms after
+  1400ms. The full sequence ends at 3200ms. Use only transform animation, the
+  canonical product artwork colour and neutral planes; no remote image or renderer.
+  Static SVG markup is the completed landscape. Keep completed-only replay and all
+  shared accessibility/resource/visibility/stylesheet-ready fallbacks. The real
+  upload target remains separate and immediately usable. OG reuses the same SVG;
+  photographic editor screenshots remain truthful sample content, not hero artwork.

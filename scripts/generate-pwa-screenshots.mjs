@@ -1,4 +1,4 @@
-// Capture the actual Air editor with the same local photograph as the landing.
+// Capture the actual Air editor with a local photographic test fixture.
 import { mkdtempSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
@@ -43,7 +43,7 @@ try {
     if (notice) await notice.click();
     await (
       await page.$('input[type="file"]')
-    ).uploadFile(resolve(root, "public/artwork/orange.webp"));
+    ).uploadFile(resolve(root, "scripts/fixtures/orange.webp"));
     await page.waitForSelector('.editor-topbar button[aria-label="Export"]:not(:disabled)');
     await page.click(`button[aria-label="${tool === "picker" ? "Open tools" : "Adjust"}"]`);
     await page.waitForFunction(

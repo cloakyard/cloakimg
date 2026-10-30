@@ -1,5 +1,5 @@
 // fabricDefaults.ts — Mutates Fabric's static `ownDefaults` so every
-// selectable object on the canvas picks up the CloakIMG coral brand
+// selectable object on the canvas picks up the Air paper-accent selection
 // colour for its border + corner handles, and IText editing surfaces
 // (the blinking cursor + character-selection band) match it too.
 //
@@ -10,15 +10,16 @@
 import { FabricObject, IText } from "fabric";
 import { MOBILE_MAX_PX } from "./breakpoints";
 
-export const FABRIC_SELECTION_COLOR = "#f5613a";
-const CORAL = FABRIC_SELECTION_COLOR;
-/** Translucent coral used for the IText character-selection band and
+// Canvas paint cannot consume CSS variables. These match Air paper-accent in both themes.
+export const FABRIC_SELECTION_COLOR = "#285ad7";
+export const FABRIC_SELECTION_RGB = "40, 90, 215";
+/** Translucent selection blue used for the IText character-selection band and
  *  the Canvas marquee fill. */
-const CORAL_TRANSLUCENT = "rgba(245, 97, 58, 0.35)";
-const CORAL_FAINT = "rgba(245, 97, 58, 0.18)";
+const SELECTION_TRANSLUCENT = `rgba(${FABRIC_SELECTION_RGB}, 0.35)`;
+const SELECTION_FAINT = `rgba(${FABRIC_SELECTION_RGB}, 0.18)`;
 
-FabricObject.ownDefaults.borderColor = CORAL;
-FabricObject.ownDefaults.cornerColor = CORAL;
+FabricObject.ownDefaults.borderColor = FABRIC_SELECTION_COLOR;
+FabricObject.ownDefaults.cornerColor = FABRIC_SELECTION_COLOR;
 FabricObject.ownDefaults.cornerStrokeColor = "#ffffff";
 FabricObject.ownDefaults.cornerStyle = "circle";
 FabricObject.ownDefaults.transparentCorners = false;
@@ -54,13 +55,13 @@ FabricObject.ownDefaults.snapAngle = isCoarsePointer ? 5 : 0;
 FabricObject.ownDefaults.snapThreshold = isCoarsePointer ? 5 : 0;
 FabricObject.ownDefaults.lockScalingFlip = true;
 
-IText.ownDefaults.cursorColor = CORAL;
-IText.ownDefaults.selectionColor = CORAL_TRANSLUCENT;
+IText.ownDefaults.cursorColor = FABRIC_SELECTION_COLOR;
+IText.ownDefaults.selectionColor = SELECTION_TRANSLUCENT;
 
 /** Use these on Canvas instances for the marquee + active-selection
  *  border (these aren't covered by `FabricObject.ownDefaults`). */
 export const FABRIC_CANVAS_SELECTION = {
-  selectionColor: CORAL_FAINT,
-  selectionBorderColor: CORAL,
+  selectionColor: SELECTION_FAINT,
+  selectionBorderColor: FABRIC_SELECTION_COLOR,
   selectionLineWidth: 1.5,
 };

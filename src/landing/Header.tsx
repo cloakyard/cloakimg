@@ -25,7 +25,7 @@ export function Header({ reading = false }: { reading?: boolean }) {
     </>
   );
   return (
-    <header className="air-page-header img-header img-page-width">
+    <header className="air-page-header img-header air-page-width">
       <a
         href={import.meta.env.BASE_URL}
         className="air-page-brand img-brand"
