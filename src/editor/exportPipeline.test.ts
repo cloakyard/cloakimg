@@ -111,7 +111,7 @@ describe("export encoding", () => {
     },
   );
 
-  it.each(["avif", "heic"] as const)(
+  it.each(["webp", "avif", "heic"] as const)(
     "uses the local codec when the browser falls back while encoding %s",
     async (format) => {
       const encoded = formatBlob(format);
@@ -129,10 +129,11 @@ describe("export encoding", () => {
   it("never saves PNG fallback bytes under a .webp contract", async () => {
     const mislabeled = formatBlob("png", "image/webp");
 
+    encodeModernCanvasMock.mockResolvedValue(mislabeled);
     await expect(encodeCanvas(fakeCanvas(mislabeled), "webp", 0.82)).rejects.toThrow(
-      "invalid image/webp bytes",
+      "WEBP encoder returned invalid bytes",
     );
-    expect(encodeModernCanvasMock).not.toHaveBeenCalled();
+    expect(encodeModernCanvasMock).toHaveBeenCalledOnce();
   });
 
   it("rejects a WASM encoder result whose bytes do not match its MIME", async () => {

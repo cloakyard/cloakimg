@@ -7,7 +7,7 @@ import decodeAvif, { init as initAvifDecoder } from "@jsquash/avif/decode.js";
 import { init as initAvifEncoder } from "@jsquash/avif/encode.js";
 import { beforeAll, describe, expect, it } from "vite-plus/test";
 import { encodeAvifPixels } from "./avifCodec";
-import { decodeHeicPixels, encodeHeicPixels } from "./heifCodec";
+import { decodeHeicPixels, encodeHeicPixels, encodeWebpPixels } from "./heifCodec";
 
 function fixturePixels(width: number, height: number): Uint8ClampedArray {
   const rgba = new Uint8ClampedArray(width * height * 4);
@@ -47,6 +47,18 @@ describe("real modern export codecs", () => {
     expect(decoded.data).toHaveLength(8 * 6 * 4);
   });
 
+  it("encodes genuine WebP with an alpha chunk and applies quality without a native encoder", async () => {
+    const pixels = fixturePixels(32, 24);
+    pixels[3] = 0;
+    const bytes = await encodeWebpPixels(pixels, 32, 24, 0.8);
+    expect(String.fromCharCode(...bytes.subarray(0, 4))).toBe("RIFF");
+    expect(String.fromCharCode(...bytes.subarray(8, 12))).toBe("WEBP");
+    expect(String.fromCharCode(...bytes.subarray(12, 16))).toBe("VP8X");
+    expect(bytes[20] & 0x10).toBe(0x10); // Alpha flag; decoded alpha is checked in WebKit.
+    const low = await encodeWebpPixels(pixels, 32, 24, 0.1);
+    expect(bytes).not.toEqual(low);
+  });
+
   it("encodes and decodes a real HEIC/HEIF with the original dimensions", async () => {
     const bytes = await encodeHeicPixels(fixturePixels(8, 6), 8, 6, 0.8);
 
@@ -63,5 +75,20 @@ describe("real modern export codecs", () => {
 
     expect(highQuality).not.toEqual(lowQuality);
     expect(highQuality.byteLength).toBeGreaterThan(lowQuality.byteLength);
+  });
+
+  it("rejects malformed WebP pixel buffers before entering the encoder", async () => {
+    await expect(encodeWebpPixels(fixturePixels(8, 6), 8, 7)).rejects.toThrow("Invalid WebP");
+    await expect(encodeWebpPixels(new Uint8ClampedArray(), 0, 0)).rejects.toThrow("Invalid WebP");
+  });
+
+  it("returns owned bytes that survive subsequent codec calls", async () => {
+    const codec = await (await import("./vendor/heif-codec.js")).default();
+    const first = codec.jsEncodeImage(new Uint8Array(fixturePixels(8, 6)), 8, 6, 80);
+    const saved = new Uint8Array(first.data);
+    for (let i = 0; i < 5; i++) {
+      codec.jsEncodeWebp(new Uint8Array(fixturePixels(256, 192)), 256, 192, i * 20);
+    }
+    expect(first.data).toEqual(saved);
   });
 });

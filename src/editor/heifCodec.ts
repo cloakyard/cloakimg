@@ -1,5 +1,5 @@
 // heifCodec.ts — Lazy HEIC/HEIF encode + decode through CloakIMG's
-// reproducible libheif WASM build. The worker bundle contains current,
+// reproducible libheif WASM build, also providing a libwebp export fallback. The worker bundle contains current,
 // actively maintained libheif/libde265/Kvazaar releases and no x265/GPL code.
 
 import type createHeifCodec from "./vendor/heif-codec.js";
@@ -37,9 +37,7 @@ export async function encodeHeicPixels(
   if (result.err) throw new Error(result.err);
   if (result.data.length === 0) throw new Error("HEIC encoder returned an empty file");
 
-  // Emscripten owns the returned view. Copy before another call can grow
-  // or reuse the WASM heap.
-  return new Uint8Array(result.data);
+  return result.data;
 }
 
 export async function decodeHeicPixels(input: Uint8Array): Promise<DecodedHeifImage> {
@@ -53,4 +51,23 @@ export async function decodeHeicPixels(input: Uint8Array): Promise<DecodedHeifIm
     height: image.height,
     rgba: new Uint8ClampedArray(image.data),
   };
+}
+
+/** Used only when the browser cannot encode genuine WebP natively. */
+export async function encodeWebpPixels(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  quality = 0.82,
+): Promise<Uint8Array> {
+  const codec = await getCodec();
+  const result = codec.jsEncodeWebp(
+    new Uint8Array(rgba.buffer, rgba.byteOffset, rgba.byteLength),
+    width,
+    height,
+    Math.round(Math.max(0, Math.min(1, quality)) * 100),
+  );
+  if (result.err) throw new Error(result.err);
+  if (!result.data.length) throw new Error("WebP encoder returned an empty file");
+  return result.data;
 }

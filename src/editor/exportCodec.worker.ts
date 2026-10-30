@@ -1,12 +1,12 @@
 /// <reference lib="webworker" />
 // exportCodec.worker.ts — Serial worker for the heavyweight modern
 // image encoders. Pixel buffers move in and encoded bytes move out as
-// transferables, keeping AVIF/HEIC work off the UI thread.
+// transferables, keeping WebP/AVIF/HEIC work off the UI thread.
 
 import { encodeAvifPixels } from "./avifCodec";
-import { encodeHeicPixels } from "./heifCodec";
+import { encodeHeicPixels, encodeWebpPixels } from "./heifCodec";
 
-export type WorkerCodecFormat = "avif" | "heic";
+export type WorkerCodecFormat = "avif" | "heic" | "webp";
 
 export interface ExportCodecRequest {
   id: number;
@@ -28,7 +28,9 @@ async function handle(req: ExportCodecRequest): Promise<void> {
     const bytes =
       req.format === "heic"
         ? await encodeHeicPixels(req.rgba, req.width, req.height, req.quality)
-        : await encodeAvifPixels(req.rgba, req.width, req.height, req.quality);
+        : req.format === "webp"
+          ? await encodeWebpPixels(req.rgba, req.width, req.height, req.quality)
+          : await encodeAvifPixels(req.rgba, req.width, req.height, req.quality);
     const response: ExportCodecResponse = { id: req.id, ok: true, bytes };
     self.postMessage(response, [bytes.buffer]);
   } catch (error) {

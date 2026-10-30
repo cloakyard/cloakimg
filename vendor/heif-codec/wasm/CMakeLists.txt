@@ -4,9 +4,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(cloakimg-heif-codec src/bindings.cpp)
-add_dependencies(cloakimg-heif-codec cloakimg-heif)
+add_dependencies(cloakimg-heif-codec cloakimg-heif libwebp)
+target_include_directories(cloakimg-heif-codec PRIVATE ${CMAKE_BINARY_DIR}/libwebp-build/install/include)
 target_link_libraries(cloakimg-heif-codec PRIVATE
   cloakimg-heif
+  ${CMAKE_BINARY_DIR}/libwebp-build/install/lib/libwebp.a
+  ${CMAKE_BINARY_DIR}/libwebp-build/install/lib/libsharpyuv.a
   -lembind
   -sINITIAL_MEMORY=64MB
   -sALLOW_MEMORY_GROWTH=1
