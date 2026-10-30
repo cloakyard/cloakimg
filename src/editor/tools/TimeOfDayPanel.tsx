@@ -177,7 +177,7 @@ export function TimeOfDayPanel() {
           line caption, so the dial reads as a verb tense ("Golden")
           rather than a number (0.70). The Reset chip docks here when
           dirty; hidden at identity to keep the panel calm. */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[0.875rem] font-medium leading-tight tracking-normal text-text">
             {label}
@@ -190,10 +190,10 @@ export function TimeOfDayPanel() {
           <button
             type="button"
             onClick={reset}
-            className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 py-1 font-[inherit] text-[0.8125rem] font-medium text-text-muted transition-colors hover:bg-page-bg hover:text-text"
+            className="btn btn-ghost btn-sm shrink-0"
             aria-label="Reset Time of day to Noon"
           >
-            <I.Rotate size={11} /> Reset
+            <I.Rotate size={16} /> Reset
           </button>
         )}
       </div>
@@ -264,14 +264,8 @@ export function TimeOfDayPanel() {
           />
         </div>
 
-        {/* Tappable label legend. A 3 × 2 grid keeps every moment
-            readable and gives each snap target a real hit area at
-            every sidebar width. The old single row let the combined
-            intrinsic label widths grow past the 295 px desktop
-            content box, clipping Night by 12 px. The continuous
-            gradient + thumb above still carries the precise position;
-            this grid is the relaxed shortcut legend. */}
-        <div className="grid grid-cols-3 gap-1">
+        {/* Reflowing snap shortcuts; the continuous sky dial retains precise positioning. */}
+        <div className="air-segments img-choice-grid">
           {KEYFRAMES.map((k) => {
             const isActive = k.label === label;
             return (
@@ -281,11 +275,6 @@ export function TimeOfDayPanel() {
                 onClick={() => patchTool("timeOfDay", k.t)}
                 aria-pressed={isActive}
                 aria-label={`Snap to ${k.label}`}
-                className={`flex h-8 min-w-0 cursor-pointer items-center justify-center rounded-md border-none px-1 font-[inherit] text-[0.8125rem] font-medium whitespace-nowrap transition-colors pointer-coarse:h-11 ${
-                  isActive
-                    ? "bg-surface-soft text-text dark:bg-[var(--air-surface-soft)] text-text"
-                    : "bg-page-bg text-text-muted hover:text-text"
-                }`}
               >
                 {k.label}
               </button>

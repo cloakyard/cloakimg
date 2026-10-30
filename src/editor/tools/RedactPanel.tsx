@@ -17,7 +17,7 @@
 
 import { useCallback, useState } from "react";
 import { I } from "../../components/icons";
-import { InlineSpinner, PropRow, Segment, SliderField } from "../atoms";
+import { InlineSpinner, PropRow, Segment, SliderField, SwitchField } from "../atoms";
 import { acquireCanvas, copyInto, releaseCanvas } from "../doc";
 import { useEditor } from "../EditorContext";
 import { applyMaskScope, MaskConsentError } from "../ai/subjectMask";
@@ -288,7 +288,7 @@ export function RedactPanel() {
           what's applied without scanning the canvas. */}
       <MaskReadyPill ready={!!subjectMask.peek()} align="end" />
       <PropRow label="Smart anonymize">
-        <div className="img-smart-actions">
+        <div className="air-segments img-smart-actions">
           <SmartAnonymizeButton
             label="Person"
             description="Whole body silhouette"
@@ -333,43 +333,12 @@ export function RedactPanel() {
         onChange={(v) => patchTool("faceConfidence", v)}
       />
 
-      {/* AI Inspector — a single toggle that overlays the detected
-          face boxes + scores on the canvas. Sits below the dial so
-          the user reads "set a floor, then look at what passes" as
-          a single thought. Shared toggle with Remove BG so flipping
-          it once carries between tools. */}
-      <button
-        type="button"
-        onClick={() => patchTool("aiInspector", !toolState.aiInspector)}
-        role="switch"
-        aria-checked={toolState.aiInspector}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border-none px-3 py-2 text-left text-[0.8125rem] font-medium transition-colors pointer-coarse:min-h-11 pointer-coarse:text-[0.8125rem] ${
-          toolState.aiInspector
-            ? "bg-surface-soft text-text"
-            : "bg-page-bg text-text-muted hover:bg-page-bg/70"
-        }`}
-        title={
-          toolState.aiInspector
-            ? "Hide the detected face boxes"
-            : "Show detected face boxes with their confidence scores"
-        }
-      >
-        <span className="flex items-center gap-1.5">
-          <I.Sparkles size={12} /> See what the AI sees
-        </span>
-        <span
-          aria-hidden="true"
-          className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-            toolState.aiInspector ? "bg-accent" : "bg-text-muted/30"
-          }`}
-        >
-          <span
-            className={`h-3 w-3 rounded-full bg-surface shadow-[none] transition-transform ${
-              toolState.aiInspector ? "translate-x-3" : "translate-x-0"
-            }`}
-          />
-        </span>
-      </button>
+      <SwitchField
+        label="See what the AI sees"
+        on={toolState.aiInspector}
+        onChange={(next) => patchTool("aiInspector", next)}
+        title="Show detected face boxes with their confidence scores"
+      />
 
       <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         Pick one: Person redacts the whole subject silhouette; Faces redacts each detected face
@@ -450,26 +419,20 @@ function SmartAnonymizeButton({
   disabled,
   onClick,
 }: SmartAnonymizeButtonProps) {
-  const borderClass = active ? "border-accent ring-2 ring-accent" : "border-border-soft";
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      className={`flex cursor-pointer flex-col items-stretch gap-0.5 rounded-md border bg-page-bg px-2.5 py-2 text-left font-[inherit] ${borderClass}`}
-      style={{ opacity: disabled && !busy ? 0.6 : 1 }}
+      className="img-smart-action"
     >
       <div className="flex items-center justify-between gap-2 text-[0.8125rem] font-medium text-text">
         <span className="flex items-center gap-1.5">
-          {busy ? (
-            <InlineSpinner size={12} />
-          ) : (
-            <I.Sparkles size={12} className={active ? "fill-accent text-text" : "text-text"} />
-          )}
+          {busy ? <InlineSpinner size={16} /> : <I.Sparkles size={16} />}
           {busy ? "Working…" : label}
         </span>
-        {active && !busy && <I.Check size={12} className="text-text" aria-hidden />}
+        {active && !busy && <I.Check size={16} className="text-text" aria-hidden />}
       </div>
       <span className="text-[0.8125rem] leading-snug text-text-muted">{description}</span>
     </button>

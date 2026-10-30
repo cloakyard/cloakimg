@@ -65,9 +65,7 @@ export function ColorPickerPanel() {
               disabled={!toolState.pickedColor}
               aria-label={pickerCopied ? "Copied" : "Copy hex code"}
               title={pickerCopied ? "Copied" : "Copy hex code"}
-              className={`flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-11 pointer-coarse:w-11 ${
-                pickerCopied ? "text-text" : "text-text-muted hover:text-text"
-              }`}
+              className="btn btn-ghost btn-icon"
             >
               {pickerCopied ? (
                 <I.Check size={16} aria-hidden="true" />
@@ -93,23 +91,20 @@ export function ColorPickerPanel() {
             type="button"
             onClick={reExtract}
             aria-label="Re-extract palette"
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border-none bg-transparent p-0 text-text-muted hover:bg-page-bg hover:text-text pointer-coarse:h-11 pointer-coarse:w-11"
+            className="btn btn-ghost btn-icon"
           >
             <I.Refresh size={16} aria-hidden="true" />
           </button>
         </div>
-        {/* Mirrors FilterPanel's preset grid: 3-col on desktop, single
-            horizontally-scrolling row on mobile so the panel stays
-            short. Wider cells let the full hex (with #) breathe instead
-            of crowding the card edges. */}
+        {/* Shared responsive tiles; mobile keeps a short horizontal strip. */}
         <div
           // `.no-scrollbar` on horizontal touch scrollers — see
           // FilterPanel for the rationale (no persistent scrollbar
           // noise + clean vertical-pan propagation to the parent).
           className={
             isMobile
-              ? "no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-              : "grid grid-cols-3 gap-1.5"
+              ? "air-segments img-presets img-presets--strip no-scrollbar overflow-x-auto"
+              : "air-segments img-presets"
           }
         >
           {colors.map((c) => {
@@ -121,19 +116,18 @@ export function ColorPickerPanel() {
                 onClick={() => copyHex(c)}
                 title={isCopied ? "Copied" : `Copy ${c.toUpperCase()}`}
                 aria-label={isCopied ? `${c.toUpperCase()} copied` : `Copy ${c.toUpperCase()}`}
-                className={`flex cursor-pointer flex-col overflow-hidden rounded-md bg-page-bg p-0 ${
-                  isMobile ? "w-18 shrink-0" : ""
-                } ${isCopied ? "border-2 border-accent" : "border border-border"}`}
+                className="img-preset"
+                data-copied={isCopied || undefined}
               >
                 <span
                   aria-hidden
                   className="block aspect-square w-full"
                   style={{ background: c }}
                 />
-                <span className="tabular-nums flex items-center justify-center gap-0.5 px-1 py-0.75 text-center text-[0.8125rem] font-medium">
+                <span className="img-preset-label tabular-nums">
                   {isCopied ? (
                     <>
-                      <I.Check size={10} stroke={3} />
+                      <I.Check size={16} />
                       Copied
                     </>
                   ) : (

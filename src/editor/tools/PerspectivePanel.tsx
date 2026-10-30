@@ -112,7 +112,7 @@ export function PerspectivePanel() {
           onClick={reset}
           disabled={!dirty}
         >
-          <I.Refresh size={12} />
+          <I.Refresh size={16} />
           Reset
         </button>
         {!isMobile && (
@@ -122,7 +122,7 @@ export function PerspectivePanel() {
             onClick={() => void apply()}
             disabled={!dirty || degenerate}
           >
-            <I.Check size={12} />
+            <I.Check size={16} />
             Apply
           </button>
         )}

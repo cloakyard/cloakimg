@@ -6,7 +6,7 @@
 
 import { type FabricObject, FabricImage } from "fabric";
 import { useCallback, useEffect, useState } from "react";
-import { I } from "../../components/icons";
+import { ImageFileButton } from "../ImageFileButton";
 import { PropRow, SliderField } from "../atoms";
 import { useEditor } from "../EditorContext";
 
@@ -177,20 +177,10 @@ export function ImagePanel() {
   return (
     <>
       <PropRow label="Add an image">
-        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-2 text-xs pointer-coarse:min-h-11">
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
-            onChange={(e) => {
-              const f = e.target.files?.[0] ?? null;
-              void onPickFile(f);
-              e.target.value = "";
-            }}
-            className="hidden"
-          />
-          <I.Upload size={14} />
-          <span className="flex-1">Choose a PNG / JPG…</span>
-        </label>
+        <ImageFileButton
+          accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+          onPick={onPickFile}
+        />
       </PropRow>
 
       <div className="text-[0.8125rem] leading-relaxed text-text-muted">
@@ -229,7 +219,7 @@ export function ImagePanel() {
           </div>
           <div className="mt-1.5">
             <div className="mb-1.5 text-[0.8125rem] font-medium text-text-muted">Align</div>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="img-action-grid gap-1.5">
               <ReorderButton label="Center H" onClick={() => center("h")} />
               <ReorderButton label="Center V" onClick={() => center("v")} />
               <ReorderButton label="Center" onClick={() => center("both")} />
@@ -239,14 +229,14 @@ export function ImagePanel() {
             <div className="mb-1.5 text-[0.8125rem] font-medium text-text-muted">
               Size to canvas
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="img-action-grid gap-1.5">
               <ReorderButton label="Fit" onClick={() => fitOrFill("fit")} />
               <ReorderButton label="Fill" onClick={() => fitOrFill("fill")} />
             </div>
           </div>
           <div className="mt-1.5">
             <div className="mb-1.5 text-[0.8125rem] font-medium text-text-muted">Layer order</div>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="img-action-grid gap-1.5">
               <ReorderButton label="To front" onClick={() => reorder("front")} />
               <ReorderButton label="Forward" onClick={() => reorder("forward")} />
               <ReorderButton label="Backward" onClick={() => reorder("backward")} />

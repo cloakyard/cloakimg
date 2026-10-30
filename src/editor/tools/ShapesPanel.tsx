@@ -9,7 +9,7 @@ import type { ComponentType } from "react";
 import { I } from "../../components/icons";
 import { ColorPicker } from "../ColorPicker";
 import { useEditorActions, useToolState } from "../EditorContext";
-import { PropRow, ToggleSwitch, SliderField } from "../atoms";
+import { PropRow, SwitchField, SliderField } from "../atoms";
 
 interface ShapeDef {
   name: string;
@@ -93,14 +93,11 @@ export function ShapesPanel() {
         defaultValue={1}
         onChange={(v) => patchTool("shapeOpacity", v)}
       />
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[0.8125rem] font-medium text-text-muted">Lock aspect</span>
-        <ToggleSwitch
-          ariaLabel="Lock aspect"
-          on={toolState.shapeLockAspect}
-          onChange={(next) => patchTool("shapeLockAspect", next)}
-        />
-      </div>
+      <SwitchField
+        label="Lock aspect"
+        on={toolState.shapeLockAspect}
+        onChange={(next) => patchTool("shapeLockAspect", next)}
+      />
 
       {kind === 1 && (
         <SliderField

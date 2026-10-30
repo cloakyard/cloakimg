@@ -77,7 +77,7 @@ export function EmojiPanel() {
       </PropRow>
 
       <PropRow label="Category">
-        <div className="flex flex-wrap gap-1">
+        <div className="air-segments img-emoji-categories">
           {EMOJI_CATEGORIES.map((c) => {
             const isActive = c.id === tabId;
             return (
@@ -88,9 +88,6 @@ export function EmojiPanel() {
                 title={c.label}
                 aria-label={c.label}
                 aria-pressed={isActive}
-                className={`flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-md px-1.5 text-[15px] leading-none pointer-coarse:h-11 pointer-coarse:min-w-11 ${
-                  isActive ? "border border-accent bg-accent/10" : "border border-border bg-surface"
-                }`}
                 style={{ fontFamily: EMOJI_FONT_STACK }}
               >
                 {c.icon}
@@ -108,7 +105,7 @@ export function EmojiPanel() {
             users to disambiguate which scrollbar they were trying to
             engage. Letting the grid grow to its natural height collapses
             the editor to a single vertical scroll surface. */}
-        <div className="grid grid-cols-6 gap-1">
+        <div className="air-segments img-emoji-grid">
           {category.items.map((char) => {
             const isActive = char === active;
             return (
@@ -119,11 +116,6 @@ export function EmojiPanel() {
                 title={char}
                 aria-label={char}
                 aria-pressed={isActive}
-                className={`flex aspect-square cursor-pointer items-center justify-center rounded-md text-[20px] leading-none ${
-                  isActive
-                    ? "border-2 border-accent bg-accent/10"
-                    : "border border-border bg-surface"
-                }`}
                 style={{ fontFamily: EMOJI_FONT_STACK }}
               >
                 {char}
@@ -139,6 +131,9 @@ export function EmojiPanel() {
             ref={inputRef}
             type="text"
             inputMode="text"
+            name="emoji"
+            autoComplete="off"
+            spellCheck={false}
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
             onKeyDown={(e) => {

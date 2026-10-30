@@ -118,31 +118,14 @@ export function BorderPanel() {
         </PropRow>
       ) : (
         <PropRow label="Target ratio">
-          <div className="flex flex-wrap gap-1.5">
-            {/* Explicit "None" pill — gives the user a tappable
-                "no aspect lock" state instead of relying on
-                tap-the-active-button-again to clear. The previous
-                tap-to-deselect behaviour is retained for power users
-                but the None pill makes the no-op state visible to
-                first-time users. */}
-            {(() => {
-              const noneActive = toolState.borderAspect === 0;
-              return (
-                <button
-                  key="none"
-                  type="button"
-                  onClick={() => patchTool("borderAspect", 0)}
-                  aria-pressed={noneActive}
-                  className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[0.8125rem] font-medium pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
-                    noneActive
-                      ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
-                      : "border-border-soft bg-page-bg text-text-muted"
-                  }`}
-                >
-                  None
-                </button>
-              );
-            })()}
+          <div className="air-segments img-choice-grid">
+            <button
+              type="button"
+              onClick={() => patchTool("borderAspect", 0)}
+              aria-pressed={toolState.borderAspect === 0}
+            >
+              None
+            </button>
             {BORDER_ASPECTS.map((a) => {
               const active = Math.abs(toolState.borderAspect - a.ratio) < 1e-3;
               return (
@@ -151,11 +134,6 @@ export function BorderPanel() {
                   type="button"
                   onClick={() => patchTool("borderAspect", active ? 0 : a.ratio)}
                   aria-pressed={active}
-                  className={`flex-1 cursor-pointer rounded-md border px-2 py-1.5 text-[0.8125rem] font-medium pointer-coarse:py-2.5 pointer-coarse:text-[0.8125rem] ${
-                    active
-                      ? "border-accent bg-surface-soft text-text bg-surface-soft text-text"
-                      : "border-border-soft bg-page-bg text-text-muted"
-                  }`}
                 >
                   {a.label}
                 </button>
@@ -187,7 +165,7 @@ export function BorderPanel() {
         onClick={reset}
         disabled={!dirty}
       >
-        <I.Refresh size={12} />
+        <I.Refresh size={16} />
         Reset
       </button>
     </>

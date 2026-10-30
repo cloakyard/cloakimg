@@ -58,7 +58,9 @@ export function MobileEditorSurface() {
     registerPendingApply,
     runBusy,
   } = useEditor();
-  const [mode, setMode] = useState<Mode>("collapsed");
+  const [mode, setMode] = useState<Mode>(() =>
+    toolState.activeTool === "move" ? "collapsed" : "tool",
+  );
   const [toolQuery, setToolQuery] = useState("");
 
   // History cursor captured the moment the surface enters `tool` mode.
@@ -76,7 +78,7 @@ export function MobileEditorSurface() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [maxPx, setMaxPx] = useState(0);
   const [availablePx, setAvailablePx] = useState(0);
-  const [expandedControls, setExpandedControls] = useState(false);
+  const [expandedControls, setExpandedControls] = useState(toolState.activeTool === "adjust");
   useLayoutEffect(() => {
     const outer = wrapRef.current;
     if (!outer) return;
@@ -320,10 +322,11 @@ export function MobileEditorSurface() {
   const handleSelectTool = useCallback(
     (id: ToolId) => {
       setToolQuery("");
-      setActiveTool(id);
-      // The activeTool effect transitions mode → tool.
+      // A tool retained across a breakpoint need not change identity to reopen.
+      if (id === toolState.activeTool) setMode("tool");
+      else setActiveTool(id);
     },
-    [setActiveTool],
+    [setActiveTool, toolState.activeTool],
   );
 
   const visibleTools = useMemo(() => searchEditorTools(toolQuery, MOBILE_TOOLS), [toolQuery]);

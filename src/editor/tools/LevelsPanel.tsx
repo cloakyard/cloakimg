@@ -218,7 +218,7 @@ export function LevelsPanel() {
           onClick={reset}
           disabled={!dirty}
         >
-          <I.Refresh size={12} />
+          <I.Refresh size={16} />
           Reset
         </button>
       </ScopeGate>

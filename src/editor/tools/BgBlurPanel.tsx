@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect } from "react";
 import { I } from "../../components/icons";
-import { PropRow, Segment, ToggleSwitch, SliderField } from "../atoms";
+import { PropRow, Segment, SwitchField, SliderField } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -195,9 +195,11 @@ export function BgBlurPanel() {
             tilt-shift (which has its own falloff geometry). Hide it
             in those cases instead of showing a no-op toggle. */}
         {scope !== 0 && lens !== "tilt-shift" && (
-          <PropRow label="Progressive falloff">
-            <ToggleSwitch on={progressive} onChange={(v) => patchTool("bgBlurProgressive", v)} />
-          </PropRow>
+          <SwitchField
+            label="Progressive falloff"
+            on={progressive}
+            onChange={(v) => patchTool("bgBlurProgressive", v)}
+          />
         )}
 
         <button
@@ -206,7 +208,7 @@ export function BgBlurPanel() {
           onClick={reset}
           disabled={amount === 0 && scope === 2 && lens === "gaussian" && !progressive}
         >
-          <I.Refresh size={12} />
+          <I.Refresh size={16} />
           Reset
         </button>
 

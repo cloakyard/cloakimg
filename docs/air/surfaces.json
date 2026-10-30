@@ -173,14 +173,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-runtime-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/FilePropertiesModal.tsx",
@@ -239,19 +247,45 @@
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
+      "path": "src/editor/ImageFileButton.tsx",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
+      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
+      "evidence": ["docs/air/tool-state-audit-2026-10-30.md"],
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
+    },
+    {
       "path": "src/editor/LayerFilters.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/LayersList.tsx",
@@ -291,14 +325,17 @@
         "invalid",
         "selected",
         "disabled",
-        "emulated-touch"
+        "emulated-touch",
+        "breakpoint-transition",
+        "enlarged-text"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
       "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
@@ -332,15 +369,18 @@
         "invalid",
         "selected",
         "disabled",
-        "emulated-touch"
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/PrivacyAuditCard.tsx",
@@ -745,16 +785,19 @@
         "invalid",
         "selected",
         "disabled",
-        "emulated-touch"
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/AdjustPanel.tsx",
@@ -762,15 +805,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/AdjustTool.tsx",
@@ -778,14 +830,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/BgBlurPanel.tsx",
@@ -793,15 +853,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/BgBlurTool.tsx",
@@ -809,14 +878,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/BorderPanel.tsx",
@@ -824,15 +901,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/BorderTool.tsx",
@@ -840,14 +926,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ColorPickerPanel.tsx",
@@ -855,16 +949,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ColorPickerTool.tsx",
@@ -872,14 +975,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/CropTool.tsx",
@@ -887,7 +998,15 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
@@ -895,9 +1014,10 @@
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/vector-landscape-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/CurveEditor.tsx",
@@ -913,16 +1033,19 @@
         "invalid",
         "selected",
         "disabled",
-        "emulated-touch"
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/DrawPanel.tsx",
@@ -930,15 +1053,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/DrawTool.tsx",
@@ -946,14 +1078,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/EmojiPanel.tsx",
@@ -961,16 +1101,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/EmojiTool.tsx",
@@ -978,14 +1127,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/FilterPanel.tsx",
@@ -993,15 +1150,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/FilterTool.tsx",
@@ -1009,14 +1175,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/FrameTool.tsx",
@@ -1024,15 +1198,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/HslPanel.tsx",
@@ -1040,16 +1223,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/HslTool.tsx",
@@ -1057,14 +1249,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/IdPhotoTool.tsx",
@@ -1072,16 +1272,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ImagePanel.tsx",
@@ -1089,15 +1298,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ImageTool.tsx",
@@ -1105,14 +1323,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/LevelsPanel.tsx",
@@ -1120,15 +1346,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/LevelsTool.tsx",
@@ -1136,14 +1371,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/MovePanel.tsx",
@@ -1151,15 +1394,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/PenPanel.tsx",
@@ -1167,15 +1419,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/PenTool.tsx",
@@ -1183,15 +1444,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/vector-landscape-2026-10-30.md"
+        "docs/air/vector-landscape-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/PerspectivePanel.tsx",
@@ -1199,16 +1468,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/PerspectiveTool.tsx",
@@ -1216,15 +1494,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/vector-landscape-2026-10-30.md"
+        "docs/air/vector-landscape-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RedactPanel.tsx",
@@ -1232,16 +1518,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RedactTool.tsx",
@@ -1249,14 +1544,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RelightPanel.tsx",
@@ -1264,16 +1567,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RelightTool.tsx",
@@ -1281,14 +1593,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RemoveBgPanel.tsx",
@@ -1296,16 +1616,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/RemoveBgTool.tsx",
@@ -1313,14 +1642,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ResizePanel.tsx",
@@ -1328,16 +1665,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ShapesPanel.tsx",
@@ -1345,16 +1691,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/ShapesTool.tsx",
@@ -1362,14 +1717,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/SpotHealPanel.tsx",
@@ -1377,15 +1740,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/SpotHealTool.tsx",
@@ -1393,15 +1765,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/vector-landscape-2026-10-30.md"
+        "docs/air/vector-landscape-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TapFixPanel.tsx",
@@ -1409,15 +1789,24 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TapFixTool.tsx",
@@ -1425,15 +1814,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TextPanel.tsx",
@@ -1441,16 +1838,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TextTool.tsx",
@@ -1458,14 +1864,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TimeOfDayPanel.tsx",
@@ -1473,16 +1887,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/TimeOfDayTool.tsx",
@@ -1490,14 +1913,22 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/WatermarkPanel.tsx",
@@ -1505,16 +1936,25 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["baseline default panel inspected", "light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "baseline default panel inspected",
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/editor-audit.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/landing/Features.tsx",
@@ -1751,15 +2191,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/styles/air-entry.css",
@@ -1830,15 +2278,23 @@
       "sourceReviewed": true,
       "airImplemented": true,
       "validated": false,
-      "states": ["light", "dark", "keyboard", "emulated-touch"],
+      "states": [
+        "light",
+        "dark",
+        "keyboard",
+        "emulated-touch",
+        "alternate-tool-state",
+        "enlarged-text"
+      ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/tool-state-audit-2026-10-30.md"
       ],
-      "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     }
   ]
 }

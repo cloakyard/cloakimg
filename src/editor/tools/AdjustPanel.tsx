@@ -188,7 +188,7 @@ export function AdjustPanel() {
             className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
             onClick={reset}
           >
-            <I.Refresh size={12} />
+            <I.Refresh size={16} />
             Reset all adjustments
           </button>
         )}

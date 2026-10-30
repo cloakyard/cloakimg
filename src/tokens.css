@@ -93,13 +93,13 @@ label[for] {
 }
 .control-field {
   min-width: 0;
-  min-height: var(--air-control-compact);
+  min-height: var(--air-control);
   border: 1px solid var(--air-line-control);
   border-radius: var(--air-radius-control);
   background: var(--air-surface);
   color: var(--air-ink);
-  padding: 6px 12px;
-  font-size: var(--air-text-body);
+  padding: 8px 12px;
+  font: 400 var(--air-text-body)/1.5 var(--air-font);
 }
 .control-field:focus-visible {
   border-color: transparent;
@@ -158,6 +158,7 @@ label[for] {
   font: var(--air-text-meta) var(--air-font);
 }
 .btn {
+  flex-shrink: 0;
   min-height: var(--air-control);
   display: inline-flex;
   align-items: center;
@@ -281,9 +282,11 @@ html,
   .editor-topbar button:not(.editor-topbar__brand):not(.editor-topbar__file) {
     min-width: 44px;
   }
+  .editor-shell textarea {
+    font-size: 1rem;
+  }
   .control-field,
   .editor-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-  .editor-shell textarea,
   .cloak-dialog input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
     min-height: 44px;
     min-width: 44px;

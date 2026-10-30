@@ -1,5 +1,5 @@
-/** A precision field retains invalid drafts until corrected or explicitly reverted. */
-import { useId, useRef, useState } from "react";
+/** A native precision field retains invalid drafts until corrected or reverted. */
+import { useEffect, useId, useRef, useState } from "react";
 interface Props {
   value: number;
   min: number;
@@ -22,36 +22,45 @@ export function NumberField({
   disabled,
   onCommit,
 }: Props) {
-  const [draft, setDraft] = useState<string | null>(null),
-    [error, setError] = useState("");
+  const [error, setError] = useState("");
   const errorId = useId();
-  const skipBlur = useRef(false);
+  const input = useRef<HTMLInputElement>(null);
+  const dirty = useRef(false);
+  const stepping = useRef(false);
   const precision = Math.max(0, (String(step).split(".")[1] ?? "").length);
-  const format = (n: number) => String(Number(n.toFixed(precision)));
-  const raw = draft ?? format(value);
-  const parse = (text: string) =>
-    /^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(text.trim()) ? Number(text) : NaN;
-  const commit = () => {
-    const n = parse(raw);
-    if (!Number.isFinite(n) || n < min || n > max) {
-      setError(`Enter ${format(min)} to ${format(max)}${unit ? ` ${unit}` : ""}.`);
+  const display = String(Number(value.toFixed(precision)));
+  // Leave the DOM in charge of partial native drafts (e.g. a lone minus).
+  // React-controlled values cannot represent validity.badInput's visible text.
+  useEffect(() => {
+    if (input.current && !dirty.current) input.current.value = display;
+  }, [display]);
+  const commit = (field: HTMLInputElement) => {
+    if (!field.value || !field.validity.valid) {
+      setError(
+        field.validity.stepMismatch
+          ? `Use increments of ${step}${unit ? ` ${unit}` : ""}.`
+          : `Enter ${min} to ${max}${unit ? ` ${unit}` : ""}.`,
+      );
       return false;
     }
-    onCommit(Number(n.toFixed(precision)));
+    dirty.current = false;
     setError("");
-    setDraft(null);
+    onCommit(field.valueAsNumber);
     return true;
   };
   return (
     <span className="img-number">
-      <span className="img-number__row">
+      <span className="air-field-group img-number__row">
         <input
-          type="text"
-          inputMode="decimal"
+          ref={input}
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          inputMode={min < 0 ? "text" : "decimal"}
           autoComplete="off"
-          spellCheck={false}
-          className="control-field"
-          value={raw}
+          className="air-field"
+          defaultValue={display}
           disabled={disabled}
           aria-label={label}
           aria-labelledby={labelledBy}
@@ -60,48 +69,52 @@ export function NumberField({
             [unit ? `${errorId}-unit` : "", error ? errorId : ""].filter(Boolean).join(" ") ||
             undefined
           }
-          onChange={(e) => {
-            setDraft(e.target.value);
+          onChange={(event) => {
+            dirty.current = true;
             setError("");
+            if (stepping.current) commit(event.currentTarget);
           }}
-          onFocus={(e) => e.currentTarget.select()}
-          onBlur={() => {
-            if (skipBlur.current) {
-              skipBlur.current = false;
-              return;
-            }
-            if (draft !== null) commit();
+          onFocus={(event) => event.currentTarget.select()}
+          onBlur={(event) => {
+            stepping.current = false;
+            if (dirty.current) commit(event.currentTarget);
           }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.stopPropagation();
-              setDraft(null);
+          onKeyUp={() => {
+            stepping.current = false;
+          }}
+          onKeyDown={(event) => {
+            const field = event.currentTarget;
+            if (event.key === "Escape") {
+              event.stopPropagation();
+              dirty.current = false;
+              field.value = display;
               setError("");
-            } else if (e.key === "Enter") {
-              e.preventDefault();
-              e.stopPropagation();
-              if (commit()) {
-                skipBlur.current = true;
-                e.currentTarget.blur();
+            } else if (event.key === "Enter") {
+              event.preventDefault();
+              event.stopPropagation();
+              if (commit(field)) field.blur();
+            } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+              event.stopPropagation();
+              // Do not repair an invalid typed draft by silently snapping it.
+              if (!field.value || !field.validity.valid) {
+                event.preventDefault();
+                commit(field);
+              } else if (event.shiftKey) {
+                event.preventDefault();
+                if (event.key === "ArrowUp") field.stepUp(10);
+                else field.stepDown(10);
+                commit(field);
+              } else {
+                stepping.current = true;
               }
-            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-              e.preventDefault();
-              e.stopPropagation();
-              const n = parse(raw);
-              if (!Number.isFinite(n)) return;
-              const next = Math.min(
-                max,
-                Math.max(min, n + (e.key === "ArrowUp" ? step : -step) * (e.shiftKey ? 10 : 1)),
-              );
-              onCommit(Number(next.toFixed(precision)));
-              setDraft(null);
-              setError("");
             }
           }}
         />
-        <span id={`${errorId}-unit`} className="img-number__unit">
-          {unit}
-        </span>
+        {unit && (
+          <span id={`${errorId}-unit`} className="air-field-unit">
+            {unit}
+          </span>
+        )}
       </span>
       {error && (
         <span id={errorId} className="img-field-error" role="alert">

@@ -607,10 +607,10 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
             href={preset.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-1 flex min-h-7 w-fit items-center gap-1 whitespace-nowrap rounded-sm font-medium text-text underline decoration-current underline-offset-2 outline-2 outline-transparent hover:text-text focus-visible:outline-accent active:text-text pointer-coarse:min-h-11 dark:hover:text-text"
+            className="mt-1 flex min-h-8 w-fit items-center gap-2 rounded-md font-medium text-text underline decoration-current underline-offset-2 outline-2 outline-transparent hover:text-text focus-visible:outline-accent active:text-text pointer-coarse:min-h-11 dark:hover:text-text"
           >
             Check {preset.sourceLabel ?? "authority guidance"}{" "}
-            <I.ArrowUpRight size={11} aria-hidden="true" />
+            <I.ArrowUpRight size={16} aria-hidden="true" />
           </a>
         ) : null}
       </div>
@@ -618,16 +618,12 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       <button
         type="button"
         onClick={() => patchTool("activeTool", "bgrm")}
-        className={`group flex w-full cursor-pointer items-center gap-2.5 rounded-md border px-2.5 py-2 text-left outline-2 outline-transparent transition-colors focus-visible:outline-accent pointer-coarse:min-h-12 ${
-          backgroundPrepared
-            ? "border-[var(--air-success)] bg-[var(--air-success-soft)] hover:bg-[var(--air-success-soft)] active:bg-[var(--air-success-soft)] border-[var(--air-success)] bg-[var(--air-success-soft)] dark:hover:bg-[var(--air-success-soft)] dark:active:bg-[var(--air-success-soft)]"
-            : "border-border-soft bg-page-bg hover:border-border hover:bg-surface active:bg-page-bg"
-        }`}
+        className="btn btn-secondary w-full text-left"
       >
         <span
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
             backgroundPrepared
-              ? "bg-[var(--air-success-soft)] text-success bg-[var(--air-success-soft)] text-success"
+              ? "bg-[var(--air-success-soft)] text-success"
               : "bg-surface text-text-muted"
           }`}
         >
@@ -677,7 +673,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
             </div>
           </PropRow>
           <button type="button" className="btn btn-secondary btn-sm w-full" onClick={resetCrop}>
-            <I.Refresh size={12} aria-hidden="true" /> Reset framing
+            <I.Refresh size={16} aria-hidden="true" /> Reset framing
           </button>
         </>
       ) : null}
@@ -727,30 +723,30 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       {error ? (
         <div
           role="alert"
-          className="flex gap-2 rounded-md border border-danger/35 bg-danger/8 px-2.5 py-2 text-[0.8125rem] leading-relaxed text-danger"
+          className="flex gap-2 rounded-md border border-[var(--air-danger)] bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] leading-relaxed text-danger"
         >
           <I.AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="btn btn-primary min-w-0 px-2"
+          className="btn btn-primary min-w-0 flex-1"
           onClick={() => void handlePrint()}
           disabled={!!busy || !crop || layout.copies === 0}
         >
-          {busy === "print" ? <InlineSpinner /> : <I.Printer size={13} aria-hidden="true" />}
+          {busy === "print" ? <InlineSpinner /> : <I.Printer size={16} aria-hidden="true" />}
           {busy === "print" ? "Preparing…" : "Print"}
         </button>
         <button
           type="button"
-          className="btn btn-secondary min-w-0 px-2"
+          className="btn btn-secondary min-w-0 flex-1"
           onClick={() => void handlePdf()}
           disabled={!!busy || !crop || layout.copies === 0}
         >
-          {busy === "pdf" ? <InlineSpinner /> : <I.Download size={13} aria-hidden="true" />}
+          {busy === "pdf" ? <InlineSpinner /> : <I.Download size={16} aria-hidden="true" />}
           {busy === "pdf" ? "Building…" : "Save PDF"}
         </button>
       </div>

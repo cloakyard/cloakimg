@@ -239,7 +239,7 @@ export function TapFixTool() {
   // infer.
   const spotHealChip = {
     label: "Spot heal here",
-    icon: <I.Eraser size={12} />,
+    icon: <I.Eraser size={16} />,
     run: () => {
       // Carry the exact tap point so Spot heal opens with its brush ring
       // already parked on the blemish the user pointed at, instead of
@@ -254,7 +254,7 @@ export function TapFixTool() {
     const box = context.box;
     chips.push({
       label: "Pixelate face",
-      icon: <I.EyeOff size={12} />,
+      icon: <I.EyeOff size={16} />,
       run: () => {
         const padded = padFaceBox(box, 0.15, doc.working.width, doc.working.height);
         runAndCommit("Pixelate face", () => {
@@ -268,7 +268,7 @@ export function TapFixTool() {
     });
     chips.push({
       label: "Blur face",
-      icon: <I.Focus size={12} />,
+      icon: <I.Focus size={16} />,
       run: () => {
         const padded = padFaceBox(box, 0.15, doc.working.width, doc.working.height);
         runAndCommit("Blur face", () => {
@@ -284,7 +284,7 @@ export function TapFixTool() {
   } else if (context.kind === "subject") {
     chips.push({
       label: "Remove background",
-      icon: <I.Layers size={12} />,
+      icon: <I.Layers size={16} />,
       run: () => {
         // Hand off to the Remove BG tool — it owns the canonical
         // U²-Net composite path. Tap-to-fix is a launcher here, not
@@ -296,7 +296,7 @@ export function TapFixTool() {
     });
     chips.push({
       label: "Pixelate subject",
-      icon: <I.EyeOff size={12} />,
+      icon: <I.EyeOff size={16} />,
       run: () => {
         // Hand off to Redact's Smart anonymize Person — same
         // rationale: don't re-implement the smart-anonymize
