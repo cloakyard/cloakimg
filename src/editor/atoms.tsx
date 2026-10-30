@@ -352,7 +352,7 @@ export function Slider({
       // and Material both ask for ≥44 pt. The visible rail stays the
       // same; only the wrapper's height grows so the thumb is easier
       // to grab without changing the panel layout density.
-      className={`relative flex h-4.5 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent pointer-coarse:h-11 ${onChange ? "cursor-pointer" : "cursor-default opacity-50"}`}
+      className={`relative flex h-8 items-center touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent pointer-coarse:h-11 ${onChange ? "cursor-pointer" : "cursor-default opacity-50"}`}
       title={defaultValue !== undefined ? "Double-click to reset" : undefined}
     >
       <div className="relative h-0.75 w-full rounded-sm bg-border-soft pointer-coarse:h-1">
@@ -451,7 +451,7 @@ export function Spinner({ size = 36, label }: SpinnerProps) {
           className="text-text"
         />
       </svg>
-      {label && <div className="text-[13px] text-text-muted">{label}</div>}
+      {label && <div className="text-[0.8125rem] text-text-muted">{label}</div>}
     </div>
   );
 }
@@ -506,35 +506,16 @@ interface ToggleProps {
 export function ToggleSwitch({ on, onChange, ariaLabel }: ToggleProps) {
   const propRowLabelId = useContext(PropRowLabelContext);
   return (
-    // Touch-friendly hit area: the visible pill stays compact, but a
-    // transparent padding-only wrapper extends the tap target to ~44 pt
-    // on coarse pointers so the switch isn't a fingertip-precision
-    // exercise on phones.
-    <button
-      type="button"
-      onClick={() => onChange?.(!on)}
+    <input
+      type="checkbox"
       role="switch"
+      checked={on}
       aria-checked={on}
       aria-label={ariaLabel}
       aria-labelledby={ariaLabel ? undefined : propRowLabelId}
       disabled={!onChange}
-      className="inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:h-11 pointer-coarse:w-11"
-    >
-      <span
-        className={`relative inline-block h-4 w-7 rounded-full transition-colors pointer-coarse:h-6 pointer-coarse:w-10 ${
-          on ? "bg-accent" : "bg-border"
-        }`}
-      >
-        <span
-          // The thumb sits inset 2 px from the off-side and slides 12 px
-          // (desktop) / 16 px (touch) to land inset 2 px from the on-side
-          // — width and pad scale together so the same translate values
-          // bottom out at both sizes.
-          className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-surface shadow-[none] transition-transform pointer-coarse:top-1 pointer-coarse:left-1 pointer-coarse:h-4 pointer-coarse:w-4 ${
-            on ? "translate-x-3 pointer-coarse:translate-x-4" : "translate-x-0"
-          }`}
-        />
-      </span>
-    </button>
+      onChange={(event) => onChange?.(event.target.checked)}
+      className="air-switch"
+    />
   );
 }

@@ -673,7 +673,7 @@ export function CropPanel() {
         <>
           <button
             type="button"
-            className="btn btn-primary mt-1 w-full justify-center px-2! py-2.25! text-[0.8125rem]! pointer-coarse:py-3! pointer-coarse:text-[13.5px]!"
+            className="btn btn-primary mt-1 w-full justify-center"
             onClick={() => void apply()}
             disabled={applying}
             style={{ opacity: applying ? 0.7 : 1 }}
@@ -782,7 +782,7 @@ function CropDimensions() {
 
   return (
     <PropRow label="Dimensions">
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="img-dimensions">
         <NumInput
           label="W"
           min={8}

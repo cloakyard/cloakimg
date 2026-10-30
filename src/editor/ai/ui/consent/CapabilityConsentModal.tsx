@@ -102,7 +102,7 @@ export function CapabilityConsentModal({
       </div>
 
       <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
-        <p className="text-[13px] leading-relaxed text-text-muted">
+        <p className="text-[0.8125rem] leading-relaxed text-text-muted">
           {switchMode ? family.consent.switchBody : family.consent.body}
         </p>
 

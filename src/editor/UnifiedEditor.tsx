@@ -18,7 +18,7 @@ import {
   useToolState,
 } from "./EditorContext";
 // Side-effect import: mutates Fabric's static ownDefaults to apply the
-// coral brand colour to every selectable object's border / handles /
+// Air paper-accent to every selectable object's border / handles /
 // IText cursor. Must be imported before any Fabric Canvas is created.
 import "./fabricDefaults";
 import { ExportModal, type ExportSettings } from "./ExportModal";
@@ -348,7 +348,7 @@ function BusyOverlay({ label }: { label: string }) {
     >
       <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-5 py-4 shadow-[var(--air-shadow-menu)]">
         <Spinner size={22} />
-        <span className="text-[13px] font-medium text-text">{label}</span>
+        <span className="text-[0.8125rem] font-medium text-text">{label}</span>
       </div>
     </div>
   );
@@ -366,8 +366,8 @@ function ErrorBanner({ message }: { message: string }) {
           <I.Triangle size={26} stroke={1.75} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <div className="text-[17px] font-medium tracking-tight">Couldn't open this image</div>
-          <div className="text-[13px] leading-relaxed text-text-muted">
+          <div className="text-[1.25rem] font-medium tracking-tight">Couldn't open this image</div>
+          <div className="text-[0.8125rem] leading-relaxed text-text-muted">
             The file may be corrupted, in an unsupported format, or no longer available on this
             device.
           </div>

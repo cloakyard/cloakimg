@@ -124,7 +124,7 @@ function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuIt
         <Icon size={17} stroke={2.1} />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[13.5px] font-medium">{label}</span>
+        <span className="text-[0.875rem] font-medium">{label}</span>
         {hint && (
           <span className="overflow-hidden text-[0.8125rem] text-ellipsis whitespace-nowrap text-text-muted">
             {hint}

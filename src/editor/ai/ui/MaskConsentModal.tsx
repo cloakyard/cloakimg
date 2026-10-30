@@ -123,7 +123,7 @@ export function MaskConsentModal({
       </div>
 
       <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
-        <p className="text-[13px] leading-relaxed text-text-muted">
+        <p className="text-[0.8125rem] leading-relaxed text-text-muted">
           {switchMode
             ? "Switch between the three tiers below. Sizes you've already used in this browser run instantly — others download once and cache for next time."
             : "Subject-aware tools (smart crop, scoped adjustments, portrait blur, smart redact) need a segmentation model. It runs entirely on this device — your image is never uploaded."}

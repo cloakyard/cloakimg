@@ -50,18 +50,12 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
 
   return (
     <>
-      <header
-        className={
-          isMobile
-            ? "editor-topbar flex h-16 shrink-0 items-center gap-1.5 border-b border-border px-3 py-3"
-            : "editor-topbar flex h-16 shrink-0 items-center gap-3 border-b border-border px-4 py-3"
-        }
-      >
+      <header className="editor-topbar" data-compact={isMobile}>
         <button
           type="button"
           onClick={onLogoClick}
           aria-label="Back to start"
-          className="editor-topbar__brand flex cursor-pointer items-center gap-2 rounded-md border-none bg-transparent p-0 font-[inherit] text-inherit pointer-coarse:min-h-11"
+          className="editor-topbar__brand"
         >
           <BrandMark size={36} />
           <div className="logo-wordmark">
@@ -77,7 +71,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onClick={() => doc && onShowFileProps()}
             disabled={!doc}
             title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="editor-topbar__file flex min-w-0 max-w-60 cursor-pointer items-center gap-1.5 overflow-hidden rounded-md border border-border-soft bg-transparent px-2.5 py-1 font-[inherit] text-[0.8125rem] text-inherit transition-colors hover:bg-surface pointer-coarse:min-h-11"
+            className="editor-topbar__file btn btn-ghost btn-sm"
           >
             <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
               {fileName}
@@ -90,13 +84,8 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           </button>
         )}
 
-        {/* Single/Batch — V4 (May 2026) compressed to a small icon-led
-            segmented control. The prior chips were the largest visual
-            target in the toolbar despite Batch being a power-user
-            feature most sessions never touch; the tighter pair keeps
-            Batch one click away without dominating the chrome. */}
         {!isMobile && (
-          <div className="flex rounded-md border border-border-soft p-0.5 pointer-coarse:p-0">
+          <div className="air-segments" role="group" aria-label="Editing mode">
             {(["single", "batch"] as const).map((m) => {
               const active = mode === m;
               const Ic = m === "single" ? I.FileImage : I.Layers;
@@ -108,27 +97,15 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
                   title={m === "single" ? "Single photo" : "Batch"}
                   aria-label={m === "single" ? "Single photo" : "Batch"}
                   aria-pressed={active}
-                  className={`flex h-6 w-7 cursor-pointer items-center justify-center rounded-sm border-none font-[inherit] transition-colors pointer-coarse:h-11 pointer-coarse:w-11 ${
-                    active
-                      ? "bg-surface text-text shadow-[none]"
-                      : "bg-transparent text-text-muted hover:text-text"
-                  }`}
                 >
-                  <Ic size={12} />
+                  <Ic size={18} aria-hidden="true" />
                 </button>
               );
             })}
           </div>
         )}
 
-        <div className="flex-1" />
-
-        {/* V4 (May 2026) — the "Private" shield pill was decoration
-            inside the editor: the user has already chosen the tool, and
-            the brand mark + privacy framing on landing has already
-            established the contract. Stripping it tightens the toolbar
-            and lets undo / redo / zoom / compare carry the actionable
-            chrome unchallenged. */}
+        <div className="editor-topbar__spacer" />
 
         <div className={`flex ${isMobile ? "gap-0" : "gap-0.5"}`}>
           <button
@@ -138,7 +115,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             disabled={!canUndo}
             onClick={() => void undo()}
           >
-            <I.Undo size={isMobile ? 17 : 15} />
+            <I.Undo size={18} />
           </button>
           <button
             type="button"
@@ -147,7 +124,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             disabled={!canRedo}
             onClick={() => void redo()}
           >
-            <I.Redo size={isMobile ? 17 : 15} />
+            <I.Redo size={18} />
           </button>
           {!isMobile && (
             <button
@@ -158,7 +135,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               disabled={!canReset}
               onClick={() => setResetConfirmOpen(true)}
             >
-              <I.Refresh size={15} />
+              <I.Refresh size={18} />
             </button>
           )}
         </div>
@@ -166,14 +143,14 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         {!isMobile && <div className="h-4.5 w-px bg-border" />}
 
         {!isMobile && (
-          <div className="flex items-center gap-1 rounded-lg border border-border-soft p-0.5">
+          <div className="editor-zoom">
             <button
               type="button"
               className="btn btn-ghost btn-icon-xs"
               onClick={() => setView((v) => ({ ...v, zoom: Math.max(0.05, v.zoom / 1.2) }))}
               aria-label="Zoom out"
             >
-              <I.ZoomOut size={13} />
+              <I.ZoomOut size={16} />
             </button>
             <span className="tabular-nums min-w-9 px-1 text-center text-[0.8125rem] font-medium">
               {Math.round(view.zoom * 100)}%
@@ -184,7 +161,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               onClick={() => setView((v) => ({ ...v, zoom: Math.min(8, v.zoom * 1.2) }))}
               aria-label="Zoom in"
             >
-              <I.ZoomIn size={13} />
+              <I.ZoomIn size={16} />
             </button>
           </div>
         )}
@@ -192,9 +169,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
         {!isMobile && (
           <button
             type="button"
-            className={`btn btn-ghost btn-icon-sm ${
-              compareActive ? "bg-surface-soft text-text bg-surface-soft text-text" : ""
-            }`}
+            className={`btn btn-ghost btn-icon-sm ${compareActive ? "bg-surface-soft text-text" : ""}`}
             aria-label="Hold to compare with original"
             aria-pressed={compareActive}
             title="Hold to see the original"
@@ -202,27 +177,31 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             onPointerUp={() => setCompareActive(false)}
             onPointerLeave={() => setCompareActive(false)}
             onPointerCancel={() => setCompareActive(false)}
+            onKeyDown={(event) => {
+              if (event.key === " " || event.key === "Enter") {
+                event.preventDefault();
+                setCompareActive(true);
+              }
+            }}
+            onKeyUp={(event) => {
+              if (event.key === " " || event.key === "Enter") setCompareActive(false);
+            }}
+            onBlur={() => setCompareActive(false)}
             disabled={!doc}
           >
-            <I.GitCompare size={15} />
+            <I.GitCompare size={18} />
           </button>
         )}
 
-        {/* Desktop keeps Export as the brand-coloured CTA in the TopBar.
-            On mobile the V3 minimalist redesign collapses the prior
-            3-way bottom nav (Looks · Tools · Export) into a single
-            floating Tools pill, so Export gets surfaced here as a
-            ghost icon button — one tap away from the canvas idle view
-            without competing with the pill for the bottom margin. */}
         {!isMobile && (
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="editor-topbar__export btn btn-secondary btn-sm"
             onClick={openExport}
             aria-label="Export"
             title="Export"
           >
-            <I.Download size={13} />
+            <I.Download size={16} />
             Export
           </button>
         )}
@@ -236,7 +215,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             disabled={!doc}
             onClick={openExport}
           >
-            <I.Download size={17} />
+            <I.Download size={18} />
           </button>
         )}
 

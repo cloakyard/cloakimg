@@ -24,11 +24,12 @@ export function ToolSearchModal({ instant = false, onClose, onSelect }: Props) {
   const results = useMemo(() => searchEditorTools(query), [query]);
 
   useEffect(() => {
+    if (!instant && window.matchMedia?.("(pointer: coarse)").matches) return;
     const frame = window.requestAnimationFrame(() =>
       inputRef.current?.focus({ preventScroll: true }),
     );
     return () => window.cancelAnimationFrame(frame);
-  }, []);
+  }, [instant]);
 
   useEffect(() => {
     setActiveIndex((current) => (current >= results.length ? 0 : current));
@@ -118,66 +119,67 @@ function ToolSearchBody({
   return (
     <>
       <div className="cloak-dialog__header">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="cloak-dialog__icon">
-            <I.Search size={16} aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <div className="t-eyebrow text-[0.8125rem]">Workbench / navigation</div>
-            <div id="tool-search-title" className="t-headline truncate text-base">
-              Find a tool
-            </div>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <span
+        <div className="min-w-0">
+          <h2 id="tool-search-title" className="cloak-dialog__title">
+            Find a tool
+          </h2>
+          <p
             id="tool-search-count"
             aria-live="polite"
             aria-atomic="true"
             className="tabular-nums text-[0.8125rem] tracking-normal text-text-muted"
           >
             {countLabel}
-          </span>
+          </p>
+        </div>
+        <div className="shrink-0">
           <ModalCloseButton onClose={onClose} label="Close tool search" iconSize={14} />
         </div>
       </div>
 
-      <div className="flex h-13 shrink-0 items-center gap-2.5 border-b border-border bg-page-bg px-4 focus-within:z-10 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-accent">
-        <I.Search size={17} className="shrink-0 text-text-muted" aria-hidden="true" />
-        <input
-          ref={inputRef}
-          name="tool-search"
-          type="search"
-          role="combobox"
-          value={query}
-          onChange={(event) => onQuery(event.target.value)}
-          onKeyDown={onKeyDown}
-          aria-label="Search editor tools"
-          aria-describedby="tool-search-count"
-          aria-expanded="true"
-          aria-autocomplete="list"
-          aria-controls="tool-search-listbox"
-          aria-activedescendant={
-            results.length > 0 ? `tool-search-option-${activeIndex}` : undefined
-          }
-          placeholder="Search tools…"
-          autoComplete="off"
-          spellCheck={false}
-          className="editor-tool-search-input h-full min-w-0 flex-1 appearance-none border-none bg-transparent font-[inherit] text-sm text-text outline-none placeholder:text-text-muted [&::-webkit-search-cancel-button]:appearance-none"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => {
-              onQuery("");
-              inputRef.current?.focus({ preventScroll: true });
-            }}
-            aria-label="Clear tool search"
-            className="btn btn-ghost btn-icon-sm shrink-0"
-          >
-            <I.X size={14} aria-hidden="true" />
-          </button>
-        )}
+      <div className="editor-tool-search-wrap">
+        <label className="air-label" htmlFor="editor-tool-search">
+          Search editor tools
+        </label>
+        <div className="air-field-group editor-tool-search">
+          <I.Search size={17} className="shrink-0 text-text-muted" aria-hidden="true" />
+          <input
+            ref={inputRef}
+            id="editor-tool-search"
+            name="tool-search"
+            type="search"
+            role="combobox"
+            value={query}
+            onChange={(event) => onQuery(event.target.value)}
+            onKeyDown={onKeyDown}
+            aria-label="Search editor tools"
+            aria-describedby="tool-search-count"
+            aria-expanded="true"
+            aria-autocomplete="list"
+            aria-controls="tool-search-listbox"
+            aria-activedescendant={
+              results.length > 0 ? `tool-search-option-${activeIndex}` : undefined
+            }
+            placeholder="Search tools…"
+            autoComplete="off"
+            spellCheck={false}
+            className="air-field"
+          />
+          <span className="air-field-actions">
+            <button
+              type="button"
+              onClick={() => {
+                onQuery("");
+                inputRef.current?.focus({ preventScroll: true });
+              }}
+              aria-label="Clear tool search"
+              hidden={!query}
+              className="btn btn-ghost btn-icon air-field-clear"
+            >
+              <I.X size={14} aria-hidden="true" />
+            </button>
+          </span>
+        </div>
       </div>
 
       <div
@@ -219,28 +221,14 @@ function ToolSearchBody({
                 data-tool-index={index}
                 onPointerEnter={() => onActive(index)}
                 onClick={() => choose(tool.id)}
-                className={`relative grid min-h-14 w-full grid-cols-[2rem_1.25rem_minmax(0,1fr)_auto] items-center gap-2.5 border-x-0 border-t-0 border-b border-border px-4 py-2 text-left transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
-                  active
-                    ? "bg-surface-soft dark:bg-[var(--air-surface-soft)]"
-                    : "bg-surface hover:bg-page-bg"
-                }`}
+                className="editor-tool-option"
               >
-                <span className="tabular-nums text-[0.8125rem] text-text-muted">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
                 <span aria-hidden="true" className={active ? "text-text" : "text-text-muted"}>
                   <Icon size={16} />
                 </span>
-                <span className="min-w-0 truncate text-sm font-medium text-text">{tool.name}</span>
-                <span className="tabular-nums shrink-0 text-[0.8125rem] tracking-normal text-text-muted">
-                  {TOOL_GROUP_LABELS[tool.group]}
-                </span>
-                {active && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute top-[18%] bottom-[18%] left-0 w-[2px] bg-accent"
-                  />
-                )}
+                <span className="editor-tool-option__name">{tool.name}</span>
+                <span className="editor-tool-option__group">{TOOL_GROUP_LABELS[tool.group]}</span>
+                {active && <span aria-hidden="true" className="editor-tool-option__marker" />}
               </button>
             );
           })

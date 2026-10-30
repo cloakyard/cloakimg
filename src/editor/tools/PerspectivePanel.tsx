@@ -83,8 +83,8 @@ export function PerspectivePanel() {
     <>
       <div className="text-[0.8125rem] leading-relaxed text-text-muted">
         {isMobile
-          ? "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting."
-          : "Drag the four coral handles on the canvas to the corners of the rectangular subject — a document, screen, or painting — then Apply to flatten it."}
+          ? "Drag the four handles to the corners of the rectangular subject — a document, screen, or painting."
+          : "Drag the four handles to the corners of the rectangular subject — a document, screen, or painting — then Apply to flatten it."}
       </div>
 
       {recommended && !degenerate && (

@@ -220,213 +220,150 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
   }, [doc, getFabricCanvas, layers, onClose, settings, toolState.meta]);
 
   return (
-    <ModalFrame
-      onClose={onClose}
-      labelledBy="export-title"
-      modalRef={modalRef}
-      modalClassName={isMobile ? "flex-col" : "flex-row"}
-    >
-      {/* Mobile pulls the title into a flat header bar with an X close,
-          mirroring FilePropertiesModal/MobileMoreMenu/StartModal. Desktop
-          keeps the title inline in the right column where it pairs with
-          the form fields. */}
-      {isMobile && (
-        <div className="cloak-dialog__header">
-          <div className="flex items-center gap-2.5">
-            <div className="cloak-dialog__icon">
-              <I.Download size={15} />
-            </div>
-            <div>
-              <div className="t-eyebrow text-[0.8125rem]">Export</div>
-              <div id="export-title" className="t-headline text-base">
-                Save your image
-              </div>
-            </div>
-          </div>
-          <ModalCloseButton onClose={onClose} iconSize={14} />
-        </div>
-      )}
-      <div
-        className={`flex items-center justify-center overflow-hidden bg-canvas-bg ${
-          isMobile ? "h-40 shrink-0 p-3" : "min-h-80 flex-1 p-6"
-        }`}
-      >
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="Export preview"
-            width={doc?.width ?? 1}
-            height={doc?.height ?? 1}
-            className={`h-auto w-auto max-w-full rounded-xs object-contain ${
-              isMobile ? "max-h-full" : "max-h-90"
-            }`}
-            style={{ boxShadow: "var(--air-shadow-menu)" }}
-          />
-        ) : (
-          <Spinner label="Preparing preview…" />
-        )}
+    <ModalFrame onClose={onClose} labelledBy="export-title" modalRef={modalRef}>
+      <div className="cloak-dialog__header">
+        <h2 id="export-title" className="cloak-dialog__title">
+          Save your image
+        </h2>
+        <ModalCloseButton onClose={onClose} label="Close export" />
       </div>
-
-      <div className={`flex flex-col ${isMobile ? "min-h-0 w-full flex-1" : "w-80"}`}>
-        <div
-          className={`scroll-thin flex flex-col gap-3.5 ${
-            isMobile ? "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-3" : "px-5.5 pt-5.5 pb-3"
-          }`}
-        >
-          {!isMobile && (
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="t-eyebrow mb-1 text-[0.8125rem]">Export</div>
-                <div id="export-title" className="t-headline text-lg">
-                  Save your image
-                </div>
-              </div>
-              {/* Mobile already gets a close X in its dedicated header
-                  bar above; desktop puts it next to the title to mirror
-                  PrivacyModal / StartModal / FilePropertiesModal and so
-                  the bottom button row can drop the Cancel button —
-                  keeping Copy and Download equal-width even when the
-                  Copy label flips to "Copied". */}
-              <ModalCloseButton onClose={onClose} label="Close export" iconSize={14} />
-            </div>
+      <div className="cloak-dialog__body flex flex-col gap-4">
+        <div className="img-export-preview">
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Export preview"
+              width={doc?.width ?? 1}
+              height={doc?.height ?? 1}
+              className="h-auto w-auto max-w-full object-contain"
+              style={{ boxShadow: "var(--air-shadow-menu)" }}
+            />
+          ) : (
+            <Spinner label="Preparing preview…" />
           )}
-
-          {/* Pre-export Privacy Audit — surfaces visible faces +
+        </div>
+        {/* Pre-export Privacy Audit — surfaces visible faces +
               GPS-in-EXIF before the user clicks Download. Sits ABOVE
               the format/quality controls so the safety check is the
               first thing they see. Hidden when there's no doc (the
               modal is briefly visible during prepare). */}
-          {doc && (
-            <PrivacyAuditCard
-              stripGPS={toolState.meta.stripGPS}
-              onPatchMeta={(next) => patchTool("meta", { ...toolState.meta, ...next })}
-            />
-          )}
-
-          <PropRow label="Format">
-            <Segment
-              options={FORMATS}
-              active={settings.format}
-              onChange={(i) => onPatch({ format: i })}
-            />
-          </PropRow>
-          {settings.format === 4 && (
-            <p className="-mt-2 text-[0.8125rem] leading-[1.45] text-text-muted">
-              HEIC is encoded locally as a HEIF/HEVC file. The first export may take a little longer
-              while the private on-device codec loads.
-            </p>
-          )}
-
-          <SliderField
-            label="Quality"
-            readOnlyValue={
-              !formatSupportsQuality(settingsToFormat(settings))
-                ? settingsToFormat(settings) === "png"
-                  ? "Lossless"
-                  : "Optimized"
-                : undefined
-            }
-            value={settings.quality}
-            accent
-            defaultValue={0.92}
-            onChange={
-              formatSupportsQuality(settingsToFormat(settings))
-                ? (v) => onPatch({ quality: v })
-                : undefined
-            }
+        {doc && (
+          <PrivacyAuditCard
+            stripGPS={toolState.meta.stripGPS}
+            onPatchMeta={(next) => patchTool("meta", { ...toolState.meta, ...next })}
           />
-          <PropRow label="Size">
-            <Segment
-              options={["Original", "@2x", "@1x"]}
-              active={settings.sizeBucket}
-              onChange={(i) => onPatch({ sizeBucket: i, width: undefined, height: undefined })}
+        )}
+
+        <PropRow label="Format">
+          <Segment
+            options={FORMATS}
+            active={settings.format}
+            onChange={(i) => onPatch({ format: i })}
+          />
+        </PropRow>
+        {settings.format === 4 && (
+          <p className="-mt-2 text-[0.8125rem] leading-[1.45] text-text-muted">
+            HEIC is encoded locally as a HEIF/HEVC file. The first export may take a little longer
+            while the private on-device codec loads.
+          </p>
+        )}
+
+        <SliderField
+          label="Quality"
+          readOnlyValue={
+            !formatSupportsQuality(settingsToFormat(settings))
+              ? settingsToFormat(settings) === "png"
+                ? "Lossless"
+                : "Optimized"
+              : undefined
+          }
+          value={settings.quality}
+          accent
+          defaultValue={0.92}
+          onChange={
+            formatSupportsQuality(settingsToFormat(settings))
+              ? (v) => onPatch({ quality: v })
+              : undefined
+          }
+        />
+        <PropRow label="Size">
+          <Segment
+            options={["Original", "@2x", "@1x"]}
+            active={settings.sizeBucket}
+            onChange={(i) => onPatch({ sizeBucket: i, width: undefined, height: undefined })}
+          />
+        </PropRow>
+
+        <PropRow label="Resize to" value="ratio locked">
+          <div className="img-dimensions" title="Aspect ratio locked">
+            <DimInput
+              label="W"
+              value={targetW}
+              onChange={(n) => onPatch({ width: n, height: undefined })}
             />
-          </PropRow>
-
-          <PropRow label="Resize to" value="ratio locked">
-            <div className="flex items-center gap-1.5 text-[0.8125rem]" title="Aspect ratio locked">
-              <DimInput
-                label="W"
-                value={targetW}
-                onChange={(n) => onPatch({ width: n, height: undefined })}
-              />
-              <I.Lock size={11} className="shrink-0 text-text-muted" aria-hidden="true" />
-              <DimInput
-                label="H"
-                value={targetH}
-                onChange={(n) => onPatch({ width: undefined, height: n })}
-              />
-            </div>
-          </PropRow>
-
-          <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[0.8125rem]">
-            <span className="text-text-muted">Estimated size</span>
-            <span className="tabular-nums font-medium">{formatBytesRough(estimate)}</span>
+            <I.Lock size={11} className="shrink-0 text-text-muted" aria-hidden="true" />
+            <DimInput
+              label="H"
+              value={targetH}
+              onChange={(n) => onPatch({ width: undefined, height: n })}
+            />
           </div>
+        </PropRow>
 
-          <MetadataSection
-            isMobile={isMobile}
-            metaFields={metaFields}
-            metaOpen={metaOpen}
-            setMetaOpen={setMetaOpen}
-            toggles={META_TOGGLES}
-            meta={toolState.meta}
-            onPatch={(key, next) => patchTool("meta", { ...toolState.meta, [key]: next })}
-          />
+        <div className="flex items-center justify-between rounded-lg bg-page-bg p-2.5 text-[0.8125rem]">
+          <span className="text-text-muted">Estimated size</span>
+          <span className="tabular-nums font-medium">{formatBytesRough(estimate)}</span>
+        </div>
 
-          {exportError && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-lg border border-accent bg-surface-soft px-3 py-2 text-[0.8125rem] text-text"
-            >
-              <I.ShieldCheck size={13} className="mt-0.5 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="font-medium">Export failed</div>
-                <div className="wrap-break-word opacity-80">{exportError}</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setExportError(null)}
-                aria-label="Dismiss error"
-                className="-mr-1 -mt-1 flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-current opacity-60 hover:opacity-100 active:opacity-100 pointer-coarse:h-7 pointer-coarse:w-7"
-              >
-                <I.X size={11} />
-              </button>
+        <MetadataSection
+          isMobile={isMobile}
+          metaFields={metaFields}
+          metaOpen={metaOpen}
+          setMetaOpen={setMetaOpen}
+          toggles={META_TOGGLES}
+          meta={toolState.meta}
+          onPatch={(key, next) => patchTool("meta", { ...toolState.meta, [key]: next })}
+        />
+
+        {exportError && (
+          <div
+            role="alert"
+            className="flex items-start gap-2 rounded-lg border border-danger bg-[var(--air-danger-soft)] px-3 py-2 text-[0.8125rem] text-danger"
+          >
+            <I.AlertTriangle size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium">Export failed</div>
+              <div className="wrap-break-word opacity-80">{exportError}</div>
             </div>
-          )}
-        </div>
-        <div
-          className={`flex shrink-0 gap-2 ${
-            isMobile
-              ? "border-t border-border-soft px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]"
-              : "px-5.5 pb-5.5"
-          }`}
+            <button
+              type="button"
+              onClick={() => setExportError(null)}
+              aria-label="Dismiss error"
+              className="btn btn-ghost btn-icon-sm shrink-0"
+            >
+              <I.X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="cloak-dialog__footer">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={copyToClipboard}
+          disabled={busy}
+          title="Copy edited image to clipboard as PNG"
         >
-          {/* Both buttons are flex-1 with min-w-0 so the row stays
-              perfectly even on every state — including the moment Copy
-              flips to "Copied" mid-cooldown. The Cancel button used to
-              live here on desktop, but the close X in the title row
-              above replaces it (mirrors PrivacyModal / StartModal /
-              FilePropertiesModal); this keeps Copy and Download the
-              same width on both layouts. */}
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm flex-1 min-w-0 justify-center"
-            onClick={copyToClipboard}
-            disabled={busy}
-            title="Copy edited image to clipboard as PNG"
-          >
-            {copied ? <I.Check size={13} /> : <I.Copy size={13} />} {copied ? "Copied" : "Copy"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm flex-1 min-w-0 justify-center"
-            onClick={download}
-            disabled={busy}
-          >
-            <I.Download size={13} /> {busy ? "Exporting…" : "Download"}
-          </button>
-        </div>
+          {copied ? (
+            <I.Check size={16} aria-hidden="true" />
+          ) : (
+            <I.Copy size={16} aria-hidden="true" />
+          )}{" "}
+          {copied ? "Copied" : "Copy"}
+        </button>
+        <button type="button" className="btn btn-primary" onClick={download} disabled={busy}>
+          <I.Download size={16} aria-hidden="true" /> {busy ? "Exporting…" : "Download"}
+        </button>
       </div>
     </ModalFrame>
   );
