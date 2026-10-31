@@ -38,6 +38,14 @@ The duplicated mobile picker/search, its separate rollback checkpoint, obsolete
 mobile tool-tab metadata and superseded grid styles were removed. The compact
 surface subscribes to the active-tool/actions slices instead of every slider tick.
 
+The README and PWA install previews now show the actual phone dock/focused Adjust
+and tablet compact rail/inspector. The capture generator uses the current shortcuts;
+the obsolete picker selector and descriptions are removed. The tablet capture uses
+the tablet layout at 1024×768 rather than the previous desktop-width viewport.
+Both rendered captures were reviewed, and their PNG dimensions match the built
+manifest (1290×2796 phone, 2048×1536 tablet). Formatting, types, production build,
+asset-size and Air checks pass for this bounded asset/metadata follow-up.
+
 ## Validation
 
 The durable [verification record](evidence/touch-workspace-2026-10-31/verification.json)

@@ -86,14 +86,14 @@ export default defineConfig({
             sizes: "1290x2796",
             type: "image/png",
             form_factor: "narrow",
-            label: "CloakIMG mobile editor with the searchable tool picker",
+            label: "CloakIMG phone editor with focused Adjust controls and a persistent tool dock",
           },
           {
             src: "screenshots/iPad.png",
-            sizes: "2732x2048",
+            sizes: "2048x1536",
             type: "image/png",
             form_factor: "wide",
-            label: "CloakIMG tablet editor with a local image and Adjust controls",
+            label: "CloakIMG tablet editor with a compact rail and Adjust inspector",
           },
         ],
         // Register as a system-wide handler for common image types.

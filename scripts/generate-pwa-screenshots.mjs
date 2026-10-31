@@ -17,9 +17,9 @@ const browser = await puppeteer.launch({
 });
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:5173";
 try {
-  for (const [name, width, height, scale, tool] of [
-    ["iPhone", 430, 932, 3, "picker"],
-    ["iPad", 1366, 1024, 2, "adjust"],
+  for (const [name, width, height, scale] of [
+    ["iPhone", 430, 932, 3],
+    ["iPad", 1024, 768, 2],
   ]) {
     const page = await browser.newPage();
     const errors = [];
@@ -45,11 +45,17 @@ try {
       await page.$('input[type="file"]')
     ).uploadFile(resolve(root, "scripts/fixtures/orange.webp"));
     await page.waitForSelector('.editor-topbar button[aria-label="Export"]:not(:disabled)');
-    await page.click(`button[aria-label="${tool === "picker" ? "Open tools" : "Adjust"}"]`);
+    await page.evaluate(() => {
+      const adjust = [...document.querySelectorAll(".editor-compact-nav button")].find(
+        (button) => button.textContent.trim() === "Adjust",
+      );
+      if (!adjust) throw new Error("Compact Adjust shortcut missing");
+      adjust.click();
+    });
     await page.waitForFunction(
       () =>
         !document.querySelector("[data-tool-panel-loading]") &&
-        (document.querySelector('.editor-mobile-surface [aria-label="Adjust"]') ||
+        (document.querySelector('.editor-mobile-surface [role="slider"]') ||
           document.querySelector('.editor-properties [role="slider"]')),
     );
     await page.evaluate(() => document.fonts.ready);

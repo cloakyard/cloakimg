@@ -109,5 +109,29 @@
     "OS IME",
     "spoken assistive acceptance"
   ],
-  "scratch": "/tmp/air-img-touch-2026-10-31"
+  "scratch": "/tmp/air-img-touch-2026-10-31",
+  "installPreviewFollowup": {
+    "command": "BASE_URL=http://127.0.0.1:8456 vp run generate-screenshots",
+    "captures": [
+      {
+        "src": "screenshots/iPhone.png",
+        "sizes": "1290x2796",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "CloakIMG phone editor with focused Adjust controls and a persistent tool dock",
+        "sha256": "1ac01989c9c715dd19b221dca03868d30b666e3d3ca9769a44cb82da21d3a664"
+      },
+      {
+        "src": "screenshots/iPad.png",
+        "sizes": "2048x1536",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "CloakIMG tablet editor with a compact rail and Adjust inspector",
+        "sha256": "db4b27d8ba382f705c80646c4676e9e00c3485182ec8f2a4f05f33ab64d81940"
+      }
+    ],
+    "visualReview": "Phone dock/focused Adjust and tablet compact rail/inspector reviewed from real local captures.",
+    "checks": ["vp check --fix", "vp run build", "PNG dimensions match built manifest metadata"],
+    "obsoleteReferencesRemoved": "README and manifest no longer describe the replaced mobile picker; screenshot generator uses the real compact shortcuts."
+  }
 }

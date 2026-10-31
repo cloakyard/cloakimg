@@ -41,7 +41,7 @@ The subject mask is detected once per image and reused across every subject-awar
 
 ### 🧭 Workspace & export
 
-Layered non-destructive overlays · undo/redo (`⌘Z` / `⌘⇧Z`) · hold-to-compare · reset to original · pan + pinch-zoom · single-key shortcuts · light/dark mode · mobile bottom-sheet UI.
+Layered non-destructive overlays · undo/redo (`⌘Z` / `⌘⇧Z`) · hold-to-compare · reset to original · pan + pinch-zoom · single-key shortcuts · light/dark mode · focused phone controls with a persistent tool dock · compact tablet rail and inspector.
 
 Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata strip · recents + autosave (IndexedDB) · batch mode · export to JPEG/PNG/WebP/AVIF/HEIC · exact-size ID-photo PDF/print sheets · wide-gamut (Display-P3) output.
 
@@ -51,8 +51,8 @@ Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata stri
 
 Actual Air editor captures using the same local photograph as the landing page.
 
-<img src="public/screenshots/iPad.png" alt="CloakIMG Air editor with Adjust controls" width="800" />
-<img src="public/screenshots/iPhone.png" alt="CloakIMG mobile editor with the searchable tool picker" width="260" />
+<img src="public/screenshots/iPad.png" alt="CloakIMG Air tablet editor with a compact rail and Adjust inspector" width="800" />
+<img src="public/screenshots/iPhone.png" alt="CloakIMG phone editor with focused Adjust controls and a persistent tool dock" width="260" />
 
 Regenerate with `BASE_URL=http://127.0.0.1:5173 vp run generate-screenshots` and
 `node scripts/build-og-image.mjs`.
