@@ -3,6 +3,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { MobileMoreMenu } from "./MobileMoreMenu";
 
+const actions = vi.hoisted(() => ({ setMode: vi.fn(), setView: vi.fn() }));
+vi.mock("./EditorContext", () => ({
+  useEditorActions: () => actions,
+  useEditorReadOnly: () => ({ mode: "single", view: { zoom: 1 } }),
+}));
+
 // ModalFrame routes pointer close paths through a ~260ms exit budget
 // so the sheet settles before unmount. Escape remains immediate.
 
@@ -77,5 +83,14 @@ describe("MobileMoreMenu", () => {
     await waitFor(() => expect(dialog).toHaveFocus());
     fireEvent.keyDown(dialog, { key: "Escape" });
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  });
+  it("keeps zoom and batch navigation reachable from compact chrome", async () => {
+    render(<MobileMoreMenu {...baseProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+    expect(actions.setView).toHaveBeenCalled();
+    const update = actions.setView.mock.calls.at(-1)?.[0];
+    expect(update({ zoom: 1, panX: 2, panY: 3 })).toEqual({ zoom: 1.2, panX: 2, panY: 3 });
+    fireEvent.click(screen.getByRole("button", { name: "Batch editing" }));
+    await waitFor(() => expect(actions.setMode).toHaveBeenCalledWith("batch"));
   });
 });

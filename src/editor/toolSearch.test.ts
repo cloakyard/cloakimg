@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vite-plus/test";
 import { searchEditorTools } from "./toolSearch";
-import { toolsForTab } from "./tools";
+import { ALL_TOOLS } from "./tools";
 
 describe("searchEditorTools", () => {
   it("returns the supplied roster unchanged for an empty query", () => {
-    const mobileTools = toolsForTab(null);
+    const mobileTools = ALL_TOOLS;
     expect(searchEditorTools("  ", mobileTools)).toEqual(mobileTools);
   });
 

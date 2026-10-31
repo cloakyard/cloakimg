@@ -1,0 +1,94 @@
+{
+  "results": [
+    {
+      "engine": "chromium",
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "chromium",
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "chromium",
+      "width": 390,
+      "height": 900,
+      "theme": "light",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "chromium",
+      "width": 390,
+      "height": 900,
+      "theme": "dark",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "height": 900,
+      "theme": "light",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "height": 900,
+      "theme": "dark",
+      "catalogueRetainsPreview": true,
+      "cancelAndReentry": true,
+      "doneAppliesOnce": true,
+      "undoRedoPixels": true,
+      "persistentCanvas": true
+    }
+  ],
+  "errors": [],
+  "requests": []
+}

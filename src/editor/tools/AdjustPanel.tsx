@@ -4,8 +4,9 @@
 // redundant — Undo/Redo are the recovery path.
 
 import { useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import { I } from "../../components/icons";
-import { NumericReadout, PropRow, Segment, Slider } from "../atoms";
+import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
 import { useEditorActions, useEditorReadOnly, useToolState } from "../EditorContext";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
@@ -13,12 +14,20 @@ import { applyScopedBake, type MaskScope } from "../ai/subjectMask";
 import { ADJUST_KEYS, IDENTITY_CURVE } from "../toolState";
 import { useSubjectMask } from "../ai/useSubjectMask";
 import { bakeAdjustAsync, isAdjustIdentity } from "./adjustments";
-import { AiSectionHeader } from "../ai/ui/AiSectionHeader";
+import { SelectControl } from "../SelectControl";
 import { CurveEditor } from "./CurveEditor";
 import { MaskScopeRow } from "../ai/ui/MaskScopeRow";
 import { ScopeGate } from "../ai/ui/ScopeGate";
 
-const TABS = ["Histogram", "Adjust"] as const;
+const GROUPS = ["Light", "Colour", "Detail", "Curves", "All adjustments"] as const;
+type Group = (typeof GROUPS)[number];
+const GROUP_KEYS: Record<Group, typeof ADJUST_KEYS> = {
+  Light: ["exposure", "contrast", "highlights", "shadows", "whites", "blacks"],
+  Colour: ["temp", "saturation", "vibrance"],
+  Detail: ["vignette", "sharpen"],
+  Curves: [],
+  "All adjustments": ADJUST_KEYS,
+};
 
 const LABELS: Record<(typeof ADJUST_KEYS)[number], string> = {
   exposure: "Exposure",
@@ -29,7 +38,7 @@ const LABELS: Record<(typeof ADJUST_KEYS)[number], string> = {
   blacks: "Blacks",
   saturation: "Saturation",
   vibrance: "Vibrance",
-  temp: "Temp",
+  temp: "Temperature",
   vignette: "Vignette",
   sharpen: "Sharpen",
 };
@@ -55,18 +64,24 @@ function fmt(key: (typeof ADJUST_KEYS)[number], v: number): string {
   return `${n >= 0 ? "+" : ""}${Math.round(n)}`;
 }
 
-export function AdjustPanel() {
+export function AdjustPanel({
+  onExpandControls,
+  headingSlot,
+}: {
+  onExpandControls?: () => void;
+  headingSlot?: HTMLElement | null;
+}) {
   const toolState = useToolState();
-  const { patchTool, commit } = useEditorActions();
+  const { patchTool, commit, setActiveTool } = useEditorActions();
   const { doc, layout } = useEditorReadOnly();
   const subjectMask = useSubjectMask();
   const isMobile = layout === "mobile";
   const scope = (toolState.adjustScope as MaskScope) ?? 0;
-  // On mobile the CurveEditor's 1:1 aspect ratio swallows the entire
-  // sheet height — pointer events on the SVG are `touch-none` for the
-  // drag gesture, so the sliders below were both below the fold and
-  // unreachable by scroll. Tabs sidestep both problems.
-  const [tab, setTab] = useState(0);
+  const compact = layout !== "desktop";
+  const [group, setGroup] = useState<Group>("Light");
+  const [parameter, setParameter] = useState<(typeof ADJUST_KEYS)[number]>("exposure");
+  const keys = GROUP_KEYS[group];
+  const selected = keys.includes(parameter) ? parameter : keys[0];
 
   const reset = useCallback(() => {
     patchTool(
@@ -117,8 +132,14 @@ export function AdjustPanel() {
     [patchTool, toolState.adjust],
   );
 
-  const showCurve = !isMobile || tab === 0;
-  const showSliders = !isMobile || tab === 1;
+  const showCurve = !compact || group === "Curves";
+  const showSliders = !compact || group !== "Curves";
+  const visibleKeys =
+    !compact || group === "All adjustments"
+      ? ADJUST_KEYS
+      : isMobile && selected
+        ? [selected]
+        : keys;
   // Gate the per-pixel controls (sliders + curve) while the user has
   // a scoped mode picked but the subject mask isn't ready yet —
   // dragging during detection would silently produce a whole-image
@@ -127,17 +148,50 @@ export function AdjustPanel() {
   // step back to Whole.
   const gated = scope !== 0 && subjectMask.state.status !== "ready";
 
+  const groupSelect = (
+    <SelectControl
+      aria-label="Adjustment group"
+      value={group}
+      displayValue={group}
+      onChange={(event) => {
+        if (event.target.value === "looks") {
+          void setActiveTool("filter");
+          return;
+        }
+        const next = event.target.value as Group;
+        setGroup(next);
+        if (next === "Curves" || next === "All adjustments") onExpandControls?.();
+      }}
+    >
+      <option value="looks">Looks</option>
+      {GROUPS.map((name) => (
+        <option key={name} value={name}>
+          {name}
+        </option>
+      ))}
+    </SelectControl>
+  );
   return (
     <>
-      {isMobile && <Segment options={TABS} active={tab} onChange={setTab} />}
-      {showSliders && (
-        <>
-          <AiSectionHeader />
-          <MaskScopeRow
-            scope={toolState.adjustScope}
-            onScope={(i) => patchTool("adjustScope", i)}
-          />
-        </>
+      {compact && (isMobile && headingSlot ? createPortal(groupSelect, headingSlot) : groupSelect)}
+      {isMobile && showSliders && group !== "All adjustments" && (
+        <div
+          className="editor-adjust-parameters overflow-x-auto"
+          role="group"
+          aria-label="Adjustment parameter"
+        >
+          {keys.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className="editor-adjust-parameter"
+              aria-pressed={key === selected}
+              onClick={() => setParameter(key)}
+            >
+              {LABELS[key]}
+            </button>
+          ))}
+        </div>
       )}
       <ScopeGate disabled={gated}>
         {showCurve && (
@@ -148,7 +202,8 @@ export function AdjustPanel() {
           />
         )}
         {showSliders &&
-          ADJUST_KEYS.map((key, i) => {
+          visibleKeys.map((key) => {
+            const i = ADJUST_KEYS.indexOf(key);
             const v = toolState.adjust[i] ?? 0.5;
             return (
               <PropRow
@@ -193,6 +248,16 @@ export function AdjustPanel() {
           </button>
         )}
       </ScopeGate>
+      {compact ? (
+        <details className="editor-adjust-scope">
+          <summary>Apply to: {["Whole image", "Subject", "Background"][scope]}</summary>
+          <div className="flex flex-col gap-3 pt-3">
+            <MaskScopeRow scope={scope} onScope={(value) => patchTool("adjustScope", value)} />
+          </div>
+        </details>
+      ) : (
+        <MaskScopeRow scope={scope} onScope={(value) => patchTool("adjustScope", value)} />
+      )}
     </>
   );
 }

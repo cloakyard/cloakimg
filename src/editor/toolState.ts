@@ -96,7 +96,7 @@ export interface ToolState {
   resizeAspectLock: boolean;
   resizeQuality: number; // [Fast, High] — High uses Lanczos-3
 
-  // Adjust — 9 sliders, each 0..1, 0.5 == "no change"
+  // Adjust — 11 sliders, each 0..1, 0.5 == "no change"
   adjust: number[];
 
   /** Master tone curve. Each point is ([0..255] in, [0..255] out),

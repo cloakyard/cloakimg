@@ -245,7 +245,7 @@ export function TapFixTool() {
       // already parked on the blemish the user pointed at, instead of
       // dropping them into the tool with no target.
       patchTool("spotHealSeed", { x: tap.ix, y: tap.iy });
-      setActiveTool("spot");
+      void setActiveTool("spot");
       setTap(null);
     },
   };
@@ -290,7 +290,7 @@ export function TapFixTool() {
         // U²-Net composite path. Tap-to-fix is a launcher here, not
         // a re-implementer. The user's mask is already cached so
         // the receiving tool's Apply is instant.
-        setActiveTool("bgrm");
+        void setActiveTool("bgrm");
         setTap(null);
       },
     });
@@ -302,7 +302,7 @@ export function TapFixTool() {
         // rationale: don't re-implement the smart-anonymize
         // pipeline here. Setting the active tool drops the user
         // into the panel one click away from Apply.
-        setActiveTool("redact");
+        void setActiveTool("redact");
         setTap(null);
       },
     });

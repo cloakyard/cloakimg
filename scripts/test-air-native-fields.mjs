@@ -1,3 +1,4 @@
+import { selectEditorTool } from "./air-editor-driver.mjs";
 // Native draft/step/focus behavior, switch labels, and image decode recovery in both engines.
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -38,22 +39,9 @@ for (const engine of ["chromium", "webkit"]) {
           .first()
           .setInputFiles(resolve(root, "scripts/fixtures/orange.webp"));
         await p.locator(".editor-topbar [aria-label=Export]:not(:disabled)").waitFor();
-        const mobile =
-          (await p.getByRole("button", { name: "Open tools", exact: true }).count()) > 0;
         async function tool(name) {
-          if (mobile) {
-            if (!(await p.getByRole("button", { name: "Open tools", exact: true }).count()))
-              await p
-                .locator(".editor-mobile-surface")
-                .getByRole("button", { name: "Done", exact: true })
-                .click();
-            await p.getByRole("button", { name: "Open tools", exact: true }).click();
-          }
-          await p
-            .locator(mobile ? ".editor-mobile-surface" : ".editor-toolrail")
-            .getByRole("button", { name, exact: true })
-            .click();
-          await p.locator("[data-tool-panel-loading]").waitFor({ state: "hidden" });
+          await selectEditorTool(p, name);
+          await p.waitForTimeout(150);
         }
         await tool("Crop & rotate");
         const f = p.getByRole("spinbutton", { name: "Fine rotation", exact: true });

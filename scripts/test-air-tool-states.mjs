@@ -1,3 +1,4 @@
+import { selectEditorTool } from "./air-editor-driver.mjs";
 // All 26 tool inspectors, alternate states, real chooser activation and text reflow.
 // Supply PLAYWRIGHT_MODULE externally; BASE_URL points at a built preview.
 import assert from "node:assert/strict";
@@ -49,8 +50,7 @@ try {
         if (/huggingface|models\/.*\.(onnx|tflite)/.test(r.url())) requests.push(r.url());
       });
       for (const name of names) {
-        if (width <= 768 && name === "Move") continue;
-        let panel, mobile;
+        let panel;
         const slug = name.toLowerCase().replace(/[^a-z]+/g, "-");
         async function shot(state) {
           await page.waitForTimeout(100);
@@ -199,15 +199,7 @@ try {
             .first()
             .setInputFiles(root + "/scripts/fixtures/orange.webp");
           await page.locator(".editor-topbar [aria-label=Export]:not(:disabled)").waitFor();
-          mobile =
-            (await page.getByRole("button", { name: "Open tools", exact: true }).count()) > 0;
-          if (mobile) {
-            await page.getByRole("button", { name: "Open tools", exact: true }).click();
-          }
-          await page
-            .locator(mobile ? ".editor-mobile-surface" : ".editor-toolrail")
-            .getByRole("button", { name, exact: true })
-            .click();
+          await selectEditorTool(page, name);
           panel = page
             .locator(".editor-properties .scroll-thin,.editor-mobile-surface .scroll-thin")
             .first();
@@ -223,7 +215,6 @@ try {
               await button("Reset crop area");
               break;
             case "Adjust":
-              if (mobile) await radio("Adjust");
               await numeric("Exposure", 1);
               await shot("adjusted");
               break;

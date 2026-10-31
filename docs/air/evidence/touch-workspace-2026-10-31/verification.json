@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-31",
+  "baseline": "1c10ba23409e04468a784f79ac8e431efe4faea1",
+  "contract": {
+    "version": "1.3.2",
+    "sha256": "94b1833a90cc87ac8ea2015a307e04717f4ebcb184ece557a7fa1f032824589a",
+    "familyContractChanged": false,
+    "productAppendixUpdated": true
+  },
+  "checks": {
+    "formatLintTypes": "pass",
+    "units": 486,
+    "unitFiles": 50,
+    "buildFiles": 90,
+    "surfaceInventory": 105,
+    "portabilityChecks": 22,
+    "portableFiles": 28,
+    "knip": "6.43.0: no issues",
+    "toolSweep": 26,
+    "exportHistoryProbe": "pass",
+    "diffWhitespace": "pass"
+  },
+  "browserEvidence": {
+    "final-chromium-phone": {
+      "observations": 364,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "final-chromium-wide": {
+      "observations": 416,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "final-webkit-phone": {
+      "observations": 364,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "final-webkit-wide": {
+      "observations": 416,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "header-chromium": {
+      "observations": 180,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "header-webkit": {
+      "observations": 180,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "states-chromium": {
+      "observations": 360,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "states-webkit-final": {
+      "observations": 360,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0
+    },
+    "workflow": {
+      "observations": 20,
+      "errors": 0,
+      "requests": 0
+    },
+    "workflow-final": {
+      "observations": 8,
+      "errors": 0,
+      "requests": 0
+    },
+    "breakpoints": {
+      "observations": 192,
+      "errors": 0
+    },
+    "native": {
+      "observations": 12
+    },
+    "controls": {
+      "observations": 8
+    },
+    "compact-actions": {
+      "observations": 8,
+      "errors": 0
+    },
+    "output-baseline": {
+      "observations": 12,
+      "errors": 0
+    },
+    "output-final": {
+      "observations": 12,
+      "errors": 0
+    }
+  },
+  "output": "12 actual original/adjusted PNG downloads, exact decoded parity with preceding production, alpha preserved",
+  "history": "Pixel checks preserve the existing Display-P3 canvas and compressed WebP .92 history representation.",
+  "remainingAcceptance": [
+    "physical iPhone and software keyboard",
+    "OS IME",
+    "spoken assistive acceptance"
+  ],
+  "scratch": "/tmp/air-img-touch-2026-10-31",
+  "installPreviewFollowup": {
+    "command": "BASE_URL=http://127.0.0.1:8456 vp run generate-screenshots",
+    "captures": [
+      {
+        "src": "screenshots/iPhone.png",
+        "sizes": "1290x2796",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "CloakIMG phone editor with focused Adjust controls and a persistent tool dock",
+        "sha256": "1ac01989c9c715dd19b221dca03868d30b666e3d3ca9769a44cb82da21d3a664"
+      },
+      {
+        "src": "screenshots/iPad.png",
+        "sizes": "2048x1536",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "CloakIMG tablet editor with a compact rail and Adjust inspector",
+        "sha256": "db4b27d8ba382f705c80646c4676e9e00c3485182ec8f2a4f05f33ab64d81940"
+      }
+    ],
+    "visualReview": "Phone dock/focused Adjust and tablet compact rail/inspector reviewed from real local captures.",
+    "checks": ["vp check --fix", "vp run build", "PNG dimensions match built manifest metadata"],
+    "obsoleteReferencesRemoved": "README and manifest no longer describe the replaced mobile picker; screenshot generator uses the real compact shortcuts."
+  }
+}

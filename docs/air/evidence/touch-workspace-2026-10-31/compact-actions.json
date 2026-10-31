@@ -1,0 +1,93 @@
+{
+  "results": [
+    {
+      "engine": "chromium",
+      "width": 390,
+      "colorScheme": "light",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "chromium",
+      "width": 390,
+      "colorScheme": "dark",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "chromium",
+      "width": 768,
+      "colorScheme": "light",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "chromium",
+      "width": 768,
+      "colorScheme": "dark",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "colorScheme": "light",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "colorScheme": "dark",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 768,
+      "colorScheme": "light",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    },
+    {
+      "engine": "webkit",
+      "width": 768,
+      "colorScheme": "dark",
+      "selectEscape": true,
+      "menuZoom": true,
+      "batchRoundTrip": true,
+      "retainedBatchPixels": true,
+      "catalogueSearch": true,
+      "persistentCanvas": true
+    }
+  ],
+  "errors": []
+}

@@ -1,7 +1,4 @@
-// ToolSearchModal.tsx — Keyboard-first tool index adapted from CloakPDF's
-// unified editor. The rail stays icon-only at rest; this searchable index
-// carries the full names and family labels when scanning 25 tools is slower
-// than typing a few letters.
+// Shared grouped catalogue for the phone dock, tablet rail and keyboard search.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { I } from "../components/icons";
@@ -207,31 +204,44 @@ function ToolSearchBody({
             </button>
           </div>
         ) : (
-          results.map((tool, index) => {
-            const Icon = tool.icon;
-            const active = index === activeIndex;
-            return (
-              <button
-                key={tool.id}
-                id={`tool-search-option-${index}`}
-                type="button"
-                role="option"
-                aria-selected={active}
-                tabIndex={-1}
-                data-tool-index={index}
-                onPointerEnter={() => onActive(index)}
-                onClick={() => choose(tool.id)}
-                className="editor-tool-option"
-              >
-                <span aria-hidden="true" className={active ? "text-text" : "text-text-muted"}>
-                  <Icon size={16} />
-                </span>
-                <span className="editor-tool-option__name">{tool.name}</span>
-                <span className="editor-tool-option__group">{TOOL_GROUP_LABELS[tool.group]}</span>
-                {active && <span aria-hidden="true" className="editor-tool-option__marker" />}
-              </button>
-            );
-          })
+          [...new Set(results.map((tool) => tool.group))].map((group) => (
+            <div key={group} role="group" aria-label={TOOL_GROUP_LABELS[group]}>
+              <h3 className="editor-tool-group-title" aria-hidden="true">
+                {TOOL_GROUP_LABELS[group]}
+              </h3>
+              {results
+                .filter((tool) => tool.group === group)
+                .map((tool) => {
+                  const index = results.indexOf(tool);
+                  const Icon = tool.icon;
+                  const active = index === activeIndex;
+                  return (
+                    <button
+                      key={tool.id}
+                      id={`tool-search-option-${index}`}
+                      type="button"
+                      role="option"
+                      aria-label={tool.name}
+                      aria-selected={active}
+                      tabIndex={-1}
+                      data-tool-index={index}
+                      onPointerEnter={() => onActive(index)}
+                      onClick={() => choose(tool.id)}
+                      className="editor-tool-option"
+                    >
+                      <span aria-hidden="true" className={active ? "text-text" : "text-text-muted"}>
+                        <Icon size={16} />
+                      </span>
+                      <span className="editor-tool-option__name">{tool.name}</span>
+                      <span className="editor-tool-option__group">
+                        {TOOL_GROUP_LABELS[tool.group]}
+                      </span>
+                      {active && <span aria-hidden="true" className="editor-tool-option__marker" />}
+                    </button>
+                  );
+                })}
+            </div>
+          ))
         )}
       </div>
 

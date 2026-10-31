@@ -1265,6 +1265,18 @@ journeys across all apps; it is not inferred from the pilot alone.
   unchanged or unavailable model paths are never described as exercised.
 - Keep a per-component/state inventory and evidence in `docs/air/`. Local tokens
   and this complete contract travel with the repository.
+- Compact photo editing uses labelled Adjust / Crop / Retouch / Protect / Add /
+  Tools shortcuts: a persistent phone dock and a 64px tablet rail. Tools opens
+  the shared grouped, searchable catalogue without unmounting pending controls.
+  Phone Adjust puts its group selector in the fixed header and presents one
+  named parameter with its exact value and slider; tablet shows related values
+  together in the 288px inspector. Curves and all adjustments remain explicit
+  expanded views, with the preview and return action retained. At 768px, use the
+  tablet split; wide phones at 640px and above with at most 500px height place
+  controls beside the photo and the dock below both. Enlarged text may grow the
+  compact rail; horizontal dock/parameter scrolling stays inside its own region.
+  Cancel restores the tool-entry settings and history; Done bakes once. Reopening
+  the same tool or browsing the catalogue must not silently commit a preview.
 - Landing artwork is a local vector landscape: a coral sun rises behind layered
   mountains while the foreground settles and the crop corners find the composition.
   The sun uses a 2000ms Air arrival curve after 360ms; mountain/foreground spatial

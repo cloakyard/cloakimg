@@ -45,12 +45,13 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
   }, [aiBusy, exit]);
 
   const isMobile = layout === "mobile";
+  const isCompact = layout !== "desktop";
   const fileName = doc?.fileName ?? "untitled";
   const dimensions = doc?.width && doc?.height ? `${doc.width}×${doc.height}` : "";
 
   return (
     <>
-      <header className="editor-topbar" data-compact={isMobile}>
+      <header className="editor-topbar" data-compact={isCompact}>
         <button
           type="button"
           onClick={onLogoClick}
@@ -126,7 +127,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           >
             <I.Redo size={18} />
           </button>
-          {!isMobile && (
+          {!isCompact && (
             <button
               type="button"
               className="btn btn-ghost btn-icon-sm"
@@ -142,7 +143,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
 
         {!isMobile && <div className="h-4.5 w-px bg-border" />}
 
-        {!isMobile && (
+        {!isCompact && (
           <div className="editor-zoom">
             <button
               type="button"
@@ -219,12 +220,12 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           </button>
         )}
 
-        {isMobile && (
+        {isCompact && (
           <button
             type="button"
             className="btn btn-ghost btn-icon"
             aria-label="More actions"
-            aria-haspopup="menu"
+            aria-haspopup="dialog"
             aria-expanded={moreMenuOpen}
             onClick={() => setMoreMenuOpen(true)}
           >

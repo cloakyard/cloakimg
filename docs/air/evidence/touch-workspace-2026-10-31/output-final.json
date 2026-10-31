@@ -1,0 +1,125 @@
+{
+  "results": [
+    {
+      "engine": "chromium",
+      "width": 64,
+      "theme": "dark",
+      "state": "original",
+      "height": 48,
+      "hash": 2165005183,
+      "transparent": true,
+      "viewportWidth": 390
+    },
+    {
+      "engine": "chromium",
+      "width": 64,
+      "theme": "dark",
+      "state": "adjusted",
+      "height": 48,
+      "hash": 2622121178,
+      "transparent": true,
+      "viewportWidth": 390
+    },
+    {
+      "engine": "chromium",
+      "width": 64,
+      "theme": "light",
+      "state": "original",
+      "height": 48,
+      "hash": 2165005183,
+      "transparent": true,
+      "viewportWidth": 768
+    },
+    {
+      "engine": "chromium",
+      "width": 64,
+      "theme": "light",
+      "state": "adjusted",
+      "height": 48,
+      "hash": 2622121178,
+      "transparent": true,
+      "viewportWidth": 768
+    },
+    {
+      "engine": "chromium",
+      "width": 64,
+      "theme": "dark",
+      "state": "original",
+      "height": 48,
+      "hash": 2165005183,
+      "transparent": true,
+      "viewportWidth": 1440
+    },
+    {
+      "engine": "chromium",
+      "width": 64,
+      "theme": "dark",
+      "state": "adjusted",
+      "height": 48,
+      "hash": 2622121178,
+      "transparent": true,
+      "viewportWidth": 1440
+    },
+    {
+      "engine": "webkit",
+      "width": 64,
+      "theme": "dark",
+      "state": "original",
+      "height": 48,
+      "hash": 1944354850,
+      "transparent": true,
+      "viewportWidth": 390
+    },
+    {
+      "engine": "webkit",
+      "width": 64,
+      "theme": "dark",
+      "state": "adjusted",
+      "height": 48,
+      "hash": 3602080187,
+      "transparent": true,
+      "viewportWidth": 390
+    },
+    {
+      "engine": "webkit",
+      "width": 64,
+      "theme": "light",
+      "state": "original",
+      "height": 48,
+      "hash": 1944354850,
+      "transparent": true,
+      "viewportWidth": 768
+    },
+    {
+      "engine": "webkit",
+      "width": 64,
+      "theme": "light",
+      "state": "adjusted",
+      "height": 48,
+      "hash": 3602080187,
+      "transparent": true,
+      "viewportWidth": 768
+    },
+    {
+      "engine": "webkit",
+      "width": 64,
+      "theme": "dark",
+      "state": "original",
+      "height": 48,
+      "hash": 1944354850,
+      "transparent": true,
+      "viewportWidth": 1440
+    },
+    {
+      "engine": "webkit",
+      "width": 64,
+      "theme": "dark",
+      "state": "adjusted",
+      "height": 48,
+      "hash": 3602080187,
+      "transparent": true,
+      "viewportWidth": 1440
+    }
+  ],
+  "errors": []
+}
