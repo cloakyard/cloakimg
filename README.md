@@ -49,7 +49,7 @@ Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata stri
 
 ## Editor previews
 
-Actual Air editor captures using the same local photograph as the landing page.
+Actual Air editor captures using a bundled local photographic test fixture.
 
 <img src="public/screenshots/iPad.png" alt="CloakIMG Air tablet editor with a compact rail and Adjust inspector" width="800" />
 <img src="public/screenshots/iPhone.png" alt="CloakIMG phone editor with focused Adjust controls and a persistent tool dock" width="260" />
