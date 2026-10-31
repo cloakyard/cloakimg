@@ -5,6 +5,7 @@
 import { I } from "../components/icons";
 import { useActiveTool, useEditorActions, useEditorReadOnly } from "./EditorContext";
 import { LayersList } from "./LayersList";
+import { TOOL_GROUP_LABELS } from "./toolSearch";
 import { findTool } from "./tools";
 import { ToolControls } from "./ToolControls";
 
@@ -18,7 +19,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
   // omnibus `useEditor()` re-rendered the whole panel — header, controls
   // wrapper, and LayersList — on every slider tick.
   const activeTool = useActiveTool();
-  const { cancelCurrentTool } = useEditorActions();
+  const { cancelCurrentTool, setActiveTool } = useEditorActions();
   const { canCancelCurrentTool } = useEditorReadOnly();
   const tool = findTool(activeTool);
 
@@ -31,7 +32,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
       <div className="editor-properties__header">
         <div className="editor-properties__heading">
           <h2>{tool.name}</h2>
-          <span className="text-[0.8125rem] text-text-muted">{tool.group}</span>
+          <span className="text-[0.8125rem] text-text-muted">{TOOL_GROUP_LABELS[tool.group]}</span>
         </div>
         {/* Cancel — desktop parity with mobile's ✕ tap in the pinned
             tool header. Visible only when the active tool has
@@ -40,7 +41,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
             history back to the tool-entry checkpoint, and parks the
             user back on Move. Esc is the keyboard equivalent (wired
             in EditorShell). */}
-        {canCancelCurrentTool && (
+        {(canCancelCurrentTool || (collapsed && activeTool !== "move")) && (
           <button
             type="button"
             onClick={() => void cancelCurrentTool()}
@@ -49,6 +50,15 @@ export function PropertiesPanel({ collapsed = false }: Props) {
             className="btn btn-ghost btn-icon-xs rounded-md pointer-coarse:h-11 pointer-coarse:w-11"
           >
             <I.X size={14} stroke={2} />
+          </button>
+        )}
+        {collapsed && activeTool !== "move" && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => void setActiveTool("move")}
+          >
+            Done
           </button>
         )}
       </div>

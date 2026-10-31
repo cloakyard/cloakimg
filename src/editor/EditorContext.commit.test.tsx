@@ -121,4 +121,57 @@ describe("EditorContext.commit contract", () => {
     expect(afterCommit?.width).toBe(beforeIdentity?.width);
     expect(afterCommit?.height).toBe(beforeIdentity?.height);
   });
+  it("cancels pending values across tool re-entry without applying or resetting the session on reselection", async () => {
+    const { EditorProvider, useEditor } = await import("./EditorContext");
+    let editor!: ReturnType<typeof useEditor>;
+    function Probe() {
+      editor = useEditor();
+      return null;
+    }
+    await act(async () => {
+      render(
+        <EditorProvider
+          initialDoc={{ kind: "blank", w: 16, h: 16, background: null }}
+          onExit={() => undefined}
+        >
+          <Probe />
+        </EditorProvider>,
+      );
+    });
+    await act(async () => {
+      await editor.setActiveTool("adjust");
+    });
+    const initial = editor.toolState.adjust;
+    const apply = vi.fn();
+    await act(async () => {
+      editor.patchTool(
+        "adjust",
+        initial.map(() => 0.8),
+      );
+      editor.patchTool("curveRGB", [
+        { x: 0, y: 20 },
+        { x: 255, y: 255 },
+      ]);
+      editor.registerPendingApply(apply);
+    });
+    await act(async () => {
+      await editor.setActiveTool("adjust");
+    });
+    expect(apply).not.toHaveBeenCalled();
+    expect(editor.toolState.adjust[0]).toBe(0.8);
+    await act(async () => {
+      await editor.cancelCurrentTool();
+    });
+    expect(apply).not.toHaveBeenCalled();
+    expect(editor.toolState.activeTool).toBe("move");
+    await act(async () => {
+      await editor.setActiveTool("adjust");
+    });
+    expect(editor.toolState.adjust).toEqual(initial);
+    expect(editor.toolState.curveRGB).toEqual([
+      { x: 0, y: 0 },
+      { x: 255, y: 255 },
+    ]);
+    expect(editor.canCancelCurrentTool).toBe(false);
+  });
 });

@@ -1,3 +1,4 @@
+import { selectEditorTool } from "./air-editor-driver.mjs";
 // Production editor layout regression. Use an external Playwright installation;
 // no browser runner is included in the shipped application.
 // PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs AIR_BROWSER=webkit \
@@ -78,8 +79,7 @@ try {
         .setInputFiles(resolve(root, "scripts/fixtures/orange.webp"));
       await page.locator('.editor-topbar [aria-label="Export"]:not(:disabled)').waitFor();
       const canvas = await page.locator("canvas.upper-canvas").elementHandle();
-      const mobile =
-        (await page.getByRole("button", { name: "Open tools", exact: true }).count()) > 0;
+      const mobile = (await page.locator(".editor-mobile-workspace").count()) > 0;
       const topbar = await page.locator(".editor-topbar").evaluate((e) => {
         const box = e.getBoundingClientRect(),
           minimum = matchMedia("(pointer: coarse)").matches ? 44 : 32;
@@ -99,22 +99,8 @@ try {
           .map((b) => b.getAttribute("aria-label") || b.textContent);
       });
       assert.deepEqual(topbar, [], `Toolbar ${JSON.stringify(profile)} ${theme}`);
-      for (const name of names.filter((name) => !mobile || name !== "Move")) {
-        if (mobile) await page.getByRole("button", { name: "Open tools", exact: true }).click();
-        await page
-          .locator(mobile ? ".editor-mobile-surface" : ".editor-toolrail")
-          .getByRole("button", { name, exact: true })
-          .click();
-        await page.waitForFunction(
-          (name) =>
-            document
-              .querySelector('.editor-toolrail button[aria-pressed="true"]')
-              ?.getAttribute("aria-label") === name ||
-            document
-              .querySelector('[aria-label="Tool controls"] .editor-mobile-title')
-              ?.textContent.trim() === name,
-          name,
-        );
+      for (const name of names) {
+        await selectEditorTool(page, name);
         await page.locator("[data-tool-panel-loading]").waitFor({ state: "hidden" });
         await page.waitForTimeout(150);
         const consent = page
@@ -180,8 +166,46 @@ try {
               if (b.left < r.left - 1 || b.right > r.right + 1)
                 textOverflow.push(e.textContent.trim());
             }
+            const header = document.querySelector(
+              ".editor-mobile-header,.editor-properties__header",
+            );
+            const headerIssues = [];
+            if (header) {
+              const bounds = header.getBoundingClientRect();
+              const buttons = [...header.querySelectorAll("button")]
+                .filter(visible)
+                .map((e) => ({ name: label(e), box: e.getBoundingClientRect() }));
+              const overlaps = (a, b) =>
+                Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+                Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+              for (const [i, button] of buttons.entries()) {
+                const b = button.box;
+                if (
+                  b.left < bounds.left ||
+                  b.right > bounds.right + 1 ||
+                  b.top < bounds.top ||
+                  b.bottom > bounds.bottom + 1
+                )
+                  headerIssues.push(`action outside header: ${button.name}`);
+                for (const other of buttons.slice(i + 1))
+                  if (overlaps(b, other.box))
+                    headerIssues.push(`overlapping actions: ${button.name}, ${other.name}`);
+              }
+              for (const text of header.querySelectorAll("h2,.editor-properties__heading > span")) {
+                if (!visible(text)) continue;
+                const range = document.createRange();
+                range.selectNodeContents(text);
+                for (const rect of range.getClientRects()) {
+                  if (rect.left < bounds.left || rect.right > bounds.right + 1)
+                    headerIssues.push(`title outside header: ${text.textContent}`);
+                  if (buttons.some((button) => overlaps(rect, button.box)))
+                    headerIssues.push(`title/action overlap: ${text.textContent}`);
+                }
+              }
+            }
             return {
               name,
+              headerIssues,
               escape,
               small,
               unnamed,
@@ -196,6 +220,7 @@ try {
         );
         results.push({ ...profile, theme, ...result });
         if (
+          result.headerIssues.length ||
           result.escape.length ||
           result.small.length ||
           result.unnamed.length ||
@@ -219,7 +244,7 @@ try {
             .locator(".editor-mobile-surface")
             .getByRole("button", { name: "Cancel", exact: true })
             .click();
-          await page.getByRole("button", { name: "Open tools", exact: true }).waitFor();
+          await page.locator(".editor-mobile-surface").waitFor({ state: "hidden" });
         }
       }
       await page
@@ -248,7 +273,7 @@ try {
         JSON.stringify({
           ...profile,
           theme,
-          tools: names.filter((name) => !mobile || name !== "Move").length,
+          tools: names.length,
           failures: failures.length,
         }),
       );

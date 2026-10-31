@@ -1,5 +1,6 @@
-// Secondary mobile actions; Compare remains in the top bar and canvas gesture.
+// Secondary compact-editor actions, shared by phone and tablet.
 import { useRef } from "react";
+import { useEditorActions, useEditorReadOnly } from "./EditorContext";
 import { I } from "../components/icons";
 import { ModalCloseButton, ModalFrame, useModalClose } from "../components/ModalFrame";
 
@@ -46,6 +47,8 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
   // the slide-down completes, which is how Reset preserves its
   // "close before showing the confirm modal" UX invariant.
   const animatedClose = useModalClose();
+  const { setMode, setView } = useEditorActions();
+  const { mode, view } = useEditorReadOnly();
   const dismiss = (after?: () => void) => {
     if (animatedClose) animatedClose(after);
     else {
@@ -75,6 +78,40 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
             dismiss(onShowFileProps);
           }}
         />
+        <MenuItem
+          icon={I.Layers}
+          label={mode === "single" ? "Batch editing" : "Single photo"}
+          onClick={() => dismiss(() => setMode(mode === "single" ? "batch" : "single"))}
+        />
+        <Divider />
+        <div className="editor-more-zoom">
+          <span>Zoom · {Math.round(view.zoom * 100)}%</span>
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon"
+            aria-label="Zoom out"
+            onClick={() =>
+              setView((value) => ({ ...value, zoom: Math.max(0.05, value.zoom / 1.2) }))
+            }
+          >
+            <I.ZoomOut size={18} />
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon"
+            aria-label="Zoom in"
+            onClick={() => setView((value) => ({ ...value, zoom: Math.min(8, value.zoom * 1.2) }))}
+          >
+            <I.ZoomIn size={18} />
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => dismiss(() => setView({ zoom: 1, panX: 0, panY: 0 }))}
+          >
+            Fit
+          </button>
+        </div>
         <Divider />
         <MenuItem
           icon={I.Refresh}

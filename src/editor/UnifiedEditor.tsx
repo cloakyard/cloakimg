@@ -30,6 +30,7 @@ import { DepthConsentHost } from "./ai/capabilities/depth/ConsentHost";
 import { MobileEditorSurface } from "./MobileEditorSurface";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StageHost, StageProvider } from "./StageHost";
+import { CompactToolNav } from "./CompactToolNav";
 import { ToolRail } from "./ToolRail";
 import { ToolSearchModal } from "./ToolSearchModal";
 import { ToolStage } from "./ToolStage";
@@ -89,6 +90,7 @@ function EditorShell() {
     sizeBucket: 1,
   });
   const [filePropsOpen, setFilePropsOpen] = useState(false);
+  const [moveRequest, setMoveRequest] = useState(0);
   const [toolSearchOpen, setToolSearchOpen] = useState(false);
   const [toolSearchKeyboardOpen, setToolSearchKeyboardOpen] = useState(false);
 
@@ -122,35 +124,49 @@ function EditorShell() {
   useEffect(() => {
     if (isMobile) return;
     if (!canCancelCurrentTool) return;
-    if (exportOpen || filePropsOpen) return;
+    if (exportOpen || filePropsOpen || toolSearchOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
+      if (
+        e.key !== "Escape" ||
+        e.defaultPrevented ||
+        document.querySelector('[role="dialog"], [role="listbox"]')
+      )
+        return;
       const target = e.target as HTMLElement | null;
-      const tag = target?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (
+        target?.closest(
+          'input, textarea, [contenteditable=true], [role="combobox"], [role="listbox"], [role="option"], [role="dialog"], [role="menu"]',
+        )
+      )
+        return;
       e.preventDefault();
       void cancelCurrentTool();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isMobile, canCancelCurrentTool, exportOpen, filePropsOpen, cancelCurrentTool]);
+  }, [
+    isMobile,
+    canCancelCurrentTool,
+    exportOpen,
+    filePropsOpen,
+    toolSearchOpen,
+    cancelCurrentTool,
+  ]);
 
   // CloakPDF parity: ⌘K / Ctrl+K opens the searchable tool index.
-  // The mobile editor already has a full-screen picker, so this stays
-  // scoped to desktop/tablet where the icon rail is visible.
+  // The same catalogue remains available from a hardware keyboard at every width.
   useEffect(() => {
-    if (isMobile) return;
     const onKey = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== "k") {
         return;
       }
-      if (exportOpen || filePropsOpen) return;
+      if (exportOpen || filePropsOpen || toolSearchOpen) return;
       event.preventDefault();
       openToolSearch(true);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [exportOpen, filePropsOpen, isMobile, openToolSearch]);
+  }, [exportOpen, filePropsOpen, toolSearchOpen, openToolSearch]);
 
   // Paste-to-replace inside the editor: catch Cmd/Ctrl-V on the document
   // and grab the first image off the clipboard.
@@ -213,25 +229,40 @@ function EditorShell() {
         {busyLabel && <BusyOverlay label={busyLabel} />}
 
         <div className={`flex min-h-0 flex-1 ${isMobile && mode === "batch" ? "flex-col" : ""}`}>
-          {!isMobile && mode === "single" && (
-            <ToolRail
+          {isTablet && mode === "single" ? (
+            <CompactToolNav
+              vertical
               activeTool={activeTool}
               onSelect={setActiveTool}
               onOpenSearch={() => openToolSearch(false)}
             />
+          ) : (
+            !isMobile &&
+            mode === "single" && (
+              <ToolRail
+                activeTool={activeTool}
+                onSelect={setActiveTool}
+                onOpenSearch={() => openToolSearch(false)}
+              />
+            )
           )}
 
           <div className="flex min-w-0 flex-1 flex-col">
             {mode === "batch" ? (
               <BatchCanvas isMobile={isMobile} />
             ) : isMobile ? (
-              // The compact controls share available height with the live canvas.
-              <div className="flex min-h-0 flex-1 flex-col">
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              // Portrait stacks controls; short landscape keeps the photo alongside them.
+              <div className="editor-mobile-stage-layout flex min-h-0 flex-1 flex-col">
+                <div className="editor-mobile-stage flex min-h-0 flex-1 flex-col overflow-hidden">
                   <StageHost />
                   <ToolStage />
                 </div>
-                {mode === "single" && <MobileEditorSurface />}
+                {mode === "single" && (
+                  <MobileEditorSurface
+                    moveRequest={moveRequest}
+                    onOpenSearch={() => openToolSearch(false)}
+                  />
+                )}
               </div>
             ) : (
               // StageHost mounts the live ImageCanvas + Fabric instance
@@ -273,11 +304,14 @@ function EditorShell() {
         <FilePropertiesModal layout={layout} onClose={() => setFilePropsOpen(false)} />
       )}
 
-      {toolSearchOpen && !isMobile && mode === "single" && (
+      {toolSearchOpen && mode === "single" && (
         <ToolSearchModal
           instant={toolSearchKeyboardOpen}
           onClose={() => setToolSearchOpen(false)}
-          onSelect={setActiveTool}
+          onSelect={async (id) => {
+            await setActiveTool(id);
+            if (id === "move") setMoveRequest((value) => value + 1);
+          }}
         />
       )}
 

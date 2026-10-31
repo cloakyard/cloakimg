@@ -29,6 +29,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -73,13 +74,11 @@ interface EditorContextValue {
 
   toolState: ToolState;
   patchTool: <K extends keyof ToolState>(key: K, value: ToolState[K]) => void;
-  setActiveTool: (id: ToolState["activeTool"]) => void;
+  setActiveTool: (id: ToolState["activeTool"]) => Promise<void>;
   /** Cancel the current tool session: discard any pending apply, undo
    *  back to the history depth recorded when the tool was entered, and
-   *  return to the Move tool. Mirrors mobile's ✕ action (the rollback
-   *  semantics MobileEditorSurface.handleCancel implements) so desktop
-   *  users have an equivalent escape hatch. No-op when there's nothing
-   *  to cancel (no pending apply AND no commits since tool entry). */
+   *  restore the entry settings and return to Move. Shared by compact
+   *  and full inspectors, including re-entry after discarded previews. */
   cancelCurrentTool: () => Promise<void>;
   /** True when the active tool has something a cancel would actually
    *  roll back — either a registered pending apply, or one or more
@@ -314,6 +313,13 @@ export function EditorProvider({
   const [exportOpen, setExportOpen] = useState(false);
   const [batchFiles, setBatchFiles] = useState<BatchFile[]>([]);
   const [recipe, setRecipeState] = useState<RecipeStep[]>(DEFAULT_RECIPE);
+  // Tool settings are immutable. Keep the entry snapshot across layout changes
+  // so Cancel also discards unbaked values when that tool is opened again.
+  const toolEntryRef = useRef(toolState);
+  useLayoutEffect(() => {
+    if (toolEntryRef.current.activeTool !== toolState.activeTool) toolEntryRef.current = toolState;
+  }, [toolState]);
+
   const [batchRunning, setBatchRunning] = useState(false);
   const [compareActive, setCompareActive] = useState(false);
 
@@ -626,6 +632,7 @@ export function EditorProvider({
 
   const setActiveTool = useCallback(
     async (id: ToolState["activeTool"]) => {
+      if (id === toolEntryRef.current.activeTool) return;
       // Capture and await the pending bake BEFORE switching tools.
       // Previously we set the new tool synchronously and fired the
       // bake async via `void runBusy(...)`, which let React unmount
@@ -657,7 +664,7 @@ export function EditorProvider({
     // Discard any pending apply first — otherwise the subsequent
     // setActiveTool("move") below would happily bake the very work
     // the user just asked to throw away (its internal apply flush
-    // runs unconditionally). This mirrors mobile's `handleCancel`.
+    // runs unconditionally). Both compact and full inspectors use this transaction.
     pendingApplyRef.current = null;
     setPendingApplyVersion((v) => v + 1);
     const checkpoint = toolCheckpointRef.current;
@@ -672,7 +679,7 @@ export function EditorProvider({
     }
     // Drop back to Move. Bypass `setActiveTool` (which would await a
     // pending apply we just cleared, harmless but extra work).
-    setToolState((prev) => ({ ...prev, activeTool: "move" }));
+    setToolState({ ...toolEntryRef.current, activeTool: "move" });
     toolCheckpointRef.current = historyRef.current.currentIndex();
     setToolCheckpoint(toolCheckpointRef.current);
   }, []);

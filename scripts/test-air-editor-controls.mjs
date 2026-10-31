@@ -1,3 +1,4 @@
+import { selectEditorTool } from "./air-editor-driver.mjs";
 // Real pointer and keyboard regressions for shared Air controls and canvas menu positioning.
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,20 +38,8 @@ for (const engine of ["chrome", "webkit"]) {
           .first()
           .setInputFiles(resolve(root, "scripts/fixtures/orange.webp"));
         await p.locator(".editor-topbar [aria-label=Export]:not(:disabled)").waitFor();
-        const mobile = width === 390;
         async function choose(name) {
-          if (mobile) {
-            const cancel = p
-              .locator(".editor-mobile-surface")
-              .getByRole("button", { name: "Cancel", exact: true });
-            if (await cancel.count()) await cancel.click();
-            await p.getByRole("button", { name: "Open tools", exact: true }).click();
-          }
-          await p
-            .locator(mobile ? ".editor-mobile-surface" : ".editor-toolrail")
-            .getByRole("button", { name, exact: true })
-            .click();
-          await p.locator("[data-tool-panel-loading]").waitFor({ state: "hidden" });
+          await selectEditorTool(p, name);
           await p.waitForTimeout(150);
         }
         await choose("Shapes");
@@ -79,7 +68,7 @@ for (const engine of ["chrome", "webkit"]) {
         await p.waitForTimeout(1000);
         const c = p.locator("canvas.upper-canvas");
         const box = await c.boundingBox();
-        if (mobile) await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+        if (width < 768) await p.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
         else await p.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
         await p.waitForTimeout(200);
         for (let i = 0; i < 3; i++) {

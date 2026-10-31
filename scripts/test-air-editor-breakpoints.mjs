@@ -52,13 +52,20 @@ for (const engine of ["chromium", "webkit"]) {
           for (const [width, height] of [
             [1024, 768],
             [390, 844],
+            [767, 900],
             [768, 1024],
+            [769, 900],
+            [639, 390],
+            [640, 390],
+            [641, 390],
+            [844, 500],
+            [844, 501],
             [844, 390],
             [1280, 720],
           ]) {
             await page.setViewportSize({ width, height });
             const surface = page.locator(
-              width <= 768 || (width <= 960 && height <= 500)
+              width < 768 || (width <= 960 && height <= 500)
                 ? ".editor-mobile-surface"
                 : ".editor-properties",
             );
