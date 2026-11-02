@@ -177,28 +177,22 @@ if (dimsAfterRedo?.w !== dimsBorder?.w || dimsAfterRedo?.h !== dimsBorder?.h) {
 
 // ── Scenario 2: Resize → Undo → leave stays undone ───────────────
 // Regression guard: Resize keeps a pending target in toolState. After
-// applying and undoing while the panel is still mounted, switching tools
+// applying and undoing, switching tools
 // must not silently reapply that stale target.
 console.log("→ Scenario 2: Resize undo remains undone after tool switch");
 const beforeResizeDims = await dims();
 await clickTool("Resize");
 await new Promise((r) => setTimeout(r, 500));
-await page.evaluate(
-  ({ width, height }) => {
-    window.__editorDebug.patchTool("resizeAspectLock", false);
-    window.__editorDebug.patchTool("resizeW", width);
-    window.__editorDebug.patchTool("resizeH", height);
-  },
-  {
-    width: Math.max(1, Math.round((beforeResizeDims?.w ?? 2) / 2)),
-    height: Math.max(1, Math.round((beforeResizeDims?.h ?? 2) / 2)),
-  },
+await page
+  .locator('input[aria-label="Width"]')
+  .fill(String(Math.max(1, Math.round(beforeResizeDims.w / 2))));
+await page.focus('input[aria-label="Width"]');
+await page.keyboard.press("Enter");
+await page.waitForFunction(
+  () => !!document.querySelector('.air-editor-actions button[aria-label="Apply"]:not(:disabled)'),
 );
-await page.evaluate(() => {
-  Array.from(document.querySelectorAll(".editor-properties button"))
-    .find((button) => /^Apply resize$/i.test(button.textContent?.trim() ?? ""))
-    ?.click();
-});
+await page.click('.air-editor-actions button[aria-label="Apply"]');
+await page.waitForFunction(() => window.__editorDebug.toolState.activeTool === "move");
 await new Promise((r) => setTimeout(r, 3000));
 const appliedResizeDims = await dims();
 console.log(`  applied resize: dims=${appliedResizeDims?.w}×${appliedResizeDims?.h}`);

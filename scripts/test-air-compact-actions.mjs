@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +10,9 @@ const out = process.env.AIR_EVIDENCE_DIR || "/tmp/cloakimg-compact-actions";
 await mkdir(out, { recursive: true });
 const results = [],
   errors = [];
-for (const engine of ["chromium", "webkit"]) {
+for (const engine of ["chromium", "webkit"].filter(
+  (name) => !process.env.AIR_BROWSER || process.env.AIR_BROWSER === name,
+)) {
   const b =
     engine === "webkit"
       ? await webkit.launch()
@@ -17,7 +20,10 @@ for (const engine of ["chromium", "webkit"]) {
           executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         });
   try {
-    for (const width of [390, 768])
+    for (const width of [390, 768].filter(
+      (width) =>
+        !process.env.AIR_WIDTHS || process.env.AIR_WIDTHS.split(",").includes(String(width)),
+    ))
       for (const colorScheme of ["light", "dark"]) {
         const p = await b.newPage({
           viewport: { width, height: width === 390 ? 844 : 1024 },
@@ -28,6 +34,42 @@ for (const engine of ["chromium", "webkit"]) {
         });
         console.log(engine, width, colorScheme);
         p.on("pageerror", (e) => errors.push(e.message));
+        // Observe the exact preview input and transform without changing drawing.
+        // WebKit may rasterize the same fractional-scale draw differently after
+        // a canvas remount. Output bytes have a separate actual-download gate.
+        await p.addInitScript(() => {
+          const draw = Object.getOwnPropertyDescriptor(
+            CanvasRenderingContext2D.prototype,
+            "drawImage",
+          )?.value;
+          if (typeof draw !== "function") throw new Error("Canvas draw observer unavailable");
+          CanvasRenderingContext2D.prototype.drawImage = function (...args) {
+            const source = args[0];
+            if (
+              this.canvas.classList.contains("lower-canvas") &&
+              source instanceof HTMLCanvasElement
+            ) {
+              const transform = this.getTransform();
+              window.airPreviewDraw = {
+                pixels: source.toDataURL(),
+                size: [source.width, source.height],
+                canvas: [this.canvas.width, this.canvas.height],
+                transform: [
+                  transform.a,
+                  transform.b,
+                  transform.c,
+                  transform.d,
+                  transform.e,
+                  transform.f,
+                ],
+                rectangle: args.slice(1),
+                smoothing: this.imageSmoothingEnabled,
+                quality: this.imageSmoothingQuality,
+              };
+            }
+            return draw.apply(this, args);
+          };
+        });
         await p.goto(process.env.BASE_URL || "http://127.0.0.1:8456");
         await p
           .locator("input[type=file]")
@@ -63,21 +105,37 @@ for (const engine of ["chromium", "webkit"]) {
         assert.equal(await field.inputValue(), "0.4");
         await p.getByRole("button", { name: "More actions" }).click();
         assert(await canvas.evaluate((e) => e === document.querySelector("canvas.upper-canvas")));
-        const beforeBatch = await p.locator("canvas.lower-canvas").evaluate((e) => e.toDataURL());
+        // Fit and field changes schedule asynchronous preview work. Sample only once
+        // the rendered canvas has settled, before comparing the batch round trip.
+        let beforeBatch,
+          previous,
+          stable = 0;
+        for (let attempt = 0; attempt < 30 && stable < 5; attempt++) {
+          await p.waitForTimeout(100);
+          beforeBatch = await p.locator("canvas.lower-canvas").evaluate((e) => e.toDataURL());
+          stable = beforeBatch === previous ? stable + 1 : 0;
+          previous = beforeBatch;
+        }
+        assert.equal(stable, 5, "Preview must settle before batch entry");
+        const beforePreview = await p.evaluate(() => window.airPreviewDraw);
+        assert(beforePreview, "Adjusted preview must be painted before batch entry");
         await dialog.getByRole("button", { name: "Batch editing", exact: true }).click();
         await dialog.waitFor({ state: "hidden" });
         await p.locator(".editor-compact-nav").waitFor({ state: "hidden" });
         await p.getByRole("button", { name: "More actions" }).click();
+        await p.evaluate(() => delete window.airPreviewDraw);
         await dialog.getByRole("button", { name: "Single photo", exact: true }).click();
         await dialog.waitFor({ state: "hidden" });
         await field.waitFor();
         assert.equal(await field.inputValue(), "0.4");
         // Batch has its own stage. Existing scene serialization restores the
-        // single-photo canvas on return; compare rendered pixels, not DOM identity.
+        // single-photo canvas on return; compare exact preview pixels/geometry.
+        // The physical canvas is intentionally recreated for the separate stage.
         await p.waitForFunction(
-          (expected) => document.querySelector("canvas.lower-canvas")?.toDataURL() === expected,
-          beforeBatch,
+          (expected) => JSON.stringify(window.airPreviewDraw) === expected,
+          JSON.stringify(beforePreview),
         );
+        const afterBatch = await p.locator("canvas.lower-canvas").evaluate((e) => e.toDataURL());
         await p.getByRole("button", { name: "Open tools", exact: true }).click();
         const search = p.getByRole("combobox", { name: "Search editor tools" });
         await search.fill("privacy");
@@ -92,7 +150,9 @@ for (const engine of ["chromium", "webkit"]) {
           selectEscape: true,
           menuZoom: true,
           batchRoundTrip: true,
-          retainedBatchPixels: true,
+          retainedPreviewPixelsAndGeometry: true,
+          previewPixelSha256: createHash("sha256").update(beforePreview.pixels).digest("hex"),
+          identicalDisplayRaster: beforeBatch === afterBatch,
           catalogueSearch: true,
           persistentCanvas: true,
         });

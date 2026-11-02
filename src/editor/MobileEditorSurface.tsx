@@ -2,24 +2,18 @@
 // overlay, so browsing tools never unregisters the current pending apply.
 import {
   type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
-import { I } from "../components/icons";
 import { useActiveTool, useEditorActions } from "./EditorContext";
 import { CompactToolNav } from "./CompactToolNav";
 import { LayersList } from "./LayersList";
+import { ToolActions } from "./ToolActions";
 import { ToolControls } from "./ToolControls";
 import { findTool, type ToolId } from "./tools";
-
-const DRAG_DISMISS_PX = 100;
-const DRAG_DISMISS_VELOCITY = 0.11;
-const DRAG_SETTLE_MS = 220;
-const EASING = "var(--air-ease-out)";
 
 export function MobileEditorSurface({
   onOpenSearch,
@@ -39,14 +33,14 @@ export function MobileEditorSurface({
   }, [moveRequest]);
   const [expandedControls, setExpandedControls] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const dockRef = useRef<HTMLDivElement>(null);
   const [availablePx, setAvailablePx] = useState(0);
   const [dockH, setDockH] = useState(72);
   const [headingSlot, setHeadingSlot] = useState<HTMLDivElement | null>(null);
-  const [headerH, setHeaderH] = useState(56);
+  const [chromeH, setChromeH] = useState(112);
   const [contentH, setContentH] = useState(240);
   const observerRef = useRef<ResizeObserver | null>(null);
 
@@ -68,12 +62,17 @@ export function MobileEditorSurface({
   useLayoutEffect(() => {
     const header = headerRef.current;
     if (!header) return;
-    const update = () => setHeaderH(header.getBoundingClientRect().height);
+    const update = () =>
+      setChromeH(
+        header.getBoundingClientRect().height +
+          (actionsRef.current?.getBoundingClientRect().height ?? 0),
+      );
     const observer = new ResizeObserver(update);
     observer.observe(header);
+    if (actionsRef.current) observer.observe(actionsRef.current);
     update();
     return () => observer.disconnect();
-  }, [expanded]);
+  }, [expanded, activeTool]);
 
   const setContentRef = useCallback((element: HTMLDivElement | null) => {
     observerRef.current?.disconnect();
@@ -94,10 +93,7 @@ export function MobileEditorSurface({
 
   // setActiveTool awaits the pending bake while the stage and panel remain
   // mounted. Cancel uses the provider's tool-entry checkpoint on every layout.
-  const handleClose = useCallback(async () => {
-    await setActiveTool("move");
-    setMoveOpen(false);
-  }, [setActiveTool]);
+  const handleClose = useCallback(() => setMoveOpen(false), []);
   const handleCancel = useCallback(async () => {
     await runBusy("Cancelling…", cancelCurrentTool);
     setMoveOpen(false);
@@ -127,97 +123,6 @@ export function MobileEditorSurface({
     return () => window.removeEventListener("keydown", onKey);
   }, [expanded, handleCancel]);
 
-  // Drag-to-dismiss on the drag handle. Pointer capture keeps the
-  // gesture stable off-edge; velocity lets a short flick dismiss; a
-  // short drag retargets from its current position and settles back.
-  // Only the handle intercepts, so content keeps native scrolling.
-  const dragPointerIdRef = useRef<number | null>(null);
-  const dragStartYRef = useRef(0);
-  const dragStartTimeRef = useRef(0);
-  const dragBaseYRef = useRef(0);
-  const dragDeltaRef = useRef(0);
-  const dragSettleTimerRef = useRef<number | null>(null);
-
-  useEffect(
-    () => () => {
-      if (dragSettleTimerRef.current !== null) {
-        window.clearTimeout(dragSettleTimerRef.current);
-      }
-    },
-    [],
-  );
-
-  const onDragStart = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    if ((event.target as HTMLElement).closest("button, input, [role=combobox]")) return;
-    if (dragPointerIdRef.current !== null) return;
-    const sheet = sheetRef.current;
-    if (!sheet) return;
-    if (dragSettleTimerRef.current !== null) {
-      window.clearTimeout(dragSettleTimerRef.current);
-      dragSettleTimerRef.current = null;
-    }
-    dragPointerIdRef.current = event.pointerId;
-    dragStartYRef.current = event.clientY;
-    dragStartTimeRef.current = performance.now();
-    const transform = window.getComputedStyle(sheet).transform;
-    const currentY = transform === "none" ? 0 : new DOMMatrixReadOnly(transform).m42;
-    dragBaseYRef.current = currentY;
-    dragDeltaRef.current = currentY;
-    sheet.style.transition = "none";
-    sheet.style.transform = `translateY(${currentY}px)`;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }, []);
-
-  const onDragMove = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    if (dragPointerIdRef.current !== event.pointerId) return;
-    const travel = Math.max(0, event.clientY - dragStartYRef.current);
-    const delta = dragBaseYRef.current + travel;
-    dragDeltaRef.current = delta;
-    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${delta}px)`;
-  }, []);
-
-  const finishDrag = useCallback(
-    (event: ReactPointerEvent<HTMLElement>, cancelled = false) => {
-      if (dragPointerIdRef.current !== event.pointerId) return;
-      dragPointerIdRef.current = null;
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-      const sheet = sheetRef.current;
-      if (!sheet) return;
-      const elapsed = Math.max(1, performance.now() - dragStartTimeRef.current);
-      const travel = Math.max(0, dragDeltaRef.current - dragBaseYRef.current);
-      const velocity = travel / elapsed;
-      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-      const dismiss =
-        !cancelled && (dragDeltaRef.current >= DRAG_DISMISS_PX || velocity > DRAG_DISMISS_VELOCITY);
-      sheet.style.transition = reduceMotion ? "none" : `transform ${DRAG_SETTLE_MS}ms ${EASING}`;
-      if (!dismiss) {
-        sheet.style.transform = "";
-        dragDeltaRef.current = 0;
-        if (reduceMotion) sheet.style.transition = "none";
-        else {
-          dragSettleTimerRef.current = window.setTimeout(() => {
-            sheet.style.transition = "none";
-            dragSettleTimerRef.current = null;
-          }, DRAG_SETTLE_MS);
-        }
-        return;
-      }
-      sheet.style.transform = reduceMotion ? "" : "translateY(100%)";
-      const settle = () => {
-        sheet.style.transition = "none";
-        sheet.style.transform = "";
-        dragDeltaRef.current = 0;
-        dragSettleTimerRef.current = null;
-        void handleClose();
-      };
-      if (reduceMotion) settle();
-      else dragSettleTimerRef.current = window.setTimeout(settle, DRAG_SETTLE_MS);
-    },
-    [handleClose],
-  );
-
   const handleSelectTool = useCallback(
     (id: ToolId) => {
       if (id !== activeTool) void setActiveTool(id);
@@ -227,27 +132,22 @@ export function MobileEditorSurface({
   const room = Math.max(0, availablePx - dockH);
   const short = room < 360;
   const maxHeight =
-    expandedControls || short ? Math.max(headerH + 64, room - (short ? 64 : 128)) : room * 0.55;
-  const height = Math.min(headerH + contentH, maxHeight || 320);
+    expandedControls || short
+      ? Math.max(chromeH + 64, room - (short ? 64 : 128))
+      : Math.min(room - 96, Math.max(room * 0.55, chromeH + 168));
+  const height = Math.min(chromeH + contentH, maxHeight || 320);
 
   return (
     <div ref={wrapRef} className="editor-mobile-workspace">
       {expanded && (
         <div
-          ref={sheetRef}
           role="region"
           aria-label="Tool controls"
           className="editor-mobile-surface"
           style={{ "--mobile-panel-height": `${height}px` } as CSSProperties}
         >
           <div ref={headerRef} className="editor-mobile-header">
-            <div
-              className="editor-mobile-heading touch-none"
-              onPointerDown={onDragStart}
-              onPointerMove={onDragMove}
-              onPointerUp={finishDrag}
-              onPointerCancel={(event) => finishDrag(event, true)}
-            >
+            <div className="editor-mobile-heading">
               <h2 className={`editor-mobile-title${activeTool === "adjust" ? " sr-only" : ""}`}>
                 {findTool(activeTool).name}
               </h2>
@@ -255,31 +155,12 @@ export function MobileEditorSurface({
             </div>
             <button
               type="button"
-              className="btn btn-ghost btn-icon"
+              className="air-button air-button--quiet"
               aria-label={expandedControls ? "Return to split view" : "Expand controls"}
               aria-pressed={expandedControls}
               onClick={() => setExpandedControls((value) => !value)}
             >
-              <I.ChevronDown
-                size={18}
-                style={{ transform: expandedControls ? undefined : "rotate(180deg)" }}
-                aria-hidden="true"
-              />
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleCancel()}
-              aria-label="Cancel"
-              className="btn btn-ghost btn-icon"
-            >
-              <I.X size={18} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleClose()}
-              className="btn btn-secondary btn-sm"
-            >
-              Done
+              {expandedControls ? "Split view" : "Expand"}
             </button>
           </div>
           <div
@@ -296,6 +177,7 @@ export function MobileEditorSurface({
               <LayersList />
             </div>
           </div>
+          <ToolActions key={`actions-${activeTool}`} ref={actionsRef} onClose={handleClose} />
         </div>
       )}
       <div ref={dockRef} className="editor-mobile-dock">

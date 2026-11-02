@@ -188,7 +188,7 @@ for (const engine of ["chromium", "webkit"].filter(
         if (width < 1180)
           await page
             .locator(".editor-mobile-surface,.editor-properties")
-            .getByRole("button", { name: "Done", exact: true })
+            .getByRole("button", { name: "Apply", exact: true })
             .click();
         else await selectEditorTool(page, "Move");
         await page.waitForFunction(() => window.__editorDebug?.toolState.activeTool === "move");

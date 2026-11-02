@@ -21,8 +21,7 @@ const LONG_EDGE_PRESETS = [
 const FIT = ["Fit", "Fill", "Stretch"] as const;
 
 export function ResizePanel() {
-  const { doc, toolState, patchTool, commit, runBusy, layout } = useEditor();
-  const isMobile = layout === "mobile";
+  const { doc, toolState, patchTool, commit, runBusy } = useEditor();
   const [fit, setFit] = useState(0);
   const [resizing, setResizing] = useState(false);
 
@@ -130,7 +129,7 @@ export function ResizePanel() {
 
   // Auto-bake on tool switch — wires the same `apply` into the
   // pending-apply slot the EditorContext flushes when the active tool
-  // changes. Without this, the mobile MobileEditorSurface ✓ tap (which
+  // changes. Without this, the shared Apply action (which
   // resets activeTool to Move and triggers the flush) would close the
   // tool without ever performing the resize. The `dirty` gate keeps a
   // no-op tool peek from spuriously baking the original dimensions
@@ -263,21 +262,6 @@ export function ResizePanel() {
           High runs a Lanczos-3 pass — sharper at moderate downscales, slower than Fast. Falls back
           to Fast automatically when the change is too small to benefit.
         </div>
-      )}
-      {/* Apply resize — desktop / tablet only. On mobile the
-          MobileEditorSurface footer's ✓ is the universal commit; the
-          auto-bake registered above runs the resize when the user taps
-          ✓, so the visible button is redundant chrome. */}
-      {!isMobile && (
-        <button
-          type="button"
-          className="btn btn-primary justify-center"
-          onClick={() => void apply()}
-          disabled={resizing}
-          aria-busy={resizing}
-        >
-          <I.Check size={16} /> {resizing ? "Resizing…" : "Apply resize"}
-        </button>
       )}
     </>
   );

@@ -2,11 +2,11 @@
 // Shows the active tool's icon + name + group header on top, then
 // renders ToolControls below.
 
-import { I } from "../components/icons";
-import { useActiveTool, useEditorActions, useEditorReadOnly } from "./EditorContext";
+import { useActiveTool } from "./EditorContext";
 import { LayersList } from "./LayersList";
 import { TOOL_GROUP_LABELS } from "./toolSearch";
 import { findTool } from "./tools";
+import { ToolActions } from "./ToolActions";
 import { ToolControls } from "./ToolControls";
 
 interface Props {
@@ -14,13 +14,7 @@ interface Props {
 }
 
 export function PropertiesPanel({ collapsed = false }: Props) {
-  // Read only the slices this wrapper needs: the active tool id (changes
-  // on tool switch only) + the cancel affordance. Subscribing to the
-  // omnibus `useEditor()` re-rendered the whole panel — header, controls
-  // wrapper, and LayersList — on every slider tick.
   const activeTool = useActiveTool();
-  const { cancelCurrentTool, setActiveTool } = useEditorActions();
-  const { canCancelCurrentTool } = useEditorReadOnly();
   const tool = findTool(activeTool);
 
   return (
@@ -34,33 +28,6 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           <h2>{tool.name}</h2>
           <span className="text-[0.8125rem] text-text-muted">{TOOL_GROUP_LABELS[tool.group]}</span>
         </div>
-        {/* Cancel — desktop parity with mobile's ✕ tap in the pinned
-            tool header. Visible only when the active tool has
-            actual rollback-able work (a pending apply OR commits since
-            tool entry). Tapping discards the pending bake, rolls
-            history back to the tool-entry checkpoint, and parks the
-            user back on Move. Esc is the keyboard equivalent (wired
-            in EditorShell). */}
-        {(canCancelCurrentTool || (collapsed && activeTool !== "move")) && (
-          <button
-            type="button"
-            onClick={() => void cancelCurrentTool()}
-            title="Cancel changes (Esc)"
-            aria-label="Cancel changes"
-            className="btn btn-ghost btn-icon-xs rounded-md pointer-coarse:h-11 pointer-coarse:w-11"
-          >
-            <I.X size={14} stroke={2} />
-          </button>
-        )}
-        {collapsed && activeTool !== "move" && (
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => void setActiveTool("move")}
-          >
-            Done
-          </button>
-        )}
       </div>
 
       {/* `key={activeTool}` remounts the scroll container on every tool
@@ -84,6 +51,7 @@ export function PropertiesPanel({ collapsed = false }: Props) {
         <ToolControls />
       </div>
       <LayersList />
+      {activeTool !== "move" && <ToolActions key={`actions-${activeTool}`} />}
     </div>
   );
 }

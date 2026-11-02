@@ -18,8 +18,7 @@ import {
 } from "./perspective";
 
 export function PerspectivePanel() {
-  const { toolState, patchTool, doc, commit, runBusy, getFabricCanvas, layout } = useEditor();
-  const isMobile = layout === "mobile";
+  const { toolState, patchTool, doc, commit, runBusy, getFabricCanvas } = useEditor();
 
   const corners = (toolState.persCorners as Quad | null) ?? null;
   const docW = doc?.width ?? 0;
@@ -37,7 +36,7 @@ export function PerspectivePanel() {
 
   // Auto-bake on tool switch — wires the same `apply` into the
   // pending-apply slot the EditorContext flushes when the active tool
-  // changes. Without this, the mobile MobileEditorSurface ✓ tap (which
+  // changes. Without this, the shared Apply action (which
   // resets activeTool to Move and triggers the flush) would close the
   // tool without ever performing the rectification. The (dirty &&
   // !degenerate) gate keeps a no-op tool peek or an unsolvable quad
@@ -82,9 +81,8 @@ export function PerspectivePanel() {
   return (
     <>
       <div className="text-[0.8125rem] leading-relaxed text-text-muted">
-        {isMobile
-          ? "Drag the four handles to the corners of the rectangular subject — a document, screen, or painting."
-          : "Drag the four handles to the corners of the rectangular subject — a document, screen, or painting — then Apply to flatten it."}
+        Drag the four handles to the corners of the rectangular subject, then choose Apply to
+        flatten it.
       </div>
 
       {recommended && !degenerate && (
@@ -93,40 +91,15 @@ export function PerspectivePanel() {
         </div>
       )}
       {degenerate && (
-        <div role="alert" className="text-[0.8125rem] leading-relaxed text-text">
+        <div role="alert" data-tool-blocked className="text-[0.8125rem] leading-relaxed text-text">
           The four corners are too close together to rectify. Spread them apart to mark the
           subject's actual edges.
         </div>
       )}
 
-      {/* Reset always shows; Apply only on tablet / desktop. On mobile
-          the global ✓ in MobileEditorSurface's footer is the universal
-          commit, and the auto-bake registered above runs the warp when
-          the user taps it. */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          className={`btn btn-ghost btn-xs justify-center text-text ${
-            isMobile ? "w-full" : "flex-1"
-          }`}
-          onClick={reset}
-          disabled={!dirty}
-        >
-          <I.Refresh size={16} />
-          Reset
-        </button>
-        {!isMobile && (
-          <button
-            type="button"
-            className="btn btn-primary btn-xs flex-1 justify-center"
-            onClick={() => void apply()}
-            disabled={!dirty || degenerate}
-          >
-            <I.Check size={16} />
-            Apply
-          </button>
-        )}
-      </div>
+      <button type="button" className="btn btn-ghost w-full" onClick={reset} disabled={!dirty}>
+        <I.Refresh size={16} aria-hidden="true" /> Reset
+      </button>
     </>
   );
 }

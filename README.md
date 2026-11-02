@@ -43,6 +43,8 @@ The subject mask is detected once per image and reused across every subject-awar
 
 Layered non-destructive overlays · undo/redo (`⌘Z` / `⌘⇧Z`) · hold-to-compare · reset to original · pan + pinch-zoom · single-key shortcuts · light/dark mode · focused phone controls with a persistent tool dock · compact tablet rail and inspector.
 
+Use **Apply** to keep a tool edit or **Cancel** to restore its starting state. The action row stays within reach on phones and tablets. **Expand / Split view** changes the workspace; inspection and output panels use **Close**.
+
 Drag/drop/paste import · HEIC decode · EXIF reader + one-tap GPS/metadata strip · recents + autosave (IndexedDB) · batch mode · export to JPEG/PNG/WebP/AVIF/HEIC · exact-size ID-photo PDF/print sheets · wide-gamut (Display-P3) output.
 
 ---

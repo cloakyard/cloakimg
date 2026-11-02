@@ -152,12 +152,12 @@ console.log(`  pre-Crop historyDepth: ${preCropDepth}`);
 await page.evaluate(() => window.__editorDebug.patchTool("rotationDeg", 10));
 await new Promise((r) => setTimeout(r, 400));
 
-// Trigger cancel via the PropertiesPanel header X button (the visible
+// Trigger cancel via the shared labelled Cancel button (the visible
 // affordance the user would click).
 const cancelClicked = await page.evaluate(() => {
   const btn = Array.from(document.querySelectorAll("button")).find((b) => {
     const t = (b.getAttribute("aria-label") ?? "") + " " + (b.title ?? "");
-    return /Cancel changes/i.test(t);
+    return /^Cancel$/i.test(t.trim());
   });
   if (!btn) return false;
   btn.click();
@@ -202,7 +202,7 @@ const canCancelDirty = await page.evaluate(() =>
   Boolean(
     Array.from(document.querySelectorAll("button")).find((b) => {
       const t = (b.getAttribute("aria-label") ?? "") + " " + (b.title ?? "");
-      return /Cancel changes/i.test(t);
+      return /^Cancel$/i.test(t.trim());
     }),
   ),
 );

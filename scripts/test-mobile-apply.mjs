@@ -110,7 +110,7 @@ async function pickTool(toolName) {
 async function tapConfirm() {
   await page.evaluate(() => {
     Array.from(document.querySelectorAll("button"))
-      .find((b) => (b.getAttribute("aria-label") ?? "").trim() === "Done")
+      .find((b) => (b.getAttribute("aria-label") ?? "").trim() === "Apply")
       ?.click();
   });
   // Apply pipeline includes runBusy (2 rAFs + the bake itself, which
