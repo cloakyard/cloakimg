@@ -777,7 +777,7 @@ async function auditMobileToolPanels(page, viewport) {
       if (!surface || !scroller) return { label: toolLabel, missing: true };
       const surfaceRect = surface.getBoundingClientRect();
       const scrollRect = scroller.getBoundingClientRect();
-      const toolActions = ["Cancel", "Done"].map((label) => {
+      const toolActions = ["Cancel", "Apply"].map((label) => {
         const button = Array.from(surface.querySelectorAll("button")).find(
           (candidate) => candidate.getAttribute("aria-label") === label,
         );

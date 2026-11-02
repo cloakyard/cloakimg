@@ -174,4 +174,45 @@ describe("EditorContext.commit contract", () => {
     ]);
     expect(editor.canCancelCurrentTool).toBe(false);
   });
+  it("keeps failed applies retryable and deduplicates completion while work is pending", async () => {
+    const { EditorProvider, useEditor } = await import("./EditorContext");
+    let editor!: ReturnType<typeof useEditor>;
+    function Probe() {
+      editor = useEditor();
+      return null;
+    }
+    await act(async () => {
+      render(
+        <EditorProvider
+          initialDoc={{ kind: "blank", w: 16, h: 16, background: null }}
+          onExit={() => undefined}
+        >
+          <Probe />
+        </EditorProvider>,
+      );
+    });
+    await act(async () => {
+      await editor.setActiveTool("adjust");
+    });
+    const apply = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValueOnce(new Error("write failed"))
+      .mockResolvedValue(undefined);
+    await act(async () => {
+      editor.registerPendingApply(apply);
+    });
+    await act(async () => {
+      await expect(editor.setActiveTool("move")).rejects.toThrow("write failed");
+    });
+    expect(editor.toolState.activeTool).toBe("adjust");
+    expect(editor.canCancelCurrentTool).toBe(true);
+    await act(async () => {
+      const first = editor.setActiveTool("move");
+      const repeated = editor.setActiveTool("move");
+      expect(repeated).toBe(first);
+      await Promise.all([first, repeated]);
+    });
+    expect(apply).toHaveBeenCalledTimes(2);
+    expect(editor.toolState.activeTool).toBe("move");
+  });
 });

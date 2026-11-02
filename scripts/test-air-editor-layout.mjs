@@ -67,6 +67,10 @@ try {
         serviceWorkers: "block",
       });
       page.setDefaultTimeout(15000);
+      page.on("console", (m) => {
+        if (/Encountered two children|Each child in a list|Minified React error/.test(m.text()))
+          errors.push(m.text());
+      });
       page.on("pageerror", (e) => errors.push(`${width}/${font}/${theme}: ${e.message}`));
       page.on("request", (r) => {
         if (/huggingface|cdn.*onnx|models\/.*\.(tflite|onnx)/.test(r.url())) requests.push(r.url());
@@ -203,9 +207,51 @@ try {
                 }
               }
             }
+            const actions = document.querySelector(".air-editor-actions");
+            const actionIssues = [];
+            const inspection = ["Move", "Color picker", "ID photo sheet"].includes(name);
+            const expected =
+              name === "Move" && !document.querySelector(".editor-mobile-surface")
+                ? []
+                : inspection
+                  ? ["Close"]
+                  : ["Cancel", "Apply"];
+            const actionButtons = [...(actions?.querySelectorAll("button") ?? [])];
+            if (
+              JSON.stringify(actionButtons.map((b) => b.textContent.trim())) !==
+              JSON.stringify(expected)
+            )
+              actionIssues.push("completion labels/order");
+            if (actions?.closest(".scroll-thin"))
+              actionIssues.push("completion scrolls with controls");
+            for (const b of actionButtons) {
+              const box = b.getBoundingClientRect();
+              if (
+                box.width < 43 ||
+                box.height < (matchMedia("(pointer:coarse)").matches ? 43 : 39) ||
+                box.x < 0 ||
+                box.y < 0 ||
+                box.right > innerWidth + 1 ||
+                box.bottom > innerHeight + 1
+              )
+                actionIssues.push("unreachable completion: " + b.textContent);
+              if (b.querySelector("svg")) actionIssues.push("completion has redundant icon");
+            }
+            const duplicate = [
+              ...document.querySelectorAll(
+                ".editor-properties button, .editor-mobile-surface button",
+              ),
+            ].filter(
+              (b) =>
+                visible(b) &&
+                /^(Apply(?: crop| resize)?|Done|Cancel)$/.test(b.textContent.trim()) &&
+                !b.closest(".air-editor-actions"),
+            );
+            if (duplicate.length) actionIssues.push("duplicate commit/dismissal");
             return {
               name,
               headerIssues,
+              actionIssues,
               escape,
               small,
               unnamed,
@@ -221,6 +267,7 @@ try {
         results.push({ ...profile, theme, ...result });
         if (
           result.headerIssues.length ||
+          result.actionIssues.length ||
           result.escape.length ||
           result.small.length ||
           result.unnamed.length ||
@@ -242,7 +289,10 @@ try {
         if (mobile) {
           await page
             .locator(".editor-mobile-surface")
-            .getByRole("button", { name: "Cancel", exact: true })
+            .getByRole("button", {
+              name: ["Move", "Color picker", "ID photo sheet"].includes(name) ? "Close" : "Cancel",
+              exact: true,
+            })
             .click();
           await page.locator(".editor-mobile-surface").waitFor({ state: "hidden" });
         }

@@ -333,8 +333,7 @@ function applyCrop(
 // ── Property-panel piece for crop ────────────────────────────────────
 
 export function CropPanel() {
-  const { toolState, patchTool, doc, getFabricCanvas, commit, layout } = useEditor();
-  const isMobile = layout === "mobile";
+  const { toolState, patchTool, doc, getFabricCanvas, commit } = useEditor();
   const subjectMask = useSubjectMask();
   const [smartBusy, setSmartBusy] = useState(false);
   const [smartError, setSmartError] = useState<string | null>(null);
@@ -343,7 +342,7 @@ export function CropPanel() {
   // thread for 100–300 ms — long enough that the user sees a frozen
   // button. We flip this on, yield to the browser so the spinner
   // paints, then run the bake.
-  const [applying, setApplying] = useState(false);
+  const applying = useRef(false);
   const aspect = ASPECT_OPTIONS[toolState.cropAspect]?.ratio ?? null;
   // Total rotation = quarter turns from the 90° button + fine slider.
   // Normalised to [0, 360) for display so 90° presses don't grow the
@@ -365,7 +364,7 @@ export function CropPanel() {
 
   const apply = useCallback(async () => {
     const fc = getFabricCanvas();
-    if (!fc || !doc) return;
+    if (!fc || !doc || applying.current) return;
     const rectObj = findCropRect(fc);
     if (!rectObj) return;
     const r = readCropBox(rectObj);
@@ -386,7 +385,7 @@ export function CropPanel() {
       Math.abs(r.w - init.w) < 1 &&
       Math.abs(r.h - init.h) < 1;
     if (noTransform && noCrop) return;
-    setApplying(true);
+    applying.current = true;
     try {
       // Yield to the browser so the busy state paints before we
       // monopolise the main thread on the rotate/flip drawImage. On
@@ -415,7 +414,7 @@ export function CropPanel() {
       patchTool("flipV", false);
       commit("Crop");
     } finally {
-      setApplying(false);
+      applying.current = false;
     }
   }, [aspect, commit, doc, getFabricCanvas, patchTool, toolState]);
 
@@ -547,8 +546,11 @@ export function CropPanel() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (
-        e.target instanceof HTMLElement &&
-        (e.target.tagName === "INPUT" || e.target.isContentEditable)
+        e.defaultPrevented ||
+        (e.target instanceof HTMLElement &&
+          e.target.closest(
+            'input, textarea, button, select, [contenteditable=true], [role="combobox"], [role="listbox"], [role="dialog"], [role="menu"]',
+          ))
       ) {
         return;
       }
@@ -652,39 +654,6 @@ export function CropPanel() {
         <I.Refresh size={16} />
         Reset crop area
       </button>
-      {/* Explicit Apply — desktop / tablet only. On mobile the
-          MobileEditorSurface footer's ✓ is the universal commit, so a
-          per-tool Apply duplicates the affordance and adds chrome the
-          minimalist mobile design wants gone. The auto-bake on tool
-          switch (registered via `useApplyOnToolSwitch(apply)` above)
-          fires when the user taps ✓, so removing the visible button
-          on mobile loses no functionality.
-          The keyboard-shortcut hint also hides on mobile because the
-          gestures it describes (Enter, R) don't apply on touch. */}
-      {!isMobile && (
-        <>
-          <button
-            type="button"
-            className="btn btn-primary mt-1 w-full justify-center"
-            onClick={() => void apply()}
-            disabled={applying}
-            style={{ opacity: applying ? 0.7 : 1 }}
-          >
-            {applying ? (
-              <>
-                <InlineSpinner /> Applying…
-              </>
-            ) : (
-              <>
-                <I.Check size={16} /> Apply crop
-              </>
-            )}
-          </button>
-          <p className="text-[0.8125rem] leading-[1.45] text-text-muted">
-            Or press Enter / switch tools. R resets the rect. Undo/Redo recover.
-          </p>
-        </>
-      )}
     </>
   );
 }

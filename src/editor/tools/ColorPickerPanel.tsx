@@ -22,7 +22,7 @@ export function ColorPickerPanel() {
 
   useEffect(() => {
     if (!doc) return;
-    setColors(extractPalette(doc.working, 5));
+    setColors([...new Set(extractPalette(doc.working, 5))]);
   }, [doc]);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export function ColorPickerPanel() {
 
   const reExtract = () => {
     if (!doc) return;
-    setColors(extractPalette(doc.working, 5));
+    setColors([...new Set(extractPalette(doc.working, 5))]);
   };
 
   const pickerCopied = !!toolState.pickedColor && copied === swatch;

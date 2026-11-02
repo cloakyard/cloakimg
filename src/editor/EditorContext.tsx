@@ -414,7 +414,15 @@ export function EditorProvider({
     if (fn) {
       pendingApplyRef.current = null;
       setPendingApplyVersion((v) => v + 1);
-      await fn();
+      try {
+        await fn();
+      } catch (error) {
+        if (pendingApplyRef.current === null) {
+          pendingApplyRef.current = fn;
+          setPendingApplyVersion((v) => v + 1);
+        }
+        throw error;
+      }
     }
   }, []);
 
@@ -630,37 +638,57 @@ export function EditorProvider({
   // pending-apply hooks so the test-only __editorDebug effect can read
   // the checkpoint when publishing its snapshot.)
 
+  const switchingTool = useRef<Promise<void> | null>(null);
   const setActiveTool = useCallback(
-    async (id: ToolState["activeTool"]) => {
-      if (id === toolEntryRef.current.activeTool) return;
-      // Capture and await the pending bake BEFORE switching tools.
-      // Previously we set the new tool synchronously and fired the
-      // bake async via `void runBusy(...)`, which let React unmount
-      // the outgoing tool's stage hook before the apply ran — and
-      // tools that read Fabric overlays in their apply (Crop's
-      // `findCropRect`) found nothing because the unmount cleanup
-      // had already removed those overlays. Awaiting here keeps the
-      // outgoing tool mounted for the duration of the bake; the
-      // spinner mounts immediately so the click still feels
-      // responsive. Mirrors mobile's `handleClose` flow.
-      const pending = pendingApplyRef.current;
-      pendingApplyRef.current = null;
-      setPendingApplyVersion((v) => v + 1);
-      if (pending) await runBusy("Applying…", pending);
-      setToolState((prev) => ({ ...prev, activeTool: id }));
-      // Record the history depth at tool entry so a subsequent
-      // cancel knows how far to rewind. We sample AFTER the pending
-      // bake commits so the apply's commit is "above" the
-      // checkpoint, not "before" it (apply was triggered by the
-      // outgoing tool, not the incoming one).
-      const depth = historyRef.current.currentIndex();
-      toolCheckpointRef.current = depth;
-      setToolCheckpoint(depth);
+    (id: ToolState["activeTool"]) => {
+      if (switchingTool.current) return switchingTool.current;
+      if (id === toolEntryRef.current.activeTool) return Promise.resolve();
+      const work = (async () => {
+        // Capture and await the pending bake BEFORE switching tools.
+        // Previously we set the new tool synchronously and fired the
+        // bake async via `void runBusy(...)`, which let React unmount
+        // the outgoing tool's stage hook before the apply ran — and
+        // tools that read Fabric overlays in their apply (Crop's
+        // `findCropRect`) found nothing because the unmount cleanup
+        // had already removed those overlays. Awaiting here keeps the
+        // outgoing tool mounted for the duration of the bake; the
+        // spinner mounts immediately so the click still feels
+        // responsive. The shared Apply action uses this same boundary.
+        const pending = pendingApplyRef.current;
+        pendingApplyRef.current = null;
+        setPendingApplyVersion((v) => v + 1);
+        if (pending) {
+          try {
+            await runBusy("Applying…", pending);
+          } catch (error) {
+            // Failed work stays registered so the same visible Apply can retry.
+            if (pendingApplyRef.current === null) {
+              pendingApplyRef.current = pending;
+              setPendingApplyVersion((v) => v + 1);
+            }
+            throw error;
+          }
+        }
+        setToolState((prev) => ({ ...prev, activeTool: id }));
+        // Record the history depth at tool entry so a subsequent
+        // cancel knows how far to rewind. We sample AFTER the pending
+        // bake commits so the apply's commit is "above" the
+        // checkpoint, not "before" it (apply was triggered by the
+        // outgoing tool, not the incoming one).
+        const depth = historyRef.current.currentIndex();
+        toolCheckpointRef.current = depth;
+        setToolCheckpoint(depth);
+      })().finally(() => {
+        switchingTool.current = null;
+      });
+      switchingTool.current = work;
+      return work;
     },
     [runBusy],
   );
 
   const cancelCurrentTool = useCallback(async () => {
+    if (switchingTool.current) return switchingTool.current;
     // Discard any pending apply first — otherwise the subsequent
     // setActiveTool("move") below would happily bake the very work
     // the user just asked to throw away (its internal apply flush
