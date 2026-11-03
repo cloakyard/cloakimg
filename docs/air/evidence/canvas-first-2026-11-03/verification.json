@@ -1,0 +1,116 @@
+{
+  "date": "2026-11-03",
+  "baseline": "e0c5f6ccd0c5ca772ed421cda32beaba247f4772",
+  "contractVersion": "1.4.0",
+  "contractSha256": "338c39fa591104adaf1354437013378e92ffa19189308f9da28e3d9bd83f2f1f",
+  "scratch": "/tmp/air-img-canvas-2026-11-03",
+  "unitTests": 487,
+  "unitFiles": 50,
+  "suites": {
+    "layout-chromium": {
+      "engine": "chromium",
+      "results": 780,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "25d42e46f30126ea72696e9eedb2ace5d5d473bc1d5dc4d41a6f7337f59ff26d"
+    },
+    "layout-webkit": {
+      "engine": "webkit",
+      "results": 780,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "49f27ad7328783065cbe65f9ca1c1d11b69fa49688c8977ef54a667d4f8e17ac"
+    },
+    "alt-chromium": {
+      "engine": "chromium",
+      "results": 720,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "601ffe31f0620c01bd6396e4dddf64f9eabe71b372149e44b3f18d5493381e9a"
+    },
+    "alt-webkit": {
+      "engine": "webkit",
+      "results": 720,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "bbe4c9b07310019c54a0170735629118fe14db00385746512f9ef228178372ac"
+    },
+    "toolbar-final-chromium": {
+      "engine": "chromium",
+      "results": 60,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "58804b3b4c5c6f017dcf41e5d2fdb8105a90f90ddf4eaf91c618d39d129db37a"
+    },
+    "toolbar-final-webkit": {
+      "engine": "webkit",
+      "results": 60,
+      "failures": 0,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "4c78a6d09247bd4bfe769abd14b3244f9f350ac72f2c5f7b8cec3442a7a3a5bc"
+    },
+    "actions-final": {
+      "results": 20,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "e59601a8ce0ae982cfb93be55f29e771bc62583a96af64c97cad85e808113f37"
+    },
+    "touch-final": {
+      "results": 20,
+      "errors": 0,
+      "requests": 0,
+      "sourceSHA256": "997f69f7dccac3c9c8cd018e8ade012e12c52bcf1b8117decf6c3775f565c96c"
+    },
+    "output": {
+      "results": 12,
+      "errors": 0,
+      "sourceSHA256": "7d76a9956be6e28d3ffe7268c315657ca32edde7134c27d1acc98463ad9288fb"
+    },
+    "breakpoints": {
+      "results": 192,
+      "errors": 0,
+      "sourceSHA256": "64f1c59d36dae893e4beb9bf8e2de9f80d07b91a3230acd5cc87afbd7e6c7aa0"
+    },
+    "compact": {
+      "results": 8,
+      "errors": 0,
+      "sourceSHA256": "038a6bf8ed0c34f079c214a6f87d56f3bd3855ce6df01a12f9daf7131bc31eae"
+    },
+    "native": {
+      "results": 12,
+      "sourceSHA256": "5968c3eab51976eda51220f64076cb5841e58f68db8320121c7a31693d518124"
+    },
+    "controls": {
+      "results": 8,
+      "sourceSHA256": "93135cb6db3e05001ab0c90a9aa386c7c00b6c2397e9499faf0414c57db71b8c"
+    },
+    "canvas-settled": {
+      "results": 20,
+      "errors": 0,
+      "sourceSHA256": "21d18c2d25421815dee7be6216456384e27e179dab90e41d93846487cb6e132c"
+    }
+  },
+  "limitations": [
+    "Physical iPhone/software keyboard, OS IME and spoken assistive acceptance remain open.",
+    "Consent gating is exercised; this layout pass does not certify every model tier or native codec."
+  ],
+  "notices": {
+    "rows": 132,
+    "captures": 54,
+    "errors": 0
+  },
+  "checks": [
+    "format/lint/types",
+    "production build (90 assets <=25 MiB)",
+    "26-tool rail",
+    "design contract",
+    "independent portability",
+    "dead-code audit (no unused findings; four configuration hints)"
+  ]
+}

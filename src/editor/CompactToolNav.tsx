@@ -47,7 +47,7 @@ export const CompactToolNav = memo(function CompactToolNav({
             aria-pressed={active}
             onClick={() => onSelect(id)}
           >
-            <Icon size={20} stroke={1.6} />
+            <Icon size={20} stroke={1.6} aria-hidden="true" />
             <span>{label}</span>
           </button>
         );
@@ -59,7 +59,7 @@ export const CompactToolNav = memo(function CompactToolNav({
         aria-label="Open tools"
         aria-haspopup="dialog"
       >
-        <I.Grid2x2 size={20} stroke={1.6} />
+        <I.Grid2x2 size={20} stroke={1.6} aria-hidden="true" />
         <span>Tools</span>
       </button>
     </nav>

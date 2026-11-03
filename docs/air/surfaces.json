@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.3.3",
+  "contractVersion": "1.4.0",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -154,8 +154,8 @@
         "responsive-reflow"
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": ["docs/air/touch-workspace-2026-10-31.md"],
-      "notes": "Approved compact workspace implemented and locally verified; see touch-workspace evidence. Physical device, OS IME and spoken assistive acceptance remain open."
+      "evidence": ["docs/air/touch-workspace-2026-10-31.md", "docs/air/canvas-first-2026-11-03.md"],
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ConfirmModal.tsx",
@@ -363,9 +363,10 @@
         "docs/air/editor-reaudit-2026-10-30.md",
         "docs/air/tool-state-audit-2026-10-30.md",
         "docs/air/touch-workspace-2026-10-31.md",
-        "docs/air/simple-actions-2026-11-02.md"
+        "docs/air/simple-actions-2026-11-02.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Air 1.3.3 source and rendered automated states reviewed; see dated action audit. Physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/MobileMoreMenu.tsx",
@@ -463,9 +464,10 @@
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
         "docs/air/touch-workspace-2026-10-31.md",
-        "docs/air/simple-actions-2026-11-02.md"
+        "docs/air/simple-actions-2026-11-02.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Air 1.3.3 source and rendered automated states reviewed; see dated action audit. Physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/SelectControl.tsx",
@@ -523,8 +525,8 @@
       "validated": false,
       "states": [],
       "viewports": [],
-      "evidence": ["docs/air/simple-actions-2026-11-02.md"],
-      "notes": "Air 1.3.3 source and rendered automated states reviewed; see dated action audit. Physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "evidence": ["docs/air/simple-actions-2026-11-02.md", "docs/air/canvas-first-2026-11-03.md"],
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ToolControls.tsx",
@@ -550,9 +552,10 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/touch-workspace-2026-10-31.md"
+        "docs/air/touch-workspace-2026-10-31.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Approved compact workspace implemented and locally verified; see touch-workspace evidence. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ToolRail.tsx",
@@ -647,9 +650,10 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
-        "docs/air/touch-workspace-2026-10-31.md"
+        "docs/air/touch-workspace-2026-10-31.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Approved compact workspace implemented and locally verified; see touch-workspace evidence. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/UnifiedEditor.tsx",
@@ -678,9 +682,10 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
-        "docs/air/touch-workspace-2026-10-31.md"
+        "docs/air/touch-workspace-2026-10-31.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Approved compact workspace implemented and locally verified; see touch-workspace evidence. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/ai/capabilities/depth/ConsentHost.tsx",
@@ -923,9 +928,10 @@
         "docs/air/cloakimg-precision-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/tool-state-audit-2026-10-30.md",
-        "docs/air/touch-workspace-2026-10-31.md"
+        "docs/air/touch-workspace-2026-10-31.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Approved compact workspace implemented and locally verified; see touch-workspace evidence. Physical device, OS IME and spoken assistive acceptance remain open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/editor/tools/AdjustTool.tsx",
@@ -2318,9 +2324,10 @@
         "docs/air/editor-reaudit-2026-10-30.md",
         "docs/air/tool-state-audit-2026-10-30.md",
         "docs/air/touch-workspace-2026-10-31.md",
-        "docs/air/simple-actions-2026-11-02.md"
+        "docs/air/simple-actions-2026-11-02.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Air 1.3.3 source and rendered automated states reviewed; see dated action audit. Physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/styles/air-entry.css",
@@ -2382,9 +2389,10 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/simple-actions-2026-11-02.md"
+        "docs/air/simple-actions-2026-11-02.md",
+        "docs/air/canvas-first-2026-11-03.md"
       ],
-      "notes": "Air 1.3.3 source and rendered automated states reviewed; see dated action audit. Physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open."
     },
     {
       "path": "src/tokens.css",

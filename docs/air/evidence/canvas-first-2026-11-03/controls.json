@@ -1,0 +1,90 @@
+[
+  {
+    "engine": "chrome",
+    "width": 390,
+    "theme": "light",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [62, 94, 201, 255],
+    "menuAnchored": true,
+    "requests": []
+  },
+  {
+    "engine": "chrome",
+    "width": 390,
+    "theme": "dark",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [62, 94, 201, 255],
+    "menuAnchored": true,
+    "requests": []
+  },
+  {
+    "engine": "chrome",
+    "width": 1280,
+    "theme": "light",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [63, 95, 202, 255],
+    "menuAnchored": true,
+    "requests": []
+  },
+  {
+    "engine": "chrome",
+    "width": 1280,
+    "theme": "dark",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [63, 95, 202, 255],
+    "menuAnchored": true,
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "theme": "light",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [62, 94, 201, 255],
+    "menuAnchored": true,
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "theme": "dark",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [62, 94, 201, 255],
+    "menuAnchored": true,
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "width": 1280,
+    "theme": "light",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [63, 95, 202, 255],
+    "menuAnchored": true,
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "width": 1280,
+    "theme": "dark",
+    "switchKeyboard": true,
+    "shapeChoice": true,
+    "watermarkChoice": true,
+    "tapPixel": [63, 95, 202, 255],
+    "menuAnchored": true,
+    "requests": []
+  }
+]

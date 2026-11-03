@@ -171,12 +171,21 @@ for (const engine of ["chromium", "webkit"].filter(
           assert.equal((await snapshot()).curve.length, 3);
           if (width < 768) {
             assert.equal(
-              await page
-                .getByRole("button", { name: "Return to split view" })
-                .getAttribute("aria-pressed"),
-              "true",
+              await page.getByRole("button", { name: "Return to split view" }).count(),
+              0,
             );
-            assert((await page.locator(".canvas-container").boundingBox()).height >= 127);
+            const photo = await page.locator(".editor-mobile-stage").boundingBox();
+            const editor = await page.locator(".editor-shell").boundingBox();
+            assert(photo.height >= editor.height * 0.4 - 1);
+            const controls = page.locator(".editor-mobile-surface > .scroll-thin");
+            await controls.evaluate((element) => {
+              element.scrollTop = 0;
+            });
+            assert.deepEqual(await page.locator(".editor-mobile-stage").boundingBox(), photo);
+            await page
+              .getByRole("button", { name: "Add point", exact: true })
+              .scrollIntoViewIfNeeded();
+            assert.deepEqual(await page.locator(".editor-mobile-stage").boundingBox(), photo);
           }
           await page.screenshot({ path: `${out}/${engine}-${width}-${theme}-curves.png` });
           await cancel();

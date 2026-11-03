@@ -1,19 +1,19 @@
 ---
 name: CloakIMG — Cloakyard Air
-version: 1.3.3
+version: 1.4.0
 status: approved
-date: 2026-11-02
+date: 2026-11-03
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: 32aaa6dd8f858548d29309a87c7aae7878ddafb338b2fd0dce9e2d7e6b0b2a35
+family-contract-sha256: 338c39fa591104adaf1354437013378e92ffa19189308f9da28e3d9bd83f2f1f
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.3.3 — clear editor actions** · Direction: **Air** · Updated: **2026-11-02**
+Version: **1.4.0 — canvas-first touch editing** · Direction: **Air** · Updated: **2026-11-03**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -361,11 +361,27 @@ No glass blur behind forms, body copy, tables, or document content.
 
 - Prefer the fewest decisions that accurately describe the task. A transactional
   tool has one visible **Cancel / Apply** pair, in that order: neutral secondary
-  Cancel, monochrome primary Apply. Use text labels, not a tick, X or ambiguous
-  Done. Place the pair in the shared `air-editor-actions` region outside scrolling
+  Cancel, monochrome primary Apply. Use text labels by default; the canvas-first
+  touch composition below permits an explicitly named X / tick pair. Never add an
+  ambiguous Done action. Place the pair in the shared `air-editor-actions` region outside scrolling
   controls on phones/tablets. Never repeat the same commit in the header, panel
   body or canvas. Different operations (such as detecting, printing or downloading)
   retain their descriptive verbs and their real consent/output boundaries.
+- **Canvas-first touch composition:** the approved IMG phone/tablet variant puts
+  one X / tick pair in the fixed tool-panel header beside its title. X means
+  Cancel, tick means Apply; accessible names and keyboard/hover tooltips state
+  those verbs. Use `air-editor-actions--compact`, neutral secondary/monochrome
+  primary materials and 48px targets. Close-only panels retain a labelled Close.
+  Keep errors in the reachable scrolling body, announced and associated with the
+  actions. Never duplicate this pair in the canvas toolbar or panel footer.
+  Reserve at least 40% of the visible editor height for the image viewport;
+  maintain image aspect ratio and scroll only the tool body. Tablet and short
+  landscape may place the inspector beside the photo. Global history/view/export
+  controls form a small opaque floating group on the canvas plane. The compact
+  composition replaces expansion toggles, not real tool transactions. Preserve
+  every navigation/output action, safe-area clearance and keyboard access.
+  This optional composition does not force icon-only actions into document
+  editing or autosaved writing; their labelled actions remain the default.
 - **Apply** accepts the current edit once; **Cancel** restores its entry state.
   Await work, retain failed/invalid drafts for correction and block repeated
   activation. An inspection or output panel with no staged edit uses **Close**;
@@ -610,7 +626,7 @@ same controls in IMG, Resume and future apps.
   detected matches and privacy counts use open rows with labels and aligned actions.
   Preserve user-supplied field-name casing. Empty, detecting, ready, no-match, failed,
   disabled and destructive states need separate examples and recovery paths.
-- **Apply semantics:** a tool with one staged operation has one labelled Apply
+- **Apply semantics:** a tool with one staged operation has one named Apply
   action, including mobile; it is disabled until ready.
   Cancel rolls back the tool's pending transaction. Tools with multiple operations
   keep their distinct actions, and export-time redaction must retain its explicit
@@ -1022,8 +1038,8 @@ Public shell content follows the same recipe across the family:
   gesture must not be the only way to edit or remove a point. Pointer cancellation
   restores the pre-drag state. Small screens can separate adjustments and curves
   into labelled views; changing view preserves every value and allows scrolling
-  outside the plot. Open detailed curves in expanded controls on compact layouts,
-  retaining the preview and a return-to-split action. Use a 224px square compact
+  outside the plot. Open detailed curves in reachable scrolling controls on compact layouts,
+  retaining the preview; a canvas-first inspector does not need an expansion toggle. Use a 224px square compact
   plot (up to 288px in a narrow inspector), with at least 44px point hit areas.
   Never stretch the graph to fill a shallow drawer.
 - Layer rows separate selection from visibility/delete/filter actions; no nested
@@ -1283,22 +1299,27 @@ journeys across all apps; it is not inferred from the pilot alone.
   unchanged or unavailable model paths are never described as exercised.
 - Keep a per-component/state inventory and evidence in `docs/air/`. Local tokens
   and this complete contract travel with the repository.
-- Tool completion uses one fixed labelled Cancel / Apply action row on phone, tablet
-  and desktop. Move, colour sampling and ID-photo output use Close, retaining their
-  specific layer, copy, print and download actions. Expand controls / Split view is
-  a separate view control; dragging the heading never commits or discards an edit.
-- Compact photo editing uses labelled Adjust / Crop / Retouch / Protect / Add /
-  Tools shortcuts: a persistent phone dock and a 64px tablet rail. Tools opens
-  the shared grouped, searchable catalogue without unmounting pending controls.
-  Phone Adjust puts its group selector in the fixed header and presents one
-  named parameter with its exact value and slider; tablet shows related values
-  together in the 288px inspector. Curves and all adjustments remain explicit
-  expanded views, with the preview and return action retained. At 768px, use the
-  tablet split; wide phones at 640px and above with at most 500px height place
-  controls beside the photo and the dock below both. Enlarged text may grow the
-  compact rail; horizontal dock/parameter scrolling stays inside its own region.
-  Cancel restores the tool-entry settings and history; Apply bakes once. Reopening
-  the same tool or browsing the catalogue must not silently commit a preview.
+- Phone/tablet tool completion uses the approved canvas-first composition: one
+  X / tick pair in the fixed panel header (accessible Cancel / Apply names), 48px
+  targets and a scrolling tool body. Desktop retains labelled Cancel / Apply.
+  Move, colour sampling and ID-photo output use labelled Close, retaining their
+  specific layer, copy, print and download actions. No duplicate Done or panel
+  expansion control. Cancel restores the tool-entry settings/history; Apply bakes
+  once. Reopening or browsing the catalogue cannot silently commit a preview.
+- Keep at least 40% of the visible editor height for the photo viewport on phones;
+  preserve image aspect ratio and persistent canvas/history. The top toolbar uses
+  the same canvas plane with a small opaque Air action group. All file, mode,
+  history, compare, zoom and export operations remain reachable. Respect safe
+  areas, browser chrome, software keyboards and enlarged text.
+- Compact editing keeps labelled Adjust / Crop / Retouch / Protect / Add / Tools
+  shortcuts: a phone dock and 64px tablet rail. Tools opens the grouped searchable
+  catalogue without unmounting pending controls. Adjust's group selector belongs
+  in the scrollable body; the fixed header retains its tool title and actions.
+  Phone shows one exact parameter/slider at a time; tablet groups related values.
+  Curves and All adjustments remain reachable views without shrinking the preview.
+  At 768px use the tablet split; wide phones at 640px and above with at most 500px
+  height place controls beside the photo and dock below both. Enlarged text may
+  grow the rail; intentional horizontal dock/parameter scrolling stays local.
 - Landing artwork is a local vector landscape: a coral sun rises behind layered
   mountains while the foreground settles and the crop corners find the composition.
   The sun uses a 2000ms Air arrival curve after 360ms; mountain/foreground spatial

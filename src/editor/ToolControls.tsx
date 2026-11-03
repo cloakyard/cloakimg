@@ -72,19 +72,9 @@ const IdPhotoPanel = lazy(() =>
   import("./tools/IdPhotoTool").then((m) => ({ default: m.IdPhotoPanel })),
 );
 
-export function ToolControls({
-  onExpandControls,
-  headingSlot,
-}: {
-  onExpandControls?: () => void;
-  headingSlot?: HTMLElement | null;
-}) {
+export function ToolControls() {
   const activeTool = useActiveTool();
-  return (
-    <Suspense fallback={<ToolPanelFallback />}>
-      {renderPanel(activeTool, onExpandControls, headingSlot)}
-    </Suspense>
-  );
+  return <Suspense fallback={<ToolPanelFallback />}>{renderPanel(activeTool)}</Suspense>;
 }
 
 function ToolPanelFallback() {
@@ -100,11 +90,7 @@ function ToolPanelFallback() {
   );
 }
 
-function renderPanel(
-  activeTool: ToolState["activeTool"],
-  onExpandControls?: () => void,
-  headingSlot?: HTMLElement | null,
-) {
+function renderPanel(activeTool: ToolState["activeTool"]) {
   switch (activeTool) {
     case "move":
       return <MovePanel />;
@@ -117,7 +103,7 @@ function renderPanel(
     case "idphoto":
       return <IdPhotoPanel />;
     case "adjust":
-      return <AdjustPanel onExpandControls={onExpandControls} headingSlot={headingSlot} />;
+      return <AdjustPanel />;
     case "tod":
       return <TimeOfDayPanel />;
     case "relight":

@@ -2,6 +2,7 @@
 // Shows the active tool's icon + name + group header on top, then
 // renders ToolControls below.
 
+import { useState } from "react";
 import { useActiveTool } from "./EditorContext";
 import { LayersList } from "./LayersList";
 import { TOOL_GROUP_LABELS } from "./toolSearch";
@@ -16,9 +17,11 @@ interface Props {
 export function PropertiesPanel({ collapsed = false }: Props) {
   const activeTool = useActiveTool();
   const tool = findTool(activeTool);
+  const [feedback, setFeedback] = useState<HTMLDivElement | null>(null);
 
   return (
     <div
+      data-compact={collapsed}
       className={`editor-properties flex shrink-0 flex-col overflow-hidden border-l border-border bg-surface ${
         collapsed ? "w-72" : "w-82"
       }`}
@@ -28,6 +31,9 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           <h2>{tool.name}</h2>
           <span className="text-[0.8125rem] text-text-muted">{TOOL_GROUP_LABELS[tool.group]}</span>
         </div>
+        {collapsed && activeTool !== "move" && (
+          <ToolActions key={`actions-${activeTool}`} compact feedback={feedback} />
+        )}
       </div>
 
       {/* `key={activeTool}` remounts the scroll container on every tool
@@ -48,10 +54,11 @@ export function PropertiesPanel({ collapsed = false }: Props) {
         key={activeTool}
         className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
       >
+        <div ref={setFeedback} className="editor-tool-feedback" />
         <ToolControls />
       </div>
       <LayersList />
-      {activeTool !== "move" && <ToolActions key={`actions-${activeTool}`} />}
+      {!collapsed && activeTool !== "move" && <ToolActions key={`actions-${activeTool}`} />}
     </div>
   );
 }

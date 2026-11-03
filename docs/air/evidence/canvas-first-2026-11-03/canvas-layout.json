@@ -1,0 +1,205 @@
+{
+  "results": [
+    {
+      "engine": "chromium",
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 227,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 227,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 353,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 353,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 952,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 952,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 844,
+      "height": 390,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 251,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 844,
+      "height": 390,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 251,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 1280,
+      "height": 720,
+      "theme": "light",
+      "compact": false,
+      "photoHeight": 648,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "chromium",
+      "width": 1280,
+      "height": 720,
+      "theme": "dark",
+      "compact": false,
+      "photoHeight": 648,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 227,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 227,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 353,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 353,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 952,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 952,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 844,
+      "height": 390,
+      "theme": "light",
+      "compact": true,
+      "photoHeight": 251,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 844,
+      "height": 390,
+      "theme": "dark",
+      "compact": true,
+      "photoHeight": 251,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 1280,
+      "height": 720,
+      "theme": "light",
+      "compact": false,
+      "photoHeight": 648,
+      "scrollIsolated": true,
+      "focusReturned": true
+    },
+    {
+      "engine": "webkit",
+      "width": 1280,
+      "height": 720,
+      "theme": "dark",
+      "compact": false,
+      "photoHeight": 648,
+      "scrollIsolated": true,
+      "focusReturned": true
+    }
+  ],
+  "errors": []
+}

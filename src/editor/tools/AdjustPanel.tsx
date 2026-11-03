@@ -1,10 +1,7 @@
-// AdjustPanel.tsx — Sliders + Reset. The bake into history happens
-// automatically when the user switches tools or opens Export
-// (registerPendingApply hook), so an explicit Apply button is
-// redundant — Undo/Redo are the recovery path.
+// Live adjustments share the editor's Apply / Cancel boundary. Existing tool
+// switches and Export still flush the pending preview through the same hook.
 
 import { useCallback, useState } from "react";
-import { createPortal } from "react-dom";
 import { I } from "../../components/icons";
 import { NumericReadout, PropRow, Slider } from "../atoms";
 import { copyInto, releaseCanvas } from "../doc";
@@ -64,13 +61,7 @@ function fmt(key: (typeof ADJUST_KEYS)[number], v: number): string {
   return `${n >= 0 ? "+" : ""}${Math.round(n)}`;
 }
 
-export function AdjustPanel({
-  onExpandControls,
-  headingSlot,
-}: {
-  onExpandControls?: () => void;
-  headingSlot?: HTMLElement | null;
-}) {
+export function AdjustPanel() {
   const toolState = useToolState();
   const { patchTool, commit, setActiveTool } = useEditorActions();
   const { doc, layout } = useEditorReadOnly();
@@ -160,7 +151,6 @@ export function AdjustPanel({
         }
         const next = event.target.value as Group;
         setGroup(next);
-        if (next === "Curves" || next === "All adjustments") onExpandControls?.();
       }}
     >
       <option value="looks">Looks</option>
@@ -173,7 +163,7 @@ export function AdjustPanel({
   );
   return (
     <>
-      {compact && (isMobile && headingSlot ? createPortal(groupSelect, headingSlot) : groupSelect)}
+      {compact && groupSelect}
       {isMobile && showSliders && group !== "All adjustments" && (
         <div
           className="editor-adjust-parameters overflow-x-auto"
