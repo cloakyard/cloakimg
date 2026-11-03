@@ -83,34 +83,13 @@ label[for] {
 }
 :where(button, a, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--air-accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
   transition: none;
 }
 .transition-colors,
 .transition-opacity {
   transition-duration: var(--air-motion-hover);
   transition-timing-function: var(--air-ease-out);
-}
-.control-field {
-  min-width: 0;
-  min-height: var(--air-control);
-  border: 1px solid var(--air-line-control);
-  border-radius: var(--air-radius-control);
-  background: var(--air-surface);
-  color: var(--air-ink);
-  padding: 8px 12px;
-  font: 400 var(--air-text-body)/1.5 var(--air-font);
-}
-.control-field:focus-visible {
-  border-color: transparent;
-  outline: 2px solid var(--air-accent);
-  outline-offset: 0;
-}
-.control-field[aria-invalid="true"]:not(:focus-visible) {
-  border-color: var(--air-danger);
-}
-.control-field:disabled {
-  opacity: 0.5;
 }
 .t-eyebrow,
 .t-section-label {
@@ -157,79 +136,14 @@ label[for] {
   color: var(--air-ink-muted);
   font: var(--air-text-meta) var(--air-font);
 }
-.btn {
-  flex-shrink: 0;
-  min-height: var(--air-control);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid transparent;
-  border-radius: var(--air-radius-control);
-  padding: 8px 16px;
-  color: var(--air-ink);
-  font-size: var(--air-text-body);
-  font-weight: 500;
-  line-height: 1.4;
-  white-space: normal;
-  cursor: pointer;
-}
-.btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-.btn-xs,
-.btn-sm {
+/* Dense editor composition retains the shared button skin and text size. */
+.img-control--compact {
   min-height: var(--air-control-compact);
-  padding: 6px 12px;
-  font-size: var(--air-text-label);
+  padding: 4px 12px;
 }
-.btn-lg {
-  min-height: 44px;
-  padding: 12px 24px;
-}
-.btn-primary {
-  border-color: var(--air-action);
-  background: var(--air-action);
-  color: var(--air-on-action);
-}
-.btn-secondary {
-  border-color: var(--air-line-control);
-  background: var(--air-surface);
-  color: var(--air-ink);
-}
-.btn-ghost {
-  background: transparent;
-  color: var(--air-ink-secondary);
-}
-.btn-icon,
-.btn-icon-sm,
-.btn-icon-xs {
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-}
-.btn-icon-sm,
-.btn-icon-xs {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-}
-@media (hover: hover) and (pointer: fine) {
-  .btn-primary:hover:not(:disabled) {
-    opacity: 0.88;
-  }
-  .btn-secondary:hover:not(:disabled),
-  .btn-ghost:hover:not(:disabled) {
-    background: var(--air-surface-hover);
-    color: var(--air-ink);
-  }
-  .control-field:hover:not(:disabled) {
-    background: var(--air-surface-soft);
-  }
+.air-icon-button.img-control--compact {
+  min-width: var(--air-control-compact);
+  padding: 4px;
 }
 .card {
   border: 1px solid var(--air-line);
@@ -280,25 +194,11 @@ label[for] {
   .editor-shell textarea {
     font-size: 1rem;
   }
-  .control-field,
   .editor-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   .cloak-dialog input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
     min-height: 44px;
     min-width: 44px;
     font-size: 1rem;
-  }
-  .btn,
-  .btn-sm,
-  .btn-xs {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  .btn-icon,
-  .btn-icon-sm,
-  .btn-icon-xs {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

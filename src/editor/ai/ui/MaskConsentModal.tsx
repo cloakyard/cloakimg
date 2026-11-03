@@ -196,7 +196,7 @@ export function MaskConsentModal({
       </div>
 
       {/* Sticky footer — bordered top + safe-area padding on mobile,
-          matching ConfirmModal. Same `btn-ghost btn-sm` for the
+          matching ConfirmModal. Same `air-button--quiet img-control--compact` for the
           dismissive action so every "back out" button across the app
           reads the same. */}
       <div
@@ -204,10 +204,17 @@ export function MaskConsentModal({
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
-        <ModalDismissButton className="btn btn-ghost btn-sm" onClose={onDismiss}>
+        <ModalDismissButton
+          className="air-button air-button--quiet img-control--compact"
+          onClose={onDismiss}
+        >
           {switchMode ? "Cancel" : "Not now"}
         </ModalDismissButton>
-        <button type="button" className="btn btn-primary btn-sm" onClick={accept}>
+        <button
+          type="button"
+          className="air-button air-button--primary img-control--compact"
+          onClick={accept}
+        >
           {/* When switching tiers and the picked size is already on
               disk, omit the download glyph — the action is "use this
               model", not "download". Avoids the misleading visual

@@ -47,7 +47,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
       {isMobile && (
         <button
           type="button"
-          className="btn btn-secondary btn-sm mb-3"
+          className="air-button img-control--compact mb-3"
           onClick={() => setMode("single")}
         >
           <I.ArrowRight size={16} className="rotate-180" /> Back to photo
@@ -69,12 +69,16 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
         </div>
         {batchFiles.length > 0 && (
           <div className="flex gap-1.5">
-            <button type="button" className="btn btn-ghost btn-xs" onClick={batchClear}>
+            <button
+              type="button"
+              className="air-button air-button--quiet img-control--compact"
+              onClick={batchClear}
+            >
               <I.X size={12} /> Clear
             </button>
             <button
               type="button"
-              className="btn btn-secondary btn-xs"
+              className="air-button img-control--compact"
               onClick={() => inputRef.current?.click()}
             >
               <I.Plus size={12} /> Add files
@@ -364,7 +368,7 @@ export function BatchPanel({
                       <button
                         key={direction}
                         type="button"
-                        className="btn btn-ghost btn-xs"
+                        className="air-button air-button--quiet img-control--compact"
                         disabled={
                           batchRunning || (direction === -1 ? i === 0 : i === recipe.length - 1)
                         }
@@ -403,7 +407,7 @@ export function BatchPanel({
 
         <li className="list-none">
           <Menu.Root>
-            <Menu.Trigger className="btn btn-secondary btn-xs w-full justify-center">
+            <Menu.Trigger className="air-button img-control--compact w-full justify-center">
               <I.Plus size={12} /> Add step
             </Menu.Trigger>
             <Menu.Portal>
@@ -446,7 +450,7 @@ export function BatchPanel({
       <div className="flex flex-col gap-2 border-t border-border-soft px-4 py-3.5">
         <button
           type="button"
-          className="btn btn-primary btn-sm justify-center"
+          className="air-button air-button--primary img-control--compact justify-center"
           onClick={runBatch}
           disabled={batchFiles.length === 0 || batchRunning}
         >
@@ -455,7 +459,7 @@ export function BatchPanel({
         {doneFiles.length > 0 && !batchRunning && (
           <button
             type="button"
-            className="btn btn-secondary btn-xs justify-center"
+            className="air-button img-control--compact justify-center"
             onClick={() => void downloadAllZip()}
           >
             <I.Download size={12} /> Download all ({doneFiles.length}) as .zip

@@ -130,10 +130,14 @@ export function LayerFilters({ image }: Props) {
         onChange={(on) => apply({ ...state, sepia: on })}
       />
       <div className="flex gap-1.5">
-        <button type="button" className="btn btn-secondary btn-xs flex-1" onClick={reset}>
+        <button type="button" className="air-button img-control--compact flex-1" onClick={reset}>
           Reset
         </button>
-        <button type="button" className="btn btn-primary btn-xs flex-1" onClick={onCommit}>
+        <button
+          type="button"
+          className="air-button air-button--primary img-control--compact flex-1"
+          onClick={onCommit}
+        >
           Commit
         </button>
       </div>

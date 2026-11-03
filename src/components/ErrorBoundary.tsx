@@ -266,7 +266,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <button
                 type="button"
                 onClick={secondary.onClick ?? this.defaultRetry}
-                className="btn btn-secondary btn-sm justify-center"
+                className="air-button img-control--compact justify-center"
               >
                 {secondary.icon}
                 {secondary.label}
@@ -276,7 +276,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               ref={this.primaryRef}
               type="button"
               onClick={primaryOnClick}
-              className="btn btn-primary btn-sm justify-center"
+              className="air-button air-button--primary img-control--compact justify-center"
             >
               {primaryIcon}
               {primaryLabel}
@@ -332,7 +332,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 type="button"
                 onClick={this.handleCopy}
                 aria-label="Copy error details"
-                className="btn btn-secondary btn-sm"
+                className="air-button img-control--compact"
               >
                 {copied ? (
                   <>
@@ -362,7 +362,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               href={issueUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="btn btn-secondary btn-sm justify-center"
+              className="air-button img-control--compact justify-center"
             >
               <I.Github size={14} />
               Report on GitHub
@@ -371,7 +371,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               ref={this.primaryRef}
               type="button"
               onClick={primaryOnClick}
-              className="btn btn-primary btn-sm justify-center"
+              className="air-button air-button--primary img-control--compact justify-center"
             >
               {primaryIcon}
               {primaryLabel}

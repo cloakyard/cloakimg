@@ -385,7 +385,7 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
           <button
             type="button"
             key={i}
-            className="btn btn-secondary btn-sm"
+            className="air-button img-control--compact"
             aria-pressed={selected === i}
             aria-label={`Point ${i + 1}: input ${point.x}, output ${point.y}`}
             onClick={() => setSelectedIndex(i)}
@@ -422,7 +422,7 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
       )}
       <div className="img-curve-actions">
         <button
-          className="btn btn-secondary btn-sm"
+          className="air-button img-control--compact"
           type="button"
           onClick={addPoint}
           disabled={curve.length >= 256}
@@ -430,14 +430,18 @@ export function CurveEditor({ curve, onChange, fit = false }: Props) {
           Add point
         </button>
         <button
-          className="btn btn-ghost btn-sm"
+          className="air-button air-button--quiet img-control--compact"
           type="button"
           onClick={removePoint}
           disabled={selected === 0 || selected === curve.length - 1}
         >
           Remove point
         </button>
-        <button className="btn btn-ghost btn-sm" type="button" onClick={reset}>
+        <button
+          className="air-button air-button--quiet img-control--compact"
+          type="button"
+          onClick={reset}
+        >
           Reset curve
         </button>
       </div>

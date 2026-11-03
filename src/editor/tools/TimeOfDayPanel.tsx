@@ -190,7 +190,7 @@ export function TimeOfDayPanel() {
           <button
             type="button"
             onClick={reset}
-            className="btn btn-ghost btn-sm shrink-0"
+            className="air-button air-button--quiet img-control--compact shrink-0"
             aria-label="Reset Time of day to Noon"
           >
             <I.Rotate size={16} /> Reset

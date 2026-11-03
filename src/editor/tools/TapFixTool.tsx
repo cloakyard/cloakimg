@@ -338,7 +338,7 @@ export function TapFixTool() {
           key={chip.label}
           type="button"
           onClick={chip.run}
-          className="btn btn-secondary btn-sm"
+          className="air-button img-control--compact"
         >
           {chip.icon}
           {chip.label}
@@ -349,7 +349,7 @@ export function TapFixTool() {
         onClick={() => setTap(null)}
         title="Dismiss"
         aria-label="Dismiss tap-to-fix"
-        className="btn btn-ghost btn-icon-sm"
+        className="air-button air-button--quiet air-icon-button img-control--compact"
       >
         <I.X size={16} aria-hidden="true" />
       </button>

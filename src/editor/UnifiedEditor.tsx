@@ -413,7 +413,7 @@ function ErrorBanner({ message }: { message: string }) {
         <button
           type="button"
           onClick={exit}
-          className="btn btn-primary btn-sm w-full justify-center"
+          className="air-button air-button--primary img-control--compact w-full justify-center"
         >
           <I.ArrowRight size={14} style={{ transform: "scaleX(-1)" }} />
           Back to start

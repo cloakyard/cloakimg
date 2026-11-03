@@ -261,7 +261,7 @@ export function WatermarkPanel() {
             autoComplete="off"
             value={toolState.watermarkText}
             onChange={(e) => patchTool("watermarkText", e.target.value)}
-            className="control-field w-full"
+            className="air-field w-full"
           />
         </PropRow>
       )}
@@ -292,7 +292,7 @@ export function WatermarkPanel() {
           type="button"
           onClick={() => void smartPlace()}
           disabled={smartBusy}
-          className="btn btn-secondary mb-1.5 w-full"
+          className="air-button mb-1.5 w-full"
         >
           {smartBusy ? (
             <>
@@ -345,7 +345,7 @@ export function WatermarkPanel() {
       />
       <button
         type="button"
-        className="btn btn-primary justify-center"
+        className="air-button air-button--primary justify-center"
         onClick={isImage ? applyImage : applyText}
         disabled={isImage && !toolState.watermarkImageDataUrl}
         style={{ opacity: isImage && !toolState.watermarkImageDataUrl ? 0.5 : 1 }}

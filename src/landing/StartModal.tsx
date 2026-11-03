@@ -205,12 +205,16 @@ function ModalFooter({
         isPhone ? "px-5 py-3.5 pb-[max(env(safe-area-inset-bottom),14px)]" : "px-7 py-4"
       }`}
     >
-      <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+      <button
+        type="button"
+        className="air-button air-button--quiet img-control--compact"
+        onClick={onCancel}
+      >
         Cancel
       </button>
       <button
         type="button"
-        className="btn btn-primary btn-sm"
+        className="air-button air-button--primary img-control--compact"
         onClick={onConfirm}
         disabled={!canConfirm}
       >

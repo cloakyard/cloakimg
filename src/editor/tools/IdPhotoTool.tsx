@@ -618,7 +618,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       <button
         type="button"
         onClick={() => patchTool("activeTool", "bgrm")}
-        className="btn btn-secondary w-full text-left"
+        className="air-button w-full text-left"
       >
         <span
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
@@ -672,7 +672,11 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
               </span>
             </div>
           </PropRow>
-          <button type="button" className="btn btn-secondary btn-sm w-full" onClick={resetCrop}>
+          <button
+            type="button"
+            className="air-button img-control--compact w-full"
+            onClick={resetCrop}
+          >
             <I.Refresh size={16} aria-hidden="true" /> Reset framing
           </button>
         </>
@@ -733,7 +737,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="btn btn-primary min-w-0 flex-1"
+          className="air-button air-button--primary min-w-0 flex-1"
           onClick={() => void handlePrint()}
           disabled={!!busy || !crop || layout.copies === 0}
         >
@@ -742,7 +746,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
         </button>
         <button
           type="button"
-          className="btn btn-secondary min-w-0 flex-1"
+          className="air-button min-w-0 flex-1"
           onClick={() => void handlePdf()}
           disabled={!!busy || !crop || layout.copies === 0}
         >

@@ -35,7 +35,7 @@ export const ToolRail = memo(function ToolRail({ activeTool, onSelect, onOpenSea
           </Tooltip.Trigger>
           <Hint>Search tools</Hint>
         </Tooltip.Root>
-        <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain py-2">
+        <div className="air-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain py-2">
           {ALL_TOOLS.map((tool, index) => {
             const Icon = tool.icon,
               isActive = tool.id === activeTool;

@@ -55,7 +55,7 @@ export function TapFixPanel() {
           type="button"
           onClick={primeAll}
           disabled={facesReady && subjectReady}
-          className="btn btn-secondary btn-sm justify-center"
+          className="air-button img-control--compact justify-center"
           style={{ opacity: facesReady && subjectReady ? 0.5 : 1 }}
         >
           <I.Sparkles size={16} />

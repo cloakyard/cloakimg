@@ -65,7 +65,7 @@ export function ColorPickerPanel() {
               disabled={!toolState.pickedColor}
               aria-label={pickerCopied ? "Copied" : "Copy hex code"}
               title={pickerCopied ? "Copied" : "Copy hex code"}
-              className="btn btn-ghost btn-icon"
+              className="air-button air-button--quiet air-icon-button"
             >
               {pickerCopied ? (
                 <I.Check size={16} aria-hidden="true" />
@@ -91,7 +91,7 @@ export function ColorPickerPanel() {
             type="button"
             onClick={reExtract}
             aria-label="Re-extract palette"
-            className="btn btn-ghost btn-icon"
+            className="air-button air-button--quiet air-icon-button"
           >
             <I.Refresh size={16} aria-hidden="true" />
           </button>
