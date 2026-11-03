@@ -103,6 +103,19 @@ try {
           .map((b) => b.getAttribute("aria-label") || b.textContent);
       });
       assert.deepEqual(topbar, [], `Toolbar ${JSON.stringify(profile)} ${theme}`);
+      assert(
+        await page.locator(".editor-topbar__file").evaluate((file) => {
+          const name = file.firstElementChild.getBoundingClientRect();
+          const dimensions = file.querySelector(".editor-topbar__dimensions");
+          const detail = dimensions?.getBoundingClientRect();
+          const box = file.getBoundingClientRect();
+          return (
+            name.width >= 24 &&
+            (!detail?.width || (detail.left >= box.left && detail.right <= box.right + 1))
+          );
+        }),
+        `Filename/detail clipping: ${JSON.stringify(profile)} ${theme}`,
+      );
       for (const name of names) {
         await selectEditorTool(page, name);
         await page.locator("[data-tool-panel-loading]").waitFor({ state: "hidden" });
@@ -218,8 +231,9 @@ try {
                   : ["Cancel", "Apply"];
             const actionButtons = [...(actions?.querySelectorAll("button") ?? [])];
             if (
-              JSON.stringify(actionButtons.map((b) => b.textContent.trim())) !==
-              JSON.stringify(expected)
+              JSON.stringify(
+                actionButtons.map((b) => b.getAttribute("aria-label") || b.textContent.trim()),
+              ) !== JSON.stringify(expected)
             )
               actionIssues.push("completion labels/order");
             if (actions?.closest(".scroll-thin"))
@@ -235,8 +249,31 @@ try {
                 box.bottom > innerHeight + 1
               )
                 actionIssues.push("unreachable completion: " + b.textContent);
-              if (b.querySelector("svg")) actionIssues.push("completion has redundant icon");
+              const compact = actions.classList.contains("air-editor-actions--compact");
+              const iconExpected = compact && !inspection;
+              if (!!b.querySelector("svg") !== iconExpected)
+                actionIssues.push("completion icon does not match composition");
+              if (compact && (box.width < 47 || box.height < 47))
+                actionIssues.push("compact action below 48px");
             }
+            if (
+              actions?.classList.contains("air-editor-actions--compact") &&
+              !actions.closest(".editor-mobile-header,.editor-properties__header")
+            )
+              actionIssues.push("compact actions outside tool header");
+            const stage = document.querySelector(".editor-mobile-stage");
+            const shell = document.querySelector(".editor-shell");
+            if (
+              stage &&
+              stage.getBoundingClientRect().height < shell.getBoundingClientRect().height * 0.4 - 1
+            )
+              actionIssues.push("photo viewport below forty percent");
+            if (
+              document.querySelector(
+                '[aria-label="Expand controls"], [aria-label="Return to split view"]',
+              )
+            )
+              actionIssues.push("obsolete panel expansion control");
             const duplicate = [
               ...document.querySelectorAll(
                 ".editor-properties button, .editor-mobile-surface button",

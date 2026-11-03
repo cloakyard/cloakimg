@@ -114,7 +114,7 @@ function EditorShell() {
 
   // Esc on desktop/tablet → cancel the current tool session. Mirrors
   // mobile's ✕ tap (which `MobileEditorSurface` already wires up
-  // separately on its expanded-sheet listener). Skipped when:
+  // separately on its open-panel listener). Skipped when:
   //   • The active tool has no rollback-able work (`canCancelCurrentTool`
   //     is false) — Esc shouldn't blank a clean session.
   //   • The user is typing in an input / textarea / Fabric IText editor
@@ -222,8 +222,6 @@ function EditorShell() {
     >
       <KeyboardShortcuts />
       <div className="relative flex h-full w-full flex-col">
-        <TopBar onShowFileProps={() => setFilePropsOpen(true)} />
-
         {error && <ErrorBanner message={error} />}
         {loading && <LoadingBanner />}
         {busyLabel && <BusyOverlay label={busyLabel} />}
@@ -247,7 +245,8 @@ function EditorShell() {
             )
           )}
 
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="editor-stage-column flex min-h-0 min-w-0 flex-1 flex-col">
+            <TopBar onShowFileProps={() => setFilePropsOpen(true)} />
             {mode === "batch" ? (
               <BatchCanvas isMobile={isMobile} />
             ) : isMobile ? (

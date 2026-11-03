@@ -1,14 +1,26 @@
-import { type Ref, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { Tooltip } from "@base-ui/react/tooltip";
+import { I } from "../components/icons";
 import { useActiveTool, useEditorActions, useEditorReadOnly } from "./EditorContext";
 
 /** One completion boundary, shared by phone, tablet and desktop inspectors. */
-export function ToolActions({ ref, onClose }: { ref?: Ref<HTMLDivElement>; onClose?: () => void }) {
+export function ToolActions({
+  compact = false,
+  feedback,
+  onClose,
+}: {
+  compact?: boolean;
+  feedback?: HTMLElement | null;
+  onClose?: () => void;
+}) {
   const tool = useActiveTool();
   const { setActiveTool, cancelCurrentTool, runBusy } = useEditorActions();
   const { busyLabel } = useEditorReadOnly();
   const running = useRef(false);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
   const region = useRef<HTMLDivElement | null>(null);
   const inspection = tool === "move" || tool === "color" || tool === "idphoto";
 
@@ -33,6 +45,13 @@ export function ToolActions({ ref, onClose }: { ref?: Ref<HTMLDivElement>; onClo
         return;
       }
     }
+    // Completion removes this panel. Keep keyboard users at its persistent
+    // tool shortcut instead of dropping focus onto the document body.
+    const returnFocus = region.current?.contains(document.activeElement)
+      ? document.querySelector<HTMLElement>(
+          '.editor-compact-nav [aria-pressed="true"], .editor-toolrail [aria-pressed="true"], .editor-compact-nav [aria-label="Open tools"]',
+        )
+      : null;
     running.current = true;
     setWorking(true);
     setError(null);
@@ -40,6 +59,10 @@ export function ToolActions({ ref, onClose }: { ref?: Ref<HTMLDivElement>; onClo
       if (cancel) await runBusy("Cancelling…", cancelCurrentTool);
       else await setActiveTool("move");
       onClose?.();
+      requestAnimationFrame(() => {
+        if (returnFocus?.isConnected && document.activeElement === document.body)
+          returnFocus.focus({ preventScroll: true });
+      });
     } catch {
       setError(
         cancel
@@ -52,38 +75,83 @@ export function ToolActions({ ref, onClose }: { ref?: Ref<HTMLDivElement>; onClo
     }
   };
 
+  const message = error ? (
+    <p id={errorId} role="alert">
+      {error}
+    </p>
+  ) : null;
   return (
-    <div
-      ref={(element) => {
-        region.current = element;
-        if (typeof ref === "function") return ref(element);
-        if (ref) ref.current = element;
-      }}
-      className="air-editor-actions"
-      role="group"
-      aria-label="Edit actions"
-    >
-      {error && <p role="alert">{error}</p>}
-      {!inspection && (
-        <button
-          type="button"
-          aria-label="Cancel"
-          className="air-button"
-          disabled={working || !!busyLabel}
-          onClick={() => void finish(true)}
-        >
-          Cancel
-        </button>
-      )}
-      <button
-        type="button"
-        aria-label={inspection ? "Close" : "Apply"}
-        className={`air-button${inspection ? "" : " air-button--primary"}`}
-        disabled={working || !!busyLabel}
-        onClick={() => void finish(false)}
+    <Tooltip.Provider delay={400}>
+      <div
+        ref={region}
+        className={`air-editor-actions${compact ? " air-editor-actions--compact" : ""}`}
+        role="group"
+        aria-label="Edit actions"
+        aria-describedby={error ? errorId : undefined}
       >
-        {inspection ? "Close" : "Apply"}
-      </button>
-    </div>
+        {message && (compact && feedback ? createPortal(message, feedback) : message)}
+        {!inspection && (
+          <CompletionButton
+            label="Cancel"
+            compact={compact}
+            disabled={working || !!busyLabel}
+            onClick={() => void finish(true)}
+          />
+        )}
+        <CompletionButton
+          label={inspection ? "Close" : "Apply"}
+          compact={compact}
+          disabled={working || !!busyLabel}
+          onClick={() => void finish(false)}
+        />
+      </div>
+    </Tooltip.Provider>
+  );
+}
+
+function CompletionButton({
+  label,
+  compact,
+  disabled,
+  onClick,
+}: {
+  label: "Cancel" | "Apply" | "Close";
+  compact: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const hintId = useId();
+  const iconOnly = compact && label !== "Close";
+  const Icon = label === "Cancel" ? I.X : I.Check;
+  const button = (
+    <button
+      type="button"
+      aria-label={label}
+      aria-describedby={iconOnly ? hintId : undefined}
+      className={`${iconOnly ? "air-icon-button" : "air-button"}${label === "Apply" ? " air-button--primary" : ""}`}
+      disabled={disabled}
+      onClick={onClick}
+    />
+  );
+  if (!iconOnly) return <button {...button.props}>{label}</button>;
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger render={button}>
+        <Icon size={18} stroke={1.6} aria-hidden="true" />
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner
+          className="air-floating-positioner"
+          side="top"
+          sideOffset={8}
+          collisionPadding={16}
+          positionMethod="fixed"
+        >
+          <Tooltip.Popup id={hintId} role="tooltip" className="air-tooltip">
+            {label}
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 }

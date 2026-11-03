@@ -3,7 +3,7 @@
 // directly so tool components don't have to thread props.
 //
 // Theme is no longer toggleable here — light/dark follows the OS via
-// `@media (prefers-color-scheme: dark)`. See [tokens.css](../tokens.css).
+// the shared Air system appearance.
 
 import { useCallback, useState } from "react";
 import { BrandMark, I } from "../components/icons";
@@ -64,174 +64,168 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           </div>
         </button>
 
-        {!isMobile && <div className="h-4.5 w-px bg-border" />}
-
-        {!isMobile && (
-          <button
-            type="button"
-            onClick={() => doc && onShowFileProps()}
-            disabled={!doc}
-            title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-            className="editor-topbar__file btn btn-ghost btn-sm"
-          >
-            <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
-              {fileName}
+        <button
+          type="button"
+          onClick={() => doc && onShowFileProps()}
+          disabled={!doc}
+          title={dimensions ? `${fileName} · ${dimensions}` : fileName}
+          className="editor-topbar__file btn btn-ghost btn-sm"
+        >
+          <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
+            {fileName}
+          </span>
+          {dimensions && (
+            <span className="editor-topbar__dimensions tabular-nums ml-1 shrink-0 whitespace-nowrap text-[0.8125rem] text-text-muted">
+              · {dimensions}
             </span>
-            {dimensions && (
-              <span className="editor-topbar__dimensions tabular-nums ml-1 shrink-0 whitespace-nowrap text-[0.8125rem] text-text-muted">
-                · {dimensions}
-              </span>
+          )}
+        </button>
+
+        <div className="editor-topbar__actions" role="group" aria-label="Image actions">
+          {!isCompact && (
+            <div className="air-segments" role="group" aria-label="Editing mode">
+              {(["single", "batch"] as const).map((m) => {
+                const active = mode === m;
+                const Ic = m === "single" ? I.FileImage : I.Layers;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMode(m)}
+                    title={m === "single" ? "Single photo" : "Batch"}
+                    aria-label={m === "single" ? "Single photo" : "Batch"}
+                    aria-pressed={active}
+                  >
+                    <Ic size={18} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className={`flex ${isMobile ? "gap-0" : "gap-0.5"}`}>
+            <button
+              type="button"
+              className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
+              aria-label="Undo"
+              disabled={!canUndo}
+              onClick={() => void undo()}
+            >
+              <I.Undo size={18} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
+              aria-label="Redo"
+              disabled={!canRedo}
+              onClick={() => void redo()}
+            >
+              <I.Redo size={18} aria-hidden="true" />
+            </button>
+            {!isCompact && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-icon-sm"
+                aria-label="Reset to original"
+                title="Reset to original"
+                disabled={!canReset}
+                onClick={() => setResetConfirmOpen(true)}
+              >
+                <I.Refresh size={18} aria-hidden="true" />
+              </button>
             )}
-          </button>
-        )}
-
-        {!isMobile && (
-          <div className="air-segments" role="group" aria-label="Editing mode">
-            {(["single", "batch"] as const).map((m) => {
-              const active = mode === m;
-              const Ic = m === "single" ? I.FileImage : I.Layers;
-              return (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMode(m)}
-                  title={m === "single" ? "Single photo" : "Batch"}
-                  aria-label={m === "single" ? "Single photo" : "Batch"}
-                  aria-pressed={active}
-                >
-                  <Ic size={18} aria-hidden="true" />
-                </button>
-              );
-            })}
           </div>
-        )}
 
-        <div className="editor-topbar__spacer" />
+          {!isCompact && (
+            <div className="editor-zoom">
+              <button
+                type="button"
+                className="btn btn-ghost btn-icon-xs"
+                onClick={() => setView((v) => ({ ...v, zoom: Math.max(0.05, v.zoom / 1.2) }))}
+                aria-label="Zoom out"
+              >
+                <I.ZoomOut size={16} aria-hidden="true" />
+              </button>
+              <span className="tabular-nums min-w-9 px-1 text-center text-[0.8125rem] font-medium">
+                {Math.round(view.zoom * 100)}%
+              </span>
+              <button
+                type="button"
+                className="btn btn-ghost btn-icon-xs"
+                onClick={() => setView((v) => ({ ...v, zoom: Math.min(8, v.zoom * 1.2) }))}
+                aria-label="Zoom in"
+              >
+                <I.ZoomIn size={16} aria-hidden="true" />
+              </button>
+            </div>
+          )}
 
-        <div className={`flex ${isMobile ? "gap-0" : "gap-0.5"}`}>
-          <button
-            type="button"
-            className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
-            aria-label="Undo"
-            disabled={!canUndo}
-            onClick={() => void undo()}
-          >
-            <I.Undo size={18} />
-          </button>
-          <button
-            type="button"
-            className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
-            aria-label="Redo"
-            disabled={!canRedo}
-            onClick={() => void redo()}
-          >
-            <I.Redo size={18} />
-          </button>
           {!isCompact && (
             <button
               type="button"
-              className="btn btn-ghost btn-icon-sm"
-              aria-label="Reset to original"
-              title="Reset to original"
-              disabled={!canReset}
-              onClick={() => setResetConfirmOpen(true)}
+              className={`btn btn-ghost btn-icon-sm ${compareActive ? "bg-surface-soft text-text" : ""}`}
+              aria-label="Hold to compare with original"
+              aria-pressed={compareActive}
+              title="Hold to see the original"
+              onPointerDown={() => setCompareActive(true)}
+              onPointerUp={() => setCompareActive(false)}
+              onPointerLeave={() => setCompareActive(false)}
+              onPointerCancel={() => setCompareActive(false)}
+              onKeyDown={(event) => {
+                if (event.key === " " || event.key === "Enter") {
+                  event.preventDefault();
+                  setCompareActive(true);
+                }
+              }}
+              onKeyUp={(event) => {
+                if (event.key === " " || event.key === "Enter") setCompareActive(false);
+              }}
+              onBlur={() => setCompareActive(false)}
+              disabled={!doc}
             >
-              <I.Refresh size={18} />
+              <I.GitCompare size={18} aria-hidden="true" />
+            </button>
+          )}
+
+          {!isCompact && (
+            <button
+              type="button"
+              className="editor-topbar__export btn btn-secondary btn-sm"
+              onClick={openExport}
+              aria-label="Export"
+              title="Export"
+            >
+              <I.Download size={16} aria-hidden="true" />
+              Export
+            </button>
+          )}
+
+          {isCompact && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-icon"
+              aria-label="Export"
+              title="Export"
+              disabled={!doc}
+              onClick={openExport}
+            >
+              <I.Download size={18} aria-hidden="true" />
+            </button>
+          )}
+
+          {isCompact && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-icon"
+              aria-label="More actions"
+              aria-haspopup="dialog"
+              aria-expanded={moreMenuOpen}
+              onClick={() => setMoreMenuOpen(true)}
+            >
+              <I.MoreVertical size={18} aria-hidden="true" />
             </button>
           )}
         </div>
-
-        {!isMobile && <div className="h-4.5 w-px bg-border" />}
-
-        {!isCompact && (
-          <div className="editor-zoom">
-            <button
-              type="button"
-              className="btn btn-ghost btn-icon-xs"
-              onClick={() => setView((v) => ({ ...v, zoom: Math.max(0.05, v.zoom / 1.2) }))}
-              aria-label="Zoom out"
-            >
-              <I.ZoomOut size={16} />
-            </button>
-            <span className="tabular-nums min-w-9 px-1 text-center text-[0.8125rem] font-medium">
-              {Math.round(view.zoom * 100)}%
-            </span>
-            <button
-              type="button"
-              className="btn btn-ghost btn-icon-xs"
-              onClick={() => setView((v) => ({ ...v, zoom: Math.min(8, v.zoom * 1.2) }))}
-              aria-label="Zoom in"
-            >
-              <I.ZoomIn size={16} />
-            </button>
-          </div>
-        )}
-
-        {!isMobile && (
-          <button
-            type="button"
-            className={`btn btn-ghost btn-icon-sm ${compareActive ? "bg-surface-soft text-text" : ""}`}
-            aria-label="Hold to compare with original"
-            aria-pressed={compareActive}
-            title="Hold to see the original"
-            onPointerDown={() => setCompareActive(true)}
-            onPointerUp={() => setCompareActive(false)}
-            onPointerLeave={() => setCompareActive(false)}
-            onPointerCancel={() => setCompareActive(false)}
-            onKeyDown={(event) => {
-              if (event.key === " " || event.key === "Enter") {
-                event.preventDefault();
-                setCompareActive(true);
-              }
-            }}
-            onKeyUp={(event) => {
-              if (event.key === " " || event.key === "Enter") setCompareActive(false);
-            }}
-            onBlur={() => setCompareActive(false)}
-            disabled={!doc}
-          >
-            <I.GitCompare size={18} />
-          </button>
-        )}
-
-        {!isMobile && (
-          <button
-            type="button"
-            className="editor-topbar__export btn btn-secondary btn-sm"
-            onClick={openExport}
-            aria-label="Export"
-            title="Export"
-          >
-            <I.Download size={16} />
-            Export
-          </button>
-        )}
-
-        {isMobile && (
-          <button
-            type="button"
-            className="btn btn-ghost btn-icon"
-            aria-label="Export"
-            title="Export"
-            disabled={!doc}
-            onClick={openExport}
-          >
-            <I.Download size={18} />
-          </button>
-        )}
-
-        {isCompact && (
-          <button
-            type="button"
-            className="btn btn-ghost btn-icon"
-            aria-label="More actions"
-            aria-haspopup="dialog"
-            aria-expanded={moreMenuOpen}
-            onClick={() => setMoreMenuOpen(true)}
-          >
-            <I.MoreVertical size={18} />
-          </button>
-        )}
       </header>
       {resetConfirmOpen && (
         <ConfirmModal

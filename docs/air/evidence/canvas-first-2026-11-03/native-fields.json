@@ -1,0 +1,134 @@
+[
+  {
+    "engine": "chromium",
+    "width": 390,
+    "height": 844,
+    "font": 16,
+    "colorScheme": "light",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "chromium",
+    "width": 390,
+    "height": 844,
+    "font": 16,
+    "colorScheme": "dark",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "chromium",
+    "width": 1024,
+    "height": 768,
+    "font": 32,
+    "colorScheme": "light",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "chromium",
+    "width": 1024,
+    "height": 768,
+    "font": 32,
+    "colorScheme": "dark",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "chromium",
+    "width": 1440,
+    "height": 900,
+    "font": 16,
+    "colorScheme": "light",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "chromium",
+    "width": 1440,
+    "height": 900,
+    "font": 16,
+    "colorScheme": "dark",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "height": 844,
+    "font": 16,
+    "colorScheme": "light",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "height": 844,
+    "font": 16,
+    "colorScheme": "dark",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "webkit",
+    "width": 1024,
+    "height": 768,
+    "font": 32,
+    "colorScheme": "light",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "webkit",
+    "width": 1024,
+    "height": 768,
+    "font": 32,
+    "colorScheme": "dark",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "webkit",
+    "width": 1440,
+    "height": 900,
+    "font": 16,
+    "colorScheme": "light",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  },
+  {
+    "engine": "webkit",
+    "width": 1440,
+    "height": 900,
+    "font": 16,
+    "colorScheme": "dark",
+    "nativeStepping": true,
+    "invalidDrafts": true,
+    "labelAndSpace": true,
+    "fileRecovery": true
+  }
+]
