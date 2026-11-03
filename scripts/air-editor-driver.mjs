@@ -16,4 +16,9 @@ export async function selectEditorTool(page, name) {
     name,
   );
   await page.locator("[data-tool-panel-loading]").waitFor({ state: "hidden" });
+  // The heading can commit before the lazy controls have mounted.
+  await page
+    .locator(".editor-properties .air-scroll,.editor-mobile-surface .air-scroll")
+    .first()
+    .waitFor();
 }

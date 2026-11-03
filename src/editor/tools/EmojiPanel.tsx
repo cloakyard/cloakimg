@@ -144,14 +144,14 @@ export function EmojiPanel() {
             }}
             placeholder="🙂"
             aria-label="Paste any emoji"
-            className="control-field h-9 flex-1 leading-none"
+            className="air-field h-9 flex-1 leading-none"
             style={{ fontFamily: EMOJI_FONT_STACK }}
           />
           <button
             type="button"
             onClick={onApplyCustom}
             disabled={!firstEmojiGrapheme(customInput)}
-            className="btn btn-secondary btn-sm shrink-0"
+            className="air-button img-control--compact shrink-0"
           >
             Use
           </button>

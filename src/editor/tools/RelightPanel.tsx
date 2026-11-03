@@ -98,7 +98,7 @@ export function RelightPanel() {
           </div>
           <button
             type="button"
-            className="btn btn-primary btn-sm self-start"
+            className="air-button air-button--primary img-control--compact self-start"
             onClick={() => void depth.requestExplicit().catch(() => undefined)}
           >
             <I.Download size={16} /> Enable relight
@@ -121,7 +121,7 @@ export function RelightPanel() {
             <button
               type="button"
               onClick={reset}
-              className="btn btn-ghost btn-sm shrink-0"
+              className="air-button air-button--quiet img-control--compact shrink-0"
               aria-label="Reset relight"
             >
               <I.Rotate size={16} /> Reset

@@ -605,7 +605,7 @@ export function CropPanel() {
         type="button"
         onClick={() => void smartCrop()}
         disabled={smartBusy}
-        className="btn btn-secondary w-full"
+        className="air-button w-full"
       >
         {smartBusy ? <InlineSpinner size={16} /> : <I.Sparkles size={16} className="text-text" />}
         {smartLabel}
@@ -648,7 +648,7 @@ export function CropPanel() {
       </PropRow>
       <button
         type="button"
-        className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
+        className="air-button air-button--quiet img-control--compact mt-1 w-full justify-center text-text"
         onClick={reset}
       >
         <I.Refresh size={16} />

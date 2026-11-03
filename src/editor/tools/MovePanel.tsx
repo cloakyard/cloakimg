@@ -109,14 +109,14 @@ export function MovePanel() {
         <div className="flex gap-1.5">
           <button
             type="button"
-            className="btn btn-secondary btn-xs flex-1 justify-center"
+            className="air-button img-control--compact flex-1 justify-center"
             onClick={onDeselect}
           >
             Deselect
           </button>
           <button
             type="button"
-            className="btn btn-secondary btn-xs flex-1 justify-center"
+            className="air-button img-control--compact flex-1 justify-center"
             onClick={onDelete}
           >
             <I.X size={16} />

@@ -97,7 +97,12 @@ export function PerspectivePanel() {
         </div>
       )}
 
-      <button type="button" className="btn btn-ghost w-full" onClick={reset} disabled={!dirty}>
+      <button
+        type="button"
+        className="air-button air-button--quiet w-full"
+        onClick={reset}
+        disabled={!dirty}
+      >
         <I.Refresh size={16} aria-hidden="true" /> Reset
       </button>
     </>

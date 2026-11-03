@@ -251,7 +251,11 @@ export function ImagePanel() {
 
 function ReorderButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="btn btn-secondary btn-xs justify-center">
+    <button
+      type="button"
+      onClick={onClick}
+      className="air-button img-control--compact justify-center"
+    >
       {label}
     </button>
   );

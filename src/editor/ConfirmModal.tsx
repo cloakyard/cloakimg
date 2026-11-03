@@ -114,10 +114,19 @@ function ConfirmModalBody({
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
-        <button ref={cancelRef} type="button" className="btn btn-ghost btn-sm" onClick={dismiss}>
+        <button
+          ref={cancelRef}
+          type="button"
+          className="air-button air-button--quiet img-control--compact"
+          onClick={dismiss}
+        >
           {cancelLabel}
         </button>
-        <button type="button" className="btn btn-primary btn-sm" onClick={onConfirm}>
+        <button
+          type="button"
+          className="air-button air-button--primary img-control--compact"
+          onClick={onConfirm}
+        >
           {confirmLabel}
         </button>
       </div>

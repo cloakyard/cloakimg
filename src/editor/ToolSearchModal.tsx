@@ -171,7 +171,7 @@ function ToolSearchBody({
               }}
               aria-label="Clear tool search"
               hidden={!query}
-              className="btn btn-ghost btn-icon air-field-clear"
+              className="air-button air-button--quiet air-icon-button air-field-clear"
             >
               <I.X size={14} aria-hidden="true" />
             </button>
@@ -198,7 +198,7 @@ function ToolSearchBody({
                 onQuery("");
                 inputRef.current?.focus({ preventScroll: true });
               }}
-              className="btn btn-ghost btn-sm mt-4"
+              className="air-button air-button--quiet img-control--compact mt-4"
             >
               Clear search
             </button>

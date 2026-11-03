@@ -125,7 +125,11 @@ function FilePropertiesBody({
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
-        <button type="button" className="btn btn-primary btn-sm" onClick={dismiss}>
+        <button
+          type="button"
+          className="air-button air-button--primary img-control--compact"
+          onClick={dismiss}
+        >
           Close
         </button>
       </div>

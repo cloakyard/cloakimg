@@ -72,7 +72,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           }}
           disabled={!doc}
           title={dimensions ? `${fileName} · ${dimensions}` : fileName}
-          className="editor-topbar__file btn btn-ghost btn-sm"
+          className="editor-topbar__file air-button air-button--quiet img-control--compact"
         >
           <span className="min-w-0 overflow-hidden font-medium whitespace-nowrap text-ellipsis">
             {fileName}
@@ -109,7 +109,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           <div className={`flex ${isMobile ? "gap-0" : "gap-0.5"}`}>
             <button
               type="button"
-              className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
+              className={`air-button air-button--quiet ${isMobile ? "air-icon-button" : "air-icon-button img-control--compact"}`}
               aria-label="Undo"
               disabled={!canUndo}
               onClick={() => void undo()}
@@ -118,7 +118,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             </button>
             <button
               type="button"
-              className={`btn btn-ghost ${isMobile ? "btn-icon" : "btn-icon-sm"}`}
+              className={`air-button air-button--quiet ${isMobile ? "air-icon-button" : "air-icon-button img-control--compact"}`}
               aria-label="Redo"
               disabled={!canRedo}
               onClick={() => void redo()}
@@ -128,7 +128,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             {!isCompact && (
               <button
                 type="button"
-                className="btn btn-ghost btn-icon-sm"
+                className="air-button air-button--quiet air-icon-button img-control--compact"
                 aria-label="Reset to original"
                 title="Reset to original"
                 disabled={!canReset}
@@ -143,7 +143,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             <div className="editor-zoom">
               <button
                 type="button"
-                className="btn btn-ghost btn-icon-xs"
+                className="air-button air-button--quiet air-icon-button img-control--compact"
                 onClick={() => setView((v) => ({ ...v, zoom: Math.max(0.05, v.zoom / 1.2) }))}
                 aria-label="Zoom out"
               >
@@ -154,7 +154,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               </span>
               <button
                 type="button"
-                className="btn btn-ghost btn-icon-xs"
+                className="air-button air-button--quiet air-icon-button img-control--compact"
                 onClick={() => setView((v) => ({ ...v, zoom: Math.min(8, v.zoom * 1.2) }))}
                 aria-label="Zoom in"
               >
@@ -166,7 +166,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           {!isCompact && (
             <button
               type="button"
-              className={`btn btn-ghost btn-icon-sm ${compareActive ? "bg-surface-soft text-text" : ""}`}
+              className={`air-button air-button--quiet air-icon-button img-control--compact ${compareActive ? "bg-surface-soft text-text" : ""}`}
               aria-label="Hold to compare with original"
               aria-pressed={compareActive}
               title="Hold to see the original"
@@ -193,7 +193,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           {!isCompact && (
             <button
               type="button"
-              className="editor-topbar__export btn btn-secondary btn-sm"
+              className="editor-topbar__export air-button img-control--compact"
               onClick={(event) => {
                 event.currentTarget.focus({ preventScroll: true });
                 openExport();
@@ -209,7 +209,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           {isCompact && (
             <button
               type="button"
-              className="btn btn-ghost btn-icon"
+              className="air-button air-button--quiet air-icon-button"
               aria-label="Export"
               title="Export"
               disabled={!doc}
@@ -225,7 +225,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           {isCompact && (
             <button
               type="button"
-              className="btn btn-ghost btn-icon"
+              className="air-button air-button--quiet air-icon-button"
               aria-label="More actions"
               aria-haspopup="dialog"
               aria-expanded={moreMenuOpen}

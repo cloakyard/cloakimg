@@ -204,7 +204,7 @@ export function BgBlurPanel() {
 
         <button
           type="button"
-          className="btn btn-ghost btn-xs mt-1 w-full justify-center text-text"
+          className="air-button air-button--quiet img-control--compact mt-1 w-full justify-center text-text"
           onClick={reset}
           disabled={amount === 0 && scope === 2 && lens === "gaussian" && !progressive}
         >

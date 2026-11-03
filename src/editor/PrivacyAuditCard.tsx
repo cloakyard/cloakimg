@@ -196,7 +196,7 @@ function Action({ onClick, label, disabled }: ActionProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="privacy-audit-action btn btn-secondary btn-sm ml-auto"
+      className="privacy-audit-action air-button img-control--compact ml-auto"
     >
       {label}
     </button>

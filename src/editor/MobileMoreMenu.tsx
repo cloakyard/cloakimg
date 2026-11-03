@@ -88,7 +88,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
           <span>Zoom · {Math.round(view.zoom * 100)}%</span>
           <button
             type="button"
-            className="btn btn-ghost btn-icon"
+            className="air-button air-button--quiet air-icon-button"
             aria-label="Zoom out"
             onClick={() =>
               setView((value) => ({ ...value, zoom: Math.max(0.05, value.zoom / 1.2) }))
@@ -98,7 +98,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
           </button>
           <button
             type="button"
-            className="btn btn-ghost btn-icon"
+            className="air-button air-button--quiet air-icon-button"
             aria-label="Zoom in"
             onClick={() => setView((value) => ({ ...value, zoom: Math.min(8, value.zoom * 1.2) }))}
           >
@@ -106,7 +106,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
           </button>
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="air-button air-button--quiet img-control--compact"
             onClick={() => dismiss(() => setView({ zoom: 1, panX: 0, panY: 0 }))}
           >
             Fit

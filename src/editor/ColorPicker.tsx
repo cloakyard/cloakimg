@@ -327,7 +327,7 @@ function ColourControls({
         {enableEyedropper && (
           <button
             type="button"
-            className="btn btn-secondary"
+            className="air-button"
             disabled={!hasDropper}
             onClick={() => void pick()}
           >
@@ -337,7 +337,7 @@ function ColourControls({
         )}
         <button
           type="button"
-          className="btn btn-primary"
+          className="air-button air-button--primary"
           onClick={() => {
             if (!commitHex()) {
               hexInput.current?.focus();

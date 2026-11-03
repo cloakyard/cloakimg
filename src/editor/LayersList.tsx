@@ -285,7 +285,7 @@ function LayerRow({
         <div className="img-layer-actions">
           <button
             type="button"
-            className="btn btn-ghost btn-icon-sm"
+            className="air-button air-button--quiet air-icon-button img-control--compact"
             aria-label={`Raise ${row.label}`}
             disabled={!canRaise}
             onClick={() => onReorder(row.id, 1)}
@@ -294,7 +294,7 @@ function LayerRow({
           </button>
           <button
             type="button"
-            className="btn btn-ghost btn-icon-sm"
+            className="air-button air-button--quiet air-icon-button img-control--compact"
             aria-label={`Lower ${row.label}`}
             disabled={!canLower}
             onClick={() => onReorder(row.id, -1)}

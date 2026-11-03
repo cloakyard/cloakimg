@@ -339,7 +339,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
               type="button"
               onClick={() => setExportError(null)}
               aria-label="Dismiss error"
-              className="btn btn-ghost btn-icon-sm shrink-0"
+              className="air-button air-button--quiet air-icon-button img-control--compact shrink-0"
             >
               <I.X size={16} aria-hidden="true" />
             </button>
@@ -349,7 +349,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
       <div className="cloak-dialog__footer">
         <button
           type="button"
-          className="btn btn-secondary"
+          className="air-button"
           onClick={copyToClipboard}
           disabled={busy}
           title="Copy edited image to clipboard as PNG"
@@ -361,7 +361,12 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
           )}{" "}
           {copied ? "Copied" : "Copy"}
         </button>
-        <button type="button" className="btn btn-primary" onClick={download} disabled={busy}>
+        <button
+          type="button"
+          className="air-button air-button--primary"
+          onClick={download}
+          disabled={busy}
+        >
           <I.Download size={16} aria-hidden="true" /> {busy ? "Exporting…" : "Download"}
         </button>
       </div>

@@ -114,19 +114,35 @@ export function MaskDownloadModal({
       >
         {error ? (
           <>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+            <button
+              type="button"
+              className="air-button air-button--quiet img-control--compact"
+              onClick={onCancel}
+            >
               Close
             </button>
-            <button type="button" className="btn btn-primary btn-sm" onClick={onRetry}>
+            <button
+              type="button"
+              className="air-button air-button--primary img-control--compact"
+              onClick={onRetry}
+            >
               <I.Refresh size={13} /> Try again
             </button>
           </>
         ) : (
           <>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+            <button
+              type="button"
+              className="air-button air-button--quiet img-control--compact"
+              onClick={onCancel}
+            >
               Cancel
             </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={onDismiss}>
+            <button
+              type="button"
+              className="air-button air-button--quiet img-control--compact"
+              onClick={onDismiss}
+            >
               Continue in background
             </button>
           </>

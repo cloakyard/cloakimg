@@ -134,7 +134,11 @@ export function DetectionProgressCard({
       )}
       {onCancel && (
         <div className="flex justify-end">
-          <button type="button" onClick={onCancel} className="btn btn-ghost btn-sm underline">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="air-button air-button--quiet img-control--compact underline"
+          >
             Cancel
           </button>
         </div>
@@ -179,7 +183,11 @@ export function DetectionErrorCard({ msg, onRetry }: ErrorProps) {
       <I.ShieldCheck size={13} className="mt-px shrink-0" />
       <div className="min-w-0 flex-1">
         <div className="wrap-break-word">{msg ?? "Couldn't detect subject."}</div>
-        <button type="button" onClick={onRetry} className="btn btn-ghost btn-sm mt-1 underline">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="air-button air-button--quiet img-control--compact mt-1 underline"
+        >
           Try again
         </button>
       </div>
@@ -210,7 +218,11 @@ export function DetectionPausedChip({ onResume }: PausedProps) {
     >
       <I.Sparkles size={12} className="shrink-0 text-text" />
       <span className="min-w-0 flex-1 text-text-muted">Detection paused.</span>
-      <button type="button" onClick={onResume} className="btn btn-ghost btn-sm underline">
+      <button
+        type="button"
+        onClick={onResume}
+        className="air-button air-button--quiet img-control--compact underline"
+      >
         Enable AI
       </button>
     </div>

@@ -650,7 +650,7 @@ html {
   .cloak-dialog__footer {
     padding-bottom: max(24px, env(safe-area-inset-bottom));
   }
-  .cloak-dialog__footer > .btn {
+  .cloak-dialog__footer > .air-button {
     flex: 1;
   }
 }

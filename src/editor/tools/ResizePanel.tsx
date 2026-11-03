@@ -239,7 +239,7 @@ export function ResizePanel() {
             <button
               key={p.value}
               type="button"
-              className="btn btn-secondary grow"
+              className="air-button grow"
               onClick={() => setLongEdge(p.value)}
             >
               {p.label}

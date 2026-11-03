@@ -39,7 +39,7 @@ export function ImageFileButton({
       />
       <button
         type="button"
-        className="btn btn-secondary w-full"
+        className="air-button w-full"
         disabled={busy}
         aria-busy={busy || undefined}
         aria-describedby={error ? errorId : undefined}

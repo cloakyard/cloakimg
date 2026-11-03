@@ -204,7 +204,7 @@ export function HslPanel() {
         <div className="flex gap-2">
           <button
             type="button"
-            className="btn btn-ghost btn-xs flex-1 justify-center text-text"
+            className="air-button air-button--quiet img-control--compact flex-1 justify-center text-text"
             onClick={resetBand}
             disabled={!bandIsDirty(toolState, band)}
           >
@@ -212,7 +212,7 @@ export function HslPanel() {
           </button>
           <button
             type="button"
-            className="btn btn-ghost btn-xs flex-1 justify-center text-text"
+            className="air-button air-button--quiet img-control--compact flex-1 justify-center text-text"
             onClick={reset}
             disabled={!dirty}
           >

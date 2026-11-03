@@ -488,7 +488,7 @@ function AutoPanel({
             type="button"
             onClick={onChangeModel}
             disabled={busy}
-            className="btn btn-ghost btn-sm"
+            className="air-button air-button--quiet img-control--compact"
           >
             Change
           </button>
@@ -537,7 +537,7 @@ function AutoPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="btn btn-primary justify-center"
+          className="air-button air-button--primary justify-center"
           onClick={onApply}
           disabled={(alreadyRemoved && backgroundFillMode === 0) || busy}
           style={{ opacity: (alreadyRemoved && backgroundFillMode === 0) || busy ? 0.6 : 1 }}
@@ -711,7 +711,7 @@ function ChromaPanel({
                 type="button"
                 onClick={onClearSample}
                 aria-label="Clear sample"
-                className="btn btn-ghost btn-icon"
+                className="air-button air-button--quiet air-icon-button"
               >
                 <I.X size={16} aria-hidden="true" />
               </button>
@@ -719,12 +719,7 @@ function ChromaPanel({
           )}
         </div>
       </PropRow>
-      <button
-        type="button"
-        className="btn btn-secondary"
-        onClick={onAutoTune}
-        disabled={alreadyRemoved}
-      >
+      <button type="button" className="air-button" onClick={onAutoTune} disabled={alreadyRemoved}>
         <I.Wand size={16} aria-hidden="true" /> Auto-detect
       </button>
       <BackgroundControls
@@ -736,7 +731,7 @@ function ChromaPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="btn btn-primary justify-center"
+          className="air-button air-button--primary justify-center"
           onClick={onApply}
           disabled={applyDisabled}
           style={{ opacity: applyDisabled ? 0.5 : 1 }}
