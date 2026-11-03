@@ -43,16 +43,16 @@ export function PropertiesPanel({ collapsed = false }: Props) {
           re-creates this div — Fabric, EditorContext, and LayersList
           (sibling) are unaffected, so there's no perf cost.
 
-          `overscroll-contain` lives here (not on `.scroll-thin`)
+          `overscroll-contain` lives here (not on `.air-scroll`)
           because horizontal-only preset rows inside the panel inherit
-          .scroll-thin for the thin-scrollbar look but should NOT
+          .air-scroll for the thin-scrollbar look but should NOT
           contain vertical pans — that broke vertical scrolling when a
           user touched a preset thumbnail. Containment now applies only
           where the rubber-band actually needs catching: the panel's
           own vertical scroll. */}
       <div
         key={activeTool}
-        className="scroll-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
+        className="air-scroll flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-4"
       >
         <div ref={setFeedback} className="editor-tool-feedback" />
         <ToolControls />

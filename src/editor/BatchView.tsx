@@ -300,7 +300,7 @@ export function BatchPanel({
   return (
     <div
       aria-label="Batch recipe"
-      className={`scroll-thin min-h-0 flex shrink-0 flex-col overflow-y-auto border-l border-border-soft ${
+      className={`air-scroll min-h-0 flex shrink-0 flex-col overflow-y-auto border-l border-border-soft ${
         compact ? "w-full max-h-[50%] border-t" : collapsed ? "w-72" : "w-82"
       }`}
     >

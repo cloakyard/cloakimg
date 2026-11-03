@@ -73,7 +73,7 @@ await new Promise((r) => setTimeout(r, 700));
 const layout = await page.evaluate(() => {
   const dialog = document.querySelector(".editor-mobile-surface");
   if (!dialog) return { error: "no-dialog" };
-  const scroller = dialog.querySelector(".scroll-thin.overflow-y-auto");
+  const scroller = dialog.querySelector(".air-scroll.overflow-y-auto");
   if (!scroller) return { error: "no-scroller" };
   const content = scroller.firstElementChild;
 
@@ -106,7 +106,7 @@ console.log(JSON.stringify(layout, null, 2));
 // Try to scroll the picker down by issuing a touch drag.
 const target = await page.evaluate(() => {
   const dialog = document.querySelector(".editor-mobile-surface");
-  const scroller = dialog?.querySelector(".scroll-thin.overflow-y-auto");
+  const scroller = dialog?.querySelector(".air-scroll.overflow-y-auto");
   if (!scroller) return null;
   const r = scroller.getBoundingClientRect();
   return { left: r.left, top: r.top, w: r.width, h: r.height };
@@ -134,7 +134,7 @@ if (target) {
 
 const after = await page.evaluate(() => {
   const dialog = document.querySelector(".editor-mobile-surface");
-  const scroller = dialog?.querySelector(".scroll-thin.overflow-y-auto");
+  const scroller = dialog?.querySelector(".air-scroll.overflow-y-auto");
   return scroller ? { scrollTop: scroller.scrollTop } : null;
 });
 console.log(`  after drag: ${JSON.stringify(after)}`);

@@ -96,7 +96,7 @@ function FilePropertiesBody({
         <ModalCloseButton onClose={onClose} iconSize={14} />
       </div>
 
-      <div className="cloak-dialog__body flex flex-col gap-3 px-5 py-4">
+      <div className="air-scroll cloak-dialog__body flex flex-col gap-3 px-5 py-4">
         <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[0.8125rem]">
           {rows.map((row) => (
             <PropRow key={row[1]} row={row} />

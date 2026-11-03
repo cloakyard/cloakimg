@@ -130,7 +130,7 @@ try {
         const result = await page.evaluate(
           ({ canvas, name }) => {
             const panel = document.querySelector(
-                ".editor-properties .scroll-thin,.editor-mobile-surface .scroll-thin",
+                ".editor-properties .air-scroll,.editor-mobile-surface .air-scroll",
               ),
               r = panel.getBoundingClientRect();
             const visible = (e) => {
@@ -236,7 +236,7 @@ try {
               ) !== JSON.stringify(expected)
             )
               actionIssues.push("completion labels/order");
-            if (actions?.closest(".scroll-thin"))
+            if (actions?.closest(".air-scroll"))
               actionIssues.push("completion scrolls with controls");
             for (const b of actionButtons) {
               const box = b.getBoundingClientRect();
@@ -319,7 +319,7 @@ try {
           const stem = `${width}-${font}-${theme}-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`;
           await page.screenshot({ path: resolve(output, `${stem}.png`) });
           await page
-            .locator(".editor-properties .scroll-thin,.editor-mobile-surface .scroll-thin")
+            .locator(".editor-properties .air-scroll,.editor-mobile-surface .air-scroll")
             .evaluate((e) => (e.scrollTop = e.scrollHeight));
           await page.screenshot({ path: resolve(output, `${stem}-bottom.png`) });
         }

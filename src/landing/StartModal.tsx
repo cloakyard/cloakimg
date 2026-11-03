@@ -88,7 +88,9 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
       <ModalHeader isPhone={isPhone} onCancel={onCancel} />
       <ModalTabs tab={tab} setTab={setTab} isPhone={isPhone} />
 
-      <div className={`cloak-dialog__body flex-1 overflow-y-auto ${isPhone ? "p-5" : "p-7"}`}>
+      <div
+        className={`air-scroll cloak-dialog__body flex-1 overflow-y-auto ${isPhone ? "p-5" : "p-7"}`}
+      >
         {tab === "upload" ? (
           <UploadTab file={uploadFile} onFile={setUploadFile} />
         ) : (

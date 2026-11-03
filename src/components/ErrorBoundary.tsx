@@ -247,7 +247,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </h2>
             </div>
           </div>
-          <div className="cloak-dialog__body">
+          <div className="air-scroll cloak-dialog__body">
             <p id="cloak-eb-description" className="cloak-dialog__description">
               {description}
             </p>
@@ -321,7 +321,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
           </div>
 
-          <div className="cloak-dialog__body scroll-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+          <div className="air-scroll cloak-dialog__body flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
             <p id="ci-error-description" className="cloak-dialog__description">
               Your image is still on this device — nothing was uploaded. Send the details below and
               we'll fix the bug.

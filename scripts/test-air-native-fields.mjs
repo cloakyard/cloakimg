@@ -96,7 +96,7 @@ for (const engine of ["chromium", "webkit"]) {
         assert.equal(await s.isChecked(), checked);
         await tool("Place image");
         const panel = p
-          .locator(".editor-properties .scroll-thin,.editor-mobile-surface .scroll-thin")
+          .locator(".editor-properties .air-scroll,.editor-mobile-surface .air-scroll")
           .first();
         await panel.locator("input[type=file]").setInputFiles({
           name: "broken.png",

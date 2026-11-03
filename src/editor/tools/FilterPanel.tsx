@@ -142,7 +142,7 @@ export function FilterPanel() {
             <div key={category} className="flex flex-col gap-1.5">
               <div className="t-section-label">{category}</div>
               <div
-                // `.no-scrollbar` (not `.scroll-thin`): horizontal
+                // `.no-scrollbar` (not `.air-scroll`): horizontal
                 // preset rows on touch don't benefit from a persistent
                 // 6 px scrollbar track — it just adds visual noise
                 // under every category. Matches ToolRail's bottom

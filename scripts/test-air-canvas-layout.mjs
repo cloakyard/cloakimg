@@ -41,9 +41,7 @@ for (const engine of ["chromium", "webkit"]) {
         const header = p.locator(".editor-mobile-header,.editor-properties__header");
         const actions = p.getByRole("group", { name: "Edit actions", exact: true });
         const photo = p.locator(".canvas-container"),
-          body = p.locator(
-            ".editor-mobile-surface > .scroll-thin,.editor-properties > .scroll-thin",
-          );
+          body = p.locator(".editor-mobile-surface > .air-scroll,.editor-properties > .air-scroll");
         const before = {
           photo: await photo.boundingBox(),
           header: await header.boundingBox(),

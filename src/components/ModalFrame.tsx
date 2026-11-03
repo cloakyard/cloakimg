@@ -72,6 +72,16 @@ export function ModalFrame({
         <Dialog.Viewport className="cloak-modal-root">
           <Dialog.Popup
             ref={popup}
+            onFocusCapture={(event) => {
+              const target = event.target;
+              const body = target.closest(".cloak-dialog__body");
+              if (!body) return;
+              const field = target.getBoundingClientRect();
+              const viewport = body.getBoundingClientRect();
+              // WebKit can focus a field without exposing it inside a flex scroller.
+              if (field.top < viewport.top || field.bottom > viewport.bottom)
+                target.scrollIntoView({ block: "nearest", inline: "nearest" });
+            }}
             onClickCapture={(event) => {
               if (!open) {
                 event.preventDefault();
@@ -109,7 +119,7 @@ export function ModalCloseButton({
   const close = useModalClose();
   return (
     <Dialog.Close
-      className={`cloak-dialog__close ${className}`}
+      className={`air-icon-button air-button--quiet air-dismiss ${className}`}
       aria-label={label}
       onClick={(e) => {
         e.preventDefault();

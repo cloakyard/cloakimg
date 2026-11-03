@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.5.0",
+  "contractVersion": "1.6.0",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -78,7 +78,8 @@
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/surface-motion-2026-11-03.md"
+        "docs/air/surface-motion-2026-11-03.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
@@ -170,7 +171,8 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
@@ -209,7 +211,8 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-runtime-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
-        "docs/air/tool-state-audit-2026-10-30.md"
+        "docs/air/tool-state-audit-2026-10-30.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
@@ -224,7 +227,8 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
-        "docs/air/cloakimg-cleanup-2026-10-30.md"
+        "docs/air/cloakimg-cleanup-2026-10-30.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -612,7 +616,8 @@
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
         "docs/air/touch-workspace-2026-10-31.md",
-        "docs/air/surface-motion-2026-11-03.md"
+        "docs/air/surface-motion-2026-11-03.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Approved compact workspace implemented and locally verified; see touch-workspace evidence. Physical device, OS IME and spoken assistive acceptance remain open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
@@ -781,7 +786,8 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-runtime-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
-        "docs/air/surface-motion-2026-11-03.md"
+        "docs/air/surface-motion-2026-11-03.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
@@ -796,7 +802,8 @@
       "evidence": [
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-runtime-2026-10-30.md",
-        "docs/air/editor-reaudit-2026-10-30.md"
+        "docs/air/editor-reaudit-2026-10-30.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open."
     },
@@ -868,7 +875,8 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-runtime-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
-        "docs/air/surface-motion-2026-11-03.md"
+        "docs/air/surface-motion-2026-11-03.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Editor re-audit corrects layout, relative type and shared controls; see the dated audit for exact automated and visual coverage. Physical device, OS IME and spoken assistive acceptance remain open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
@@ -2244,7 +2252,8 @@
       "evidence": [
         "docs/air/cloakimg-public-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/surface-motion-2026-11-03.md"
+        "docs/air/surface-motion-2026-11-03.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
@@ -2268,7 +2277,8 @@
       "evidence": [
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
-        "docs/air/cloakimg-public-2026-10-30.md"
+        "docs/air/cloakimg-public-2026-10-30.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
@@ -2340,7 +2350,8 @@
         "docs/air/touch-workspace-2026-10-31.md",
         "docs/air/simple-actions-2026-11-02.md",
         "docs/air/canvas-first-2026-11-03.md",
-        "docs/air/surface-motion-2026-11-03.md"
+        "docs/air/surface-motion-2026-11-03.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
@@ -2406,7 +2417,8 @@
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/simple-actions-2026-11-02.md",
         "docs/air/canvas-first-2026-11-03.md",
-        "docs/air/surface-motion-2026-11-03.md"
+        "docs/air/surface-motion-2026-11-03.md",
+        "docs/air/compact-popups-2026-11-03.md"
       ],
       "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },

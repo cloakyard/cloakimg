@@ -95,7 +95,7 @@ describe("ReloadPrompt", () => {
   });
   it("keeps a pending update available after Later and returning from an editor", () => {
     const view = setup({ needRefresh: true });
-    fireEvent.click(screen.getByRole("button", { name: "Later" }));
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss update notification" }));
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
     expect(pwa.setNeedRefresh).not.toHaveBeenCalled();
     view.rerender(<ReloadPrompt deferUpdate />);

@@ -6,6 +6,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve, extname } from "node:path";
 const base = resolve(import.meta.dirname, "..");
 const { default: puppeteer } = await import(process.env.PUPPETEER_MODULE || "puppeteer-core");
+const { default: sharp } = await import(process.env.SHARP_MODULE || "sharp");
 const out = process.env.AIR_EVIDENCE_DIR || "/tmp/air-family-notices";
 await mkdir(out, { recursive: true });
 const sizes = [
@@ -28,6 +29,7 @@ const browser = await puppeteer.launch({
   executablePath:
     process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   headless: true,
+  args: ["--disable-gpu"],
 });
 const servers = [];
 async function serve() {
@@ -74,21 +76,60 @@ async function frame(page) {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   });
 }
+// Chrome can vary a few SVG round-cap edge pixels between otherwise identical
+// paints (at most 0.1% of pixels, ≤32/255 per channel). Bound that noise; layout, text, fills and edges remain checked.
+async function matchingPixels(a, b, comparePanel = false) {
+  const [left, right] = await Promise.all(
+    [a, b].map((bytes) => sharp(bytes).ensureAlpha().raw().toBuffer({ resolveWithObject: true })),
+  );
+  if (left.info.width !== right.info.width || left.info.height !== right.info.height) return false;
+  let changed = 0;
+  const edgeBudget = Math.max(24, Math.ceil(left.info.width * left.info.height * 0.001));
+  for (let i = 0; i < left.data.length; i += 4) {
+    if (comparePanel) {
+      // Rounded outer corners reveal each app's page, not notice styling.
+      const x = Math.min(
+        ((i / 4) % left.info.width) + 0.5,
+        left.info.width - ((i / 4) % left.info.width) - 0.5,
+      );
+      const y = Math.min(
+        Math.floor(i / 4 / left.info.width) + 0.5,
+        left.info.height - Math.floor(i / 4 / left.info.width) - 0.5,
+      );
+      if (x < 18 && y < 18) continue;
+    }
+    let difference = 0;
+    for (let c = 0; c < 4; c++)
+      difference = Math.max(difference, Math.abs(left.data[i + c] - right.data[i + c]));
+    if (difference > 32 || (difference > 0 && ++changed > edgeBudget)) return false;
+  }
+  return true;
+}
 async function capture(page, path) {
   let previous,
+    previousBytes,
+    firstBytes,
     stable = 0,
     bytes;
   for (let i = 0; i < 30 && stable < 2; i++) {
     await frame(page);
     bytes = await (await page.$(".air-update")).screenshot();
+    firstBytes ??= bytes;
     const hash = createHash("sha256").update(bytes).digest("hex");
-    stable = hash === previous ? stable + 1 : 0;
+    stable =
+      previousBytes && (hash === previous || (await matchingPixels(bytes, previousBytes)))
+        ? stable + 1
+        : 0;
+    previousBytes = bytes;
     previous = hash;
   }
-  assert.equal(stable, 2, "Notice capture did not settle");
+  await writeFile(path, bytes);
+  if (stable !== 2) await writeFile(path.replace(".png", "-first.png"), firstBytes);
+  assert.equal(stable, 2, `Notice capture did not settle: ${path}`);
   await writeFile(path, bytes);
   return previous;
 }
+
 try {
   for (const app of process.env.AIR_NOTICE_LIFECYCLE_ONLY ? [] : ["cloakimg"]) {
     const server = await serve();
@@ -173,7 +214,7 @@ try {
                   copy = host.querySelector(".air-update-copy");
                 const h = host.getBoundingClientRect(),
                   p = panel.getBoundingClientRect(),
-                  skin = getComputedStyle(panel),
+                  skin = getComputedStyle(host),
                   title = getComputedStyle(copy.querySelector("h2"));
                 return {
                   height: h.height,

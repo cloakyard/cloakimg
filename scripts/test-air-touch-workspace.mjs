@@ -177,7 +177,7 @@ for (const engine of ["chromium", "webkit"].filter(
             const photo = await page.locator(".editor-mobile-stage").boundingBox();
             const editor = await page.locator(".editor-shell").boundingBox();
             assert(photo.height >= editor.height * 0.4 - 1);
-            const controls = page.locator(".editor-mobile-surface > .scroll-thin");
+            const controls = page.locator(".editor-mobile-surface > .air-scroll");
             await controls.evaluate((element) => {
               element.scrollTop = 0;
             });
