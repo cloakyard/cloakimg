@@ -1,6 +1,6 @@
 // WatermarkPanel.tsx — Text or image watermark with anchor + opacity.
 // One singleton text watermark and one singleton image watermark layer
-// driven by tool state; clicking Apply syncs panel values into the
+// driven by tool state; Place watermark syncs panel values into the
 // matching layer (creating it on first use).
 
 import { FabricImage, IText } from "fabric";
@@ -327,7 +327,8 @@ export function WatermarkPanel() {
       <SliderField
         label={isImage ? "Scale" : "Size"}
         domain={[0, isImage ? 50 : 120]}
-        inputMin={isImage ? (8 / 240) * 100 : 8}
+        // Match the displayed one-decimal percentage and native 0.1 step grid.
+        inputMin={isImage ? 3.3 : 8}
         inputStep={isImage ? 0.1 : 1}
         unit={isImage ? "%" : "px"}
         value={Math.min(1, toolState.watermarkSize / 120)}
@@ -349,7 +350,7 @@ export function WatermarkPanel() {
         disabled={isImage && !toolState.watermarkImageDataUrl}
         style={{ opacity: isImage && !toolState.watermarkImageDataUrl ? 0.5 : 1 }}
       >
-        Apply watermark
+        Place watermark
       </button>
     </>
   );

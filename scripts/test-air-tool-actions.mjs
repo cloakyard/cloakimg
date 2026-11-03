@@ -170,6 +170,24 @@ for (const engine of ["chromium", "webkit"]) {
         );
         await action("Close").click();
         await waitMove();
+        // Rounded percentages must remain on the native 0.1 step grid, or
+        // the shared Apply action blocks an otherwise valid image watermark.
+        await selectEditorTool(p, "Watermark");
+        await p.getByRole("radio", { name: "Image", exact: true }).check();
+        const scale = field("Scale");
+        assert(await scale.evaluate((e) => e.checkValidity()));
+        await enter("Scale", 3.3);
+        assert(await scale.evaluate((e) => e.checkValidity()));
+        await p
+          .locator(".editor-properties input[type=file], .editor-mobile-surface input[type=file]")
+          .setInputFiles({
+            name: "watermark.png",
+            mimeType: "image/png",
+            buffer: Buffer.from(fixture, "base64"),
+          });
+        await p.getByRole("button", { name: "Place watermark", exact: true }).click();
+        await action("Apply").click();
+        await waitMove();
         await p
           .locator(".editor-topbar")
           .getByRole("button", { name: "Export", exact: true })
