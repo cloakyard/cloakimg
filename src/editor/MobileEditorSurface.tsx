@@ -1,3 +1,4 @@
+import { useAirPresence } from "../../docs/air/presence.tsx";
 // Compact controls stay above a persistent tool dock. The catalogue is an
 // overlay, so browsing tools never unregisters the current pending apply.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -19,6 +20,10 @@ export function MobileEditorSurface({
   const { setActiveTool, cancelCurrentTool, runBusy } = useEditorActions();
   const [moveOpen, setMoveOpen] = useState(false);
   const panelOpen = activeTool !== "move" || moveOpen;
+  const presence = useAirPresence(panelOpen, "panel");
+  const shownTool = useRef(activeTool);
+  if (panelOpen) shownTool.current = activeTool;
+  const displayTool = shownTool.current;
   const lastMoveRequest = useRef(moveRequest);
   useEffect(() => {
     if (moveRequest !== lastMoveRequest.current) setMoveOpen(true);
@@ -70,12 +75,19 @@ export function MobileEditorSurface({
   );
   return (
     <div className="editor-mobile-workspace">
-      {panelOpen && (
-        <div role="region" aria-label="Tool controls" className="editor-mobile-surface">
+      {presence.mounted && (
+        <div
+          ref={presence.ref}
+          inert={presence.closing}
+          role="region"
+          aria-label="Tool controls"
+          className="editor-mobile-surface"
+        >
           <div className="editor-mobile-header">
-            <h2 className="editor-mobile-title">{findTool(activeTool).name}</h2>
+            <h2 className="editor-mobile-title">{findTool(displayTool).name}</h2>
             <ToolActions
-              key={`actions-${activeTool}`}
+              key={`actions-${displayTool}`}
+              toolId={displayTool}
               compact
               feedback={feedback}
               onClose={handleClose}
@@ -87,8 +99,8 @@ export function MobileEditorSurface({
           >
             <div>
               <div ref={setFeedback} className="editor-tool-feedback" />
-              <div key={activeTool} className="flex flex-col gap-4 px-4 pt-3 pb-4">
-                <ToolControls />
+              <div key={displayTool} className="flex flex-col gap-4 px-4 pt-3 pb-4">
+                <ToolControls toolId={displayTool} />
               </div>
               <LayersList />
             </div>

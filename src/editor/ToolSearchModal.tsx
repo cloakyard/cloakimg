@@ -7,12 +7,12 @@ import { searchEditorTools, TOOL_GROUP_LABELS } from "./toolSearch";
 import { ALL_TOOLS, type ToolId } from "./tools";
 
 interface Props {
-  instant?: boolean;
+  keyboard?: boolean;
   onClose: () => void;
   onSelect: (id: ToolId) => void;
 }
 
-export function ToolSearchModal({ instant = false, onClose, onSelect }: Props) {
+export function ToolSearchModal({ keyboard = false, onClose, onSelect }: Props) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -21,12 +21,12 @@ export function ToolSearchModal({ instant = false, onClose, onSelect }: Props) {
   const results = useMemo(() => searchEditorTools(query), [query]);
 
   useEffect(() => {
-    if (!instant && window.matchMedia?.("(pointer: coarse)").matches) return;
+    if (!keyboard && window.matchMedia?.("(pointer: coarse)").matches) return;
     const frame = window.requestAnimationFrame(() =>
       inputRef.current?.focus({ preventScroll: true }),
     );
     return () => window.cancelAnimationFrame(frame);
-  }, [instant]);
+  }, [keyboard]);
 
   useEffect(() => {
     setActiveIndex((current) => (current >= results.length ? 0 : current));
@@ -39,7 +39,7 @@ export function ToolSearchModal({ instant = false, onClose, onSelect }: Props) {
   }, [activeIndex]);
 
   return (
-    <ModalFrame onClose={onClose} instant={instant} labelledBy="tool-search-title">
+    <ModalFrame onClose={onClose} labelledBy="tool-search-title">
       <ToolSearchBody
         query={query}
         results={results}

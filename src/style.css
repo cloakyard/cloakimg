@@ -645,25 +645,6 @@ html {
 .cloak-dialog :where(input, textarea) {
   max-width: 100%;
 }
-.cloak-dialog[data-motion="true"],
-.cloak-modal-scrim[data-motion="true"] {
-  transition:
-    opacity var(--air-motion-dialog) var(--air-ease-out),
-    transform var(--air-motion-dialog) var(--air-ease-out);
-}
-.cloak-dialog[data-motion="true"][data-starting-style],
-.cloak-dialog[data-motion="true"][data-ending-style] {
-  opacity: 0;
-  transform: translateY(4px) scale(0.98);
-}
-.cloak-modal-scrim[data-starting-style],
-.cloak-modal-scrim[data-ending-style] {
-  opacity: 0;
-}
-.cloak-dialog[data-ending-style],
-.cloak-modal-scrim[data-ending-style] {
-  transition-duration: var(--air-motion-exit);
-}
 @media (max-width: 640px) {
   .cloak-modal-root {
     align-items: flex-end;
@@ -680,10 +661,6 @@ html {
   }
   .cloak-dialog__footer > .btn {
     flex: 1;
-  }
-  .cloak-dialog[data-motion="true"][data-starting-style],
-  .cloak-dialog[data-motion="true"][data-ending-style] {
-    transform: translateY(100%);
   }
 }
 @media (max-width: 768px), (pointer: coarse) {
@@ -713,12 +690,7 @@ html {
     transform: rotate(360deg);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .cloak-dialog,
-  .cloak-modal-scrim {
-    transition: none !important;
-  }
-}
+
 .img-colour-trigger {
   width: 100%;
   gap: 12px;

@@ -1,0 +1,20 @@
+{
+  "scope": "Shared Base UI dialog presence, compact tool-pane exits and anchored Tap-to-fix dismissal. Retained controls cannot register stale pending edits; AI consent, 40% canvas and output are preserved.",
+  "checks": [
+    "488 unit tests",
+    "20 normal-motion Apply/Cancel/history/PNG journeys",
+    "8 normal-motion switch/choice/Tap-to-fix control journeys without AI requests",
+    "12 PNG output pixel hashes, dimensions and transparency identical to preceding production",
+    "Real-worker two-tab update protection",
+    "416 all-tool layout observations per engine, Chrome and WebKit; 26 tools across phone/tablet/laptop and 200% text"
+  ],
+  "family": {
+    "homeLayouts": 648,
+    "secondaryLayouts": 288,
+    "privacyLayouts": 408,
+    "privacyJourneys": 22,
+    "noticeLayoutsAcrossThreePWAs": 396
+  },
+  "limitations": ["physical iPhone/software keyboard", "OS IME", "spoken assistive acceptance"],
+  "rollout": "pending dev to main PR"
+}

@@ -24,7 +24,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { I } from "../../../components/icons";
-import { ModalCloseButton, ModalFrame } from "../../../components/ModalFrame";
+import { ModalCloseButton, ModalFrame, ModalDismissButton } from "../../../components/ModalFrame";
 import { useEditorActions, useEditorReadOnly } from "../../EditorContext";
 import { type BgQuality, getTierById, tiersForLayout } from "../runtime/bgModels";
 import { savePreferredQuality } from "../runtime/preferredQuality";
@@ -204,9 +204,9 @@ export function MaskConsentModal({
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onDismiss}>
+        <ModalDismissButton className="btn btn-ghost btn-sm" onClose={onDismiss}>
           {switchMode ? "Cancel" : "Not now"}
-        </button>
+        </ModalDismissButton>
         <button type="button" className="btn btn-primary btn-sm" onClick={accept}>
           {/* When switching tiers and the picked size is already on
               disk, omit the download glyph — the action is "use this

@@ -25,7 +25,7 @@ for (const engine of ["chrome", "webkit"]) {
           viewport: { width, height: 844 },
           hasTouch: width < 1000,
           colorScheme: theme,
-          reducedMotion: "reduce",
+          reducedMotion: process.env.AIR_REDUCED_MOTION || "reduce",
           serviceWorkers: "block",
         });
         const requests = [];
