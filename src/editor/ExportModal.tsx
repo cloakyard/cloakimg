@@ -227,7 +227,7 @@ export function ExportModal({ layout, settings, onPatch, onClose }: Props) {
         </h2>
         <ModalCloseButton onClose={onClose} label="Close export" />
       </div>
-      <div className="cloak-dialog__body flex flex-col gap-4">
+      <div className="air-scroll cloak-dialog__body flex flex-col gap-4">
         <div className="img-export-preview">
           {previewUrl ? (
             <img

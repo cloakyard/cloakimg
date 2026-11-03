@@ -122,7 +122,7 @@ export function MaskConsentModal({
         <ModalCloseButton onClose={onDismiss} iconSize={14} />
       </div>
 
-      <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
+      <div className="air-scroll cloak-dialog__body flex flex-col gap-4 px-5 py-4">
         <p className="text-[0.8125rem] leading-relaxed text-text-muted">
           {switchMode
             ? "Switch between the three tiers below. Sizes you've already used in this browser run instantly — others download once and cache for next time."

@@ -250,11 +250,6 @@ label[for] {
     -8px 0;
   background-size: 16px 16px;
 }
-html,
-.scroll-thin {
-  scrollbar-color: var(--air-line-control) transparent;
-  scrollbar-width: thin;
-}
 .no-scrollbar {
   scrollbar-width: none;
 }

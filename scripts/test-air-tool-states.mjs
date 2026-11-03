@@ -201,7 +201,7 @@ try {
           await page.locator(".editor-topbar [aria-label=Export]:not(:disabled)").waitFor();
           await selectEditorTool(page, name);
           panel = page
-            .locator(".editor-properties .scroll-thin,.editor-mobile-surface .scroll-thin")
+            .locator(".editor-properties .air-scroll,.editor-mobile-surface .air-scroll")
             .first();
           await page.locator("[data-tool-panel-loading]").waitFor({ state: "hidden" });
           await page.waitForTimeout(200);

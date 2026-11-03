@@ -373,7 +373,7 @@
     width: 288px;
   }
 }
-.editor-properties .scroll-thin {
+.editor-properties .air-scroll {
   gap: 16px;
 }
 .editor-toolrail button[aria-pressed="true"] {
@@ -569,7 +569,7 @@ html {
 .cloak-dialog__header {
   display: flex;
   flex: none;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   padding: 24px 24px 16px;
@@ -603,19 +603,6 @@ html {
   font-size: var(--air-text-body);
   line-height: 1.6;
 }
-.cloak-dialog__close {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--air-radius-control);
-  background: transparent;
-  color: var(--air-ink);
-  cursor: pointer;
-}
 .cloak-dialog__icon {
   display: grid;
   place-items: center;
@@ -630,6 +617,10 @@ html {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 24px;
+}
+/* Flex bodies scroll their full content; shrinking clips disclosure controls. */
+.cloak-dialog__body > * {
+  flex-shrink: 0;
 }
 .cloak-dialog__footer {
   display: flex;
@@ -667,10 +658,6 @@ html {
   .select-control--compact .select-control__trigger,
   .img-segments span {
     min-height: 44px;
-  }
-  .cloak-dialog__close {
-    width: 44px;
-    height: 44px;
   }
 }
 @media (forced-colors: active) {

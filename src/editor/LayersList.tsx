@@ -200,7 +200,7 @@ export function LayersList() {
         <span className="ml-auto text-text-muted">{rows.length}</span>
       </button>
       {!collapsed && (
-        <div className="scroll-thin mt-2 flex max-h-44 flex-col gap-0.5 overflow-y-auto">
+        <div className="air-scroll mt-2 flex max-h-44 flex-col gap-0.5 overflow-y-auto">
           {ordered.map((row, index) => (
             <LayerRow
               key={row.id}

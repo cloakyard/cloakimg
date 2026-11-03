@@ -78,7 +78,7 @@ export function HistoryScrubber() {
           edge — they appeared to bleed into one another. gap-2.5
           (10 px) gives ~3 px of clear space on each side of the ring
           so each thumb reads as its own card. */}
-      <div className="scroll-thin flex max-w-full items-center gap-2.5 overflow-x-auto px-1 py-1.5">
+      <div className="air-scroll flex max-w-full items-center gap-2.5 overflow-x-auto px-1 py-1.5">
         {snapshot.map((entry, i) => {
           const active = i === cursor;
           return (

@@ -178,7 +178,7 @@ for (const label of TOOLS) {
         button.getAttribute("aria-pressed") === "true" &&
         norm(button.getAttribute("aria-label")).includes(l.toLowerCase()),
     );
-    const panelScroller = document.querySelector(".editor-properties .scroll-thin");
+    const panelScroller = document.querySelector(".editor-properties .air-scroll");
     const panelRect = panelScroller?.getBoundingClientRect();
     const escapedControls =
       panelScroller && panelRect

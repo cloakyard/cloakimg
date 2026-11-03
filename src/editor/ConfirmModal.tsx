@@ -105,7 +105,7 @@ function ConfirmModalBody({
         <ModalCloseButton onClose={onCancel} iconSize={14} />
       </div>
 
-      <div className="cloak-dialog__body px-5 py-4 text-[0.8125rem] leading-relaxed text-text-muted">
+      <div className="air-scroll cloak-dialog__body px-5 py-4 text-[0.8125rem] leading-relaxed text-text-muted">
         {message}
       </div>
 

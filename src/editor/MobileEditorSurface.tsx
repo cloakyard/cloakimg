@@ -95,7 +95,7 @@ export function MobileEditorSurface({
           </div>
           <div
             ref={scrollRef}
-            className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain"
+            className="air-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
           >
             <div>
               <div ref={setFeedback} className="editor-tool-feedback" />

@@ -105,7 +105,7 @@ export function CapabilityConsentModal({
         <ModalCloseButton onClose={onDismiss} iconSize={14} />
       </div>
 
-      <div className="cloak-dialog__body scroll-thin flex flex-col gap-4 px-5 py-4">
+      <div className="air-scroll cloak-dialog__body flex flex-col gap-4 px-5 py-4">
         <p className="text-[0.8125rem] leading-relaxed text-text-muted">
           {switchMode ? family.consent.switchBody : family.consent.body}
         </p>

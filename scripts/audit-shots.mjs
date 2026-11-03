@@ -646,7 +646,7 @@ async function inspectIdPhotoDropdowns(page, viewport) {
 async function inspectBatchDropdown(page, viewport) {
   if (viewport.width <= 768) return;
   await page.click('button[aria-label="Batch"]');
-  await page.waitForSelector(".editor-shell .scroll-thin", { timeout: 3000 });
+  await page.waitForSelector(".editor-shell .air-scroll", { timeout: 3000 });
   const expanded = await page.evaluate(() => {
     const convert = Array.from(document.querySelectorAll("button")).find((button) =>
       button.textContent?.trim().startsWith("Convert"),
@@ -773,7 +773,7 @@ async function auditMobileToolPanels(page, viewport) {
 
     const panelState = await page.evaluate((toolLabel) => {
       const surface = document.querySelector(".editor-mobile-surface");
-      const scroller = surface?.querySelector(".scroll-thin");
+      const scroller = surface?.querySelector(".air-scroll");
       if (!surface || !scroller) return { label: toolLabel, missing: true };
       const surfaceRect = surface.getBoundingClientRect();
       const scrollRect = scroller.getBoundingClientRect();
@@ -871,7 +871,7 @@ async function auditMobileToolPanels(page, viewport) {
 
     if (panelState.scrollHeight > panelState.clientHeight + 8) {
       await page.evaluate(() => {
-        const scroller = document.querySelector(".editor-mobile-surface .scroll-thin");
+        const scroller = document.querySelector(".editor-mobile-surface .air-scroll");
         scroller?.scrollTo({ top: scroller.scrollHeight, behavior: "instant" });
       });
       await new Promise((resolveDelay) => setTimeout(resolveDelay, 80));
@@ -899,7 +899,7 @@ async function auditMobileToolPanels(page, viewport) {
 async function inspectScrolledPickerTransition(page, viewport) {
   const state = await page.evaluate(() => {
     const surface = document.querySelector(".editor-mobile-surface");
-    const scroller = surface?.querySelector(".scroll-thin");
+    const scroller = surface?.querySelector(".air-scroll");
     if (!scroller) return { missing: true };
     scroller.scrollTop = scroller.scrollHeight;
     const resize = Array.from(surface.querySelectorAll(".grid button[aria-pressed]")).find(
@@ -918,7 +918,7 @@ async function inspectScrolledPickerTransition(page, viewport) {
   });
   await new Promise((resolveDelay) => setTimeout(resolveDelay, 80));
   const scrollTop = await page.evaluate(
-    () => document.querySelector(".editor-mobile-surface .scroll-thin")?.scrollTop ?? -1,
+    () => document.querySelector(".editor-mobile-surface .air-scroll")?.scrollTop ?? -1,
   );
   if (scrollTop > 1 || scrollTop < 0) {
     failures.push(
