@@ -1,20 +1,24 @@
 import { useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Tooltip } from "@base-ui/react/tooltip";
+import type { ToolId } from "./tools";
 import { I } from "../components/icons";
 import { useActiveTool, useEditorActions, useEditorReadOnly } from "./EditorContext";
 
 /** One completion boundary, shared by phone, tablet and desktop inspectors. */
 export function ToolActions({
   compact = false,
+  toolId,
   feedback,
   onClose,
 }: {
   compact?: boolean;
+  toolId?: ToolId;
   feedback?: HTMLElement | null;
   onClose?: () => void;
 }) {
-  const tool = useActiveTool();
+  const activeTool = useActiveTool();
+  const tool = toolId ?? activeTool;
   const { setActiveTool, cancelCurrentTool, runBusy } = useEditorActions();
   const { busyLabel } = useEditorReadOnly();
   const running = useRef(false);
@@ -60,7 +64,11 @@ export function ToolActions({
       else await setActiveTool("move");
       onClose?.();
       requestAnimationFrame(() => {
-        if (returnFocus?.isConnected && document.activeElement === document.body)
+        if (
+          returnFocus?.isConnected &&
+          (document.activeElement === document.body ||
+            region.current?.contains(document.activeElement))
+        )
           returnFocus.focus({ preventScroll: true });
       });
     } catch {

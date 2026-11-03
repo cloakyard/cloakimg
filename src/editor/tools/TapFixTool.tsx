@@ -1,3 +1,4 @@
+import { useAirPresence } from "../../../docs/air/presence.tsx";
 // TapFixTool.tsx — One tool, infinite verbs. The user taps the photo
 // and the tool inspects what's at that point (face box from BlazeFace?
 // subject pixel from the U²-Net mask? neither?) and surfaces 2–3
@@ -49,6 +50,9 @@ export function TapFixTool() {
   const faces = useDetectFaces();
   const [tap, setTap] = useState<TapState | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const presence = useAirPresence(!!tap && !!doc, "fade", { ref: menuRef });
+  const lastTap = useRef(tap);
+  if (tap) lastTap.current = tap;
   // Offset that nudges the chip menu back on-screen when the tap lands
   // near a viewport edge (computed in the layout effect below).
   const [clamp, setClamp] = useState({ dx: 0, dy: 0 });
@@ -218,13 +222,14 @@ export function TapFixTool() {
     setClamp((prev) => (prev.dx === dx && prev.dy === dy ? prev : { dx, dy }));
   });
 
-  if (!tap || !doc) return null;
+  const visibleTap = tap ?? lastTap.current;
+  if (!presence.mounted || !visibleTap || !doc) return null;
 
   // Classify the tap live, every render, from the stored image-space
   // point — so detections that finish after the tap (face box / subject
   // mask computed by another tool while the chips are open) upgrade the
   // chip set instead of being frozen out.
-  const context = classify({ x: tap.ix, y: tap.iy, inside: true });
+  const context = classify({ x: visibleTap.ix, y: visibleTap.iy, inside: true });
 
   // Build the chip set based on what's at the tap point. All actions
   // operate on doc.working directly via existing utilities — no new
@@ -244,7 +249,7 @@ export function TapFixTool() {
       // Carry the exact tap point so Spot heal opens with its brush ring
       // already parked on the blemish the user pointed at, instead of
       // dropping them into the tool with no target.
-      patchTool("spotHealSeed", { x: tap.ix, y: tap.iy });
+      patchTool("spotHealSeed", { x: visibleTap.ix, y: visibleTap.iy });
       void setActiveTool("spot");
       setTap(null);
     },
@@ -316,12 +321,14 @@ export function TapFixTool() {
   return (
     <div
       ref={menuRef}
+      inert={presence.closing}
+      aria-hidden={presence.closing || undefined}
       role="dialog"
       aria-label="Tap-to-fix actions"
       className="pointer-events-auto fixed z-50 flex max-w-[calc(100vw-16px)] flex-wrap items-center gap-1.5 rounded-[var(--air-radius-menu)] border border-border-soft bg-surface p-2 shadow-[var(--air-shadow-menu)]"
       style={{
-        left: tap.sx,
-        top: tap.sy - 12,
+        left: visibleTap.sx,
+        top: visibleTap.sy - 12,
         transform: `translate(calc(-50% + ${clamp.dx}px), calc(-100% + ${clamp.dy}px))`,
       }}
       data-testid="tapfix-chips"

@@ -72,9 +72,9 @@ const IdPhotoPanel = lazy(() =>
   import("./tools/IdPhotoTool").then((m) => ({ default: m.IdPhotoPanel })),
 );
 
-export function ToolControls() {
+export function ToolControls({ toolId }: { toolId?: ToolState["activeTool"] } = {}) {
   const activeTool = useActiveTool();
-  return <Suspense fallback={<ToolPanelFallback />}>{renderPanel(activeTool)}</Suspense>;
+  return <Suspense fallback={<ToolPanelFallback />}>{renderPanel(toolId ?? activeTool)}</Suspense>;
 }
 
 function ToolPanelFallback() {

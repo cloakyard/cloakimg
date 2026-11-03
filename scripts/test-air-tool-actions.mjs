@@ -29,7 +29,7 @@ for (const engine of ["chromium", "webkit"]) {
           hasTouch: width < 1100,
           colorScheme: theme,
           serviceWorkers: "block",
-          reducedMotion: "reduce",
+          reducedMotion: process.env.AIR_REDUCED_MOTION || "reduce",
         });
         p.setDefaultTimeout(15000);
         p.on("console", (m) => {

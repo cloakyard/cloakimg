@@ -1,32 +1,6 @@
-// useApplyOnToolSwitch.ts — Shared "auto-bake on tool switch / Export"
-// hook used by every preview-style panel.
-//
-// The eight tools that show a live preview before committing into
-// history (Adjust, Filter, Levels, HSL, BgBlur, Border, Frame, Crop)
-// each registered the same boilerplate:
-//
-//   const applyRef = useRef(apply);
-//   applyRef.current = apply;
-//   useEffect(() => {
-//     if (!dirty) { registerPendingApply(null); return; }
-//     registerPendingApply(() => applyRef.current());
-//     return () => registerPendingApply(null);
-//   }, [dirty, registerPendingApply]);
-//
-// The pattern is mechanical, easy to typo, and trivially wrong if
-// someone forgets the cleanup. Centralising it here means a future
-// change to the registration semantics (e.g. moving auto-bake behind
-// a feature flag) only edits one file.
-//
-// `enabled` defaults to true so callers without a dirty bit (Crop —
-// the bake itself is gated internally) just call the hook with no
-// second argument. The previous implementation used an
-// `eslint-disable-next-line react-hooks/exhaustive-deps` to omit
-// `applyRef` from deps; the hook below wraps the same logic so the
-// suppression now lives in exactly one place.
-
+/** Register only the active tool’s pending bake; retained exit controls are presentation-only. */
 import { useEffect, useRef } from "react";
-import { useEditorActions } from "./EditorContext";
+import { useEditorActions, useActiveTool } from "./EditorContext";
 
 /** Register the panel's `apply` callback so it auto-fires when the
  *  user switches tools or opens Export.
@@ -44,15 +18,18 @@ import { useEditorActions } from "./EditorContext";
  *    switch. Crop omits this argument because its `apply()` is
  *    self-gated. */
 export function useApplyOnToolSwitch(apply: () => void | Promise<void>, enabled = true): void {
+  const activeTool = useActiveTool();
+  const owner = useRef(activeTool);
+  const active = enabled && owner.current === activeTool;
   const applyRef = useRef(apply);
   applyRef.current = apply;
   const { registerPendingApply } = useEditorActions();
   useEffect(() => {
-    if (!enabled) {
+    if (!active) {
       registerPendingApply(null);
       return;
     }
     registerPendingApply(() => applyRef.current());
     return () => registerPendingApply(null);
-  }, [enabled, registerPendingApply]);
+  }, [active, registerPendingApply]);
 }

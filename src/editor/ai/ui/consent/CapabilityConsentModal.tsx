@@ -16,7 +16,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { I } from "../../../../components/icons";
-import { ModalCloseButton, ModalFrame } from "../../../../components/ModalFrame";
+import {
+  ModalCloseButton,
+  ModalFrame,
+  ModalDismissButton,
+} from "../../../../components/ModalFrame";
 import { useEditorReadOnly } from "../../../EditorContext";
 import {
   type CapabilityFamily,
@@ -177,9 +181,9 @@ export function CapabilityConsentModal({
           isMobile ? "px-5 py-3 pb-[max(env(safe-area-inset-bottom),12px)]" : "px-5 py-3"
         }`}
       >
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onDismiss}>
+        <ModalDismissButton className="btn btn-ghost btn-sm" onClose={onDismiss}>
           {switchMode ? "Cancel" : "Not now"}
-        </button>
+        </ModalDismissButton>
         <button type="button" className="btn btn-primary btn-sm" onClick={accept}>
           {!(switchMode && pickedCached) && <I.Download size={13} />}
           {switchMode && pickedCached

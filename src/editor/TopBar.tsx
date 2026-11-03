@@ -66,7 +66,10 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
 
         <button
           type="button"
-          onClick={() => doc && onShowFileProps()}
+          onClick={(event) => {
+            event.currentTarget.focus({ preventScroll: true });
+            if (doc) onShowFileProps();
+          }}
           disabled={!doc}
           title={dimensions ? `${fileName} · ${dimensions}` : fileName}
           className="editor-topbar__file btn btn-ghost btn-sm"
@@ -191,7 +194,10 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
             <button
               type="button"
               className="editor-topbar__export btn btn-secondary btn-sm"
-              onClick={openExport}
+              onClick={(event) => {
+                event.currentTarget.focus({ preventScroll: true });
+                openExport();
+              }}
               aria-label="Export"
               title="Export"
             >
@@ -207,7 +213,10 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               aria-label="Export"
               title="Export"
               disabled={!doc}
-              onClick={openExport}
+              onClick={(event) => {
+                event.currentTarget.focus({ preventScroll: true });
+                openExport();
+              }}
             >
               <I.Download size={18} aria-hidden="true" />
             </button>
@@ -220,7 +229,10 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
               aria-label="More actions"
               aria-haspopup="dialog"
               aria-expanded={moreMenuOpen}
-              onClick={() => setMoreMenuOpen(true)}
+              onClick={(event) => {
+                event.currentTarget.focus({ preventScroll: true });
+                setMoreMenuOpen(true);
+              }}
             >
               <I.MoreVertical size={18} aria-hidden="true" />
             </button>

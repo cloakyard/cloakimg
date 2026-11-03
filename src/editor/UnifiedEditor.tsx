@@ -305,7 +305,7 @@ function EditorShell() {
 
       {toolSearchOpen && mode === "single" && (
         <ToolSearchModal
-          instant={toolSearchKeyboardOpen}
+          keyboard={toolSearchKeyboardOpen}
           onClose={() => setToolSearchOpen(false)}
           onSelect={async (id) => {
             await setActiveTool(id);

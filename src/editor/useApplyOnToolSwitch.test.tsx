@@ -18,6 +18,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 
 const harness = vi.hoisted(() => {
   return {
+    activeTool: "adjust",
     pending: null as null | (() => void | Promise<void>),
     register: ((fn: null | (() => void | Promise<void>)) => {
       harness.pending = fn;
@@ -26,6 +27,7 @@ const harness = vi.hoisted(() => {
 });
 
 vi.mock("./EditorContext", () => ({
+  useActiveTool: () => harness.activeTool,
   useEditorActions: () => ({
     registerPendingApply: harness.register,
   }),
@@ -35,6 +37,7 @@ import { useApplyOnToolSwitch } from "./useApplyOnToolSwitch";
 
 beforeEach(() => {
   harness.pending = null;
+  harness.activeTool = "adjust";
 });
 
 afterEach(() => {
@@ -53,6 +56,18 @@ function Probe({
 }
 
 describe("useApplyOnToolSwitch", () => {
+  it("retires a retained outgoing panel without registering stale work", () => {
+    const apply = vi.fn();
+    const { rerender } = render(<Probe apply={apply} />);
+    expect(harness.pending).not.toBeNull();
+    harness.activeTool = "move";
+    rerender(<Probe apply={apply} />);
+    expect(harness.pending).toBeNull();
+    rerender(<Probe apply={() => apply()} />);
+    expect(harness.pending).toBeNull();
+    expect(apply).not.toHaveBeenCalled();
+  });
+
   it("registers the apply callback on mount when enabled is true (default)", () => {
     const apply = vi.fn();
     render(<Probe apply={apply} />);

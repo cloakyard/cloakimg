@@ -1,5 +1,13 @@
 /** Shared Air dialog; Base UI owns the modal boundary, nested Escape and focus. */
-import { createContext, useContext, useRef, useState, type ReactNode, type RefObject } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  type ReactNode,
+  type ButtonHTMLAttributes,
+  type RefObject,
+} from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { I } from "./icons";
 interface ModalFrameProps {
@@ -27,33 +35,26 @@ export function ModalFrame({
   const fallback = useRef<HTMLDivElement>(null),
     popup = modalRef ?? fallback;
   const [open, setOpen] = useState(true);
-  const [motion, setMotion] = useState(
-    () =>
-      !instant &&
-      !document.activeElement?.matches(":focus-visible") &&
-      !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
-  );
+  const [immediate, setImmediate] = useState(instant);
   const [returnTo] = useState(() =>
     document.activeElement instanceof HTMLElement ? document.activeElement : null,
   );
   const pending = useRef<(() => void) | undefined>(undefined),
-    closed = useRef(false);
+    closed = useRef(false),
+    closing = useRef(false);
   const close: CloseFn = (after, immediate = false) => {
-    if (closed.current) return;
+    if (closed.current || closing.current) return;
+    closing.current = true;
     pending.current = after;
-    if (immediate || document.activeElement?.matches(":focus-visible")) setMotion(false);
+    if (immediate) setImmediate(true);
     setOpen(false);
   };
   return (
     <Dialog.Root
       open={open}
       disablePointerDismissal={!dismissOnBackdrop}
-      onOpenChange={(next, details) => {
-        if (!next)
-          close(
-            undefined,
-            details.reason === "escape-key" || details.event instanceof KeyboardEvent,
-          );
+      onOpenChange={(next) => {
+        if (!next) close();
       }}
       onOpenChangeComplete={(next) => {
         if (!next && !closed.current) {
@@ -64,14 +65,23 @@ export function ModalFrame({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className="cloak-modal-scrim" data-motion={motion} />
+        <Dialog.Backdrop
+          className="cloak-modal-scrim air-motion-backdrop"
+          data-air-motion={immediate ? "immediate" : undefined}
+        />
         <Dialog.Viewport className="cloak-modal-root">
           <Dialog.Popup
             ref={popup}
+            onClickCapture={(event) => {
+              if (!open) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+            }}
             aria-labelledby={labelledBy}
             aria-modal="true"
-            className={`cloak-dialog ${modalClassName}`}
-            data-motion={motion}
+            className={`cloak-dialog air-motion-dialog ${modalClassName}`}
+            data-air-motion={immediate ? "immediate" : undefined}
             initialFocus={initialFocus ?? popup}
             finalFocus={() => (returnTo?.isConnected ? returnTo : false)}
           >
@@ -103,11 +113,25 @@ export function ModalCloseButton({
       aria-label={label}
       onClick={(e) => {
         e.preventDefault();
-        if (close) close(undefined, e.detail === 0);
+        if (close) close();
         else onClose();
       }}
     >
       <I.X size={iconSize} aria-hidden="true" />
     </Dialog.Close>
+  );
+}
+
+/** Text dismissal shares the X/Escape lifecycle and cannot bypass its exit. */
+export function ModalDismissButton({
+  onClose,
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { onClose: () => void }) {
+  const close = useModalClose();
+  return (
+    <button {...props} type="button" onClick={() => (close ? close() : onClose())}>
+      {children}
+    </button>
   );
 }
