@@ -83,6 +83,8 @@ Regenerate with `BASE_URL=http://127.0.0.1:5173 vp run generate-screenshots` and
 
 ## 🚀 Getting Started
 
+[![Launch on PicoRunner](https://picorunner.com/badges/launch.svg)](https://picorunner.com/launch/?repository=https%3A%2F%2Fgithub.com%2Fcloakyard%2Fcloakimg)
+
 Requires **Node.js ≥ 24** and **Vite+** (`npm i -g vite-plus`).
 
 ```bash
