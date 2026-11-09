@@ -2455,7 +2455,7 @@
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
-        "docs/air/validation.md — refinement 02 candidate",
+        "docs/air/validation.md \u2014 refinement 02 candidate",
         "docs/air/components.html",
         "docs/air/neutral-links-2026-10-19.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
@@ -2489,9 +2489,10 @@
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
         "docs/air/tool-state-audit-2026-10-30.md",
-        "docs/air/component-consistency-2026-11-03.md"
+        "docs/air/component-consistency-2026-11-03.md",
+        "docs/air/refinement-2026-11-09.md"
       ],
-      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
+      "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open. 2026-11-09: bounded cleanup/copy refinement and fresh responsive/browser/output verification pass; physical acceptance remains separate."
     }
   ]
 }

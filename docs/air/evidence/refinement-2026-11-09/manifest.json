@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-09",
+  "scope": "See local refinement record and canonical per-view ledger for limits.",
+  "receipts": [
+    {
+      "source": "gates.json",
+      "file": "gates.json.gz",
+      "sha256": "87eba3d898297b0a03383fba98f8fc5cd3a86c57df6747377e80797351d62f94"
+    },
+    {
+      "source": "ui-shared.json",
+      "file": "ui-shared.json.gz",
+      "sha256": "fa7bd93d7cab4f77154d6027b7873073808af30ee77695483dc206714dcdcf8c"
+    },
+    {
+      "source": "css-review.json",
+      "file": "css-review.json.gz",
+      "sha256": "68ff93c2c0c6254e46ba985bc321cad0a67166ddaf65b1612e2287376d9b7049"
+    },
+    {
+      "source": "img-final-check.log",
+      "file": "img-final-check.log.gz",
+      "sha256": "50047d87a80a7def38df5ff4331a6fe92351eafbecf430e27d8da39cec3a8617"
+    },
+    {
+      "source": "img-final-build.log",
+      "file": "img-final-build.log.gz",
+      "sha256": "1a4f817c42de704f2fd151f1974e09e3a162203105e23c9b220934c4b74f984a"
+    },
+    {
+      "source": "img-tools-chromium/results.json",
+      "file": "img-tools-chromium--results.json.gz",
+      "sha256": "37a8019fd870011cb94795388a159e710b2bb027d28ef704f96c3ec6494d956f"
+    },
+    {
+      "source": "img-tools-webkit/results.json",
+      "file": "img-tools-webkit--results.json.gz",
+      "sha256": "1dd61d5c81f55bb08e78820dc83f842f8ba0786d31fa29a02447a59af0fc7667"
+    },
+    {
+      "source": "img-entry/entry.json",
+      "file": "img-entry--entry.json.gz",
+      "sha256": "6231b0f4f3741b3f7f220e5a5aa8f87d091ac035033c9733f658aee9cc385db8"
+    },
+    {
+      "source": "img-batch/results.json",
+      "file": "img-batch--results.json.gz",
+      "sha256": "fa13997519391734621a3dab03c3ca4ce74c01f4a370ec95d3b882170b69450f"
+    },
+    {
+      "source": "img-canvas/results.json",
+      "file": "img-canvas--results.json.gz",
+      "sha256": "53eaadf79e66d826169f6cb95cc53b865db747eb258888dc944cb6ec85aa26aa"
+    },
+    {
+      "source": "img-compact/results.json",
+      "file": "img-compact--results.json.gz",
+      "sha256": "038a6bf8ed0c34f079c214a6f87d56f3bd3855ce6df01a12f9daf7131bc31eae"
+    },
+    {
+      "source": "img-output-parity.json",
+      "file": "img-output-parity.json.gz",
+      "sha256": "ed52572c4d7f5c4f0ceb7391e22fc9026b7c4b84b44d63a106a0d053c2210a0f"
+    }
+  ]
+}

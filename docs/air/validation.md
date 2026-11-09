@@ -1,5 +1,11 @@
 # Air validation record
 
+## 2026-11-09 — Refinement, cleanup and README consistency
+
+See [the refinement record](refinement-2026-11-09.md) for fresh all-view browser,
+source and output evidence. Required software checks pass; physical-device and
+separate product acceptance remain open.
+
 ## 2026-10-30 — CloakIMG Air implementation and automated acceptance
 
 The public entry, privacy/PWA, all editor tools, shared controls, batch/recovery and assets now use Air 1.3.1. See [current acceptance](cloakimg-acceptance-2026-10-30.md) and its six linked checkpoints. 483 tests, both-engine tool/layout/feature/output verification, current runtimes and dead-code checks pass. Physical input/assistive acceptance remains explicitly open in the per-source inventory. Authorized dev → main release verification is recorded separately.
