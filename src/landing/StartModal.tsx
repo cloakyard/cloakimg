@@ -348,7 +348,7 @@ function RecentsRow({ onPick }: { onPick: (f: File | null) => void }) {
         {items.slice(0, 8).map((r) => (
           <div
             key={r.id}
-            className="relative aspect-square overflow-hidden rounded-lg border border-border bg-page-bg"
+            className="relative aspect-square overflow-hidden air-radius-panel border border-border bg-page-bg"
           >
             <button
               type="button"
@@ -375,7 +375,7 @@ function RecentsRow({ onPick }: { onPick: (f: File | null) => void }) {
                 void deleteRecent(r.id);
               }}
               aria-label={`Remove ${r.name} from recents`}
-              className="absolute top-1 right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-none bg-black/55 p-0 text-white max-sm:h-11 max-sm:w-11"
+              className="absolute top-1 right-1 flex h-8 w-8 cursor-pointer items-center justify-center air-radius-control border-none bg-black/55 p-0 text-white max-sm:h-11 max-sm:w-11"
             >
               <I.X size={10} />
             </button>
@@ -474,7 +474,7 @@ function BlankTab({
           Background controls below. Wider viewports collapse the
           three groups back into a single flex-wrap row with the
           background pushed to the right via sm:ml-auto. */}
-      <div className="mt-4 flex flex-col gap-3 rounded-lg bg-page-bg p-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+      <div className="mt-4 flex flex-col gap-3 air-radius-panel bg-page-bg p-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
         <div className="t-eyebrow t-eyebrow-slate text-[0.8125rem]">Custom</div>
         <div className="flex items-center gap-2 sm:gap-2.5">
           <DimensionInput label="W" value={customW} onChange={setCustomW} />
@@ -500,7 +500,7 @@ function BlankTab({
               <ColorPicker value={bg} onChange={setBg} enableEyedropper={false} />
             </div>
           ) : (
-            <span className="tabular-nums rounded-lg border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[0.8125rem] text-text-muted">
+            <span className="tabular-nums air-radius-chip border border-dashed border-border bg-page-bg px-2.5 py-1.5 text-[0.8125rem] text-text-muted">
               Transparent
             </span>
           )}

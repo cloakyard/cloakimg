@@ -180,7 +180,7 @@
   overflow: hidden;
   background: var(--air-surface);
   border-top: 1px solid var(--air-line);
-  border-radius: var(--air-radius-panel) var(--air-radius-panel) 0 0;
+  border-radius: 0;
 }
 .editor-mobile-header {
   display: flex;
@@ -379,6 +379,10 @@
 }
 .editor-properties .air-scroll {
   gap: 16px;
+}
+/* Scroll the inspector instead of squeezing a direct action below its label. */
+.editor-properties > .air-scroll > .air-button {
+  flex-shrink: 0;
 }
 .editor-toolrail button[aria-pressed="true"] {
   background: var(--air-surface-soft);
@@ -696,7 +700,7 @@ html {
   position: relative;
   flex: none;
   border: 1px solid var(--air-line-control);
-  border-radius: var(--air-radius-check);
+  border-radius: 50%;
   overflow: hidden;
 }
 .img-colour-swatch > span {
@@ -761,6 +765,7 @@ html {
   margin-top: 8px;
 }
 .img-recent-colour {
+  border-radius: var(--air-radius-control);
   display: grid;
   place-items: center;
   width: 40px;
@@ -773,7 +778,7 @@ html {
   width: 24px;
   height: 24px;
   border: 1px solid var(--air-line-control);
-  border-radius: var(--air-radius-check);
+  border-radius: 50%;
 }
 @media (pointer: coarse) {
   .img-colour-axis input,
@@ -1062,6 +1067,10 @@ html {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
 }
+.img-crop-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
+}
 .img-background-choices > button,
 .img-crop-actions > button {
   gap: 8px;
@@ -1095,7 +1104,6 @@ html {
     height: auto;
     border-top: 0;
     border-left: 1px solid var(--air-line);
-    border-radius: 0;
   }
   .editor-mobile-dock {
     grid-column: 1 / -1;

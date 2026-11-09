@@ -97,7 +97,7 @@ function FilePropertiesBody({
       </div>
 
       <div className="air-scroll cloak-dialog__body flex flex-col gap-3 px-5 py-4">
-        <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[0.8125rem]">
+        <div className="air-radius-panel bg-page-bg px-3 py-2.5 text-[0.8125rem]">
           {rows.map((row) => (
             <PropRow key={row[1]} row={row} />
           ))}
@@ -106,7 +106,7 @@ function FilePropertiesBody({
         {exifRows.length > 0 ? (
           <div>
             <div className="t-section-label mb-1.5">EXIF metadata</div>
-            <div className="rounded-lg bg-page-bg px-3 py-2.5 text-[0.8125rem]">
+            <div className="air-radius-panel bg-page-bg px-3 py-2.5 text-[0.8125rem]">
               {exifRows.map((row) => (
                 <PropRow key={row[1]} row={row} />
               ))}

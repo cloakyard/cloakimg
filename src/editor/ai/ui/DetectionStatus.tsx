@@ -84,7 +84,7 @@ export function DetectionProgressCard({
   const rawLabel = progress?.label ?? fallbackLabel ?? "Detecting subject…";
   const label = isIndeterminate && rawLabel === "Preparing model…" ? "Connecting…" : rawLabel;
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
+    <div className="flex flex-col gap-2 air-radius-panel border border-border-soft bg-page-bg px-3 py-2.5">
       <div className="flex items-center justify-between gap-2 text-[0.8125rem] font-medium text-text">
         <span className="flex min-w-0 items-center gap-1.5">
           <I.Sparkles size={12} className="shrink-0 text-text" />
@@ -159,7 +159,7 @@ interface ReadyProps {
  *  the panel so the visual weight stays uniform. */
 export function DetectionReadyChip({ message }: ReadyProps) {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-[var(--air-success)] bg-[var(--air-success-soft)] px-2.5 py-1.5 text-[0.8125rem] font-medium text-success">
+    <div className="flex items-center gap-1.5 air-radius-chip border border-[var(--air-success)] bg-[var(--air-success-soft)] px-2.5 py-1.5 text-[0.8125rem] font-medium text-success">
       <I.Sparkles size={12} stroke={2} className="shrink-0 text-success" />
       <span className="min-w-0 flex-1">
         {message ?? "Subject detected — every scoped tool now applies instantly."}
@@ -178,7 +178,7 @@ export function DetectionErrorCard({ msg, onRetry }: ErrorProps) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded-lg border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] text-text"
+      className="flex items-start gap-2 air-radius-panel border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] text-text"
     >
       <I.ShieldCheck size={13} className="mt-px shrink-0" />
       <div className="min-w-0 flex-1">
@@ -214,7 +214,7 @@ export function DetectionPausedChip({ onResume }: PausedProps) {
   return (
     <div
       role="status"
-      className="flex items-center gap-2 rounded-md border border-border-soft bg-page-bg px-2.5 py-1.5 text-[0.8125rem]"
+      className="flex items-center gap-2 air-radius-chip border border-border-soft bg-page-bg px-2.5 py-1.5 text-[0.8125rem]"
     >
       <I.Sparkles size={12} className="shrink-0 text-text" />
       <span className="min-w-0 flex-1 text-text-muted">Detection paused.</span>

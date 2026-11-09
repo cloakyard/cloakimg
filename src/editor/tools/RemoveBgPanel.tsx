@@ -474,12 +474,12 @@ function AutoPanel({
           mid-detection because invalidating the in-flight cache to
           switch tiers would cancel the worker and confuse the user. */}
       <PropRow label="Model">
-        <div className="flex flex-1 items-center justify-between gap-2 text-[0.8125rem] text-text">
+        <div className="flex flex-1 flex-wrap items-center justify-between gap-2 text-[0.8125rem] text-text">
           <span className="flex items-center gap-1.5">
             <span className="font-medium">{meta.label}</span>
             <span className="tabular-nums text-[0.8125rem] text-text-muted">~{meta.mb} MB</span>
             {modelCached && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--air-success)] bg-[var(--air-success-soft)] px-1.5 py-px text-[0.8125rem] font-medium text-success">
+              <span className="inline-flex items-center gap-1 air-radius-chip border border-[var(--air-success)] bg-[var(--air-success-soft)] px-1.5 py-px text-[0.8125rem] font-medium text-success">
                 <I.Check size={9} stroke={2.5} aria-hidden="true" /> Cached
               </span>
             )}
@@ -488,7 +488,7 @@ function AutoPanel({
             type="button"
             onClick={onChangeModel}
             disabled={busy}
-            className="air-button air-button--quiet img-control--compact"
+            className="air-button air-button--quiet img-control--compact shrink-0"
           >
             Change
           </button>
@@ -597,7 +597,7 @@ function AutoPanel({
 
 function CapabilityHints() {
   return (
-    <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
+    <div className="air-radius-panel border border-border-soft bg-page-bg px-3 py-2.5">
       <div className="mb-2 flex items-center gap-1.5 text-[0.8125rem] font-medium tracking-normal text-text-muted">
         <I.Info size={12} aria-hidden="true" /> What it detects
       </div>
@@ -799,7 +799,7 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
               >
                 <span
                   aria-hidden="true"
-                  className={`h-6 w-6 shrink-0 rounded border border-border ${
+                  className={`h-6 w-6 shrink-0 rounded-full border border-border ${
                     choice.fill === "transparent" ? "checker" : ""
                   }`}
                   style={backgroundSwatch(choice.fill, color)}
@@ -822,7 +822,7 @@ function BackgroundControls({ mode, color, onChangeMode, onChangeColor }: Backgr
         </PropRow>
       ) : null}
 
-      <div className="flex gap-1.5 rounded-md border border-border-soft bg-page-bg px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text-muted">
+      <div className="flex gap-1.5 air-radius-panel border border-border-soft bg-page-bg px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text-muted">
         <I.Info size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>
           Plain white or light grey is safest for official photos. Gradient and vignette are for
@@ -849,7 +849,7 @@ function AppliedBackground({ treatment }: { treatment: "solid" | "gradient" | "v
   return (
     <div
       role="status"
-      className="flex gap-2.5 rounded-md border border-[var(--air-success)] bg-[var(--air-success-soft)] px-3 py-3 text-success"
+      className="flex gap-2.5 air-radius-panel border border-[var(--air-success)] bg-[var(--air-success-soft)] px-3 py-3 text-success"
     >
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--air-success-soft)] text-success">
         <I.Check size={14} stroke={2.5} aria-hidden="true" />

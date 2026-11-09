@@ -81,6 +81,11 @@ try {
               const b = x.getBoundingClientRect(),
                 minimum = coarse ? 44 : 32;
               if (
+                x.tagName === "BUTTON" &&
+                (x.scrollWidth > x.clientWidth + 2 || x.scrollHeight > x.clientHeight + 2)
+              )
+                issues.push(["clipped-label", label(x)]);
+              if (
                 x.tagName === "TEXTAREA" &&
                 b.height < parseFloat(getComputedStyle(document.documentElement).fontSize) * 7.5 - 1
               )
@@ -99,7 +104,7 @@ try {
             for (const x of e.querySelectorAll("button,span,label,p,a")) {
               if (
                 !shown(x) ||
-                x.children.length ||
+                (x.children.length && x.tagName !== "BUTTON") ||
                 !x.textContent.trim() ||
                 x.closest(".overflow-x-auto") ||
                 getComputedStyle(x).textOverflow === "ellipsis"
@@ -123,11 +128,6 @@ try {
                   }
                 }
               }
-              if (
-                x.tagName === "BUTTON" &&
-                (x.scrollWidth > x.clientWidth + 2 || x.scrollHeight > x.clientHeight + 2)
-              )
-                issues.push(["clipped-label", label(x)]);
             }
             return {
               issues,

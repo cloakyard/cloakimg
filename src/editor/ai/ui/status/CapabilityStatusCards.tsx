@@ -66,7 +66,7 @@ export function CapabilityProgressCard({
   const label =
     isIndeterminate && rawLabel === "Preparing model…" ? copy.connectingLabel : rawLabel;
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
+    <div className="flex flex-col gap-2 air-radius-panel border border-border-soft bg-page-bg px-3 py-2.5">
       <div className="flex items-center justify-between gap-2 text-[0.8125rem] font-medium text-text">
         <span className="flex min-w-0 items-center gap-1.5">
           <I.Sparkles size={12} className="shrink-0 text-text" />
@@ -115,7 +115,7 @@ export function CapabilityProgressCard({
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded border-none bg-transparent p-0 font-[inherit] text-[0.8125rem] font-medium text-text underline"
+            className="air-button air-button--quiet img-control--compact underline"
           >
             Cancel
           </button>
@@ -137,7 +137,7 @@ export function CapabilityErrorCard({ msg, onRetry, fallbackMsg }: ErrorProps) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded-lg border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] text-text"
+      className="flex items-start gap-2 air-radius-panel border border-danger bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] text-text"
     >
       <I.ShieldCheck size={13} className="mt-px shrink-0" />
       <div className="min-w-0 flex-1">
@@ -145,7 +145,7 @@ export function CapabilityErrorCard({ msg, onRetry, fallbackMsg }: ErrorProps) {
         <button
           type="button"
           onClick={onRetry}
-          className="mt-1 cursor-pointer rounded border-none bg-transparent p-0 text-[0.8125rem] font-medium underline"
+          className="air-button air-button--quiet img-control--compact underline mt-1"
         >
           Try again
         </button>

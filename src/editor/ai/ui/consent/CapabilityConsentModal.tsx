@@ -123,7 +123,7 @@ export function CapabilityConsentModal({
                 type="button"
                 onClick={() => setPicked(tier.id)}
                 aria-pressed={active}
-                className={`flex w-full cursor-pointer items-start gap-3 rounded-xl border bg-page-bg px-3 py-2.5 text-left ${
+                className={`flex w-full cursor-pointer items-start gap-3 air-radius-control border bg-page-bg px-3 py-2.5 text-left ${
                   active ? "border-accent ring-2 ring-accent" : "border-border-soft"
                 }`}
               >
@@ -142,12 +142,12 @@ export function CapabilityConsentModal({
                       ~{tier.mb} MB
                     </span>
                     {tier.recommended && !cached && (
-                      <span className="rounded-full border border-border bg-surface-soft px-1.5 py-px text-[0.8125rem] font-medium text-text">
+                      <span className="air-radius-chip border border-border bg-surface-soft px-1.5 py-px text-[0.8125rem] font-medium text-text">
                         Recommended
                       </span>
                     )}
                     {cached && (
-                      <span className="rounded-full border border-[var(--air-success)] bg-[var(--air-success-soft)] px-1.5 py-px text-[0.8125rem] font-medium text-success">
+                      <span className="air-radius-chip border border-[var(--air-success)] bg-[var(--air-success-soft)] px-1.5 py-px text-[0.8125rem] font-medium text-success">
                         Already downloaded
                       </span>
                     )}
@@ -164,7 +164,7 @@ export function CapabilityConsentModal({
           })}
         </div>
 
-        <div className="rounded-lg border border-border-soft bg-page-bg px-3 py-2">
+        <div className="air-radius-panel border border-border-soft bg-page-bg px-3 py-2">
           <div className="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-medium tracking-normal text-text-muted">
             <I.ShieldCheck size={11} /> Privacy
           </div>

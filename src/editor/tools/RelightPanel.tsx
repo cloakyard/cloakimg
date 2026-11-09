@@ -87,7 +87,7 @@ export function RelightPanel() {
         />
       )}
       {!depthReady && status !== "loading" && status !== "error" && (
-        <div className="flex flex-col gap-2 rounded-lg border border-border-soft bg-page-bg px-3 py-2.5">
+        <div className="flex flex-col gap-2 air-radius-panel border border-border-soft bg-page-bg px-3 py-2.5">
           <div className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-text">
             <I.Sparkles size={12} className="shrink-0 text-text" />
             Relight needs an on-device depth model

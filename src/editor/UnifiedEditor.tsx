@@ -379,7 +379,7 @@ function BusyOverlay({ label }: { label: string }) {
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-5 py-4 shadow-[var(--air-shadow-menu)]">
+      <div className="flex items-center gap-3 air-radius-panel border border-border bg-surface px-5 py-4 shadow-[var(--air-shadow-menu)]">
         <Spinner size={22} />
         <span className="text-[0.8125rem] font-medium text-text">{label}</span>
       </div>
@@ -393,7 +393,7 @@ function ErrorBanner({ message }: { message: string }) {
     <div className="absolute inset-0 z-200 flex items-center justify-center bg-[var(--air-scrim)] px-6">
       <div
         role="alert"
-        className="flex w-full max-w-sm flex-col items-center gap-5 rounded-lg border border-border bg-surface px-7 py-8 text-center shadow-[var(--air-shadow-dialog)]"
+        className="flex w-full max-w-sm flex-col items-center gap-5 air-radius-panel border border-border bg-surface px-7 py-8 text-center shadow-[var(--air-shadow-dialog)]"
       >
         <div className="cloak-dialog__icon h-14 w-14">
           <I.Triangle size={26} stroke={1.75} />

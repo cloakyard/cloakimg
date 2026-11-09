@@ -83,7 +83,7 @@ export function MovePanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-start gap-2 rounded-md border border-border-soft bg-page-bg px-3 py-2.5">
+      <div className="flex items-start gap-2 air-radius-panel border border-border-soft bg-page-bg px-3 py-2.5">
         <I.Move size={14} className="mt-0.5 shrink-0 text-text" />
         <div className="text-[0.8125rem] leading-relaxed text-text">
           {layerCount === 0 ? (

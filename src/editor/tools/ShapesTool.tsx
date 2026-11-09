@@ -29,7 +29,7 @@ import { useEffect, useRef } from "react";
 import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 
-export const SHAPE_TAG = "cloak:shape";
+const SHAPE_TAG = "cloak:shape";
 
 interface TaggedFabricObject extends FabricObject {
   cloakKind?: string;

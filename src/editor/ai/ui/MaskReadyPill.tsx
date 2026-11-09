@@ -34,7 +34,7 @@ export function MaskReadyPill({ ready, align = "end" }: Props) {
       <span
         role="status"
         aria-label="Subject mask ready"
-        className="inline-flex items-center gap-1 rounded-full border border-[var(--air-success)] bg-[var(--air-success-soft)] px-2 py-0.5 text-[0.8125rem] font-medium text-success"
+        className="inline-flex items-center gap-1 air-radius-chip border border-[var(--air-success)] bg-[var(--air-success-soft)] px-2 py-0.5 text-[0.8125rem] font-medium text-success"
       >
         <I.Check size={9} stroke={2.5} />
         Mask ready
