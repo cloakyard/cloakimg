@@ -83,7 +83,7 @@ export function MobileEditorSurface({
           aria-label="Tool controls"
           className="editor-mobile-surface"
         >
-          <div className="editor-mobile-header">
+          <div className="editor-mobile-header air-editor-panel-heading">
             <h2 className="editor-mobile-title">{findTool(displayTool).name}</h2>
             <ToolActions
               key={`actions-${displayTool}`}

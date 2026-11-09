@@ -54,7 +54,11 @@
   padding-inline: 4px;
 }
 .editor-topbar[data-compact="true"] .editor-topbar__actions {
-  gap: 0;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .editor-topbar__brand {
   display: flex;
@@ -342,8 +346,8 @@
 }
 .editor-properties[data-compact="true"] .editor-properties__header {
   gap: 8px;
-  padding: 12px;
-  min-height: 72px;
+  padding: 8px 16px;
+  min-height: 64px;
 }
 .editor-properties[data-compact="true"] .editor-properties__heading {
   flex-basis: 6rem;
@@ -1069,18 +1073,6 @@ html {
 .img-action-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
-}
-
-.editor-more-zoom {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 8px 12px;
-  font-size: var(--air-text-label);
-}
-.editor-more-zoom > span {
-  flex: 1;
 }
 
 /* A wide, short phone has room beside the photo, but not beneath it. */
