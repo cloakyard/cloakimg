@@ -121,7 +121,10 @@ for (const engine of ["chromium", "webkit"].filter(
         assert(beforePreview, "Adjusted preview must be painted before batch entry");
         await dialog.getByRole("button", { name: "Batch editing", exact: true }).click();
         await dialog.waitFor({ state: "hidden" });
-        await p.locator(".editor-compact-nav").waitFor({ state: "hidden" });
+        await p
+          .getByRole("button", { name: "Open tools", exact: true })
+          .waitFor({ state: "hidden" });
+        await p.locator('[aria-label="Batch recipe"]').waitFor();
         await p.getByRole("button", { name: "More actions" }).click();
         await p.evaluate(() => delete window.airPreviewDraw);
         await dialog.getByRole("button", { name: "Single photo", exact: true }).click();

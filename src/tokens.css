@@ -86,8 +86,7 @@ label[for] {
   outline-offset: 3px;
   transition: none;
 }
-.transition-colors,
-.transition-opacity {
+.transition-colors {
   transition-duration: var(--air-motion-hover);
   transition-timing-function: var(--air-ease-out);
 }
@@ -105,26 +104,6 @@ label[for] {
   font-size: 1.125rem;
   font-weight: 500;
   line-height: 1.4;
-}
-.t-title {
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.4;
-}
-.t-card-title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.5;
-}
-.t-body,
-.t-body-sm,
-.t-caption {
-  color: var(--air-ink-secondary);
-  font-size: var(--air-text-body);
-  line-height: 1.6;
-}
-.t-caption {
-  font-size: var(--air-text-meta);
 }
 .kbd {
   display: inline-flex;

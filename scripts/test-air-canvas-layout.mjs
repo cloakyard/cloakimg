@@ -82,8 +82,9 @@ for (const engine of ["chromium", "webkit"]) {
           : p
               .locator(".editor-toolrail")
               .getByRole("button", { name: "Crop & rotate", exact: true });
-        await p.waitForFunction(() =>
-          document.activeElement?.closest(".editor-compact-nav,.editor-toolrail"),
+        await p.waitForFunction(
+          (element) => element === document.activeElement,
+          await target.elementHandle(),
         );
         assert(await target.evaluate((e) => e === document.activeElement));
         await p.keyboard.press("Enter");
