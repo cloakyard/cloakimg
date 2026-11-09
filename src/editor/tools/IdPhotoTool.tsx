@@ -723,7 +723,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="air-button air-button--primary min-w-0 flex-1"
+          className="air-button air-button--primary min-w-0 flex-[1_1_8rem]"
           onClick={() => void handlePrint()}
           disabled={!!busy || !crop || layout.copies === 0}
         >
@@ -732,7 +732,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
         </button>
         <button
           type="button"
-          className="air-button min-w-0 flex-1"
+          className="air-button min-w-0 flex-[1_1_8rem]"
           onClick={() => void handlePdf()}
           disabled={!!busy || !crop || layout.copies === 0}
         >
