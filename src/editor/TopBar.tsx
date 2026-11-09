@@ -51,7 +51,10 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
 
   return (
     <>
-      <header className="editor-topbar" data-compact={isCompact}>
+      <header
+        className={`editor-topbar${isCompact ? " air-editor-header--compact" : ""}`}
+        data-compact={isCompact}
+      >
         <button
           type="button"
           onClick={onLogoClick}
@@ -209,7 +212,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           {isCompact && (
             <button
               type="button"
-              className="air-button air-button--quiet air-icon-button"
+              className="air-button air-button--primary air-icon-button"
               aria-label="Export"
               title="Export"
               disabled={!doc}

@@ -1,10 +1,18 @@
+import { useAirPresence } from "../../docs/air/presence.tsx";
 import { Menu } from "@base-ui/react/menu";
 import { NumberField } from "./NumberField";
 // BatchView.tsx — When the user toggles into batch mode, the canvas
 // swaps for a thumbnail grid (drag/drop to add files) and the right
 // panel becomes a recipe builder of reusable steps.
 
-import { type DragEvent as ReactDragEvent, useCallback, useMemo, useRef, useState } from "react";
+import {
+  type DragEvent as ReactDragEvent,
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { newStepId, type RecipeStep } from "./batch";
 import { DropZone } from "../components/DropZone";
 import { useEditor } from "./EditorContext";
@@ -113,7 +121,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
         <DropZone
           multiple
           title="Drop images here to batch-edit"
-          subtitle="or click to browse — build a recipe on the right, then run it across all files"
+          subtitle="or browse — choose recipe steps, then run them across all files"
           onFiles={batchAddFiles}
         />
       ) : (
@@ -336,6 +344,7 @@ export function BatchPanel({
                 <button
                   type="button"
                   aria-expanded={expanded}
+                  aria-controls={`batch-step-${step.id}`}
                   onClick={() => setExpandedId(expanded ? null : step.id)}
                   className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 border-none bg-transparent px-3 py-2.5 text-left font-[inherit] text-inherit"
                 >
@@ -361,46 +370,44 @@ export function BatchPanel({
                   <I.X size={12} />
                 </button>
               </div>
-              {expanded && (
-                <div className="border-t border-border-soft px-3 pb-3">
-                  <div className="flex flex-wrap gap-2 py-2">
-                    {([-1, 1] as const).map((direction) => (
-                      <button
-                        key={direction}
-                        type="button"
-                        className="air-button air-button--quiet img-control--compact"
-                        disabled={
-                          batchRunning || (direction === -1 ? i === 0 : i === recipe.length - 1)
-                        }
-                        aria-label={`Move ${meta.title} ${direction === -1 ? "earlier" : "later"}`}
-                        onClick={() =>
-                          setRecipe((prev) => {
-                            const index = prev.findIndex((item) => item.id === step.id),
-                              target = index + direction;
-                            if (index < 0 || target < 0 || target >= prev.length) return prev;
-                            const next = [...prev];
-                            [next[index], next[target]] = [next[target]!, next[index]!];
-                            return next;
-                          })
-                        }
-                      >
-                        {direction === -1 ? (
-                          <I.ChevronDown size={14} className="rotate-180" />
-                        ) : (
-                          <I.ChevronDown size={14} />
-                        )}{" "}
-                        {direction === -1 ? "Earlier" : "Later"}
-                      </button>
-                    ))}
-                  </div>
-                  <StepEditor
-                    step={step}
-                    onChange={(next) =>
-                      setRecipe((prev) => prev.map((s) => (s.id === step.id ? next : s)))
-                    }
-                  />
+              <BatchStepDetails open={expanded} id={`batch-step-${step.id}`}>
+                <div className="flex flex-wrap gap-2 py-2">
+                  {([-1, 1] as const).map((direction) => (
+                    <button
+                      key={direction}
+                      type="button"
+                      className="air-button air-button--quiet img-control--compact"
+                      disabled={
+                        batchRunning || (direction === -1 ? i === 0 : i === recipe.length - 1)
+                      }
+                      aria-label={`Move ${meta.title} ${direction === -1 ? "earlier" : "later"}`}
+                      onClick={() =>
+                        setRecipe((prev) => {
+                          const index = prev.findIndex((item) => item.id === step.id),
+                            target = index + direction;
+                          if (index < 0 || target < 0 || target >= prev.length) return prev;
+                          const next = [...prev];
+                          [next[index], next[target]] = [next[target]!, next[index]!];
+                          return next;
+                        })
+                      }
+                    >
+                      {direction === -1 ? (
+                        <I.ChevronDown size={14} className="rotate-180" />
+                      ) : (
+                        <I.ChevronDown size={14} />
+                      )}{" "}
+                      {direction === -1 ? "Earlier" : "Later"}
+                    </button>
+                  ))}
                 </div>
-              )}
+                <StepEditor
+                  step={step}
+                  onChange={(next) =>
+                    setRecipe((prev) => prev.map((s) => (s.id === step.id ? next : s)))
+                  }
+                />
+              </BatchStepDetails>
             </li>
           );
         })}
@@ -478,6 +485,30 @@ export function BatchPanel({
 interface StepEditorProps {
   step: RecipeStep;
   onChange: (next: RecipeStep) => void;
+}
+
+/** Reserve the disclosure space on entry; retain it only through the short exit. */
+function BatchStepDetails({
+  open,
+  id,
+  children,
+}: {
+  open: boolean;
+  id: string;
+  children: ReactNode;
+}) {
+  const presence = useAirPresence(open, "fade");
+  return presence.mounted ? (
+    <div
+      ref={presence.ref}
+      id={id}
+      inert={!open}
+      aria-hidden={!open}
+      className="border-t border-border-soft px-3 pb-3"
+    >
+      {children}
+    </div>
+  ) : null;
 }
 
 function StepEditor({ step, onChange }: StepEditorProps) {

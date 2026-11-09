@@ -251,14 +251,14 @@ console.log("→ Dialog probe:");
 console.log(JSON.stringify(dialogProbe, null, 2));
 
 if (dialogProbe.downloadButtons.length > 0) {
-  console.log("→ Clicking the PRIMARY Download button (btn-primary class)…");
+  console.log("→ Clicking the PRIMARY Download button (air-button--primary class)…");
   // The tier-picker row also matches "Download N MB" because its
   // descriptor text mentions the size. The actual action button is
-  // the one with class `btn-primary` — match on that to avoid
+  // the one with class `air-button--primary` — match on that to avoid
   // grabbing the row.
   const downloadHandle = await page.evaluateHandle(() => {
     return (
-      Array.from(document.querySelectorAll("button.btn-primary")).find((b) =>
+      Array.from(document.querySelectorAll("button.air-button--primary")).find((b) =>
         /Download|Use \d+ MB/i.test(b.textContent ?? ""),
       ) || null
     );
@@ -267,7 +267,7 @@ if (dialogProbe.downloadButtons.length > 0) {
   if (downloadElement) {
     await downloadElement.click();
   } else {
-    console.log("⚠️  Couldn't find btn-primary download button");
+    console.log("⚠️  Couldn't find air-button--primary download button");
   }
   console.log("→ Waiting up to 60s for model load + inference (polls every 5s)…");
   // Poll the AI debug log + busy state instead of a single long wait

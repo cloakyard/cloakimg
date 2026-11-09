@@ -40,12 +40,7 @@ export function MobileMoreMenu({
 }
 
 function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, onClose }: Props) {
-  // Route the menu-item dismissals through the animated lifecycle. The
-  // sheet has to play its slide-down before unmount or the dismiss
-  // feels abrupt — every item triggers an action AND closes the menu.
-  // The animated close accepts an onSettled callback that fires AFTER
-  // the slide-down completes, which is how Reset preserves its
-  // "close before showing the confirm modal" UX invariant.
+  // Release the outgoing focus trap before opening another modal.
   const animatedClose = useModalClose();
   const { setMode, setView } = useEditorActions();
   const { mode, view } = useEditorReadOnly();
@@ -65,16 +60,13 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
         <ModalCloseButton onClose={onClose} iconSize={14} />
       </div>
 
-      <div className="flex flex-col px-3 py-2 pb-[max(env(safe-area-inset-bottom),12px)]">
+      <div className="air-scroll air-editor-menu">
         <MenuItem
           icon={I.Info}
           label="File information"
           hint={hasDoc ? fileName : "No file loaded"}
           disabled={!hasDoc}
           onClick={() => {
-            // Open the file-properties modal immediately so it slides
-            // in while this menu slides out — the visual handoff feels
-            // like one continuous gesture.
             dismiss(onShowFileProps);
           }}
         />
@@ -84,7 +76,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
           onClick={() => dismiss(() => setMode(mode === "single" ? "batch" : "single"))}
         />
         <Divider />
-        <div className="editor-more-zoom">
+        <div className="air-editor-menu__zoom">
           <span>Zoom · {Math.round(view.zoom * 100)}%</span>
           <button
             type="button"
@@ -131,7 +123,7 @@ function MoreMenuBody({ fileName, hasDoc, canReset, onShowFileProps, onReset, on
 }
 
 function Divider() {
-  return <div className="mx-2 h-px bg-border-soft/40" />;
+  return <hr />;
 }
 
 interface MenuItemProps {
@@ -139,34 +131,21 @@ interface MenuItemProps {
   label: string;
   hint?: string;
   disabled?: boolean;
-  active?: boolean;
   onClick: () => void;
 }
 
-function MenuItem({ icon: Icon, label, hint, disabled, active, onClick }: MenuItemProps) {
+function MenuItem({ icon: Icon, label, hint, disabled, onClick }: MenuItemProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex min-h-13 cursor-pointer items-center gap-3 rounded-lg border-none bg-transparent px-2.5 py-2.5 text-left font-[inherit] text-text transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-        active ? "bg-surface-soft" : "hover:bg-page-bg active:bg-surface-soft dark:hover:bg-white/5"
-      }`}
+      className="air-button air-button--quiet air-editor-menu__item"
     >
-      <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-          active ? "text-text" : "text-text-muted"
-        }`}
-      >
-        <Icon size={17} stroke={2.1} />
-      </span>
+      <Icon size={18} stroke={1.6} aria-hidden="true" />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[0.875rem] font-medium">{label}</span>
-        {hint && (
-          <span className="overflow-hidden text-[0.8125rem] text-ellipsis whitespace-nowrap text-text-muted">
-            {hint}
-          </span>
-        )}
+        <span className="air-editor-menu__label">{label}</span>
+        {hint && <span className="air-help air-editor-menu__context">{hint}</span>}
       </span>
     </button>
   );

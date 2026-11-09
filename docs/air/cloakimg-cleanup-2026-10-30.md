@@ -9,3 +9,11 @@ Passing checks: format/lint/types, **480 tests / 49 files**, production build/90
 Real feature checks pass for chained edit undo/redo, resize undo across tool switches, reset, export, emoji creation and undo/redo, history scrubbing, touch crop/resize apply and cancel, and two-finger compare without disrupting pinch/tap. The tool-picker scroll probe now targets its actual non-modal region and fails on an unsuccessful scroll (291px observed), removing a prior diagnostic false positive. File-information, actions, export and AI consent overlays pass 44 Chrome/WebKit viewport/theme states with focus containment and bounded layout.
 
 Evidence: `/tmp/air-img-2026-10-30/cleanup-{check,unit,build}-final.log`, `cleanup-portability.log`, `dead-code-final.json`, `knip.json`, `final-matrix-{chrome,webkit}.log`, `editor-matrix-{chrome,webkit}/results.json`, `sheets/`, `final-{export-history-2,emoji,emoji-undo,scrubber,mobile-apply,compare,picker-scroll-2,edges-4}.log`, and `edges/`. Static-only source comments changed after the frozen production matrix; runtime bytes did not. Batch recipe controls and final edge/accessibility/release acceptance remain next. No push or deployment in this checkpoint.
+
+### 2026-11-09 follow-up
+
+Removed the compact toolbar island and duplicate Actions row/zoom styles. Reused
+the shared Air menu recipe and existing presence lifecycle for batch disclosures.
+Updated the obsolete face-probe primary-button selector and synchronized MediaPipe
+package/runtime versions. Removed stale dependency-age exclusions and replaced
+vulnerable Workbox glob resolution with the current compatible override.

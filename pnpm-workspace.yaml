@@ -12,8 +12,8 @@ overrides:
   "@rollup/plugin-node-resolve@16.0.3>deepmerge": "-"
   adm-zip: 0.6.1
   canvas: npm:@napi-rs/canvas@1.0.13
-  glob: 13.0.6
-  jsdom: 30.1.3
+  glob: 14.0.4
+  jsdom: 31.0.0
   onnxruntime-node: 1.30.0
   sharp: 0.35.5
   vite@*: "catalog:"
@@ -27,21 +27,6 @@ peerDependencyRules:
   allowedVersions:
     vite: "*"
 
-minimumReleaseAgeExclude:
-  - serialize-javascript@7.1.4
-  - "@napi-rs/canvas-android-arm64@1.0.13"
-  - "@napi-rs/canvas-darwin-arm64@1.0.13"
-  - "@napi-rs/canvas-darwin-x64@1.0.13"
-  - "@napi-rs/canvas-linux-arm-gnueabihf@1.0.13"
-  - "@napi-rs/canvas-linux-arm64-gnu@1.0.13"
-  - "@napi-rs/canvas-linux-arm64-musl@1.0.13"
-  - "@napi-rs/canvas-linux-riscv64-gnu@1.0.13"
-  - "@napi-rs/canvas-linux-x64-gnu@1.0.13"
-  - "@napi-rs/canvas-linux-x64-musl@1.0.13"
-  - "@napi-rs/canvas-win32-arm64-msvc@1.0.13"
-  - "@napi-rs/canvas-win32-x64-msvc@1.0.13"
-  - "@napi-rs/canvas@1.0.13"
-
 allowBuilds:
   # Transformers.js ships this Node backend for server consumers; CloakIMG
   # uses only the browser/WebAssembly backend.
@@ -49,8 +34,10 @@ allowBuilds:
   # This dependency's postinstall is not required by the browser bundle.
   protobufjs: false
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
-  vite-plus: 1.4.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite-plus: 1.5.0
 
 patchedDependencies:
   "@rollup/plugin-node-resolve@16.0.3": patches/@rollup__plugin-node-resolve@16.0.3.patch
+minimumReleaseAgeExclude:
+  - "@vitejs/plugin-react@6.3.0"
