@@ -108,7 +108,7 @@ export function PrivacyAuditCard({ stripGPS, onPatchMeta }: Props) {
       role="region"
       aria-label="Privacy review"
       data-testid="privacy-audit"
-      className="flex flex-col gap-2 rounded-lg border border-border bg-surface px-3 py-2.5"
+      className="flex flex-col gap-2 air-radius-panel border border-border bg-surface px-3 py-2.5"
     >
       <div className="flex items-center gap-1.5">
         <I.Shield size={13} className="text-text" />

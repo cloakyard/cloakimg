@@ -53,7 +53,7 @@ interface Padding {
   padB: number;
 }
 
-export function computePadding(ts: ToolState, srcW: number, srcH: number): Padding {
+function computePadding(ts: ToolState, srcW: number, srcH: number): Padding {
   if (ts.borderMode === 0) {
     const t = Math.max(0, Math.round(ts.borderThickness));
     return { padL: t, padT: t, padR: t, padB: t };

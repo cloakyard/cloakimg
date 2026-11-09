@@ -169,7 +169,7 @@ export function ResizePanel() {
   return (
     <>
       <PropRow label="Preview">
-        <div className="flex flex-wrap items-center justify-center gap-2 rounded-lg bg-page-bg px-2.5 py-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 air-radius-panel bg-page-bg px-2.5 py-2">
           <div
             role="img"
             aria-label="Source size"

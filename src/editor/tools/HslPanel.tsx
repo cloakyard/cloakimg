@@ -115,7 +115,7 @@ export function HslPanel() {
                   aria-label={name}
                   aria-pressed={active}
                   title={name}
-                  className={`relative flex aspect-square cursor-pointer items-center justify-center rounded border p-0 ${
+                  className={`relative flex aspect-square cursor-pointer items-center justify-center air-radius-control border p-0 ${
                     active
                       ? "border-transparent outline-2 outline-accent outline-offset-2"
                       : "border-border-soft"
@@ -201,10 +201,10 @@ export function HslPanel() {
           />
         </PropRow>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className="air-button air-button--quiet img-control--compact flex-1 justify-center text-text"
+            className="air-button air-button--quiet img-control--compact flex-[1_1_8rem] justify-center text-text"
             onClick={resetBand}
             disabled={!bandIsDirty(toolState, band)}
           >
@@ -212,7 +212,7 @@ export function HslPanel() {
           </button>
           <button
             type="button"
-            className="air-button air-button--quiet img-control--compact flex-1 justify-center text-text"
+            className="air-button air-button--quiet img-control--compact flex-[1_1_8rem] justify-center text-text"
             onClick={reset}
             disabled={!dirty}
           >

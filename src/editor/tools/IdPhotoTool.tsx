@@ -599,7 +599,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
         </PropRow>
       ) : null}
 
-      <div className="rounded-md border border-border-soft bg-page-bg px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text-muted">
+      <div className="air-radius-panel border border-border-soft bg-page-bg px-2.5 py-2 text-[0.8125rem] leading-relaxed text-text-muted">
         {preset.note ??
           "The frame sets physical size only. Background, expression, recency, and biometric acceptance still depend on the issuing authority."}
         {preset.sourceUrl ? (
@@ -615,44 +615,30 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
         ) : null}
       </div>
 
-      <button
-        type="button"
-        onClick={() => patchTool("activeTool", "bgrm")}
-        className="air-button w-full text-left"
-      >
-        <span
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
-            backgroundPrepared
-              ? "bg-[var(--air-success-soft)] text-success"
-              : "bg-surface text-text-muted"
-          }`}
+      <div className="space-y-2">
+        <p className="text-[0.8125rem] font-medium text-text">
+          {backgroundCleared
+            ? "Cutout ready"
+            : preparedBackgroundLabel
+              ? `${preparedBackgroundLabel} background ready`
+              : "Need a plain background?"}
+        </p>
+        <p className="text-[0.8125rem] leading-snug text-text-muted">
+          {backgroundCleared
+            ? "Transparent areas will print on white paper."
+            : preparedBackgroundLabel
+              ? "The selected background is already baked into this photo."
+              : "Remove it first, then return here to finish framing."}
+        </p>
+        <button
+          type="button"
+          onClick={() => patchTool("activeTool", "bgrm")}
+          className="air-button w-full"
         >
-          {backgroundPrepared ? (
-            <I.Check size={14} stroke={2.5} aria-hidden="true" />
-          ) : (
-            <I.Layers size={14} aria-hidden="true" />
-          )}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[0.8125rem] font-medium text-text">
-            {backgroundCleared
-              ? "Cutout ready"
-              : preparedBackgroundLabel
-                ? `${preparedBackgroundLabel} background ready`
-                : "Need a plain background?"}
-          </span>
-          <span className="block text-[0.8125rem] leading-snug text-text-muted">
-            {backgroundCleared
-              ? "Transparent areas will print on white paper."
-              : preparedBackgroundLabel
-                ? "The selected background is already baked into this photo."
-                : "Remove it first, then return here to finish framing."}
-          </span>
-        </span>
-        <span className="shrink-0 text-[0.8125rem] font-medium text-text">
-          {backgroundPrepared ? "Review" : "Open"}
-        </span>
-      </button>
+          <I.Layers size={16} aria-hidden="true" />
+          {backgroundPrepared ? "Review background" : "Remove background"}
+        </button>
+      </div>
 
       {doc && crop ? (
         <>
@@ -727,7 +713,7 @@ img { display: block; width: ${width}mm; height: ${height}mm; object-fit: fill; 
       {error ? (
         <div
           role="alert"
-          className="flex gap-2 rounded-md border border-[var(--air-danger)] bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] leading-relaxed text-danger"
+          className="flex gap-2 air-radius-panel border border-[var(--air-danger)] bg-[var(--air-danger-soft)] px-2.5 py-2 text-[0.8125rem] leading-relaxed text-danger"
         >
           <I.AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
@@ -798,7 +784,7 @@ function SheetPreview({
   cutLines: boolean;
 }) {
   return (
-    <div className="flex justify-center rounded-md bg-canvas-bg px-3 py-3">
+    <div className="flex justify-center air-radius-panel bg-canvas-bg px-3 py-3">
       <div
         role="img"
         aria-label={`${layout.copies} photos arranged on ${layout.paper.label}`}

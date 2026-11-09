@@ -309,7 +309,7 @@ function LayerRow({
             }}
             aria-label={row.visible ? "Hide layer" : "Show layer"}
             title={row.visible ? "Hide layer" : "Show layer"}
-            className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 hover:bg-border-soft pointer-coarse:h-8 pointer-coarse:w-8 ${
+            className={`flex h-6 w-6 cursor-pointer items-center justify-center air-radius-control border-none bg-transparent p-0 hover:bg-border-soft pointer-coarse:h-8 pointer-coarse:w-8 ${
               row.visible ? "text-text" : "text-text-muted opacity-50"
             }`}
           >
@@ -325,9 +325,9 @@ function LayerRow({
               aria-label={filtersOpen ? "Close layer filters" : "Open layer filters"}
               aria-expanded={filtersOpen}
               title="Filters"
-              className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none p-0 pointer-coarse:h-8 pointer-coarse:w-8 ${
+              className={`flex h-6 w-6 cursor-pointer items-center justify-center air-radius-control border-none p-0 pointer-coarse:h-8 pointer-coarse:w-8 ${
                 filtersOpen
-                  ? "bg-surface-soft text-text bg-surface-soft text-text"
+                  ? "bg-surface-soft text-text"
                   : "bg-transparent text-text-muted hover:bg-border-soft"
               }`}
             >
@@ -342,7 +342,7 @@ function LayerRow({
             }}
             aria-label="Delete layer"
             title="Delete layer"
-            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-muted hover:bg-border-soft hover:text-text pointer-coarse:h-8 pointer-coarse:w-8"
+            className="flex h-6 w-6 cursor-pointer items-center justify-center air-radius-control border-none bg-transparent p-0 text-text-muted hover:bg-border-soft hover:text-text pointer-coarse:h-8 pointer-coarse:w-8"
           >
             <I.X size={11} />
           </button>

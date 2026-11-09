@@ -81,6 +81,11 @@ try {
               const b = x.getBoundingClientRect(),
                 minimum = coarse ? 44 : 32;
               if (
+                x.tagName === "BUTTON" &&
+                (x.scrollWidth > x.clientWidth + 2 || x.scrollHeight > x.clientHeight + 2)
+              )
+                issues.push(["clipped-label", label(x)]);
+              if (
                 x.tagName === "TEXTAREA" &&
                 b.height < parseFloat(getComputedStyle(document.documentElement).fontSize) * 7.5 - 1
               )
@@ -123,11 +128,6 @@ try {
                   }
                 }
               }
-              if (
-                x.tagName === "BUTTON" &&
-                (x.scrollWidth > x.clientWidth + 2 || x.scrollHeight > x.clientHeight + 2)
-              )
-                issues.push(["clipped-label", label(x)]);
             }
             return {
               issues,

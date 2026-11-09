@@ -20,7 +20,7 @@ import { useEditor } from "../EditorContext";
 import { useStageProps } from "../StageHost";
 
 /** Fabric `cloakKind` tag for free-form pen strokes. */
-export const DRAW_TAG = "cloak:drawStroke";
+const DRAW_TAG = "cloak:drawStroke";
 
 interface TaggedFabricObject extends FabricObject {
   cloakKind?: string;

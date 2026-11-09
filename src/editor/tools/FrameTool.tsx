@@ -18,7 +18,7 @@ import type { ToolState } from "../toolState";
 import { useApplyOnToolSwitch } from "../useApplyOnToolSwitch";
 import type { ExifData } from "./exif";
 
-export const FRAME_STYLES = [
+const FRAME_STYLES = [
   "Solid",
   "Polaroid",
   "Double",

@@ -16,7 +16,7 @@ interface ShapeDef {
   Icon: ComponentType<{ size?: number }>;
 }
 
-export const SHAPE_KINDS: readonly ShapeDef[] = [
+const SHAPE_KINDS: readonly ShapeDef[] = [
   { name: "Rectangle", Icon: I.Square },
   { name: "Rounded rectangle", Icon: I.RoundedSquare },
   { name: "Ellipse", Icon: I.Circle },

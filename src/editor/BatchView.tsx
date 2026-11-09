@@ -144,7 +144,7 @@ export function BatchCanvas({ isMobile }: CanvasProps) {
 
 function BatchThumb({ f }: { f: ReturnType<typeof useEditor>["batchFiles"][number] }) {
   return (
-    <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-surface">
+    <div className="relative aspect-square overflow-hidden air-radius-panel border border-border bg-surface">
       {f.thumbUrl ? (
         <img
           src={f.thumbUrl}
@@ -337,7 +337,7 @@ export function BatchPanel({
               onDragEnd={() => setDragIdx(null)}
               onDragOver={onDragOver}
               onDrop={(e) => onDropStep(e, i)}
-              className="flex flex-col rounded-lg border border-border-soft bg-page-bg"
+              className="flex flex-col air-radius-panel border border-border-soft bg-page-bg"
               style={{ opacity: dragIdx === i ? 0.4 : 1 }}
             >
               <div className="flex items-stretch">

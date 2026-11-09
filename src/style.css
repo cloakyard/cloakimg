@@ -180,7 +180,7 @@
   overflow: hidden;
   background: var(--air-surface);
   border-top: 1px solid var(--air-line);
-  border-radius: var(--air-radius-panel) var(--air-radius-panel) 0 0;
+  border-radius: 0;
 }
 .editor-mobile-header {
   display: flex;
@@ -696,7 +696,7 @@ html {
   position: relative;
   flex: none;
   border: 1px solid var(--air-line-control);
-  border-radius: var(--air-radius-check);
+  border-radius: 50%;
   overflow: hidden;
 }
 .img-colour-swatch > span {
@@ -761,6 +761,7 @@ html {
   margin-top: 8px;
 }
 .img-recent-colour {
+  border-radius: var(--air-radius-control);
   display: grid;
   place-items: center;
   width: 40px;
@@ -773,7 +774,7 @@ html {
   width: 24px;
   height: 24px;
   border: 1px solid var(--air-line-control);
-  border-radius: var(--air-radius-check);
+  border-radius: 50%;
 }
 @media (pointer: coarse) {
   .img-colour-axis input,
@@ -1095,7 +1096,6 @@ html {
     height: auto;
     border-top: 0;
     border-left: 1px solid var(--air-line);
-    border-radius: 0;
   }
   .editor-mobile-dock {
     grid-column: 1 / -1;
