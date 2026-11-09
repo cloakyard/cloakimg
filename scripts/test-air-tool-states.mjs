@@ -104,7 +104,7 @@ try {
             for (const x of e.querySelectorAll("button,span,label,p,a")) {
               if (
                 !shown(x) ||
-                x.children.length ||
+                (x.children.length && x.tagName !== "BUTTON") ||
                 !x.textContent.trim() ||
                 x.closest(".overflow-x-auto") ||
                 getComputedStyle(x).textOverflow === "ellipsis"

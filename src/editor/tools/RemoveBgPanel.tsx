@@ -537,7 +537,7 @@ function AutoPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="air-button air-button--primary shrink-0 justify-center"
+          className="air-button air-button--primary justify-center"
           onClick={onApply}
           disabled={(alreadyRemoved && backgroundFillMode === 0) || busy}
           style={{ opacity: (alreadyRemoved && backgroundFillMode === 0) || busy ? 0.6 : 1 }}
@@ -731,7 +731,7 @@ function ChromaPanel({
       {showApplyButton && (
         <button
           type="button"
-          className="air-button air-button--primary shrink-0 justify-center"
+          className="air-button air-button--primary justify-center"
           onClick={onApply}
           disabled={applyDisabled}
           style={{ opacity: applyDisabled ? 0.5 : 1 }}

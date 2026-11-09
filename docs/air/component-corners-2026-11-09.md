@@ -13,9 +13,12 @@ Validation passes: 488 units; required check/type/build/dead-code/design/portabi
 all 26 tools in 1,560 Chromium observations across eleven sizes plus enlarged
 phone/laptop text and both themes, and 480 WebKit observations across four layout
 classes. The three reflow corrections pass 260 Chromium and 100 WebKit observations.
-The Remove BG action also retains its intrinsic wrapped height in the scrollable
-panel. A stronger nested-button clipping check passes a further 120 all-tool
-enlarged-laptop observations and 180 Remove BG observations.
+A stronger nested-button check caught four additional direct inspector actions
+being squeezed by the scroll container. Direct actions now retain their intrinsic
+height while the inspector scrolls. The final strengthened matrix is recorded in
+the central evidence.
+Crop flip/rotate actions also reflow by available content width so labels keep
+whole words at enlarged text. The direct-text check covers icon buttons too.
 The original ten failing observations are retained in the central evidence; the
 final per-state receipt replaces affected observations with their passing reruns.
 
