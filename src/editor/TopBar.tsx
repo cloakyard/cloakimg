@@ -196,7 +196,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           {!isCompact && (
             <button
               type="button"
-              className="editor-topbar__export air-button img-control--compact"
+              className="editor-topbar__export air-button air-button--primary img-control--compact"
               onClick={(event) => {
                 event.currentTarget.focus({ preventScroll: true });
                 openExport();

@@ -681,7 +681,8 @@
         "docs/air/touch-workspace-2026-10-31.md",
         "docs/air/canvas-first-2026-11-03.md",
         "docs/air/surface-motion-2026-11-03.md",
-        "docs/air/component-consistency-2026-11-03.md"
+        "docs/air/component-consistency-2026-11-03.md",
+        "docs/air/tablet-followup-2026-11-09.md"
       ],
       "notes": "Air 1.4.0 canvas-first layout and applicable automated states verified; see dated evidence. Physical device, OS IME and spoken assistive acceptance remain open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
@@ -1450,7 +1451,8 @@
         "docs/air/cloakimg-cleanup-2026-10-30.md",
         "docs/air/editor-reaudit-2026-10-30.md",
         "docs/air/tool-state-audit-2026-10-30.md",
-        "docs/air/component-consistency-2026-11-03.md"
+        "docs/air/component-consistency-2026-11-03.md",
+        "docs/air/tablet-followup-2026-11-09.md"
       ],
       "notes": "Source and rendered editor states reviewed against Air 1.3.2; see the tool-state audit for exact automated coverage and feature evidence. Physical device/software keyboard, OS IME and spoken assistive acceptance remain open."
     },
