@@ -1,5 +1,10 @@
 {
-  "entry": ["scripts/*.mjs", "src/**/*.test.{ts,tsx}", "src/landing/PrivacyPage.tsx"],
+  "entry": [
+    "scripts/*.mjs",
+    "src/**/*.test.{ts,tsx}",
+    "src/landing/PrivacyPage.tsx",
+    "src/landing/RecoveryPage.tsx"
+  ],
   "project": ["src/**/*.{ts,tsx}", "scripts/*.mjs"],
   "ignoreDependencies": ["tailwindcss"],
   "ignoreUnresolved": ["^/src/"]

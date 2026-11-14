@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { DropZone } from "../components/DropZone";
 import { ColorPicker } from "../editor/ColorPicker";
 import { I } from "../components/icons";
-import { ModalCloseButton, ModalFrame } from "../components/ModalFrame";
+import { ModalCloseButton, ModalDismissButton, ModalFrame } from "../components/ModalFrame";
 import { clearDraft, type DraftEntry, draftToFile, loadDraft } from "./draft";
 import {
   clearRecents,
@@ -75,6 +75,13 @@ export function StartModal({ initialTab = "upload", isPhone, onCancel, onConfirm
   // routes through the animated slide-down lifecycle.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
+      // Native controls own Enter; do not also create a document from their keypress.
+      if (
+        e.target instanceof Element &&
+        e.target.closest("button, select, input, textarea, [contenteditable]")
+      )
+        return;
       if (e.key === "Enter" && (uploadFile || tab === "blank")) handleConfirm();
     };
     window.addEventListener("keydown", onKey);
@@ -205,13 +212,12 @@ function ModalFooter({
         isPhone ? "px-5 py-3.5 pb-[max(env(safe-area-inset-bottom),14px)]" : "px-7 py-4"
       }`}
     >
-      <button
-        type="button"
+      <ModalDismissButton
         className="air-button air-button--quiet img-control--compact"
-        onClick={onCancel}
+        onClose={onCancel}
       >
         Cancel
-      </button>
+      </ModalDismissButton>
       <button
         type="button"
         className="air-button air-button--primary img-control--compact"

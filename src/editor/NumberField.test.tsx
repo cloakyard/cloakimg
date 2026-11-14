@@ -4,6 +4,20 @@ import { useState } from "react";
 import { describe, it, expect, vi } from "vite-plus/test";
 import { NumberField } from "./NumberField";
 describe("precision input", () => {
+  it.each([{ isComposing: true }, { keyCode: 229 }])(
+    "keeps a numeric draft while confirming composition (%j)",
+    (composition) => {
+      const commit = vi.fn();
+      render(<NumberField label="Width" value={320} min={1} max={4096} onCommit={commit} />);
+      const input = screen.getByRole("spinbutton", { name: "Width" });
+      fireEvent.change(input, { target: { value: "640" } });
+      fireEvent.keyDown(input, { key: "Enter", ...composition });
+      expect(commit).not.toHaveBeenCalled();
+      expect(input).toHaveValue(640);
+      fireEvent.keyDown(input, { key: "Enter" });
+      expect(commit).toHaveBeenCalledExactlyOnceWith(640);
+    },
+  );
   it("retains partial and out-of-range drafts without coercing or editing the image", () => {
     const commit = vi.fn();
     render(

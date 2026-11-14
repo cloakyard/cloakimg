@@ -33,6 +33,14 @@ body:has(.img-site) {
 .img-site :where(main, section, #workbench) {
   scroll-margin-top: 24px;
 }
+.img-recovery {
+  display: flex;
+  flex-direction: column;
+}
+.img-recovery main {
+  flex: 1;
+  padding-block: clamp(48px, 8vw, 96px);
+}
 .img-skip {
   position: fixed;
   top: 16px;

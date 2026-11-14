@@ -265,6 +265,8 @@ function ColourControls({
           }}
           onBlur={commitHex}
           onKeyDown={(e) => {
+            // Safari can end composition before its confirming Enter arrives.
+            if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
             if (e.key === "Enter") {
               e.preventDefault();
               e.stopPropagation();

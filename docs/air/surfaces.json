@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.7.3",
+  "contractVersion": "1.7.4",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -2275,6 +2275,17 @@
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },
     {
+      "path": "src/landing/RecoveryPage.tsx",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": true,
+      "states": ["page not found", "home navigation", "no JavaScript"],
+      "viewports": ["phone", "tablet", "laptop", "desktop"],
+      "evidence": ["modern-web-guidance-2026-11-14.md"],
+      "notes": "Prerendered shared Air header/footer and recovery layout. Chromium/WebKit; light/dark; 16 responsive states and 8 no-JavaScript states. Physical-device acceptance is separate."
+    },
+    {
       "path": "src/landing/ReloadPrompt.tsx",
       "kind": "app-surface",
       "sourceReviewed": true,
@@ -2339,31 +2350,6 @@
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/cloakimg-editor-2026-10-30.md",
         "docs/air/cloakimg-cleanup-2026-10-30.md"
-      ],
-      "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
-    },
-    {
-      "path": "src/privacy.tsx",
-      "kind": "app-surface",
-      "sourceReviewed": true,
-      "airImplemented": true,
-      "validated": false,
-      "states": [
-        "light",
-        "dark",
-        "keyboard",
-        "touch",
-        "reduced-motion",
-        "invalid-file",
-        "clipboard-failure",
-        "worker-offline",
-        "worker-update",
-        "emulated-touch"
-      ],
-      "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
-      "evidence": [
-        "docs/air/cloakimg-public-2026-10-30.md",
-        "docs/air/cloakimg-acceptance-2026-10-30.md"
       ],
       "notes": "Source reviewed and Air implementation complete. Applicable automated states and feature/output evidence are enumerated in the linked audits; physical device, OS IME and spoken assistive acceptance remain separate and open."
     },

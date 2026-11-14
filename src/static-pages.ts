@@ -1,4 +1,4 @@
-/** Progressive navigation on the prerendered policy; no React runtime is needed. */
+/** Progressive navigation on prerendered reading/recovery pages; no React runtime. */
 for (const details of document.querySelectorAll<HTMLDetailsElement>("details")) {
   details.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && details.open) {

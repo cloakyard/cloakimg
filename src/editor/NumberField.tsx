@@ -83,6 +83,7 @@ export function NumberField({
             stepping.current = false;
           }}
           onKeyDown={(event) => {
+            if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
             const field = event.currentTarget;
             if (event.key === "Escape") {
               event.stopPropagation();
