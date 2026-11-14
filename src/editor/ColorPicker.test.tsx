@@ -8,6 +8,21 @@ function Harness() {
   return <ColorPicker value={value} onChange={set} />;
 }
 describe("author color", () => {
+  it.each([{ isComposing: true }, { keyCode: 229 }])(
+    "keeps the hex draft through IME confirmation (%j), then accepts Enter",
+    async (composition) => {
+      const onChange = vi.fn();
+      render(<ColorPicker value="#285ad7" onChange={onChange} />);
+      fireEvent.click(screen.getByRole("button", { name: "Pick a color" }));
+      const hex = await screen.findByRole("textbox", { name: "Hex value" });
+      fireEvent.change(hex, { target: { value: "#abc" } });
+      fireEvent.keyDown(hex, { key: "Enter", ...composition });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(hex).toHaveValue("#abc");
+      fireEvent.keyDown(hex, { key: "Enter" });
+      expect(onChange).toHaveBeenCalledExactlyOnceWith("#aabbcc");
+    },
+  );
   it("preserves invalid hex, accepts shorthand and offers exact RGB values", async () => {
     const user = userEvent.setup();
     render(<Harness />);

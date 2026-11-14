@@ -18,7 +18,11 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
-  build: { rollupOptions: { input: { main: "index.html", privacy: "privacy/index.html" } } },
+  build: {
+    rollupOptions: {
+      input: { main: "index.html", privacy: "privacy/index.html", recovery: "404.html" },
+    },
+  },
   server: {
     allowedHosts: true,
   },

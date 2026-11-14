@@ -358,6 +358,9 @@ export function PenTool() {
     };
 
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
+      if (e.target instanceof Element && e.target.closest("input, textarea, [contenteditable]"))
+        return;
       if (anchorsRef.current.length === 0) {
         if (e.key === "Escape") removeAnchorHandles();
         return;

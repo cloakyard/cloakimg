@@ -138,6 +138,7 @@ export function EmojiPanel() {
             onChange={(e) => setCustomInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
+                if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
                 e.preventDefault();
                 onApplyCustom();
               }

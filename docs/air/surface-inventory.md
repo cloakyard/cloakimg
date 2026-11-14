@@ -111,10 +111,10 @@ light/dark, reduced motion and keyboard/touch modes as specified in DESIGN.md.
 | `src/landing/Landing.tsx`                                | app-surface | Done         | Done               | Pending    |
 | `src/landing/Landscape.tsx`                              | app-surface | Done         | Done               | Pending    |
 | `src/landing/PrivacyPage.tsx`                            | app-surface | Done         | Done               | Pending    |
+| `src/landing/RecoveryPage.tsx`                           | app-surface | Done         | Done               | Done       |
 | `src/landing/ReloadPrompt.tsx`                           | app-surface | Done         | Done               | Pending    |
 | `src/landing/StartModal.tsx`                             | app-surface | Done         | Done               | Pending    |
 | `src/main.tsx`                                           | app-surface | Done         | Done               | Pending    |
-| `src/privacy.tsx`                                        | app-surface | Done         | Done               | Pending    |
 | `src/style.css`                                          | app-surface | Done         | Done               | Pending    |
 | `src/styles/air-entry.css`                               | app-surface | Done         | Done               | Pending    |
 | `src/styles/air.css`                                     | app-surface | Done         | Done               | Pending    |

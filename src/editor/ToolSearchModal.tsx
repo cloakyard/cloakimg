@@ -99,6 +99,7 @@ function ToolSearchBody({
   };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
       onActive(results.length === 0 ? 0 : (activeIndex + 1) % results.length);

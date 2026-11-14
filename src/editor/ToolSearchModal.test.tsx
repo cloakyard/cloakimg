@@ -3,6 +3,22 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import { ToolSearchModal } from "./ToolSearchModal";
 
 describe("ToolSearchModal", () => {
+  it.each([{ isComposing: true }, { keyCode: 229 }])(
+    "does not choose a tool while confirming an IME candidate (%j)",
+    (composition) => {
+      const onClose = vi.fn();
+      const onSelect = vi.fn();
+      render(<ToolSearchModal onClose={onClose} onSelect={onSelect} />);
+      const input = screen.getByRole("combobox", { name: "Search editor tools" });
+      fireEvent.change(input, { target: { value: "crop" } });
+      fireEvent.keyDown(input, { key: "Enter", ...composition });
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+      expect(input).toHaveValue("crop");
+      fireEvent.keyDown(input, { key: "Enter" });
+      expect(onSelect).toHaveBeenCalledExactlyOnceWith("crop");
+    },
+  );
   it("filters by names, aliases, and tool families", () => {
     render(<ToolSearchModal onClose={() => undefined} onSelect={() => undefined} />);
 
