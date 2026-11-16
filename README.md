@@ -107,7 +107,7 @@ Run `vp check`, `vp test run`, `npx --yes knip@6.44.2` and `vp run build`. Use t
 
 ### Editor previews
 
-The README and PWA previews are real captures using the bundled local orange photograph. Run a production preview, then `BASE_URL=http://127.0.0.1:4173 vp run generate-screenshots` to capture phone and tablet layouts in light and dark. `node scripts/build-og-image.mjs` renders the separate vector social card.
+The README and PWA previews are real captures using the bundled local orange photograph. Run a production preview, then `BASE_URL=http://127.0.0.1:4173 vp run generate-screenshots` to capture phone and tablet layouts in light and dark. `vp run generate-og` renders the shared Air card from the landing landscape; see [the social preview workflow](docs/air/social-previews.md).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/iPhone-dark.png">

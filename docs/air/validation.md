@@ -153,3 +153,14 @@ responsive/theme/text cases pass; desktop/laptop/phone captures were inspected.
 
 Air 1.0.6 removes blue hyperlink text, including hover, and specifies neutral
 inline/directional treatments. See [scope and evidence](neutral-links-2026-10-19.md).
+
+## 2026-11-16 — Consistent family social previews
+
+Air 1.7.5 uses the shared 1200×630 card and this product's static landing artwork.
+OG/Twitter images and descriptive alternatives match; emitted privacy/recovery
+pages inherit the same image. The build now checks all emitted HTML and PNG bytes.
+Removed superseded OG sources only; application/native code and real README/PWA
+captures remain intact. Scoped card/metadata evidence and passing check results:
+[receipt](evidence/social-previews-2026-11-16/receipt.json).
+Phone/tablet/laptop/desktop preview surroundings cover light/dark; the share image
+itself stays light. This does not establish new whole-editor/device acceptance.

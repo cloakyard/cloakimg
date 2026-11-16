@@ -4,7 +4,10 @@ import react from "@vitejs/plugin-react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import pkg from "../package.json" with { type: "json" };
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
+const socialTags = (await readFile("index.html", "utf8"))
+  .match(/<meta\s+(?:property="og:|name="twitter:)[^>]*>/g)
+  .join("\n");
 const server = await createServer({
   configFile: false,
   plugins: [react()],
@@ -32,9 +35,22 @@ try {
     ],
   ]) {
     const body = renderToStaticMarkup(createElement(Page));
+    const description =
+      metadata.match(/name="description" content="([^"]+)"/)?.[1] ||
+      "The requested CloakIMG page does not exist.";
+    const social = socialTags
+      .replace(
+        /((?:property="og:description"|name="twitter:description")\s+content=")[^"]*/g,
+        `$1${description}`,
+      )
+      .replace(/((?:property="og:title"|name="twitter:title")\s+content=")[^"]*/g, `$1${title}`)
+      .replace(
+        'https://img.cloakyard.com/"',
+        `https://img.cloakyard.com/${path === "404.html" ? path : "privacy/"}"`,
+      );
     await writeFile(
       path,
-      `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="light dark"><meta name="theme-color" content="#fafbfc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#101216" media="(prefers-color-scheme: dark)"><link rel="icon" href="/icons/favicon.svg"><link rel="stylesheet" href="/src/styles/air.css"><link rel="stylesheet" href="/src/styles/air-entry.css"><title>${title}</title>${metadata}</head><body><div id="app">${body}</div><script type="module" src="/src/static-pages.ts"></script></body></html>`,
+      `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="light dark"><meta name="theme-color" content="#fafbfc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#101216" media="(prefers-color-scheme: dark)"><link rel="icon" href="/icons/favicon.svg"><link rel="stylesheet" href="/src/styles/air.css"><link rel="stylesheet" href="/src/styles/air-entry.css"><title>${title}</title>${metadata}${social}</head><body><div id="app">${body}</div><script type="module" src="/src/static-pages.ts"></script></body></html>`,
     );
     execFileSync("vp", ["fmt", path]);
   }
