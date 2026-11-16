@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "node scripts/generate-static-pages.mjs && tsc && vp build && node scripts/check-deploy-assets.mjs",
+    "build": "node scripts/generate-static-pages.mjs && tsc && vp build && node scripts/check-deploy-assets.mjs && node docs/air/check-social.mjs",
     "preview": "vp preview",
     "prepare": "vp config",
     "test": "vp test run",
@@ -21,7 +21,9 @@
     "design:check": "node scripts/check-air-design.mjs",
     "design:inventory": "node scripts/air-inventory.mjs",
     "design:portability": "node scripts/check-air-portability.mjs",
-    "test:air-links": "node scripts/test-air-links.mjs"
+    "test:air-links": "node scripts/test-air-links.mjs",
+    "generate-og": "node docs/air/render-social.mjs",
+    "check:og": "node docs/air/check-social.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.9.0",

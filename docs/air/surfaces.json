@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.7.4",
+  "contractVersion": "1.7.5",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -2441,7 +2441,7 @@
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
-        "docs/air/validation.md \u2014 refinement 02 candidate",
+        "docs/air/validation.md — refinement 02 candidate",
         "docs/air/components.html",
         "docs/air/neutral-links-2026-10-19.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
