@@ -212,7 +212,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
           {isCompact && (
             <button
               type="button"
-              className="air-button air-button--primary air-icon-button"
+              className="editor-topbar__export air-button air-button--quiet air-icon-button"
               aria-label="Export"
               title="Export"
               disabled={!doc}
@@ -221,7 +221,7 @@ export function TopBar({ onShowFileProps }: TopBarProps) {
                 openExport();
               }}
             >
-              <I.Download size={18} aria-hidden="true" />
+              <I.Download size={18} stroke={1.6} aria-hidden="true" />
             </button>
           )}
 
