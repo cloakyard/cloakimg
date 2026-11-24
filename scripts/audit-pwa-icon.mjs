@@ -33,6 +33,25 @@ try {
   await page.setViewport({ width: 760, height: 620, deviceScaleFactor: 1 });
   await page.goto(baseUrl, { waitUntil: "networkidle0" });
 
+  // Standard launcher exports must fill their canvas just like the maskable master.
+  for (const size of [64, 192, 512]) {
+    await page.evaluate(async (size) => {
+      const icon = new Image();
+      icon.src = `/icons/pwa-${size}x${size}.png`;
+      await icon.decode();
+      if (icon.naturalWidth !== size || icon.naturalHeight !== size) {
+        throw new Error(`Incorrect dimensions for ${icon.src}`);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(icon, 0, 0);
+      const { data } = ctx.getImageData(0, 0, size, size);
+      for (let alpha = 3; alpha < data.length; alpha += 4) {
+        if (data[alpha] !== 255) throw new Error(`Transparent pixel in ${icon.src}`);
+      }
+    }, size);
+  }
   const metrics = await page.evaluate(async () => {
     const iconUrl = new URL("/icons/maskable-icon-512x512.png", location.href).href;
     const response = await fetch(iconUrl, { cache: "no-store" });

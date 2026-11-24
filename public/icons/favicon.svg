@@ -3,8 +3,16 @@
   <defs>
     <linearGradient id="coral" x2=".6" y2="1">
       <stop stop-color="#ff9b75"/>
+      <stop offset=".47" stop-color="#e87452"/>
       <stop offset="1" stop-color="#cf482b"/>
     </linearGradient>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        [stop-color="#ff9b75"] { stop-color: #ad624f }
+        [stop-color="#e87452"] { stop-color: #933d2c }
+        [stop-color="#cf482b"] { stop-color: #642d29 }
+      }
+    </style>
   </defs>
   <circle cx="8" cy="8" r="7.5" fill="url(#coral)"/>
   <rect x="3.45" y="4.05" width="9.1" height="7.9" rx="1.1" fill="#ffad80" stroke="#fff3db" stroke-width="1.1"/>

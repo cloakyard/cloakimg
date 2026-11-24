@@ -2,6 +2,10 @@ import { defineConfig, minimal2023Preset, type Preset } from "@vite-pwa/assets-g
 
 const fullBleedAppIconPreset: Preset = {
   ...minimal2023Preset,
+  transparent: {
+    ...minimal2023Preset.transparent,
+    padding: 0,
+  },
   maskable: {
     ...minimal2023Preset.maskable,
     padding: 0,
