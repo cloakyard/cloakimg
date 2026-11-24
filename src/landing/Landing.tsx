@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { mountLandingReveals } from "../../docs/air/landing-reveal.mjs";
+import "../../docs/air/landing-reveal.css";
+import { useEffect, useRef, useState } from "react";
 import { DropZone } from "../components/DropZone";
 import { I } from "../components/icons";
 import { Landscape } from "./Landscape";
@@ -40,13 +42,18 @@ export function Landing({ onStart, onIntent }: Props) {
     };
   }, []);
 
+  const mainRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (mainRef.current) return mountLandingReveals(mainRef.current, { restoreFragment: true });
+  }, []);
+
   return (
     <div className="img-site">
       <a href="#main" className="img-skip air-button">
         Skip to main content
       </a>
       <Header />
-      <main id="main" tabIndex={-1}>
+      <main ref={mainRef} id="main" tabIndex={-1}>
         <section className="img-hero air-page-width" aria-labelledby="home-title">
           <h1 id="home-title">
             Your photos. <span>Your way.</span>

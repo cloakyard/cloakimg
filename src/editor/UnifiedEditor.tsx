@@ -252,7 +252,10 @@ function EditorShell() {
             ) : isMobile ? (
               // Portrait stacks controls; short landscape keeps the photo alongside them.
               <div className="editor-mobile-stage-layout flex min-h-0 flex-1 flex-col">
-                <div className="editor-mobile-stage flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div
+                  data-air-notice-preview=""
+                  className="editor-mobile-stage flex min-h-0 flex-1 flex-col overflow-hidden"
+                >
                   <StageHost />
                   <ToolStage />
                 </div>
@@ -276,7 +279,7 @@ function EditorShell() {
               // (no history yet, or mobile) the layout is identical to
               // pre-scrubber chrome.
               <div className="flex min-h-0 flex-1 flex-col">
-                <div className="flex min-h-0 flex-1 flex-col">
+                <div data-air-notice-preview="" className="flex min-h-0 flex-1 flex-col">
                   <StageHost />
                   <ToolStage />
                 </div>

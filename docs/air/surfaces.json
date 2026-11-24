@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.7.5",
+  "contractVersion": "1.8.2",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -2154,6 +2154,7 @@
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
+        "docs/air/landing-reveals-2026-11-24.md",
         "docs/air/cloakimg-public-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/vector-landscape-2026-10-30.md"
@@ -2232,6 +2233,7 @@
       ],
       "viewports": ["phone", "landscape-phone", "tablet", "laptop", "desktop"],
       "evidence": [
+        "docs/air/landing-reveals-2026-11-24.md",
         "docs/air/cloakimg-public-2026-10-30.md",
         "docs/air/cloakimg-acceptance-2026-10-30.md",
         "docs/air/vector-landscape-2026-10-30.md"
