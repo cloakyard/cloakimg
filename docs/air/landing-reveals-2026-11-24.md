@@ -22,3 +22,7 @@ Frozen pnpm installation, build, type/lint/format checks, Knip, package audit an
 
 This review covered the web landing and the listed regression checks on local
 builds. Physical-device and assistive-technology acceptance remain open.
+
+## Release verification
+
+The script-disabled entry appears in the first viewport, and the delayed editor exposes one loading status. A waiting update stays clear of the tool dock. The editor export regression selects PNG through its visible label and checks the downloaded pixels.

@@ -221,15 +221,14 @@ try {
   );
   await button("Export");
   await page.waitForSelector("[role=dialog]");
-  const pngOption = await page.evaluateHandle(() =>
-    [...document.querySelectorAll(".cloak-dialog label")]
-      .find((label) => label.textContent.trim() === "PNG")
-      ?.querySelector('input[type="radio"]'),
+  // The label is the visible hit target. Its native radio is visually hidden.
+  await page.locator(".cloak-dialog label::-p-text(PNG)").click();
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll(".cloak-dialog label")].some(
+      (label) =>
+        label.textContent.trim() === "PNG" && label.querySelector('input[type="radio"]')?.checked,
+    ),
   );
-  assert.ok(pngOption.asElement(), "Missing PNG format radio");
-  await pngOption.asElement().click();
-  assert.equal(await pngOption.evaluate((node) => node.checked), true);
-  await pngOption.dispose();
   const cdp = await page.createCDPSession();
   const downloadDir = resolve(output, "downloads");
   await mkdir(downloadDir, { recursive: true });

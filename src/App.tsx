@@ -54,24 +54,24 @@ export function App() {
   if (!choice) {
     return (
       <>
-        <ReloadPrompt />
         <Landing onStart={onStart} onIntent={preloadEditor} />
+        <ReloadPrompt />
       </>
     );
   }
   return (
     <>
-      <ReloadPrompt deferUpdate />
       <Suspense fallback={<EditorLoading />}>
         <UnifiedEditor initialDoc={choice} onExit={() => setChoice(null)} />
       </Suspense>
+      <ReloadPrompt deferUpdate />
     </>
   );
 }
 
 function EditorLoading() {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-page-bg">
+    <div role="status" className="flex h-full w-full items-center justify-center bg-page-bg">
       <Spinner label="Loading editor…" />
     </div>
   );
