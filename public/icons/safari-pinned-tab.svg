@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <title>CloakIMG</title>
+  <rect x="3.45" y="4.05" width="9.1" height="7.9" rx="1.1" fill="none" stroke="black" stroke-width="1.1"/>
+  <path d="m7.3 11.4 2.77-3.72 1.95 2.48v.73q0 .51-.54.51Z" fill="black"/>
+  <path d="m4.05 11.04 2.95-3.23 3.3 3.59H4.63q-.52 0-.58-.36Z" fill="black"/>
+  <circle cx="9.9" cy="6.22" r=".93" fill="black"/>
+</svg>

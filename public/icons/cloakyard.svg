@@ -1,22 +1,83 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="cloakyard-mark-title" data-logo-spec="cloakyard-mark-v1" data-glyph-keyline="42">
-  <title id="cloakyard-mark-title">Cloakyard</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title description" data-logo-spec="cloakyard-mark-v2">
+  <title id="title">Cloakyard</title>
+  <desc id="description">Six raised cubes share a blue enamel disc with an outlined seventh cell.</desc>
   <defs>
-    <linearGradient id="yard-fill" x1="11" y1="6" x2="51" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#6FC3FF"/>
-      <stop offset="0.45" stop-color="#3975F6"/>
-      <stop offset="1" stop-color="#2444D7"/>
+    <linearGradient id="enamel" x1=".19" y1="0" x2=".75" y2="1">
+      <stop offset="0" stop-color="#96baff"/>
+      <stop offset=".47" stop-color="#4569d6"/>
+      <stop offset="1" stop-color="#263fa4"/>
     </linearGradient>
-    <radialGradient id="yard-light" cx="0" cy="0" r="1" gradientTransform="translate(20 13) rotate(48) scale(35)">
-      <stop stop-color="white" stop-opacity="0.42"/>
-      <stop offset="0.58" stop-color="white" stop-opacity="0"/>
+    <linearGradient id="rim" x1=".24" y1="0" x2=".76" y2="1">
+      <stop stop-color="#fff" stop-opacity=".88"/>
+      <stop offset=".39" stop-color="#fff" stop-opacity=".08"/>
+      <stop offset=".7" stop-color="#0a1540" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".46"/>
+    </linearGradient>
+    <radialGradient id="bloom" cx=".24" cy=".16" r=".8">
+      <stop stop-color="#fff" stop-opacity=".27"/>
+      <stop offset=".68" stop-color="#fff" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="lit-roof" x1=".22" y1="0" x2=".78" y2="1">
+      <stop stop-color="#fff9e8"/>
+      <stop offset="1" stop-color="#f5f4ef"/>
+    </linearGradient>
+    <linearGradient id="lit-west" x1=".22" y1="0" x2=".78" y2="1">
+      <stop stop-color="#e0eaff"/>
+      <stop offset="1" stop-color="#bed4fa"/>
+    </linearGradient>
+    <linearGradient id="lit-east" x1=".22" y1="0" x2=".78" y2="1">
+      <stop stop-color="#a8bced"/>
+      <stop offset="1" stop-color="#7f9fe3"/>
+    </linearGradient>
+    <filter id="contact" x="-28%" y="-30%" width="160%" height="180%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+    <g id="block" stroke="#4f6fb1" stroke-width="1.9" stroke-linejoin="round">
+      <path d="M-48 24 0 48V104L-48 80Z" fill="url(#lit-west)"/>
+      <path d="M0 48 48 24V80L0 104Z" fill="url(#lit-east)"/>
+      <path d="M0 0 48 24 0 48-48 24Z" fill="url(#lit-roof)"/>
+      <path opacity="1" d="m-46 25 46 23 46-23" fill="none" stroke="#fff8e9" stroke-width="2"/>
+    </g>
+    <g id="enamel-face">
+      <circle cx="32" cy="32" r="30" fill="url(#enamel)" stroke="none" stroke-width="0"/>
+      <circle cx="32" cy="32" r="29.5" opacity="1" fill="url(#bloom)" stroke="url(#rim)" stroke-width="1"/>
+    </g>
+    <clipPath id="open-cell">
+      <path transform="translate(32 23.3) scale(.178) translate(51 -33.7)" d="M0 0 48 24V80L0 104 -48 80V24Z"/>
+    </clipPath>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        [stop-color="#96baff"] { stop-color: #6b89cd }
+        [stop-color="#4569d6"] { stop-color: #364c91 }
+        [stop-color="#263fa4"] { stop-color: #23316b }
+        [stop-color="#f5f4ef"] { stop-color: #eef5fa }
+        [stop-color="#bed4fa"] { stop-color: #a8cae9 }
+        [stop-color="#7f9fe3"] { stop-color: #80a2db }
+        [stroke="#4f6fb1"] { stroke: #324e82 }
+        [stroke="#dce6ff"] { stroke: #c7dcf6 }
+      }
+    </style>
   </defs>
-
-  <circle cx="32" cy="32" r="30" fill="url(#yard-fill)"/>
-  <circle cx="32" cy="32" r="29.25" fill="url(#yard-light)" stroke="white" stroke-opacity="0.28" stroke-width="1.5"/>
-
-  <g stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M29.03 46.85V24.58a1.49 1.49 0 0 0-1.49-1.49h-7.42a2.97 2.97 0 0 0-2.97 2.97v17.82a2.97 2.97 0 0 0 2.97 2.97h17.82a2.97 2.97 0 0 0 2.97-2.97v-7.43a1.49 1.49 0 0 0-1.49-1.48H17.15"/>
-    <rect x="34.97" y="17.15" width="11.88" height="11.88" rx="1.49"/>
+  <g id="disc">
+    <use href="#enamel-face"/>
+  </g>
+  <g id="artwork">
+    <g id="ground" transform="translate(32 23.3) scale(.178)">
+      <path d="M-99 49-1 0l100 50v57L0 158-99 107Z" transform="translate(1 4)" fill="#142954" opacity=".55" filter="url(#contact)"/>
+      <use href="#block" x="0.0" y="0.0"/>
+      <use href="#block" x="-51.0" y="25.5"/>
+      <use href="#block" x="51.0" y="25.5"/>
+      <use href="#block" x="0.0" y="51.0"/>
+    </g>
+    <g id="tier" transform="translate(32 23.3) scale(.178)">
+      <use href="#block" x="0.0" y="-59.2"/>
+      <use href="#block" x="-51.0" y="-33.7"/>
+    </g>
+    <g id="future">
+      <use href="#enamel-face" clip-path="url(#open-cell)"/>
+      <g transform="translate(32 23.3) scale(.178) translate(51 -33.7)" fill="none" stroke="#dce6ff" stroke-width="3.2" stroke-linejoin="round">
+        <path d="M0 0 48 24V80L0 104 -48 80V24ZM-48 24 0 48 48 24M0 48v56"/>
+      </g>
+    </g>
   </g>
 </svg>
