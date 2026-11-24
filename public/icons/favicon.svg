@@ -1,21 +1,14 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="cloakimg-favicon-title" data-logo-spec="cloakyard-mark-v1">
-  <title id="cloakimg-favicon-title">CloakIMG</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" role="img" aria-labelledby="title" data-logo-spec="cloakyard-mark-v2">
+  <title id="title">CloakIMG</title>
   <defs>
-    <linearGradient id="favicon-fill" x1="11" y1="6" x2="51" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FF9A76"/>
-      <stop offset="0.45" stop-color="#F4512C"/>
-      <stop offset="1" stop-color="#C83217"/>
+    <linearGradient id="coral" x2=".6" y2="1">
+      <stop stop-color="#ff9b75"/>
+      <stop offset="1" stop-color="#cf482b"/>
     </linearGradient>
-    <radialGradient id="favicon-light" cx="0" cy="0" r="1" gradientTransform="translate(20 13) rotate(48) scale(35)">
-      <stop stop-color="white" stop-opacity="0.42"/>
-      <stop offset="0.58" stop-color="white" stop-opacity="0"/>
-    </radialGradient>
   </defs>
-  <circle cx="32" cy="32" r="30" fill="url(#favicon-fill)"/>
-  <circle cx="32" cy="32" r="29.25" fill="url(#favicon-light)" stroke="white" stroke-opacity="0.28" stroke-width="1.5"/>
-  <g stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="15.5" y="17.5" width="33" height="29" rx="4"/>
-    <circle cx="39.5" cy="26" r="2.75"/>
-    <path d="m20 41 8.2-9 6.1 6.1 5.7-7.3 8.5 10.2"/>
-  </g>
+  <circle cx="8" cy="8" r="7.5" fill="url(#coral)"/>
+  <rect x="3.45" y="4.05" width="9.1" height="7.9" rx="1.1" fill="#ffad80" stroke="#fff3db" stroke-width="1.1"/>
+  <path d="m7.3 11.4 2.77-3.72 1.95 2.48v.73q0 .51-.54.51Z" fill="#c65e44"/>
+  <path d="m4.05 11.04 2.95-3.23 3.3 3.59H4.63q-.52 0-.58-.36Z" fill="#973e31"/>
+  <circle cx="9.9" cy="6.22" r=".93" fill="#fff6d8"/>
 </svg>

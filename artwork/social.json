@@ -2,12 +2,12 @@
   "name": "CloakIMG",
   "url": "https://img.cloakyard.com/",
   "dist": "dist",
-  "logo": "public/icons/favicon.svg",
+  "logo": "public/cloakimg-mark.svg",
   "output": "public/icons/og-image.png",
   "artwork": ".img-landscape svg",
   "headline": ["Your photos.", "Your way."],
   "description": ["Edit, compose and export photos.", "Your files stay on your device."],
   "artAlt": "A coral sun above layered mountains and crop corners.",
   "imageAlt": "CloakIMG — Your photos. Your way. A coral sun above layered mountains and crop corners.",
-  "imagePath": "/icons/og-image.png?v=air-1.7.5"
+  "imagePath": "/icons/og-image.png?v=icons-20261124"
 }

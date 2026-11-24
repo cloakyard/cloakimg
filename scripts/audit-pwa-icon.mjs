@@ -62,8 +62,28 @@ try {
 
     const centre = canvas.width / 2;
     const safeRadius = canvas.width * 0.4;
-    let whitePixels = 0;
-    let whitePixelsOutsideSafeZone = 0;
+    // Isolate the whole foreground against the same enamel field. The frame,
+    // both ridges and the sun have different colours.
+    const source = await fetch("/icons/logo.svg", { cache: "no-store" });
+    if (!source.ok) throw new Error(`Launcher master returned ${source.status}`);
+    const master = new DOMParser().parseFromString(await source.text(), "image/svg+xml");
+    const artwork = master.getElementById("artwork");
+    if (!artwork) throw new Error("Launcher master is missing its artwork layer");
+    const renderMaster = async () => {
+      const image = new Image();
+      const svg = new XMLSerializer().serializeToString(master);
+      image.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      await image.decode();
+      context.clearRect(0, 0, bitmap.width, bitmap.height);
+      context.drawImage(image, 0, 0, bitmap.width, bitmap.height);
+      return context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+    };
+    const reference = await renderMaster();
+    artwork.remove();
+    const backdrop = await renderMaster();
+    let foregroundPixels = 0;
+    let outsideSafeZone = 0;
+    let pngError = 0;
     let minX = canvas.width;
     let minY = canvas.height;
     let maxX = -1;
@@ -72,19 +92,19 @@ try {
     for (let y = 0; y < canvas.height; y += 1) {
       for (let x = 0; x < canvas.width; x += 1) {
         const offset = (y * canvas.width + x) * 4;
-        const isGlyph =
-          pixels[offset] >= 248 &&
-          pixels[offset + 1] >= 248 &&
-          pixels[offset + 2] >= 248 &&
-          pixels[offset + 3] >= 250;
-        if (!isGlyph) continue;
-        whitePixels += 1;
+        let difference = 0;
+        for (let c = offset; c < offset + 3; c++) {
+          pngError += Math.abs(reference[c] - pixels[c]);
+          difference = Math.max(difference, Math.abs(reference[c] - backdrop[c]));
+        }
+        if (difference <= 1) continue;
+        foregroundPixels += 1;
         minX = Math.min(minX, x);
         minY = Math.min(minY, y);
         maxX = Math.max(maxX, x);
         maxY = Math.max(maxY, y);
         if (Math.hypot(x + 0.5 - centre, y + 0.5 - centre) > safeRadius) {
-          whitePixelsOutsideSafeZone += 1;
+          outsideSafeZone += 1;
         }
       }
     }
@@ -170,9 +190,10 @@ try {
     return {
       dimensions: [bitmap.width, bitmap.height],
       cornerAlpha,
-      whitePixels,
-      whitePixelsOutsideSafeZone,
-      whiteBounds: { minX, minY, maxX, maxY },
+      foregroundPixels,
+      outsideSafeZone,
+      pngMeanError: pngError / (canvas.width * canvas.height * 3),
+      foregroundBounds: { minX, minY, maxX, maxY },
       safeRadius,
     };
   });
@@ -181,7 +202,12 @@ try {
   console.log(JSON.stringify({ screenshotPath, ...metrics }, null, 2));
 
   const fullyOpaque = metrics.cornerAlpha.every((alpha) => alpha === 255);
-  if (!fullyOpaque || metrics.whitePixels === 0 || metrics.whitePixelsOutsideSafeZone !== 0) {
+  if (
+    !fullyOpaque ||
+    metrics.foregroundPixels === 0 ||
+    metrics.outsideSafeZone !== 0 ||
+    metrics.pngMeanError > 3
+  ) {
     console.error("Android maskable-icon audit failed");
     process.exitCode = 1;
   }
