@@ -24,7 +24,7 @@ const result = spawnSync(
     `${source}:/src`,
     "-w",
     "/src",
-    "emscripten/emsdk:7.0.0",
+    "emscripten/emsdk:7.0.1",
     "bash",
     "-lc",
     "emcmake cmake -S . -B .build -DEMSCRIPTEN=ON -DCMAKE_BUILD_TYPE=Release && cmake --build .build --target cloakimg-heif-codec -j4",

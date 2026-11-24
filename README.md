@@ -87,7 +87,7 @@ vp dev       # dev server with hot reload
 
 ### Verification
 
-Run `vp check`, `vp test run`, `npx --yes knip@6.44.2` and `vp run build`. Use the applicable tool, transaction, output and browser suites under `scripts/`; models must remain behind explicit consent. Browser tooling is development-only.
+Run `vp check`, `vp test run`, `npx --yes knip@6.48.0` and `vp run build`. Use the applicable tool, transaction, output and browser suites under `scripts/`; models must remain behind explicit consent. Browser tooling is development-only.
 
 ### Technology
 

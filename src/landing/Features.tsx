@@ -45,15 +45,17 @@ export function Features() {
         <h2 id="toolkit-title">A little adjustment. A new possibility.</h2>
         <ul className="img-capabilities">
           {capabilities.map(({ icon: Icon, title, copy }) => (
-            <li key={title}>
+            <li key={title} data-air-reveal="">
               <Icon size={20} stroke={1.6} aria-hidden="true" />
               <h3>{title}</h3>
               <p>{copy}</p>
+              <span className="air-reveal-veil" aria-hidden="true" />
             </li>
           ))}
         </ul>
       </section>
       <section
+        data-air-reveal=""
         id="id-photo-workflow"
         className="img-section air-page-width img-reading"
         tabIndex={-1}
@@ -67,8 +69,10 @@ export function Features() {
         <a className="air-button air-button--quiet" href="#workbench">
           Prepare an ID photo <I.ArrowRight size={16} aria-hidden="true" />
         </a>
+        <span className="air-reveal-veil" aria-hidden="true" />
       </section>
       <section
+        data-air-reveal=""
         id="privacy-model"
         className="img-section air-page-width img-reading"
         tabIndex={-1}
@@ -83,6 +87,7 @@ export function Features() {
           No account or analytics. Recent files and a working draft can be stored in this browser;
           you can remove them from the start dialog or clear the site’s data.
         </p>
+        <span className="air-reveal-veil" aria-hidden="true" />
       </section>
     </>
   );
