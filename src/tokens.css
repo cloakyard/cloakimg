@@ -170,11 +170,11 @@ label[for] {
   .editor-topbar button:not(.editor-topbar__brand):not(.editor-topbar__file) {
     min-width: 44px;
   }
-  .editor-shell textarea {
+  .editor-shell textarea:not(.air-field) {
     font-size: 1rem;
   }
-  .editor-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-  .cloak-dialog input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  :is(.editor-shell, .cloak-dialog)
+    input:not(.air-field, [type="checkbox"], [type="radio"], [type="range"]) {
     min-height: 44px;
     min-width: 44px;
     font-size: 1rem;

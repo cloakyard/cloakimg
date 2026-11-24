@@ -6,8 +6,10 @@ import pkg from "./package.json" with { type: "json" };
 
 declare const process: { env: Record<string, string | undefined> };
 
+const appBase = process.env.VITE_APP_BASE_PATH || "/";
+
 export default defineConfig({
-  base: process.env.VITE_APP_BASE_PATH || "/",
+  base: appBase,
   resolve: {
     // Transformers.js already loads version-matched ORT WASM from its CDN.
     // Select ORT's supported external-WASM entry so Vite does not also emit
@@ -58,8 +60,8 @@ export default defineConfig({
         background_color: "#fafbfc",
         display: "standalone",
         orientation: "any",
-        scope: process.env.VITE_APP_BASE_PATH || "/",
-        start_url: process.env.VITE_APP_BASE_PATH || "/",
+        scope: appBase,
+        start_url: appBase,
         icons: [
           {
             src: "icons/pwa-64x64.png",
@@ -133,6 +135,10 @@ export default defineConfig({
         },
       },
       workbox: {
+        // Only the editor entry needs an offline app shell, including GET share targets.
+        navigateFallbackAllowlist: [
+          new RegExp(`^${RegExp.escape(appBase)}(?:index\\.html)?(?:\\?|$)`),
+        ],
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         globIgnores: [
           // Modern export codecs are lazy by design. The HEIC WASM is

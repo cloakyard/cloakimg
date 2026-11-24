@@ -5,7 +5,7 @@ import { Footer } from "./Footer";
 
 export function RecoveryPage() {
   return (
-    <div className="img-site img-recovery">
+    <div className="air-page img-site img-recovery">
       <a href="#main" className="air-page-skip air-button">
         Skip to error details
       </a>
