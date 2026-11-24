@@ -60,6 +60,10 @@
   background: transparent;
   box-shadow: none;
 }
+.editor-topbar[data-compact="true"] .editor-topbar__export {
+  min-width: 44px;
+  min-height: 44px;
+}
 .editor-topbar__brand {
   display: flex;
   align-items: center;
